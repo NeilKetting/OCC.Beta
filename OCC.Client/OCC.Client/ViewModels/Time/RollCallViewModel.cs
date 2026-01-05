@@ -40,7 +40,7 @@ namespace OCC.Client.ViewModels.Time
             foreach (var s in staff)
             {
                 var vm = new StaffAttendanceViewModel(s);
-                var existing = existingRecords.FirstOrDefault(r => r.StaffId == s.Id);
+                var existing = existingRecords.FirstOrDefault(r => r.EmployeeId == s.Id);
                 if (existing != null)
                 {
                     vm.Id = existing.Id;
@@ -63,7 +63,7 @@ namespace OCC.Client.ViewModels.Time
                     var record = new AttendanceRecord
                     {
                         Id = item.Id == Guid.Empty ? Guid.NewGuid() : item.Id,
-                        StaffId = item.StaffId,
+                        EmployeeId = item.EmployeeId,
                         Date = Date,
                         Status = item.Status,
                         LeaveReason = item.LeaveReason,

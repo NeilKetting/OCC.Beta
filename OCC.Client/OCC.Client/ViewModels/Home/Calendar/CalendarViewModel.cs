@@ -10,7 +10,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
 {
     public partial class CalendarViewModel : ViewModelBase
     {
-        private readonly IRepository<TaskItem> _taskRepository;
+        private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<Project> _projectRepository;
         private readonly IAuthService _authService;
 
@@ -29,25 +29,25 @@ namespace OCC.Client.ViewModels.Home.Calendar
         [ObservableProperty]
         private CreateTaskPopupViewModel? _createTaskPopup;
 
-        public ObservableCollection<CalendarDayViewModel> Days { get; } = new();
+        [ObservableProperty]
+        private DateTime _currentDate = DateTime.Today;
 
-        public ObservableCollection<string> WeekDays { get; } = new()
-        {
-            "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
-        };
+        [ObservableProperty]
+        private ObservableCollection<CalendarDayViewModel> _days = new();
+
+        [ObservableProperty]
+        private ObservableCollection<string> _weekDays = new() { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+        [ObservableProperty] 
+        private bool _isBusy;
+
+        // Using ProjectTask now
+        [ObservableProperty]
+        private ObservableCollection<ProjectTask> _dayTasks = new();
 
         public CalendarViewModel()
         {
-            _taskRepository = new MockTaskItemRepository();
-            _projectRepository = new MockProjectRepository();
-            _authService = new MockAuthService(new MockUserRepository());
-            CurrentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            GenerateCalendar();
-        }
-
-        public CalendarViewModel(IRepository<TaskItem> taskRepository)
-        {
-            _taskRepository = taskRepository;
+            _taskRepository = new MockProjectTaskRepository();
             // In a real app we'd inject these too, but for now we retain existing constructor signature 
             // and instantiate mocks if needed, or better, we update the constructor
             _projectRepository = new MockProjectRepository();
@@ -57,7 +57,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
         }
         
         // Proper constructor for DI
-        public CalendarViewModel(IRepository<TaskItem> taskRepository, IRepository<Project> projectRepository, IAuthService authService)
+        public CalendarViewModel(IRepository<ProjectTask> taskRepository, IRepository<Project> projectRepository, IAuthService authService)
         {
              _taskRepository = taskRepository;
              _projectRepository = projectRepository;
@@ -236,7 +236,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
             return palette[index];
         }
 
-        private DateTime GetTaskStart(TaskItem t) => (t.PlanedStartDate ?? t.PlanedDueDate ?? DateTime.Today).Date;
-        private DateTime GetTaskEnd(TaskItem t) => (t.PlanedDueDate ?? t.PlanedStartDate ?? DateTime.Today).Date;
+        private DateTime GetTaskStart(ProjectTask t) => t.StartDate.Date;
+        private DateTime GetTaskEnd(ProjectTask t) => t.FinishDate.Date;
     }
 }

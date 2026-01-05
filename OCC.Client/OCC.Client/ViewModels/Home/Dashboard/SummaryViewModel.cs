@@ -9,7 +9,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
     public partial class SummaryViewModel : ViewModelBase
     {
         private readonly IRepository<Project> _projectRepository;
-        private readonly IRepository<TaskItem> _taskRepository;
+        private readonly IRepository<ProjectTask> _taskRepository;
 
         [ObservableProperty]
         private string _totalProjects = "0";
@@ -47,17 +47,17 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         [ObservableProperty]
         private double _completedStartAngle;
 
-        public SummaryViewModel(IRepository<Project> projectRepository, IRepository<TaskItem> taskRepository)
+        public SummaryViewModel(IRepository<Project> projectRepository, IRepository<ProjectTask> taskRepository)
         {
             _projectRepository = projectRepository;
             _taskRepository = taskRepository;
-            LoadSummary();
+            LoadData();
         }
 
         // Design-time ctor
-        public SummaryViewModel() : this(new MockProjectRepository(), new MockTaskItemRepository()) { }
+        public SummaryViewModel() : this(new MockProjectRepository(), new MockProjectTaskRepository()) { }
 
-        private async void LoadSummary()
+        private async void LoadData()
         {
             // Load Projects
             var projects = await _projectRepository.GetAllAsync();
@@ -78,12 +78,12 @@ namespace OCC.Client.ViewModels.Home.Dashboard
             
             InProgressCount = allTasks.Count(t => 
                 !t.ActualCompleteDate.HasValue && 
-                (t.ActualStartDate.HasValue || (t.PlanedStartDate.HasValue && t.PlanedStartDate.Value.Date <= now)));
+                (t.ActualStartDate.HasValue || (t.StartDate.Date <= now)));
 
             NotStartedCount = allTasks.Count(t => 
                 !t.ActualCompleteDate.HasValue && 
                 !t.ActualStartDate.HasValue && 
-                (!t.PlanedStartDate.HasValue || t.PlanedStartDate.Value.Date > now));
+                (t.StartDate.Date > now));
 
             CalculateTimeStatistics(allTasks);
             CalculateChartAngles();
@@ -125,7 +125,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         [ObservableProperty]
         private double _timeEfficiencyPercentage;
 
-        private void CalculateTimeStatistics(System.Collections.Generic.List<TaskItem> allTasks)
+        private void CalculateTimeStatistics(System.Collections.Generic.List<ProjectTask> allTasks)
         {
             double planned = 0;
             double actual = 0;

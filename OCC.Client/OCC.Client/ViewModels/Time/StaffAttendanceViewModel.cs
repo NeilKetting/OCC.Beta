@@ -6,12 +6,12 @@ namespace OCC.Client.ViewModels.Time
 {
     public partial class StaffAttendanceViewModel : ViewModelBase
     {
-        private readonly StaffMember _staff;
+        private readonly Employee _staff;
 
         [ObservableProperty]
         private Guid _id;
 
-        public Guid StaffId => _staff.Id;
+        public Guid EmployeeId => _staff.Id;
         public string Name => _staff.DisplayName;
         public string Role => _staff.Role.ToString();
 
@@ -24,7 +24,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private string? _doctorsNotePath;
 
-        public StaffAttendanceViewModel(StaffMember staff)
+        public StaffAttendanceViewModel(Employee staff)
         {
             _staff = staff;
         }

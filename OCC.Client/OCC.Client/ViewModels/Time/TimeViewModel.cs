@@ -81,6 +81,7 @@ namespace OCC.Client.ViewModels.Time
             }
 
             CalculateTotals();
+            await Task.CompletedTask;
         }
 
         private void CalculateTotals()
@@ -107,10 +108,25 @@ namespace OCC.Client.ViewModels.Time
             WeekStarting = WeekStarting?.AddDays(7);
         }
 
+        [ObservableProperty]
+        private bool _isRollCallVisible = false;
+
+        [ObservableProperty]
+        private RollCallViewModel? _currentRollCall;
+
         [RelayCommand]
         private void OpenRollCall()
         {
-            WeakReferenceMessenger.Default.Send(new SwitchTabMessage("RollCall"));
+            CurrentRollCall = new RollCallViewModel(_timeService);
+            CurrentRollCall.CloseRequested += (s, e) => CloseRollCall();
+            IsRollCallVisible = true;
+        }
+
+        [RelayCommand]
+        private void CloseRollCall()
+        {
+            IsRollCallVisible = false;
+            CurrentRollCall = null;
         }
 
         partial void OnWeekStartingChanged(DateTimeOffset? value)

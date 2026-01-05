@@ -28,14 +28,7 @@
                         <PathIcon Data="{StaticResource IconPortfolio}" Classes="IconStyle" Width="16" Height="16"/>
 					    <TextBlock Text="PROJECT SUMMARY" VerticalAlignment="Center"/>
                     </StackPanel>
-				</Button>
-
-                <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Team Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Team Summary'}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <PathIcon Data="{StaticResource IconTeam}" Classes="IconStyle" Width="16" Height="16"/>
-                        <TextBlock Text="TEAM SUMMARY" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+				</Button>                
 
 				<Separator Background="{DynamicResource BorderGray}" Width="1" Height="24" VerticalAlignment="Center" Margin="5,0"/>
 

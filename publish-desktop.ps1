@@ -34,7 +34,7 @@ if (-not (Test-Path $ReleaseDir)) { New-Item -ItemType Directory -Path $ReleaseD
 # -e : Main executable name
 # --releaseDir : Output directory (defaults to Releases)
 
-vpk pack -u "OCC.Client" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" --releaseDir $ReleaseDir
+vpk pack -u "OCC.Client" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" -o $ReleaseDir
 
 Write-Host "--------------------------------------------------------"
 Write-Host "Release created in $ReleaseDir"

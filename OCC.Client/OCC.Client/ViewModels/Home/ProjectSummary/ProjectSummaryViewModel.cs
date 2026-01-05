@@ -17,7 +17,7 @@ namespace OCC.Client.ViewModels.Home.ProjectSummary
 
         [ObservableProperty]
         private double _totalCost = 0;
-        private readonly IRepository<TaskItem> _taskRepository;
+        private readonly IRepository<ProjectTask> _taskRepository;
 
         [ObservableProperty]
         private int _notStartedCount;
@@ -55,7 +55,7 @@ namespace OCC.Client.ViewModels.Home.ProjectSummary
         public ObservableCollection<PortfolioProjectItem> Projects { get; } = new();
         public ObservableCollection<TeamPulseItem> TeamPulse { get; } = new();
 
-        public ProjectSummaryViewModel(IRepository<TaskItem> taskRepository)
+        public ProjectSummaryViewModel(IRepository<ProjectTask> taskRepository)
         {
             _taskRepository = taskRepository;
 
@@ -79,7 +79,7 @@ namespace OCC.Client.ViewModels.Home.ProjectSummary
         }
 
         // Temporary zero-argument constructor for XAML preview/design time
-        public ProjectSummaryViewModel() : this(new MockTaskItemRepository()) { }
+        public ProjectSummaryViewModel() : this(new MockProjectTaskRepository()) { }
 
         private async void LoadTaskStatistics()
         {
@@ -92,20 +92,20 @@ namespace OCC.Client.ViewModels.Home.ProjectSummary
             var now = DateTime.Now.Date;
             
             // Logic: 
-            // Completed: ActualCompleteDate has value
-            // In Progress: No CompleteDate, but ActualStartDate has value OR PlanedStartDate <= Today
-            // Not Started: Everything else (PlanedStartDate > Today and no ActualStartDate)
+            // Completed: ActualCompleteDate has value OR Status == "Completed"
+            // In Progress: No CompleteDate, but (ActualStartDate has value OR StartDate <= Today)
+            // Not Started: Everything else (StartDate > Today and no ActualStartDate)
             
-            CompletedCount = allTasks.Count(t => t.ActualCompleteDate.HasValue);
+            CompletedCount = allTasks.Count(t => t.ActualCompleteDate.HasValue || t.Status == "Completed"); // Added Status check as ProjectTask uses Status
             
             InProgressCount = allTasks.Count(t => 
-                !t.ActualCompleteDate.HasValue && 
-                (t.ActualStartDate.HasValue || (t.PlanedStartDate.HasValue && t.PlanedStartDate.Value.Date <= now)));
+                !t.ActualCompleteDate.HasValue && t.Status != "Completed" &&
+                (t.ActualStartDate.HasValue || t.StartDate.Date <= now));
 
             NotStartedCount = allTasks.Count(t => 
-                !t.ActualCompleteDate.HasValue && 
+                !t.ActualCompleteDate.HasValue && t.Status != "Completed" &&
                 !t.ActualStartDate.HasValue && 
-                (!t.PlanedStartDate.HasValue || t.PlanedStartDate.Value.Date > now));
+                t.StartDate.Date > now);
 
             CalculateChartAngles();
         }

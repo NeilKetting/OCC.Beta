@@ -17,7 +17,7 @@
 					<TextBlock Text="Daily Roll-Call" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
 					<TextBlock Text="{Binding Date, StringFormat='{}{0:dddd, dd MMMM yyyy}'}" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12"/>
 				</StackPanel>
-				<Button Grid.Column="1" Command="{Binding CancelCommand}" Classes="IconButton">
+				<Button Grid.Column="1" Command="{Binding CancelCommand}" Classes="Close">
 					<PathIcon Data="{StaticResource IconClose}" Width="14" Height="14"/>
 				</Button>
 			</Grid>

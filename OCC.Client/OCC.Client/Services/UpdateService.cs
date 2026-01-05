@@ -8,7 +8,7 @@ namespace OCC.Client.Services
     public class UpdateService : IUpdateService
     {
         private readonly UpdateManager? _mgr;
-        private readonly string _updateUrl = "https://github.com/YourUser/YourRepo/releases"; // TODO: This needs to be configured!
+        private readonly string _updateUrl = "https://github.com/NeilKetting/OrangeCircleConstruction";
 
         public string CurrentVersion
         {
@@ -41,7 +41,15 @@ namespace OCC.Client.Services
                 // but UpdateManager constructor itself usually is just setup.
                 // The actual check throws if no local package.
                 
-                 _mgr = new UpdateManager(new SimpleWebSource(_updateUrl));
+                 // We detect if it's a GitHub URL and use the proper source
+                 if (_updateUrl.Contains("github.com"))
+                 {
+                     _mgr = new UpdateManager(new GithubSource(_updateUrl, null, false));
+                 }
+                 else
+                 {
+                     _mgr = new UpdateManager(new SimpleWebSource(_updateUrl));
+                 }
             }
             catch (Exception)
             {

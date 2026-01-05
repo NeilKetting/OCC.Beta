@@ -10,7 +10,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
 {
     public partial class CreateTaskPopupViewModel : ViewModelBase
     {
-        private readonly IRepository<TaskItem> _taskRepository;
+        private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<Project> _projectRepository;
         private readonly IAuthService _authService;
 
@@ -36,7 +36,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
         public ObservableCollection<Project> Projects { get; } = new();
 
         public CreateTaskPopupViewModel(
-            IRepository<TaskItem> taskRepository,
+            IRepository<ProjectTask> taskRepository,
             IRepository<Project> projectRepository,
             IAuthService authService)
         {
@@ -45,10 +45,13 @@ namespace OCC.Client.ViewModels.Home.Calendar
             _authService = authService;
             CurrentUser = _authService.CurrentUser;
             
-            LoadProjects();
+            CurrentUser = _authService.CurrentUser;
+            // LoadProjects should be called by the parent/caller to avoid async void constructor issues
+            // and concurrent EF Core usage.
+            // _ = LoadProjects(); 
         }
 
-        private async void LoadProjects()
+        public async Task LoadProjects()
         {
             var projects = await _projectRepository.GetAllAsync();
             Projects.Clear();
@@ -68,13 +71,13 @@ namespace OCC.Client.ViewModels.Home.Calendar
         {
             if (string.IsNullOrWhiteSpace(Name)) return;
 
-            var newTask = new TaskItem
+            var newTask = new ProjectTask
             {
                 Name = Name,
                 Type = SelectedType,
-                ProjectId = SelectedProject?.Id,
-                PlanedDueDate = DueDate,
-                PlanedStartDate = DueDate // Default start to due date for now
+                ProjectId = SelectedProject?.Id ?? Guid.Empty,
+                FinishDate = DueDate,
+                StartDate = DueDate // Default start to due date for now
             };
 
             await _taskRepository.AddAsync(newTask);

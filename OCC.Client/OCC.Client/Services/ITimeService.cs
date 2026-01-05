@@ -11,6 +11,6 @@ namespace OCC.Client.Services
         Task SaveTimeRecordAsync(TimeRecord record);
         Task<IEnumerable<AttendanceRecord>> GetDailyAttendanceAsync(DateTime date);
         Task SaveAttendanceRecordAsync(AttendanceRecord record);
-        Task<IEnumerable<StaffMember>> GetAllStaffAsync();
+        Task<IEnumerable<Employee>> GetAllStaffAsync();
     }
 }

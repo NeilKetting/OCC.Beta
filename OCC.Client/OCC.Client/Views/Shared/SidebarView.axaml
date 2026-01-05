@@ -60,33 +60,83 @@
 					<Button Classes="SidebarButton" Command="{Binding NavigateCommand}" CommandParameter="Time">
 						<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 							<PathIcon Data="{StaticResource IconTime}" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Time}"/>
-							<TextBlock Text="Time" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Time}"/>
+							<TextBlock Text="Time &amp; Attendance" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Time}"/>
 						</StackPanel>
 					</Button>
 
 					<Button Classes="SidebarButton" Command="{Binding NavigateCommand}" CommandParameter="Team">
 						<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 							<PathIcon Data="{StaticResource IconTeam}" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Team}"/>
-							<TextBlock Text="Team" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Team}"/>
+							<TextBlock Text="Staff Management" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Team}"/>
 						</StackPanel>
 					</Button>
 
-					<Button Classes="SidebarButton" Command="{Binding NavigateCommand}" CommandParameter="Portfolio">
+					<Button Classes="SidebarButton" Command="{Binding ToggleProjectsCommand}">
 						<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 							<PathIcon Data="{StaticResource IconPortfolio}" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Portfolio}"/>
 							<TextBlock Text="Projects" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{Binding ActiveSection, Converter={x:Static conv:SidebarConverters.ActiveColor}, ConverterParameter=Portfolio}"/>
-							<PathIcon Data="{StaticResource IconChevronRight}" Width="12" Height="12" HorizontalAlignment="Right" IsVisible="{Binding !IsCollapsed}"/>
+                            
+                            <!-- Chevron that rotates -->
+							<PathIcon Data="{StaticResource IconChevronDown}" 
+                                      Width="10" Height="10" 
+                                      HorizontalAlignment="Right" 
+                                      IsVisible="{Binding !IsCollapsed}" 
+                                      Margin="0,2,0,0">
+                                <PathIcon.RenderTransform>
+                                    <RotateTransform Angle="{Binding IsProjectsExpanded, Converter={x:Static conv:SidebarConverters.BoolToRotation}, FallbackValue=0}"/>
+                                </PathIcon.RenderTransform>
+                            </PathIcon>
 						</StackPanel>
 					</Button>
+
+                    <!-- Collapsible Section -->
+                    <StackPanel IsVisible="{Binding IsProjectsExpanded}" Margin="20,0,0,0">
+                        
+                        <!-- Search Bar -->
+                        <TextBox Classes="FormInput" 
+                                 Watermark="Search..." 
+                                 Text="{Binding ProjectSearchText}"
+                                 Height="30"
+                                 FontSize="12"
+                                 Margin="10,0,10,5"
+                                 Padding="8,5"
+                                 IsVisible="{Binding !IsCollapsed}"/>
+
+                        <!-- Projects List (Scrollable & Tree-like) -->
+                        <ScrollViewer MaxHeight="300" IsVisible="{Binding !IsCollapsed}" Margin="0,0,0,10">
+                            <ItemsControl ItemsSource="{Binding Projects}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="SidebarButton" 
+                                                Command="{Binding $parent[UserControl].((vm:SidebarViewModel)DataContext).NavigateToProjectCommand}" 
+                                                CommandParameter="{Binding}"
+                                                Padding="10,8"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Left"
+                                                Margin="10,1">
+                                            <Grid ColumnDefinitions="Auto, *">
+                                                 <!-- Tree Line -->
+                                                <Border Grid.Column="0" Width="1" Background="{DynamicResource BorderGray}" HorizontalAlignment="Left" Margin="12,-15,0,-15"/>
+                                                <Border Grid.Column="0" Width="10" Height="1" Background="{DynamicResource BorderGray}" HorizontalAlignment="Left" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                                                
+                                                <!-- Project Name -->
+                                                <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10,0,0,0" FontSize="13" Foreground="{DynamicResource TextSecondaryGray}"/>
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
 				</StackPanel>
 			</ScrollViewer>
 
 			<!-- Bottom section -->
 			<StackPanel Grid.Row="2" Margin="0,10">
 
-			<Button Classes="SidebarButton" Foreground="{DynamicResource TextSecondaryGray}">
+			<Button x:Name="ActionsButton" Classes="SidebarButton" Foreground="{DynamicResource TextSecondaryGray}">
 				<Button.Flyout>
-					<Flyout FlyoutPresenterClasses="SidebarFlyout" Placement="RightEdgeAlignedBottom" HorizontalOffset="10">
+					<Flyout IsOpen="{Binding IsQuickActionsOpen, Mode=TwoWay}" FlyoutPresenterClasses="SidebarFlyout" Placement="RightEdgeAlignedBottom" HorizontalOffset="10">
 						<local:QuickActionsMenuView/>
 					</Flyout>
 				</Button.Flyout>
@@ -103,7 +153,23 @@
 					</StackPanel>
 				</Button>
 
-                <!-- Action Feedback Display -->
+				<Button x:Name="SettingsButton" Classes="SidebarButton" Padding="0" HorizontalAlignment="Stretch">
+					<Button.Flyout>
+						<Flyout IsOpen="{Binding IsSettingsOpen, Mode=TwoWay}" FlyoutPresenterClasses="SidebarFlyout" Placement="RightEdgeAlignedBottom" HorizontalOffset="10">
+							<local:SettingsMenuView/>
+						</Flyout>
+					</Button.Flyout>
+					<Grid ColumnDefinitions="Auto, *" Margin="20,15">
+						<Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource PrimaryTeal}">
+							<TextBlock Text="{Binding UserInitials}" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<TextBlock Grid.Column="1" Text="{Binding UserEmail}" IsVisible="{Binding !IsCollapsed}"
+								   VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"
+								   Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
+					</Grid>
+				</Button>
+
+				 <!-- Action Feedback Display -->
 				<TextBlock Text="{Binding LastActionMessage}"
 						   FontSize="11"
 						   Foreground="{DynamicResource TextTertiarySlate}"
@@ -133,22 +199,6 @@
                             BorderThickness="0"
                             Foreground="{DynamicResource AccentOrange}"/>
                 </StackPanel>
-
-				<Button Classes="SidebarButton" Padding="0" HorizontalAlignment="Stretch">
-					<Button.Flyout>
-						<Flyout FlyoutPresenterClasses="SidebarFlyout" Placement="RightEdgeAlignedBottom" HorizontalOffset="10">
-							<local:SettingsMenuView/>
-						</Flyout>
-					</Button.Flyout>
-					<Grid ColumnDefinitions="Auto, *" Margin="20,15">
-						<Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource PrimaryTeal}">
-							<TextBlock Text="{Binding UserInitials}" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<TextBlock Grid.Column="1" Text="{Binding UserEmail}" IsVisible="{Binding !IsCollapsed}"
-								   VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"
-								   Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
-					</Grid>
-				</Button>
 			</StackPanel>
 		</Grid>
 	</Border>

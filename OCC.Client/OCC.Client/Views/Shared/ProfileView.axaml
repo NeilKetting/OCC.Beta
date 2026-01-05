@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Shared"
+			 mc:Ignorable="d"
+			 x:Class="OCC.Client.Views.Shared.ProfileView"
+			 x:DataType="vm:ProfileViewModel">
+
+	<!-- Styles for Input Fields -->
+	<UserControl.Styles>
+		<Style Selector="TextBlock.FieldLabel">
+			<Setter Property="Foreground" Value="#64748B"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,10,0,5"/>
+		</Style>
+		<Style Selector="TextBox.ProfileInput">
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderBrush" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="Padding" Value="10,6"/>
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="MinHeight" Value="36"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="TextBox.ProfileInput:pointerover /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="#F8FAFC"/>
+			<Setter Property="BorderBrush" Value="#E2E8F0"/>
+		</Style>
+		<Style Selector="TextBox.ProfileInput:focus /template/ Border#PART_BorderElement">
+			<Setter Property="Background" Value="#FFFFFF"/>
+			<Setter Property="BorderBrush" Value="#E2E8F0"/>
+		</Style>
+
+		<Style Selector="ComboBox.ProfileCombo">
+			<Setter Property="Background" Value="#F8FAFC"/>
+			<Setter Property="BorderBrush" Value="#E2E8F0"/>
+			<Setter Property="CornerRadius" Value="4"/>
+			<Setter Property="Padding" Value="10,6"/>
+			<Setter Property="HorizontalAlignment" Value="Stretch"/>
+		</Style>
+	</UserControl.Styles>
+
+	<Border Background="#F1F5F9" CornerRadius="8" BoxShadow="0 10 30 0 #40000000" Width="400" Height="450">
+		<Grid RowDefinitions="*, Auto">
+
+			<ScrollViewer Grid.Row="0">
+				<StackPanel Margin="10">
+					<!-- Header Section -->
+					<Grid ColumnDefinitions="Auto, *" Margin="0,0,0,20">
+						<!-- Avatar -->
+						<Grid Width="100" Height="100">
+							<Ellipse Fill="#00897B"/>
+							<TextBlock Text="{Binding Initials}" FontSize="40" Foreground="#FFFFFF" Opacity="0.5"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="EDIT" FontSize="14" Foreground="White" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Grid>
+
+						<!-- User Details -->
+						<StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+							<TextBlock Text="{Binding Email}" FontSize="18" FontWeight="Bold" Foreground="#1E293B"/>
+							<TextBlock Text="{Binding LastName}" FontSize="14" Foreground="#64748B" Margin="0,5,0,5"/>
+
+							<TextBlock Text="{Binding Email}" FontSize="14" Foreground="#1E293B"/>
+							<Button Command="{Binding EditEmailCommand}" Content="Edit email address"
+									Background="Transparent" Foreground="#00BFA5" BorderThickness="0"
+									Padding="0" Margin="0,5,0,0" HorizontalAlignment="Left" FontSize="13"/>
+
+							<Button Command="{Binding ResetPasswordCommand}" Content="Reset password"
+									Background="Transparent" Foreground="#00BFA5" BorderThickness="0"
+									Padding="0" Margin="0,5,0,0" HorizontalAlignment="Left" FontSize="13"/>
+
+							<!-- Moved Location Here -->
+							<TextBox Classes="ProfileInput" Text="{Binding Location}" Watermark="Gauteng, South Africa" Margin="-10,5,0,0"/>
+							<TextBox Classes="ProfileInput" Text="{Binding Phone}" Watermark="Phone"
+									HorizontalAlignment="Left" Margin="-8,5,0,0"/>
+
+					</StackPanel>
+					</Grid>
+
+
+					<!-- Divider -->
+					<Border Height="1" Background="#E2E8F0" Margin="0,20"/>
+
+					<!-- Bottom Inputs -->
+					<Grid RowDefinitions="Auto" ColumnDefinitions="150, *">
+
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="USER ROLE" Classes="FieldLabel"/>
+						<ComboBox Grid.Row="0" Grid.Column="1" Classes="ProfileCombo"
+								  ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" Margin="0,5"/>
+
+					</Grid>
+				</StackPanel>
+			</ScrollViewer>
+
+			<!-- Footer -->
+			<Grid Grid.Row="1" Background="Transparent" Margin="0,0,0,30">
+				<Button Command="{Binding DoneCommand}" Content="Done"
+						Background="#C0E800" Foreground="#1E293B" FontWeight="SemiBold"
+						Padding="30,10" HorizontalAlignment="Center" CornerRadius="4"/>
+			</Grid>
+		</Grid>
+	</Border>
+</UserControl>

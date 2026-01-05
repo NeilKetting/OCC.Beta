@@ -9,12 +9,12 @@ namespace OCC.Client.Services
     {
         private readonly IRepository<TimeRecord> _timeRepository;
         private readonly IRepository<AttendanceRecord> _attendanceRepository;
-        private readonly IRepository<StaffMember> _staffRepository;
+        private readonly IRepository<Employee> _staffRepository;
 
         public TimeService(
             IRepository<TimeRecord> timeRepository,
             IRepository<AttendanceRecord> attendanceRepository,
-            IRepository<StaffMember> staffRepository)
+            IRepository<Employee> staffRepository)
         {
             _timeRepository = timeRepository;
             _attendanceRepository = attendanceRepository;
@@ -58,7 +58,7 @@ namespace OCC.Client.Services
             }
         }
 
-        public async Task<IEnumerable<StaffMember>> GetAllStaffAsync()
+        public async Task<IEnumerable<Employee>> GetAllStaffAsync()
         {
             return await _staffRepository.GetAllAsync();
         }

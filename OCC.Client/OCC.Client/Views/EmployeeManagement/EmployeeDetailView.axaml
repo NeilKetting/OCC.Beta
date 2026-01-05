@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:OCC.Client.ViewModels.EmployeeManagement"
+             xmlns:conv="clr-namespace:OCC.Client.Converters"
+			 mc:Ignorable="d"
+			 x:Class="OCC.Client.Views.EmployeeManagement.EmployeeDetailView"
+			 x:DataType="vm:EmployeeDetailViewModel">
+
+	<Border Background="{DynamicResource SurfaceWhite}" CornerRadius="8" BoxShadow="0 10 30 0 #33000000"
+			VerticalAlignment="Center" HorizontalAlignment="Center">
+		<Grid RowDefinitions="Auto, Auto, Auto, Auto">
+
+			<!-- Header -->
+			<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,15">
+				<TextBlock Text="{Binding Title}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+				<Button Grid.Column="1" Classes="Close" Command="{Binding CancelCommand}">
+					<PathIcon Data="{StaticResource IconClose}" Width="14" Height="14"/>
+				</Button>
+			</Grid>
+
+			<Separator Grid.Row="1" Background="{DynamicResource BorderGray}" Height="1" Margin="0"/>
+            <!-- ... -->
+			<!-- Button Footer -->
+			<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="0,20,0,0">
+				<Button Classes="Primary" Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}"
+						Width="120" Background="{DynamicResource ButtonLimeGreenBackground}" Foreground="Black" FontWeight="Bold"
+						CornerRadius="0"/>
+
+				<Button Classes="Primary" Content="Cancel" Command="{Binding CancelCommand}" Width="100" Background="#D1D5DB"
+						Foreground="Black" HorizontalContentAlignment="Center"
+						VerticalContentAlignment="Center" CornerRadius="0" FontWeight="SemiBold"/>
+			</StackPanel>
+		</Grid>
+	</Border>
+</UserControl>

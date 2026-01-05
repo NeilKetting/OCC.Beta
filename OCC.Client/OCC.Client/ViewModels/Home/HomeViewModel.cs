@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Home.Dashboard;
@@ -8,10 +9,13 @@ using OCC.Client.ViewModels.Home.Tasks;
 using OCC.Client.ViewModels.Home.Shared;
 using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Time;
-using OCC.Client.ViewModels.Team;
+// using OCC.Client.ViewModels.StaffManagement;
 using OCC.Client.ViewModels.Projects;
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Shared;
+using OCC.Client.ViewModels.Messages;
+using OCC.Client.ViewModels.Settings;
+
 
 namespace OCC.Client.ViewModels.Home
 {
@@ -19,10 +23,15 @@ namespace OCC.Client.ViewModels.Home
     {
         private readonly IAuthService _authService;
         private readonly ITimeService _timeService;
-        private readonly IRepository<TaskItem> _projectTaskRepository;
-
-        [ObservableProperty]
-        private SidebarViewModel _sidebar;
+        private readonly IRepository<ProjectTask> _projectTaskRepository;
+        private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<Customer> _customerRepository;
+        private readonly IRepository<ProjectTask> _projectTaskModelRepository;
+        private readonly IRepository<AppSetting> _appSettingsRepository;
+        private readonly IRepository<Employee> _staffRepository;
+        private readonly IRepository<TaskAssignment> _taskAssignmentRepository;
+        private readonly IRepository<TaskComment> _commentRepository;
+        private readonly IRepository<User> _userRepository;
 
         [ObservableProperty]
         private TopBarViewModel _topBar;
@@ -41,6 +50,10 @@ namespace OCC.Client.ViewModels.Home
 
         [ObservableProperty]
         private TeamSummaryViewModel _teamSummary;
+        
+        // Dashboard Visibility Logic
+        [ObservableProperty]
+        private bool _isDashboardVisible = true;
 
         [ObservableProperty]
         private bool _isMySummaryVisible = true;
@@ -52,117 +65,61 @@ namespace OCC.Client.ViewModels.Home
         private bool _isProjectSummaryVisible = false;
 
         [ObservableProperty]
-        private TaskListViewModel _listViewModel;
-
-        [ObservableProperty]
         private string _greeting = string.Empty;
 
         [ObservableProperty]
         private string _currentDate = DateTime.Now.ToString("dd MMMM yyyy");
 
-        [ObservableProperty]
-        private Calendar.CalendarViewModel _calendar;
+        public bool IsTopBarVisible => true; // Always visible on Dashboard for now
 
-        [ObservableProperty]
-        private Time.TimeViewModel _time;
-
-        [ObservableProperty]
-        private TeamViewModel _team;
-
-        [ObservableProperty]
-        private ProjectsViewModel _projects;
-
-        [ObservableProperty]
-        private NotificationsViewModel _notifications;
-
-        [ObservableProperty]
-        private bool _isDashboardVisible = true;
-
-        [ObservableProperty]
-        private bool _isListVisible = false;
-
-        [ObservableProperty]
-        private bool _isCalendarVisible = false;
-
-        [ObservableProperty]
-        private bool _isTimeVisible = false;
-
-        [ObservableProperty]
-        private bool _isTeamVisible = false;
-
-        [ObservableProperty]
-        private bool _isProjectsVisible = false;
-
-        [ObservableProperty]
-        private bool _isNotificationsVisible = false;
-
-        [ObservableProperty]
-        private bool _isTaskDetailVisible = false;
-
-        [ObservableProperty]
-        private TaskDetailViewModel? _currentTaskDetail;
-
-        [ObservableProperty]
-        private bool _isRollCallVisible = false;
-
-        [ObservableProperty]
-        private RollCallViewModel? _currentRollCall;
-
-        public bool IsTopBarVisible => Sidebar.ActiveSection == "Home";
-
-        public HomeViewModel(SidebarViewModel sidebar, 
-                             TopBarViewModel topBar, 
+        public HomeViewModel(TopBarViewModel topBar, 
                              SummaryViewModel mySummary, 
                              TasksWidgetViewModel myTasks, 
                              PulseViewModel projectPulse,
                              ProjectSummaryViewModel projectSummary,
-                             TaskListViewModel listViewModel,
                              IAuthService authService,
                              ITimeService timeService,
-                             IRepository<TaskItem> projectTaskRepository,
-                             IRepository<Project> projectRepository)
+                             IRepository<ProjectTask> projectTaskRepository,
+                             IRepository<Project> projectRepository,
+                             IRepository<Customer> customerRepository,
+                             IRepository<ProjectTask> projectTaskModelRepository,
+                             IRepository<AppSetting> appSettingsRepository,
+                             IRepository<Employee> staffRepository,
+                             IRepository<TaskAssignment> taskAssignmentRepository,
+                             IRepository<TaskComment> commentRepository,
+                              IRepository<User> userRepository)
         {
             _authService = authService;
             _timeService = timeService;
             _projectTaskRepository = projectTaskRepository;
-            Sidebar = sidebar;
+            _projectRepository = projectRepository;
+            _customerRepository = customerRepository;
+            _projectTaskModelRepository = projectTaskModelRepository;
+            _appSettingsRepository = appSettingsRepository;
+            _staffRepository = staffRepository;
+            _taskAssignmentRepository = taskAssignmentRepository;
+            _commentRepository = commentRepository;
+            _userRepository = userRepository;
             TopBar = topBar;
             MySummary = mySummary;
             MyTasks = myTasks;
             ProjectPulse = projectPulse;
             ProjectSummary = projectSummary;
-            ListViewModel = listViewModel;
-            
-            // Initialize Calendar and Time
-            Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, projectRepository, _authService);
-            Time = new TimeViewModel(timeService, _authService);
-            Team = new TeamViewModel();
-            Projects = new ProjectsViewModel();
             TeamSummary = new TeamSummaryViewModel();
-            Notifications = new NotificationsViewModel();
-            
-            // Subscribe to list selection
-            ListViewModel.TaskSelectionRequested += (s, e) => OpenTaskDetail(Guid.Parse(e));
 
-            Sidebar.PropertyChanged += Sidebar_PropertyChanged;
+            WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
+            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup());
+
             TopBar.PropertyChanged += TopBar_PropertyChanged;
 
             Initialize();
         }
 
-        private async void Initialize()
+        private void Initialize()
         {
             var now = DateTime.Now;
             Greeting = GetGreeting(now);
             CurrentDate = now.ToString("dd MMMM yyyy");
-        }
-
-        private void Sidebar_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SidebarViewModel.ActiveSection))
-            {
-                OnPropertyChanged(nameof(IsTopBarVisible));
-            }
         }
 
         private void TopBar_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -175,73 +132,38 @@ namespace OCC.Client.ViewModels.Home
 
         private void UpdateVisibility()
         {
-            IsDashboardVisible = false;
-            IsListVisible = false;
-            IsCalendarVisible = false;
-            IsTimeVisible = false;
-            IsTeamVisible = false;
-            IsProjectsVisible = false;
-            IsNotificationsVisible = false;
+            // Reset all
             IsMySummaryVisible = false;
             IsTeamSummaryVisible = false;
             IsProjectSummaryVisible = false;
 
+            // Only care about tabs relevant to Dashboard
             switch (TopBar.ActiveTab)
             {
-                case "List":
-                    IsListVisible = true;
-                    break;
-                case "Calendar":
-                    IsCalendarVisible = true;
-                    break;
-                case "Time":
-                    IsTimeVisible = true;
-                    break;
-                case "Team":
-                    IsTeamVisible = true;
-                    break;
-                case "Projects":
-                    IsProjectsVisible = true;
-                    break;
-                case "Notifications":
-                    IsNotificationsVisible = true;
-                    break;
-                case "RollCall":
-                    OpenRollCall();
-                    break;
-                case "Portfolio Summary": // Keeping the key string as "Portfolio Summary" to match TopBar for now, unless we change TopBar too. 
-                // User asked to name it "project" from the mockup name "portfolio". The mockup says "Portfolio Summary". 
-                // Wait, "The mockup names it portfolio but we will name it project".
-                // So I should rename the Tab in TopBar too.
-                // Assuming I will change TopBar key to "Project Summary".
+                case "Portfolio Summary": 
                 case "Project Summary":
-                    IsDashboardVisible = true;
                     IsProjectSummaryVisible = true;
                     break;
                 case "Team Summary":
-                    IsDashboardVisible = true;
                     IsTeamSummaryVisible = true;
                     break;
                 case "My Summary":
                 default:
-                    if (TopBar.ActiveTab == "My Summary" || TopBar.ActiveTab == "Team Summary")
-                    {
-                         IsDashboardVisible = true;
-                         IsMySummaryVisible = true;
-                    }
-                    else 
-                    {
-                        IsDashboardVisible = true;
-                        IsMySummaryVisible = true;
-                    }
+                    IsMySummaryVisible = true;
                     break;
             }
         }
 
+        [ObservableProperty]
+        private bool _isTaskDetailVisible = false;
+
+        [ObservableProperty]
+        private TaskDetailViewModel? _currentTaskDetail;
+
         [RelayCommand]
         private void OpenTaskDetail(Guid taskId)
         {
-            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository);
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _taskAssignmentRepository, _commentRepository);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
             CurrentTaskDetail.LoadTaskById(taskId);
             IsTaskDetailVisible = true;
@@ -254,6 +176,18 @@ namespace OCC.Client.ViewModels.Home
             CurrentTaskDetail = null;
         }
 
+        private async void CreateNewTask()
+        {
+            var newTask = new ProjectTask
+            {
+                Name = "New Task",
+                Description = "",
+            };
+
+            await _projectTaskRepository.AddAsync(newTask);
+            OpenTaskDetail(newTask.Id);
+        }
+
         private string GetGreeting(DateTime time)
         {
             string timeGreeting = time.Hour < 12 ? "Good morning" :
@@ -263,19 +197,55 @@ namespace OCC.Client.ViewModels.Home
             return $"{timeGreeting}, {userName}";
         }
 
-        [RelayCommand]
-        private void OpenRollCall()
+
+        
+        [ObservableProperty]
+        private bool _isNewTaskPopupVisible = false;
+
+        [ObservableProperty]
+        private NewTaskPopupViewModel? _newTaskPopup;
+
+        private void OpenNewTaskPopup()
         {
-            CurrentRollCall = new RollCallViewModel(_timeService);
-            CurrentRollCall.CloseRequested += (s, e) => CloseRollCall();
-            IsRollCallVisible = true;
+           NewTaskPopup = new NewTaskPopupViewModel(_projectTaskRepository, _projectRepository, _authService);
+           _ = NewTaskPopup.LoadData();
+           
+           NewTaskPopup.CloseRequested += (s, e) => CloseNewTaskPopup();
+           IsNewTaskPopupVisible = true;
         }
 
-        [RelayCommand]
-        private void CloseRollCall()
+        private void CloseNewTaskPopup()
         {
-            IsRollCallVisible = false;
-            CurrentRollCall = null;
+            IsNewTaskPopupVisible = false;
+            NewTaskPopup = null;
+        }
+
+        [ObservableProperty]
+        private bool _isCreateProjectVisible;
+
+        [ObservableProperty]
+        private CreateProjectViewModel? _createProjectVM;
+
+        private void OpenCreateProject()
+        {
+            CreateProjectVM = new CreateProjectViewModel(_projectRepository, _customerRepository, _projectTaskModelRepository, _appSettingsRepository, _staffRepository);
+            CreateProjectVM.CloseRequested += (s, e) => CloseCreateProject();
+            CreateProjectVM.ProjectCreated += ProjectCreatedHandler;
+            IsCreateProjectVisible = true;
+        }
+
+        private void CloseCreateProject()
+        {
+            IsCreateProjectVisible = false;
+            CreateProjectVM = null;
+        }
+
+        private void ProjectCreatedHandler(object? sender, Guid projectId)
+        {
+            WeakReferenceMessenger.Default.Send(new ProjectCreatedMessage(new Project { Id = projectId })); // Sidebar listens to this
+            // We can't navigate to Projects tab from here anymore as we are decoupled.
+            // But we can send a message. Sidebar listens for 'ProjectCreatedMessage' but maybe we need a 'NavigateToProjectMessage'.
+             WeakReferenceMessenger.Default.Send(new ProjectSelectedMessage(new Project { Id = projectId })); // Or similar
         }
     }
 }

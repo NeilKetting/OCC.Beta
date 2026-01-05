@@ -4,6 +4,7 @@ namespace OCC.Shared.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid TaskId { get; set; }
+        public virtual ProjectTask? ProjectTask { get; set; }
         public string AuthorName { get; set; } = string.Empty;
         public string AuthorEmail { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;

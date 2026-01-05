@@ -11,6 +11,10 @@ namespace OCC.Client.Converters
         public static readonly IValueConverter CollapseWidth = 
             new FuncValueConverter<bool, double>(isCollapsed => isCollapsed ? 70.0 : 250.0);
 
+        // Rotates -90 if NOT expanded (collapsed list), 0 if expanded
+        public static readonly IValueConverter BoolToRotation = 
+            new FuncValueConverter<bool, double>(isExpanded => isExpanded ? 0 : -90);
+
         public static readonly IValueConverter CollapseIcon = 
             new FuncValueConverter<bool, object?>(isCollapsed => 
             {

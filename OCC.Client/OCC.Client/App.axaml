@@ -33,11 +33,15 @@
             <SolidColorBrush x:Key="LoginBackgroundDark">#0f172a</SolidColorBrush>
             <SolidColorBrush x:Key="LoginTextDark">#1e293b</SolidColorBrush>
             <SolidColorBrush x:Key="LoginTextLight">#64748b</SolidColorBrush>
+
+            <!-- Button Colors -->
+            <SolidColorBrush x:Key="ButtonLimeGreenBackground">#A3E635</SolidColorBrush>
         </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://OCC.Client/Styles/AppStyles.axaml" />
     </Application.Styles>
 </Application>

@@ -11,7 +11,7 @@
 	<StackPanel Spacing="10">
 		<TextBlock Text="Project Summary" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 		<Border Classes="WidgetCard">
-			<Grid ColumnDefinitions="*, *" ColumnSpacing="40">
+			<Grid ColumnDefinitions="*,*" ColumnSpacing="40">
 				<!-- Pipeline Chart -->
 					<TextBlock Text="PIPELINE" Classes="LabelSmall" Margin="0,0,0,15"/>
 					<!-- Mock Chart -->
@@ -40,32 +40,7 @@
 								<TextBlock Text="On Hold" FontSize="10" Foreground="{DynamicResource TextSecondaryGray}"/>
 							</StackPanel>
 						</StackPanel>
-					</Grid>
-
-				<!-- Cost/Budget -->
-				<Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="10">
-					<TextBlock Grid.Row="0" Text="COST/BUDGET" Classes="LabelSmall" Margin="0,0,0,15"/>
-					<Grid Grid.Row="1" RowDefinitions="Auto, Auto" RowSpacing="10">
-						<Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
-							<TextBlock Grid.Row="0" Grid.Column="0" Text="Total Budget:" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12"/>
-							<TextBlock Grid.Row="0" Grid.Column="1" Text="R0" FontWeight="Bold" FontSize="12"/>
-
-							<TextBlock Grid.Row="1" Grid.Column="0" Text="Total Cost:" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12"/>
-							<TextBlock Grid.Row="1" Grid.Column="1" Text="R0" FontWeight="Bold" FontSize="12"/>
-						</Grid>
-
-						<!-- Simple Bar -->
-						<Grid Grid.Row="2" Margin="10,0">
-							<Border Height="12" Background="#F1F5F9" CornerRadius="6"/>
-							<Border Height="12" Background="#22C55E" CornerRadius="6" HorizontalAlignment="Left" Width="100"/>
-						</Grid>
-
-						<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="5">
-							<Border Width="8" Height="8" Background="red" CornerRadius="2"/>
-							<TextBlock Text="Total Cost" FontSize="10" Foreground="{DynamicResource TextSecondaryGray}"/>
-						</StackPanel>
-					</Grid>
-				</Grid>
+					</Grid>				
 			</Grid>
 		</Border>
 	</StackPanel>

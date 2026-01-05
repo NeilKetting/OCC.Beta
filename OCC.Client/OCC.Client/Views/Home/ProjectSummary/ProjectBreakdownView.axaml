@@ -22,13 +22,11 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <Grid Grid.Row="0" ColumnDefinitions="3*, 1*, 1*, 1.5*, 1.5*, 1.5*" Background="Transparent" Margin="20,15">
+                <Grid Grid.Row="0" ColumnDefinitions="3*, 1*, 1*, 1.5*" Background="Transparent" Margin="20,15">
                     <TextBlock Grid.Column="0" Text="PROJECT" Classes="LabelSmall"/>
                     <TextBlock Grid.Column="1" Text="TIME" Classes="LabelSmall" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="COST" Classes="LabelSmall" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="3" Text="WORKLOAD" Classes="LabelSmall" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="4" Text="PROGRESS" Classes="LabelSmall" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="5" Text="TOTAL COST" Classes="LabelSmall" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="2" Text="WORKLOAD" Classes="LabelSmall" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="PROGRESS" Classes="LabelSmall" HorizontalAlignment="Center"/>
                 </Grid>
                 <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#E2E8F0" Height="1"/>
 
@@ -37,25 +35,20 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="20,15">
-                                <Grid ColumnDefinitions="3*, 1*, 1*, 1.5*, 1.5*, 1.5*">
+                                <Grid ColumnDefinitions="3*, 1*, 1*, 1.5*">
                                     <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}"/>
                                     
                                     <!-- Time Status -->
                                     <Border Grid.Column="1" Width="8" Height="8" CornerRadius="4" Background="{Binding TimeStatus, Converter={StaticResource StatusToBrushConverter}}" HorizontalAlignment="Center"/>
                                     
-                                    <!-- Cost Status -->
-                                    <Border Grid.Column="2" Width="8" Height="8" CornerRadius="4" Background="{Binding CostStatus, Converter={StaticResource StatusToBrushConverter}}" HorizontalAlignment="Center"/>
-                                    
                                     <!-- Workload Status -->
-                                    <Border Grid.Column="3" Width="8" Height="8" CornerRadius="4" Background="{Binding WorkloadStatus, Converter={StaticResource StatusToBrushConverter}}" HorizontalAlignment="Center"/>
+                                    <Border Grid.Column="2" Width="8" Height="8" CornerRadius="4" Background="{Binding WorkloadStatus, Converter={StaticResource StatusToBrushConverter}}" HorizontalAlignment="Center"/>
                                     
                                     <!-- Progress -->
-                                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Center">
                                          <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" Width="14" Height="14" Foreground="#94A3B8"/>
                                         <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" VerticalAlignment="Center" Foreground="#475569"/>
                                     </StackPanel>
-
-                                    <TextBlock Grid.Column="5" Text="{Binding TotalCost, StringFormat='R{0}'}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{DynamicResource TextPrimaryDark}"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>

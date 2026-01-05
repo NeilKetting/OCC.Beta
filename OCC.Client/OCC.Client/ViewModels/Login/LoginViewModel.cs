@@ -47,8 +47,8 @@ namespace OCC.Client.ViewModels
             else
             {
                 ErrorMessage = null;
-                var homeViewModel = _serviceProvider.GetRequiredService<HomeViewModel>();
-                WeakReferenceMessenger.Default.Send(new NavigationMessage(homeViewModel));
+                var shellViewModel = _serviceProvider.GetRequiredService<ShellViewModel>();
+                WeakReferenceMessenger.Default.Send(new NavigationMessage(shellViewModel));
             }
         }
     }

@@ -8,7 +8,7 @@ namespace OCC.Shared.Models
         
         // Links to either a system User or a StaffMember
         public Guid? UserId { get; set; }
-        public Guid? StaffId { get; set; }
+        public Guid? EmployeeId { get; set; }
         
         public DateTime Date { get; set; }
         public AttendanceStatus Status { get; set; } = AttendanceStatus.Present;

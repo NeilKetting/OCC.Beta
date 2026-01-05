@@ -3,8 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services;
 using OCC.Client.ViewModels.Messages;
+using OCC.Shared.Models;
+using OCC.Client.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OCC.Client.ViewModels.Shared
 {
@@ -32,11 +37,31 @@ namespace OCC.Client.ViewModels.Shared
         [ObservableProperty]
         private string _appVersion = string.Empty;
 
-        public SidebarViewModel(IAuthService authService, IUpdateService updateService, IServiceProvider serviceProvider)
+        [ObservableProperty]
+        private bool _isQuickActionsOpen;
+
+        [ObservableProperty]
+        private bool _isSettingsOpen;
+
+        private readonly IRepository<Project> _projectRepository;
+
+        [ObservableProperty]
+        private System.Collections.ObjectModel.ObservableCollection<Project> _projects = new();
+
+        private List<Project> _allProjects = new();
+
+        [ObservableProperty]
+        private string _projectSearchText = string.Empty;
+
+        [ObservableProperty]
+        private bool _isProjectsExpanded = true;
+
+        public SidebarViewModel(IAuthService authService, IUpdateService updateService, IServiceProvider serviceProvider, IRepository<Project> projectRepository)
         {
             _authService = authService;
             _updateService = updateService;
             _serviceProvider = serviceProvider;
+            _projectRepository = projectRepository;
 
             AppVersion = $"v{_updateService.CurrentVersion}";
 
@@ -45,6 +70,73 @@ namespace OCC.Client.ViewModels.Shared
                 UserEmail = _authService.CurrentUser.Email;
                 UserInitials = GetInitials(_authService.CurrentUser.DisplayName);
             }
+
+            // Register for created messages
+            WeakReferenceMessenger.Default.Register<ProjectCreatedMessage>(this, (r, m) =>
+            {
+                _allProjects.Add(m.Value);
+                FilterProjects();
+                
+                // Auto-navigate to the new project
+                // Auto-navigate to the new project
+                NavigateToProject(m.Value);
+            });
+
+            // Register for deleted messages
+            WeakReferenceMessenger.Default.Register<ProjectDeletedMessage>(this, (r, m) =>
+            {
+                var project = _allProjects.FirstOrDefault(p => p.Id == m.Value);
+                if (project != null)
+                {
+                    _allProjects.Remove(project);
+                    FilterProjects();
+                }
+                
+                // If we were on Portfolio, switch to Home
+                if (ActiveSection == "Portfolio")
+                {
+                    Navigate("Home");
+                }
+            });
+            
+            // Register for update messages
+            WeakReferenceMessenger.Default.Register<ProjectUpdatedMessage>(this, (r, m) =>
+            {
+                LoadProjects();
+            });
+
+            LoadProjects();
+        }
+
+        private async void LoadProjects()
+        {
+            var projects = await _projectRepository.GetAllAsync();
+            _allProjects = projects.ToList();
+            FilterProjects();
+        }
+
+        partial void OnProjectSearchTextChanged(string value)
+        {
+            FilterProjects();
+        }
+
+        private void FilterProjects()
+        {
+            Projects.Clear();
+            var filtered = string.IsNullOrWhiteSpace(ProjectSearchText)
+                ? _allProjects
+                : _allProjects.Where(p => p.Name.Contains(ProjectSearchText, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var p in filtered)
+            {
+                Projects.Add(p);
+            }
+        }
+
+        [RelayCommand]
+        public void ToggleProjects()
+        {
+            IsProjectsExpanded = !IsProjectsExpanded;
         }
 
         [RelayCommand]
@@ -113,7 +205,13 @@ namespace OCC.Client.ViewModels.Shared
         private void AccountBilling() { }
 
         [RelayCommand]
-        private void UsersTeams() { }
+        private void UsersTeams() 
+        {
+             IsQuickActionsOpen = false;
+             IsSettingsOpen = false;
+             WeakReferenceMessenger.Default.Send(new OpenManageUsersMessage());
+             LastActionMessage = "Navigating to Manage Users";
+        }
 
         [RelayCommand]
         private void Security() { }
@@ -131,23 +229,41 @@ namespace OCC.Client.ViewModels.Shared
         private void AccountExport() { }
 
         [RelayCommand]
-        private void MyProfile() { }
+        private void MyProfile() 
+        { 
+             IsQuickActionsOpen = false; 
+             IsSettingsOpen = false;
+             WeakReferenceMessenger.Default.Send(new OpenProfileMessage());
+        }
 
         [RelayCommand]
-        private void MyWorkspaces() { }
+        private void OpenWorkHours()
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+
+            // Resolve ViewModel and open
+            // Since this is a Popup, we might need to send a message to MainViewModel or similar to overlay it.
+            // Or if we are using a dialog service.
+            // For now, let's assume we can send a message to open it.
+            var vm = new WorkHoursPopupViewModel((AppDbContext)_serviceProvider.GetRequiredService<AppDbContext>());
+            WeakReferenceMessenger.Default.Send(new OpenWorkHoursMessage(vm));
+        }
 
         [RelayCommand]
         public void NewTask() 
         { 
+            IsQuickActionsOpen = false;
             LastActionMessage = "Action Triggered: New Task (t)";
-            Navigate("Home");
-            WeakReferenceMessenger.Default.Send(new SwitchTabMessage("List"));
+            WeakReferenceMessenger.Default.Send(new CreateNewTaskMessage());
         }
 
         [RelayCommand]
         public void NewProject() 
         { 
+            IsQuickActionsOpen = false;
             LastActionMessage = "Action Triggered: New Project (p)";
+            WeakReferenceMessenger.Default.Send(new CreateProjectMessage());
         }
 
         [RelayCommand]
@@ -166,6 +282,14 @@ namespace OCC.Client.ViewModels.Shared
         public void NewTeamMember() 
         { 
             LastActionMessage = "Action Triggered: New Team Member";
+        }
+
+        [RelayCommand]
+        private void NavigateToProject(Project project)
+        {
+            Navigate("Portfolio");
+            WeakReferenceMessenger.Default.Send(new ProjectSelectedMessage(project));
+            LastActionMessage = $"Navigated to Project: {project.Name}";
         }
 
         private string GetInitials(string? displayName)
