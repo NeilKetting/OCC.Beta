@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.EmployeeManagement
 {
-    public partial class EmployeeManagementViewModel : ViewModelBase
+    public partial class EmployeeManagementViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ViewModels.Messages.EntityUpdatedMessage>
     {
         #region Private Members
 
@@ -65,12 +65,25 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         public EmployeeManagementViewModel()
         {
             // Designer constructor
+            _employeeRepository = null!;
         }
 
         public EmployeeManagementViewModel(IRepository<Employee> employeeRepository)
         {
             _employeeRepository = employeeRepository;
             LoadData();
+            
+            // Register for real-time updates
+            CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
+        }
+
+        public void Receive(ViewModels.Messages.EntityUpdatedMessage message)
+        {
+            if (message.Value.EntityType == "Employee")
+            {
+                // Refresh data on any employee change
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadData);
+            }
         }
 
         #endregion
@@ -183,7 +196,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
 
             // 2. Type Filter
-            filtered = _selectedFilterIndex switch
+            filtered = SelectedFilterIndex switch
             {
                 1 => filtered.Where(s => s.EmploymentType == EmploymentType.Permanent),
                 2 => filtered.Where(s => s.EmploymentType == EmploymentType.Contract),

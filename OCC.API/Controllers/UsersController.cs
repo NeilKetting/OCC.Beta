@@ -15,12 +15,14 @@ namespace OCC.API.Controllers
         private readonly AppDbContext _context;
         private readonly PasswordHasher _passwordHasher;
         private readonly ILogger<UsersController> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> _hubContext;
 
-        public UsersController(AppDbContext context, PasswordHasher passwordHasher, ILogger<UsersController> logger)
+        public UsersController(AppDbContext context, PasswordHasher passwordHasher, ILogger<UsersController> logger, Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> hubContext)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         // GET: api/Users
@@ -94,6 +96,7 @@ namespace OCC.API.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "User", "Update", id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -129,6 +132,8 @@ namespace OCC.API.Controllers
 
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
+                
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "User", "Delete", id);
 
                 return NoContent();
             }

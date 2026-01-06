@@ -25,6 +25,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         public PulseViewModel()
         {
             // Parameterless constructor for design-time support
+            _projectRepository = null!;
         }
 
         public PulseViewModel(IRepository<Project> projectRepository)

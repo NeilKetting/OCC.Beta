@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.Data
 {
-    public class SqlRepository<T> : IRepository<T> where T : class
+    public class SqlRepository<T> : IRepository<T> where T : class, OCC.Shared.Models.IEntity
     {
         private readonly AppDbContext _context;
         private readonly DbSet<T> _dbSet;

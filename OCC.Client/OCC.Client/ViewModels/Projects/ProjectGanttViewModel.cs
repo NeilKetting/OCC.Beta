@@ -53,6 +53,7 @@ namespace OCC.Client.ViewModels.Projects
         public ProjectGanttViewModel()
         {
             // Parameterless constructor for design-time support
+            _taskRepository = null!;
         }
 
         public ProjectGanttViewModel(IRepository<ProjectTask> taskRepository)

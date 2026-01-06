@@ -2,7 +2,7 @@ using System;
 
 namespace OCC.Shared.Models
 {
-    public class AttendanceRecord
+    public class AttendanceRecord : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         

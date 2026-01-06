@@ -1,6 +1,6 @@
 namespace OCC.Shared.Models
 {
-    public class ProjectTask
+    public class ProjectTask : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string? LegacyId { get; set; } // For MSP or other string IDs

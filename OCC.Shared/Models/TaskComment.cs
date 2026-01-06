@@ -1,6 +1,6 @@
 namespace OCC.Shared.Models
 {
-    public class TaskComment
+    public class TaskComment : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid TaskId { get; set; }

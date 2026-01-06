@@ -2,7 +2,7 @@ using System;
 
 namespace OCC.Shared.Models
 {
-    public class Notification
+    public class Notification : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;
@@ -11,6 +11,7 @@ namespace OCC.Shared.Models
         public bool IsRead { get; set; }
         public NotificationType Type { get; set; } = NotificationType.Reminder;
         public string? TargetAction { get; set; }
+        public Guid? UserId { get; set; }
     }
 
     public enum NotificationType

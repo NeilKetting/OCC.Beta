@@ -1,0 +1,118 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OCC.API.Data;
+using OCC.Shared.Models;
+
+namespace OCC.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class CustomersController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+        private readonly ILogger<CustomersController> _logger;
+
+        public CustomersController(AppDbContext context, ILogger<CustomersController> logger)
+        {
+            _context = context;
+            _logger = logger;
+        }
+
+        // GET: api/Customers
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        {
+            try
+            {
+                return await _context.Customers.AsNoTracking().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customers");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // GET: api/Customers/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Customer>> GetCustomer(Guid id)
+        {
+            try
+            {
+                var customer = await _context.Customers.FindAsync(id);
+                if (customer == null) return NotFound();
+                return customer;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: api/Customers
+        [HttpPost]
+        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        {
+            try
+            {
+                if (customer.Id == Guid.Empty) customer.Id = Guid.NewGuid();
+                _context.Customers.Add(customer);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating customer");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // PUT: api/Customers/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCustomer(Guid id, Customer customer)
+        {
+            if (id != customer.Id) return BadRequest();
+            _context.Entry(customer).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CustomerExists(id)) return NotFound();
+                else throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating customer {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+            return NoContent();
+        }
+
+        // DELETE: api/Customers/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCustomer(Guid id)
+        {
+            try
+            {
+                var customer = await _context.Customers.FindAsync(id);
+                if (customer == null) return NotFound();
+                _context.Customers.Remove(customer);
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting customer {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        private bool CustomerExists(Guid id) => _context.Customers.Any(e => e.Id == id);
+    }
+}

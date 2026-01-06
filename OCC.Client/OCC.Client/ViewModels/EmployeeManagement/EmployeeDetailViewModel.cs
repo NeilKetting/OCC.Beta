@@ -148,6 +148,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         public EmployeeDetailViewModel() 
         {
             // _staffRepository will be null, handle in Save
+            _staffRepository = null!;
         }
 
         #endregion

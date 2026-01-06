@@ -71,6 +71,11 @@ namespace OCC.Client.ViewModels.Shared
         public SidebarViewModel()
         {
             // Parameterless constructor for design-time support
+            _authService = null!;
+            _updateService = null!;
+            _serviceProvider = null!;
+            _projectRepository = null!;
+            _permissionService = null!;
         }
 
         public SidebarViewModel(IAuthService authService, IUpdateService updateService, IServiceProvider serviceProvider, IRepository<Project> projectRepository, IPermissionService permissionService)

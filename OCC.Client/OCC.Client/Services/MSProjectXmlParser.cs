@@ -210,7 +210,7 @@ namespace OCC.Client.Services
                 foreach (var (task, level) in flatTasks)
                 {
                     // Find nearest parent (level - 1 down to 0)
-                    ProjectTask parent = null;
+                    ProjectTask? parent = null;
                     for (int i = level - 1; i >= 0; i--)
                     {
                         if (levelStack.TryGetValue(i, out var p))

@@ -91,8 +91,8 @@ namespace OCC.Client.ViewModels.Home.ProjectSummary
             LoadTaskStatistics();
         }
 
-        // Temporary zero-argument constructor for XAML preview/design time
-        public ProjectSummaryViewModel() : this(new MockProjectTaskRepository()) { }
+        // Design-time constructor removed as mocks are deleted
+        // public ProjectSummaryViewModel() : this(new MockProjectTaskRepository()) { }
 
         #endregion
 

@@ -47,6 +47,7 @@ namespace OCC.Client.ViewModels.Settings
         public ManageUsersViewModel()
         {
             // Parameterless constructor for design-time support
+            _userRepository = null!;
         }
 
         public ManageUsersViewModel(IRepository<User> userRepository)

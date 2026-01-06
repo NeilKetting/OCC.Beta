@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace OCC.Client.Services
 {
-    public abstract class BaseApiService<T> : IRepository<T> where T : class
+    public abstract class BaseApiService<T> : IRepository<T> where T : class, OCC.Shared.Models.IEntity
     {
         protected readonly HttpClient _httpClient;
         protected readonly IAuthService _authService;
@@ -76,7 +76,7 @@ namespace OCC.Client.Services
         {
             EnsureAuthorization();
             // Use PUT to update. Backend should handle identifying the entity from the body.
-            await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}", entity);
+            await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
         }
 
         public virtual async Task DeleteAsync(Guid id)

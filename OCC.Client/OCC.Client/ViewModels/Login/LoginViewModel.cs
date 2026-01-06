@@ -50,6 +50,8 @@ namespace OCC.Client.ViewModels
         public LoginViewModel()
         {
             // Parameterless constructor for design-time support
+            _authService = null!;
+            _serviceProvider = null!;
         }
 
         public LoginViewModel(IAuthService authService, IServiceProvider serviceProvider)

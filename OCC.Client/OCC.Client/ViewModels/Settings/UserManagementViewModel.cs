@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Settings
 {
-    public partial class UserManagementViewModel : ViewModelBase
+    public partial class UserManagementViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ViewModels.Messages.EntityUpdatedMessage>
     {
         #region Private Members
 
@@ -55,12 +55,23 @@ namespace OCC.Client.ViewModels.Settings
         public UserManagementViewModel()
         {
             // Designer support
+            _userRepository = null!;
         }
 
         public UserManagementViewModel(IRepository<User> userRepository)
         {
             _userRepository = userRepository;
             LoadData();
+            
+            CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
+        }
+
+        public void Receive(ViewModels.Messages.EntityUpdatedMessage message)
+        {
+            if (message.Value.EntityType == "User")
+            {
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => LoadData());
+            }
         }
 
         #endregion

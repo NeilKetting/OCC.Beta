@@ -31,6 +31,12 @@ namespace OCC.Client.ViewModels.Shared
         public UpdateDialogViewModel()
         {
             // Parameterless constructor for design-time support
+            _updateService = null!;
+            _updateInfo = null!;
+            _closeAction = null!;
+            _newVersion = string.Empty;
+            _releaseNotes = string.Empty;
+            _statusText = string.Empty;
         }
         public UpdateDialogViewModel(IUpdateService updateService, UpdateInfo updateInfo, Action closeAction)
         {

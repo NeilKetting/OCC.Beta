@@ -29,6 +29,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         public TasksWidgetViewModel()
         {
             // Parameterless constructor for design-time support
+            _taskRepository = null!;
         }
         
         public TasksWidgetViewModel(IRepository<ProjectTask> taskRepository)

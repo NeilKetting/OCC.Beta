@@ -137,6 +137,10 @@ namespace OCC.Client.ViewModels.Home.Tasks
         public TaskDetailViewModel()
         {
             // Parameterless constructor for design-time support
+             _projectTaskRepository = null!;
+             _staffRepository = null!;
+             _assignmentRepository = null!;
+             _commentRepository = null!;
         }
 
         public TaskDetailViewModel(

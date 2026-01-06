@@ -5,7 +5,7 @@ namespace OCC.Shared.Models
     /// <summary>
     /// Represents an employee in the system.
     /// </summary>
-    public class Employee
+    public class Employee : IEntity
     {
         /// <summary>
         /// Unique identifier for the employee.

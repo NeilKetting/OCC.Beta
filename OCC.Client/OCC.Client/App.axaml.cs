@@ -62,13 +62,18 @@ namespace OCC.Client
             // services.AddDbContext<Data.AppDbContext>(); // Removed duplicate, we configure it below with Transient lifetime
 
             // Repositories
-            // repositories
-            services.AddScoped(typeof(IRepository<>), typeof(Data.SqlRepository<>));
-            
-            // Specific API Repositories (Override SqlRepository)
+            // repositories - Specific Repositories for API
             services.AddTransient<IRepository<User>, ApiUserRepository>();
             services.AddTransient<IRepository<Employee>, ApiEmployeeRepository>();
+            services.AddTransient<IRepository<Project>, ApiProjectRepository>();
+            services.AddTransient<IRepository<ProjectTask>, ApiProjectTaskRepository>();
+            services.AddTransient<IRepository<Customer>, ApiCustomerRepository>();
+            services.AddTransient<IRepository<TaskAssignment>, ApiTaskAssignmentRepository>();
+            services.AddTransient<IRepository<TaskComment>, ApiTaskCommentRepository>();
 
+            // Fallback for any other type not explicitly mapped (e.g. TimeRecord) - though unlikely to be used if we covered main ones
+            // services.AddTransient(typeof(IRepository<>), typeof(SqlRepository<>));
+            
             // Services
             // For AuthService, we might need a real implementation that uses the SqlRepository, or update the mock to use it?
             // The user said "I repositories can save to the db".
@@ -98,12 +103,12 @@ namespace OCC.Client
             // Let's stick to Transient for Repos/Context to be safe, or Scoped if we had a scope.
             // We'll use Transient for now.
             
-            services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 
-            services.AddTransient(typeof(IRepository<>), typeof(Data.SqlRepository<>));
+            // services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 
+            // services.AddTransient(typeof(IRepository<>), typeof(Data.SqlRepository<>));
 
             // services.AddSingleton<ITimeService, TimeService>();
              services.AddSingleton<ITimeService, TimeService>();
-            services.AddSingleton<INotificationService, MockNotificationService>();
+            services.AddSingleton<INotificationService, ApiNotificationService>();
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<SignalRNotificationService>();
             services.AddSingleton<IPermissionService, PermissionService>();

@@ -85,7 +85,8 @@ namespace OCC.Client.ViewModels.Home.Dashboard
             LoadData();
         }
 
-        public SummaryViewModel() : this(new MockProjectRepository(), new MockProjectTaskRepository()) { }
+        // Design-time constructor removed as mocks are deleted
+        // public SummaryViewModel() : this(new MockProjectRepository(), new MockProjectTaskRepository()) { }
 
         #endregion
 

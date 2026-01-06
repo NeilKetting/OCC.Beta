@@ -15,7 +15,7 @@ namespace OCC.Client.ViewModels.Home.Tasks
 
         private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<Project> _projectRepository;
-        private readonly IRepository<User> _userRepository; 
+ 
         private readonly IAuthService _authService;
 
         #endregion

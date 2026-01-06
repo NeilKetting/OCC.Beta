@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Shared.Models
 {
-    public class AppSetting
+    public class AppSetting : IEntity
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();

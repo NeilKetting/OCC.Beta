@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Threading.Tasks;
 
@@ -21,6 +22,14 @@ namespace OCC.Client.Services
             _hubConnection.On<string>("ReceiveNotification", (message) =>
             {
                 OnNotificationReceived?.Invoke(message);
+            });
+
+            _hubConnection.On<string, string, Guid>("EntityUpdate", (entityType, action, id) =>
+            {
+                // Dispatch to UI thread if needed, but Messenger handles logic. 
+                // Using WeakReferenceMessenger to broadcast
+                var msg = new ViewModels.Messages.EntityUpdatedMessage(entityType, action, id);
+                WeakReferenceMessenger.Default.Send(msg);
             });
         }
 

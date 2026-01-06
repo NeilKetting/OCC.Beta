@@ -59,6 +59,8 @@ namespace OCC.Client.ViewModels
         public RegisterViewModel()
         {
             // Parameterless constructor for design-time support
+            _authService = null!;
+            _serviceProvider = null!;
         }
 
         public RegisterViewModel(IAuthService authService, IServiceProvider serviceProvider)

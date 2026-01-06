@@ -41,6 +41,8 @@ namespace OCC.Client.ViewModels
         public MainViewModel()
         {
             // Parameterless constructor for design-time support                
+            _serviceProvider = null!;
+            _currentViewModel = null!;
 
             WeakReferenceMessenger.Default.RegisterAll(this);
         }

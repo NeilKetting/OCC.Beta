@@ -14,7 +14,7 @@ namespace OCC.Client.ViewModels.Shared
 
         private readonly IAuthService _authService;
         private readonly IRepository<Project> _projectRepository;
-        private readonly IRepository<User> _userRepository;
+
 
         #endregion
 

@@ -14,7 +14,7 @@ namespace OCC.Client.Converters
                 if (activeTab.Equals(tabName, StringComparison.OrdinalIgnoreCase))
                 {
                     // AccentOrange
-                    if (Avalonia.Application.Current.TryGetResource("AccentOrange", null, out var resource) && resource is IBrush brush)
+                    if (Avalonia.Application.Current != null && Avalonia.Application.Current.TryGetResource("AccentOrange", null, out var resource) && resource is IBrush brush)
                     {
                         return brush;
                     }

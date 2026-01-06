@@ -39,6 +39,10 @@ namespace OCC.Client.ViewModels
         public ShellViewModel()
         {
             // Parameterless constructor for design-time support
+            _serviceProvider = null!;
+            _permissionService = null!;
+            _sidebar = null!; 
+            _currentPage = null!;
         }
 
         public ShellViewModel(IServiceProvider serviceProvider, SidebarViewModel sidebar, IUpdateService updateService, IPermissionService permissionService)
@@ -48,6 +52,8 @@ namespace OCC.Client.ViewModels
             Sidebar = sidebar;
             Sidebar.PropertyChanged += Sidebar_PropertyChanged;
 
+            _currentPage = null!; // Silence warning as NavigateTo sets it
+            
             // Default to Home (Dashboard)
             NavigateTo(Infrastructure.NavigationRoutes.Home);
 
@@ -64,7 +70,7 @@ namespace OCC.Client.ViewModels
                         var dialog = new Views.Shared.UpdateDialogView();
                         dialog.DataContext = new ViewModels.Shared.UpdateDialogViewModel(updateService, updateInfo, () => dialog.Close());
                         
-                        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop) 
+                        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null) 
                         {
                             dialog.ShowDialog(desktop.MainWindow);
                         }

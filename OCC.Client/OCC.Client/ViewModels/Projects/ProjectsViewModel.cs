@@ -48,6 +48,15 @@ namespace OCC.Client.ViewModels.Projects
         public ProjectsViewModel()
         {
             // Parameterless constructor for design-time support
+            _projectRepository = null!;
+            _taskRepository = null!;
+            _staffRepository = null!;
+            _assignmentRepository = null!;
+            _commentRepository = null!;
+            _topBar = null!;
+            _listVM = null!;
+            _ganttVM = null!;
+            _currentView = null!;
         }
 
         public ProjectsViewModel(
@@ -85,8 +94,8 @@ namespace OCC.Client.ViewModels.Projects
                TopBar.ProjectName = m.Value.Name;
                TopBar.ProjectIconInitials = GetInitials(m.Value.Name);
                
-               _listVM.LoadTasks(CurrentProjectId);
-               _ganttVM.LoadTasks(CurrentProjectId);
+               ListVM.LoadTasks(CurrentProjectId);
+               GanttVM.LoadTasks(CurrentProjectId);
                
                TopBar.ActiveTab = "List";
             });
@@ -136,7 +145,7 @@ namespace OCC.Client.ViewModels.Projects
                         break;
                      case "Gantt":
                         CurrentView = GanttVM;
-                        if (CurrentProjectId != Guid.Empty)
+                       if (CurrentProjectId != Guid.Empty)
                         {
                             // Optional: Refresh if needed
                         }
@@ -173,15 +182,13 @@ namespace OCC.Client.ViewModels.Projects
             await _taskRepository.AddAsync(newTask);
             
             // Refresh list
-            _listVM.LoadTasks(CurrentProjectId);
+            ListVM.LoadTasks(CurrentProjectId);
             
             // Open Details
             OpenTaskDetail(newTask.Id);
         }
 
         #endregion
-
-        #region Helper Methods
 
         private string GetInitials(string? name)
         {
@@ -191,6 +198,6 @@ namespace OCC.Client.ViewModels.Projects
             return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpper();
         }
 
-        #endregion
+
     }
 }

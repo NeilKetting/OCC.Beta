@@ -112,6 +112,12 @@ namespace OCC.Client.ViewModels.Projects
         public CreateProjectViewModel()
         {
             // Parameterless constructor for design-time support
+            _projectRepository = null!;
+            _customerRepository = null!;
+            _taskRepository = null!;
+            _appSettingsRepository = null!;
+            _staffRepository = null!;
+            _projectManager = string.Empty;
         }
         
         public CreateProjectViewModel(

@@ -1,6 +1,6 @@
 ﻿namespace OCC.Shared.Models
 {
-    public class Project
+    public class Project : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;

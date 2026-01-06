@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.Services
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T> where T : class, OCC.Shared.Models.IEntity
     {
         Task<IEnumerable<T>> GetAllAsync();
         Task<T?> GetByIdAsync(Guid id);

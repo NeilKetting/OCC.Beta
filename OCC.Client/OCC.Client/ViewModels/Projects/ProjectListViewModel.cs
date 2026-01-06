@@ -51,6 +51,9 @@ namespace OCC.Client.ViewModels.Projects
         public ProjectListViewModel()
         {
             // Parameterless constructor for design-time support
+            _taskRepository = null!;
+            _projectRepository = null!;
+            _authService = null!;
         }
         
         public ProjectListViewModel(

@@ -78,6 +78,7 @@ namespace OCC.Client.ViewModels.Settings
         public UserDetailViewModel()
         {
             // Designer constructor
+            _userRepository = null!;
         }
 
         #endregion

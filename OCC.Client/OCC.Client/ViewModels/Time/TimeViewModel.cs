@@ -60,6 +60,8 @@ namespace OCC.Client.ViewModels.Time
         public TimeViewModel()
         {
             // Parameterless constructor for design-time support
+            _timeService = null!;
+            _authService = null!;
         }
 
         public TimeViewModel(ITimeService timeService, IAuthService authService)

@@ -2,7 +2,7 @@ using System;
 
 namespace OCC.Shared.Models
 {
-    public class Customer
+    public class Customer : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; } = string.Empty;

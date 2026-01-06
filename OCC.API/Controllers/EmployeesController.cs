@@ -13,11 +13,13 @@ namespace OCC.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<EmployeesController> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> _hubContext;
 
-        public EmployeesController(AppDbContext context, ILogger<EmployeesController> logger)
+        public EmployeesController(AppDbContext context, ILogger<EmployeesController> logger, Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> hubContext)
         {
             _context = context;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         // GET: api/Employees
@@ -65,9 +67,8 @@ namespace OCC.API.Controllers
             {
                 _context.Employees.Add(employee);
                 await _context.SaveChangesAsync();
-
-                // Explicit Audit Log if really needed (already covered by SaveChanges, but requested)
-                // _logger.LogInformation("Employee created: {Id}", employee.Id);
+                
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "Employee", "Create", employee.Id);
 
                 return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
             }
@@ -92,6 +93,7 @@ namespace OCC.API.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "Employee", "Update", id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -127,6 +129,8 @@ namespace OCC.API.Controllers
 
                 _context.Employees.Remove(employee);
                 await _context.SaveChangesAsync();
+                
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "Employee", "Delete", id);
 
                 return NoContent();
             }

@@ -42,6 +42,8 @@ namespace OCC.Client.ViewModels
         public NotificationViewModel()
         {
              // Design time
+             _signalRService = null!;
+             _authService = null!;
         }
 
         private void OnNotificationReceived(string message)
@@ -59,7 +61,7 @@ namespace OCC.Client.ViewModels
         }
 
         [RelayCommand]
-        private async Task ApproveUserAsync()
+        private void ApproveUser()
         {
             // TODO: Implement actual API call to approve user. 
             // For now, we will simply remove the notification to simulate action.

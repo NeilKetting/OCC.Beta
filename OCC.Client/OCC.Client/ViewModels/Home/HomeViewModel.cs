@@ -102,6 +102,23 @@ namespace OCC.Client.ViewModels.Home
         {
             // Parameterless constructor for design-time support
             Greeting = "Good day, User";
+            _topBar = null!;
+            _mySummary = null!;
+            _myTasks = null!;
+            _projectPulse = null!;
+            _projectSummary = null!;
+            _teamSummary = null!;
+            _authService = null!;
+            _timeService = null!;
+            _projectTaskRepository = null!;
+            _projectRepository = null!;
+            _customerRepository = null!;
+            _projectTaskModelRepository = null!;
+            _appSettingsRepository = null!;
+            _staffRepository = null!;
+            _taskAssignmentRepository = null!;
+            _commentRepository = null!;
+            _userRepository = null!;
         }
         public HomeViewModel(TopBarViewModel topBar,
                              SummaryViewModel mySummary,

@@ -2,7 +2,7 @@ using System;
 
 namespace OCC.Shared.Models
 {
-    public class TimeRecord
+    public class TimeRecord : IEntity
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         
