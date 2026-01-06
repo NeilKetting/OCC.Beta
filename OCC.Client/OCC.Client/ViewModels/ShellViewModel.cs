@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.ViewModels.Home;
@@ -168,6 +169,7 @@ namespace OCC.Client.ViewModels
             IsNotificationOpen = !IsNotificationOpen;
         }
 
+        [RelayCommand]
         public void CloseNotifications()
         {
             IsNotificationOpen = false;
