@@ -21,6 +21,7 @@ namespace OCC.Client.ViewModels
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IPermissionService _permissionService;
+        private readonly SignalRNotificationService _signalRService;
 
         #endregion
 
@@ -31,6 +32,12 @@ namespace OCC.Client.ViewModels
 
         [ObservableProperty]
         private ViewModelBase _currentPage;
+
+        [ObservableProperty]
+        private NotificationViewModel _notificationVM;
+
+        [ObservableProperty]
+        private bool _isNotificationOpen;
 
         #endregion
 
@@ -43,21 +50,37 @@ namespace OCC.Client.ViewModels
             _permissionService = null!;
             _sidebar = null!; 
             _currentPage = null!;
+            _signalRService = null!;
+            _notificationVM = null!;
         }
 
-        public ShellViewModel(IServiceProvider serviceProvider, SidebarViewModel sidebar, IUpdateService updateService, IPermissionService permissionService)
+        public ShellViewModel(
+            IServiceProvider serviceProvider, 
+            SidebarViewModel sidebar, 
+            IUpdateService updateService, 
+            IPermissionService permissionService,
+            SignalRNotificationService signalRService)
         {
             _serviceProvider = serviceProvider;
             _permissionService = permissionService;
+            _signalRService = signalRService;
+
             Sidebar = sidebar;
             Sidebar.PropertyChanged += Sidebar_PropertyChanged;
 
             _currentPage = null!; // Silence warning as NavigateTo sets it
             
+            // Initialize persistent Notification ViewModel
+            NotificationVM = _serviceProvider.GetRequiredService<NotificationViewModel>();
+
             // Default to Home (Dashboard)
             NavigateTo(Infrastructure.NavigationRoutes.Home);
 
             WeakReferenceMessenger.Default.RegisterAll(this); // Register for messages
+
+            // Start SignalR Connection Globally
+            // This ensures we receive updates (like new employees/users) even if we aren't on the specific view
+            _ = _signalRService.StartAsync();
 
             // Check for updates in background, but show UI if found
             Task.Run(async () => 
@@ -93,6 +116,9 @@ namespace OCC.Client.ViewModels
 
         private void NavigateTo(string section)
         {
+            // Close notification popup when navigating
+            IsNotificationOpen = false;
+
             if (!_permissionService.CanAccess(section))
             {
                 // Access Denied - maybe show a notification or just stay put
@@ -123,9 +149,7 @@ namespace OCC.Client.ViewModels
                     // Assuming accessing Calendar via Sidebar (if implemented) or other means
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Home.Calendar.CalendarViewModel>();
                     break;
-                case Infrastructure.NavigationRoutes.Notifications:
-                    CurrentPage = _serviceProvider.GetRequiredService<NotificationViewModel>();
-                    break;
+                // NOTIFICATIONS are now a popup, handled separately via Message
                 case "UserManagement":
                     CurrentPage = _serviceProvider.GetRequiredService<UserManagementViewModel>();
                     break;
@@ -140,10 +164,14 @@ namespace OCC.Client.ViewModels
 
         public void Receive(OpenNotificationsMessage message)
         {
-            NavigateTo(Infrastructure.NavigationRoutes.Notifications);
+            // Toggle visibility
+            IsNotificationOpen = !IsNotificationOpen;
         }
 
-
+        public void CloseNotifications()
+        {
+            IsNotificationOpen = false;
+        }
 
         #endregion
     }
