@@ -17,7 +17,9 @@ This guide assumes you are deploying to a dedicated Windows PC/Server.
 1.  **Install .NET 9 Hosting Bundle**:
     *   Download and install the **Asp.Net Core Runtime 9.0 (Hosting Bundle)** from Microsoft.
     *   This installs the IIS Module required to run .NET apps.
-2.  **Enable IIS**:
+2.  **Install .NET 9 SDK**:
+    *   **Crucial**: To build/publish the app on the server (which this guide assumes), you MUST also install the **.NET 9 SDK (x64)**. The Hosting Bundle only includes the Runtime.
+3.  **Enable IIS**:
     *   Open "Turn Windows features on or off".
     *   Ensure **Internet Information Services** is checked.
     *   Under `World Wide Web Services` -> `Application Development Features`, ensure **.NET Extensibility 4.8** and **ASP.NET 4.8** are checked (good measure).
@@ -53,21 +55,25 @@ Create a file `C:\OCC-Source\update_api.bat` with the following content:
 ```batch
 @echo off
 echo Stopping IIS Site...
-%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC_API"
 
 echo Pulling latest code...
 cd C:\OCC-Source
-git pull origin main
+git pull origin master
 
 echo Publishing...
 dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API"
 
 echo Starting IIS Site...
-%windir%\system32\inetsrv\appcmd start site /site.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
 echo Done!
 pause
 ```
 
-## 4. Troubleshooting
-*   **Error 500.19**: Usually means the .NET Hosting Bundle isn't installed. Install it and restart the server.
-*   **Database**: Ensure your `appsettings.json` connection string on the server points to a valid SQL Server instance (you likely need to install SQL Server Express on the hosted PC too).
+## 4. Run as Administrator
+**IMPORTANT**: You must right-click this `.bat` file and select **Run as administrator**. "appcmd" requires admin rights to stop/start sites.
+
+## 5. Troubleshooting
+*   **Error: "No .NET SDKs were found"**: Install the .NET 9 SDK.
+*   **Error: "Insufficient permissions"**: Run the batch file as Administrator.
+*   **Error: "couldn't find remote ref main"**: Your branch is likely named `master`. The script above uses `master`.
