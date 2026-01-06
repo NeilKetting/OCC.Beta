@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.Shared.Models;
+using Microsoft.AspNetCore.SignalR;
 using OCC.API.Services;
 
 namespace OCC.API.Controllers
