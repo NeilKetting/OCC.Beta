@@ -170,6 +170,7 @@ namespace OCC.API.Controllers
             
             // Notify Admins
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New user registered: {user.FirstName} {user.LastName} ({user.Email}) is waiting for approval.");
+            await _hubContext.Clients.All.SendAsync("EntityUpdate", "User", "Create", user.Id);
 
             // Generate Verification Token
             var verificationToken = GenerateJwtToken(user, 1); // 1 day expiration for verification
