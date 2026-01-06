@@ -97,34 +97,40 @@ namespace OCC.Client.ViewModels.Shared
             // Register for created messages
             WeakReferenceMessenger.Default.Register<ProjectCreatedMessage>(this, (r, m) =>
             {
-                _allProjects.Add(m.Value);
-                FilterProjects();
-                
-                // Auto-navigate to the new project
-                NavigateToProject(m.Value);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+                {
+                    _allProjects.Add(m.Value);
+                    FilterProjects();
+                    
+                    // Auto-navigate to the new project
+                    NavigateToProject(m.Value);
+                });
             });
 
             // Register for deleted messages
             WeakReferenceMessenger.Default.Register<ProjectDeletedMessage>(this, (r, m) =>
             {
-                var project = _allProjects.FirstOrDefault(p => p.Id == m.Value);
-                if (project != null)
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => 
                 {
-                    _allProjects.Remove(project);
-                    FilterProjects();
-                }
-                
-                // If we were on Portfolio, switch to Home
-                if (ActiveSection == Infrastructure.NavigationRoutes.Projects)
-                {
-                    Navigate(Infrastructure.NavigationRoutes.Home);
-                }
+                    var project = _allProjects.FirstOrDefault(p => p.Id == m.Value);
+                    if (project != null)
+                    {
+                        _allProjects.Remove(project);
+                        FilterProjects();
+                    }
+                    
+                    // If we were on Portfolio, switch to Home
+                    if (ActiveSection == Infrastructure.NavigationRoutes.Projects)
+                    {
+                        Navigate(Infrastructure.NavigationRoutes.Home);
+                    }
+                });
             });
             
             // Register for update messages
             WeakReferenceMessenger.Default.Register<ProjectUpdatedMessage>(this, (r, m) =>
             {
-                LoadProjects();
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => LoadProjects());
             });
 
             LoadProjects();

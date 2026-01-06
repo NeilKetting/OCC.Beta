@@ -7,12 +7,7 @@
 			 x:Class="OCC.Client.Views.Home.Tasks.TaskListView"
 			 x:DataType="vm:TaskListViewModel">
 
-	<UserControl.Styles>
-		<Style Selector="CheckBox">
-			<Setter Property="BorderBrush" Value="{DynamicResource BorderGray}"/>
-			<Setter Property="BorderThickness" Value="1"/>
-			<Setter Property="CornerRadius" Value="3"/>
-		</Style>
+	<UserControl.Styles>		
 		<Style Selector="PathIcon.HeaderIcon">
 			<Setter Property="Width" Value="14"/>
 			<Setter Property="Height" Value="14"/>

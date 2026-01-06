@@ -170,6 +170,13 @@ namespace OCC.Client.ViewModels.Home
             TeamSummary = new TeamSummaryViewModel();
             Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository);
+            
+            // Subscribe to selection
+            TaskList.TaskSelectionRequested += (s, idString) => 
+            {
+                if (Guid.TryParse(idString, out var guid))
+                    OpenTaskDetail(guid);
+            };
 
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
             WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup());
@@ -302,8 +309,11 @@ namespace OCC.Client.ViewModels.Home
 
         private void ProjectCreatedHandler(object? sender, Guid projectId)
         {
-            WeakReferenceMessenger.Default.Send(new ProjectCreatedMessage(new Project { Id = projectId }));
-            WeakReferenceMessenger.Default.Send(new ProjectSelectedMessage(new Project { Id = projectId }));
+            // CreateProjectViewModel already sends the Created message with full details.
+            // We just need to ensure selection if needed, although SidebarViewModel also handles navigation.
+            // Actually, SidebarViewModel's Created handler calls NavigateToProject which sends ProjectSelectedMessage.
+            // So HomeViewModel might not need to do ANYTHING here if Sidebar handles it.
+            // But let's be safe and just remove the duplicates.
         }
 
         #endregion

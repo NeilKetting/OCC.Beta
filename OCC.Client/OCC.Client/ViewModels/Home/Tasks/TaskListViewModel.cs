@@ -86,7 +86,10 @@ namespace OCC.Client.ViewModels.Home.Tasks
                     DueDate = task.FinishDate, 
                     Status = task.Status, 
                     Priority = task.Priority,
-                    AssigneeInitials = task.AssignedTo.Substring(0, Math.Min(2, task.AssignedTo.Length)).ToUpper()
+                    AssigneeInitials = !string.IsNullOrEmpty(task.AssignedTo) && task.AssignedTo.Length >= 2 
+                        ? task.AssignedTo.Substring(0, 2).ToUpper() : "??",
+                    CommentsCount = task.Comments?.Count ?? 0,
+                    AttachmentsCount = 0 // Placeholder until Attachments are implemented
                 });
             }
         }

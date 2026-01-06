@@ -67,7 +67,12 @@
 						</Border>
 
 						<!-- Calendar View -->
-						<Border Grid.Row="1" Grid.Column="1" IsVisible="{Binding IsCalendarVisible, FallbackValue=false}" ZIndex="1" Margin="30, 20, 20, 20">
+						<Border Grid.Row="1" Grid.Column="1" 
+                                IsVisible="{Binding IsCalendarVisible, FallbackValue=false}" 
+                                ZIndex="1" 
+                                Margin="30, 20, 20, 20"
+                                VerticalAlignment="Top"
+                                MaxHeight="850">
 							<homeCal:CalendarView DataContext="{Binding Calendar}"/>
 						</Border>
 

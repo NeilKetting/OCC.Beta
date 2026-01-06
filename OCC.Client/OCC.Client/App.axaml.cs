@@ -122,7 +122,9 @@ namespace OCC.Client
             services.AddTransient<RegisterViewModel>();
             services.AddTransient<ShellViewModel>();
             services.AddTransient<HomeViewModel>();
-            services.AddTransient<SidebarViewModel>();
+            services.AddTransient<HomeViewModel>();
+            services.AddSingleton<SidebarViewModel>();
+            services.AddTransient<TopBarViewModel>();
             services.AddTransient<TopBarViewModel>();
             services.AddTransient<SummaryViewModel>();
             services.AddTransient<TasksWidgetViewModel>();
