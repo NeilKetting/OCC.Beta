@@ -6,11 +6,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <!-- Professional Metadata -->
-    <Authors>Orange Circle Construction</Authors>
-    <Company>Orange Circle Construction</Company>
+    <Authors>Origize63</Authors>
+    <Company>Origize63</Company>
     <Product>Orange Circle Construction</Product>
-    <Description>Management application for Orange Circle Construction.</Description>
-    <Copyright>Copyright © 2026 Orange Circle Construction</Copyright>
+    <Description>Management application for Orange Circle Construction. Powered by Origize63.</Description>
+    <Copyright>Copyright © 2026 Origize63</Copyright>
     <!-- Icon Configuration -->
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
