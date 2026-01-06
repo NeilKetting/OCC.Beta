@@ -20,8 +20,8 @@ namespace OCC.API.Data
             {
                 new User
                 {
-                    Email = "neil@mdk",
-                    Password = "password", // Plain text as per AuthController
+                    Email = "neil@mdk.co.za",
+                    Password = "pass", // Plain text as per AuthController
                     FirstName = "Neil",
                     LastName = "Admin",
                     UserRole = UserRole.Admin,
