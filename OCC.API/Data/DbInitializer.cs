@@ -8,7 +8,8 @@ namespace OCC.API.Data
         public static void Initialize(AppDbContext context)
         {
             // Prepare DB (Apply Migrations)
-            context.Database.EnsureCreated();
+            // Prepare DB (Apply Migrations)
+            context.Database.Migrate();
 
             // Look for any users.
             if (context.Users.Any())

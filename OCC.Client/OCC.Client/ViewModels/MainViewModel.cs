@@ -2,12 +2,10 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using OCC.Client.ViewModels.Messages;
-using System;
-using OCC.Client.ViewModels.Home;
-
-using OCC.Shared.Models;
 using OCC.Client.Services;
+using OCC.Client.ViewModels.Messages;
+using OCC.Shared.Models;
+using System;
 
 namespace OCC.Client.ViewModels
 {
