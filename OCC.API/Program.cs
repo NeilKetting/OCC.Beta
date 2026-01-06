@@ -14,6 +14,9 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// (Optional) Add DbInitializer if you want to use it as a service, 
+// but usually we call it in the app scope below.
+
 // Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -69,6 +72,22 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 // Configure the HTTP request pipeline.
+// Seed Database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        OCC.API.Data.DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred creating the DB.");
+    }
+}
+
 // Enable Swagger in all environments for now
 app.UseSwagger();
 app.UseSwaggerUI();

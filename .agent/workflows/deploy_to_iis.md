@@ -57,6 +57,12 @@ Create a file `C:\OCC-Source\update_api.bat` with the following content:
 echo Stopping IIS Site...
 %windir%\system32\inetsrv\appcmd stop site /site.name:"OCC_API"
 
+echo Stopping IIS AppPool...
+%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC_API"
+
+echo Waiting for process to release locks...
+timeout /t 5 /nobreak
+
 echo Pulling latest code...
 cd C:\OCC-Source
 git pull origin master
@@ -64,8 +70,12 @@ git pull origin master
 echo Publishing...
 dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API"
 
+echo Starting IIS AppPool...
+%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC_API"
+
 echo Starting IIS Site...
 %windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
+
 echo Done!
 pause
 ```
