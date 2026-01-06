@@ -71,6 +71,50 @@ namespace OCC.API.Controllers
                 return string.Join(";", parts);
             }
             return connectionString;
+            return connectionString;
         }
-    }
+
+        [HttpGet("log-check")]
+        public IActionResult CheckLogging()
+        {
+            var basePath = AppContext.BaseDirectory;
+            var logPath = Path.Combine(basePath, "logs");
+            var testFilePath = Path.Combine(logPath, "test-write.txt");
+            var diagnostics = new Dictionary<string, string>
+            {
+                { "BaseDirectory", basePath },
+                { "LogDirectory", logPath },
+                { "TestFilePath", testFilePath },
+                { "DirectoryExists", "Checking..." },
+                { "WriteTest", "Pending" },
+                { "Error", "None" }
+            };
+
+            try
+            {
+                if (!Directory.Exists(logPath))
+                {
+                    Directory.CreateDirectory(logPath);
+                    diagnostics["DirectoryExists"] = "Created";
+                }
+                else
+                {
+                    diagnostics["DirectoryExists"] = "Exists";
+                }
+
+                System.IO.File.WriteAllText(testFilePath, $"Test write at {DateTime.UtcNow}");
+                diagnostics["WriteTest"] = "Success";
+                
+                // Cleanup
+                // System.IO.File.Delete(testFilePath); 
+            }
+            catch (Exception ex)
+            {
+                diagnostics["WriteTest"] = "Failed";
+                diagnostics["Error"] = ex.Message;
+                diagnostics["StackTrace"] = ex.StackTrace ?? "No stack trace";
+            }
+
+            return Ok(diagnostics);
+        }
 }
