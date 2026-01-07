@@ -11,5 +11,10 @@ namespace OCC.Client.Services
         }
 
         protected override string ApiEndpoint => "Projects";
+
+        public async Task<IEnumerable<Project>> GetMyProjectsAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<Project>>($"{ApiEndpoint}?assignedToMe=true") ?? new System.Collections.Generic.List<Project>();
+        }
     }
 }

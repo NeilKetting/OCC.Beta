@@ -47,6 +47,15 @@ namespace OCC.API.Data
                 // Assuming existence is enough given the failsafe removal.
             }
 
+            // Ensure Admin User is linked to Admin Employee (if exists)
+            // This is crucial for "My Summary" filtering verification
+            var adminEmployee = context.Employees.FirstOrDefault(e => e.Email == adminEmail);
+            if (adminEmployee != null && adminEmployee.LinkedUserId != adminUser.Id)
+            {
+                adminEmployee.LinkedUserId = adminUser.Id;
+                context.SaveChanges();
+            }
+
             // Other default users if needed...
             if (context.Users.Count() > 1) return; // If more than just our admin, skip rest
 

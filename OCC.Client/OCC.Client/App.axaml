@@ -22,6 +22,7 @@
             <SolidColorBrush x:Key="SurfaceLightGray">#e9ebee</SolidColorBrush>
             <SolidColorBrush x:Key="SurfaceWhite">#FFFFFF</SolidColorBrush>
             <SolidColorBrush x:Key="BorderGray">#e2e8f0</SolidColorBrush>
+            <SolidColorBrush x:Key="BorderBlack">#000000</SolidColorBrush>
             <SolidColorBrush x:Key="LimeGreen">#A3E635</SolidColorBrush>            
 
             <!-- Text Colors -->

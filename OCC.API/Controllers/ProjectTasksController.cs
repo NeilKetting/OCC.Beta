@@ -26,7 +26,7 @@ namespace OCC.API.Controllers
 
         // GET: api/ProjectTasks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectTask>>> GetProjectTasks(Guid? projectId = null)
+        public async Task<ActionResult<IEnumerable<ProjectTask>>> GetProjectTasks(Guid? projectId = null, bool assignedToMe = false)
         {
             try
             {
@@ -39,6 +39,29 @@ namespace OCC.API.Controllers
                 if (projectId.HasValue)
                 {
                     query = query.Where(t => t.ProjectId == projectId.Value);
+                }
+
+                if (assignedToMe)
+                {
+                    // 1. Get current logged-in user's email/ID from Claims
+                    var userEmail = User.Identity?.Name;
+                    if (string.IsNullOrEmpty(userEmail)) return Unauthorized();
+
+                    // 2. Find the User record to get their ID (assuming Identity.Name is Email)
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+                    if (user == null) return Unauthorized();
+
+                    // 3. Find the Employee linked to this User
+                    var linkedEmployee = await _context.Employees.FirstOrDefaultAsync(e => e.LinkedUserId == user.Id);
+
+                    if (linkedEmployee == null)
+                    {
+                        // User is not linked to any Employee resource -> Show 0 tasks
+                        return new List<ProjectTask>();
+                    }
+
+                    // 4. Filter tasks where this Employee is assigned
+                    query = query.Where(t => t.Assignments.Any(a => a.AssigneeId == linkedEmployee.Id));
                 }
 
                 return await query.ToListAsync();

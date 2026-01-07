@@ -3,6 +3,7 @@ using OCC.Client.Services;
 using OCC.Shared.Models;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace OCC.Client.ViewModels.Home.Dashboard
 {
@@ -103,7 +104,18 @@ namespace OCC.Client.ViewModels.Home.Dashboard
             ProjectsCompleted = projectList.Count(p => p.Status == "Completed").ToString();
 
             // Load Tasks
-            var tasks = await _taskRepository.GetAllAsync();
+            // Use ApiProjectTaskRepository to get tasks assigned to the current user
+            IEnumerable<ProjectTask> tasks;
+            if (_taskRepository is ApiProjectTaskRepository apiRepo)
+            {
+                tasks = await apiRepo.GetMyTasksAsync();
+            }
+            else
+            {
+                // Fallback for design time or mock
+                tasks = await _taskRepository.GetAllAsync();
+            }
+
             var allTasks = tasks.ToList();
             TotalTaskCount = allTasks.Count;
 

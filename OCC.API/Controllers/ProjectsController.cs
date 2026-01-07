@@ -25,15 +25,50 @@ namespace OCC.API.Controllers
         }
 
         // GET: api/Projects
+        // GET: api/Projects
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<Project>>> GetProjects(bool assignedToMe = false)
         {
             try
             {
-                return await _context.Projects
+                var query = _context.Projects
                     .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Assignments) // Include assignments for filtering
                     .AsNoTracking()
-                    .ToListAsync();
+                    .AsQueryable();
+
+                if (assignedToMe)
+                {
+                    // 1. Get current logged-in user
+                    var userEmail = User.Identity?.Name;
+                    if (string.IsNullOrEmpty(userEmail)) return Unauthorized();
+
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+                    if (user == null) return Unauthorized();
+
+                    // 2. Admin Check: Admins see EVERYTHING
+                    if (user.UserRole == UserRole.Admin)
+                    {
+                        // Return all projects, no filter needed
+                        return await query.ToListAsync();
+                    }
+
+                    // 3. Find Linked Employee
+                    var linkedEmployee = await _context.Employees.FirstOrDefaultAsync(e => e.LinkedUserId == user.Id);
+                    if (linkedEmployee == null)
+                    {
+                        // No linked employee and not admin -> See nothing (or handle client role later)
+                        return new List<Project>();
+                    }
+
+                    // 4. Filter: Site Manager OR Assigned to Task
+                    query = query.Where(p => 
+                        p.SiteManagerId == linkedEmployee.Id || 
+                        p.Tasks.Any(t => t.Assignments.Any(a => a.AssigneeId == linkedEmployee.Id))
+                    );
+                }
+
+                return await query.ToListAsync();
             }
             catch (Exception ex)
             {

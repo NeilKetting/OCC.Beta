@@ -183,6 +183,12 @@ namespace OCC.Client.ViewModels.Shared
         [RelayCommand]
         private void Navigate(string section)
         {
+            if (section == Infrastructure.NavigationRoutes.Notifications)
+            {
+                WeakReferenceMessenger.Default.Send(new OpenNotificationsMessage());
+                return;
+            }
+
             ActiveSection = section;
             
             // Sync with TopBar tabs
@@ -199,9 +205,6 @@ namespace OCC.Client.ViewModels.Shared
                     break;
                 case Infrastructure.NavigationRoutes.StaffManagement:
                     WeakReferenceMessenger.Default.Send(new SwitchTabMessage("Team"));
-                    break;
-                case Infrastructure.NavigationRoutes.Notifications:
-                    WeakReferenceMessenger.Default.Send(new SwitchTabMessage("Notifications"));
                     break;
             }
         }
@@ -318,7 +321,19 @@ namespace OCC.Client.ViewModels.Shared
 
         private async void LoadProjects()
         {
-            var projects = await _projectRepository.GetAllAsync();
+            IEnumerable<Project> projects;
+
+            // Use ApiProjectRepository to get projects assigned to the current user (or all if admin)
+            if (_projectRepository is ApiProjectRepository apiRepo)
+            {
+                projects = await apiRepo.GetMyProjectsAsync();
+            }
+            else
+            {
+                // Fallback for design time or mock
+                projects = await _projectRepository.GetAllAsync();
+            }
+
             _allProjects = projects.ToList();
             FilterProjects();
         }

@@ -13,6 +13,12 @@ namespace OCC.Shared.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
+        /// Optional link to a User Login (Identity).
+        /// Allows linking this Resource (Employee) to a System User (Login).
+        /// </summary>
+        public Guid? LinkedUserId { get; set; }
+
+        /// <summary>
         /// Employee's first name.
         /// </summary>
         public string FirstName { get; set; } = string.Empty;

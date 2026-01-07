@@ -6,26 +6,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace OCC.API.Migrations
 {
     /// <inheritdoc />
-    public partial class fix_schema_mismatch : Migration
+    public partial class AddLinkedUserIdToEmployee : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.AddColumn<Guid>(
-                name: "UserId",
-                table: "Notifications",
+                name: "LinkedUserId",
+                table: "Employees",
                 type: "uniqueidentifier",
                 nullable: true);
-            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "UserId",
-                table: "Notifications");
+                name: "LinkedUserId",
+                table: "Employees");
         }
     }
 }

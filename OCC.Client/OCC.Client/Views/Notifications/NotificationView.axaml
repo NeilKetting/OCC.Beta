@@ -6,15 +6,13 @@
              xmlns:conv="using:OCC.Client.Converters"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
              x:Class="OCC.Client.Views.NotificationView"
-             x:DataType="vm:NotificationViewModel"
-             Background="Transparent">
+             x:DataType="vm:NotificationViewModel">
 
     <UserControl.Resources>
         <conv:StringContainsConverter x:Key="StringContainsConverter"/>
     </UserControl.Resources>
 
-	<Border CornerRadius="12" Background="{DynamicResource CardBackgroundBrush}" 
-            BoxShadow="0 4 15 0 #20000000" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1">
+    <Border Background="{DynamicResource AppBackgroundSlate}" CornerRadius="12" BoxShadow="8 0 5 2 #A3E635" BorderBrush="{DynamicResource BorderGray}" BorderThickness="2" Margin="0,10,15,10">
 		<Grid RowDefinitions="Auto, *">
 			<!-- Header -->
 			<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="20,15">
@@ -25,7 +23,7 @@
                 </Button>
 			</Grid>
             
-            <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="{DynamicResource BorderGray}" Opacity="0.5"/>
+            <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="{DynamicResource BorderGray}"/>
 
 			<!-- Content -->
 			<Grid Grid.Row="1">

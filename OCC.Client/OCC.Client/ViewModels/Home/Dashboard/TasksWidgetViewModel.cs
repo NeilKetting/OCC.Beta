@@ -6,6 +6,7 @@ using System.Linq;
 using OCC.Client.ViewModels.Home.Shared;
 using System;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.Generic;
 
 namespace OCC.Client.ViewModels.Home.Dashboard
 {
@@ -47,7 +48,15 @@ namespace OCC.Client.ViewModels.Home.Dashboard
 
         private async void LoadTasks()
         {
-            var tasks = await _taskRepository.GetAllAsync();
+            IEnumerable<ProjectTask> tasks;
+            if (_taskRepository is ApiProjectTaskRepository apiRepo)
+            {
+                tasks = await apiRepo.GetMyTasksAsync();
+            }
+            else
+            {
+                tasks = await _taskRepository.GetAllAsync();
+            }
             var recentTasks = tasks.OrderByDescending(t => t.StartDate).Take(5); // Show recent or upcoming
 
             Tasks.Clear();

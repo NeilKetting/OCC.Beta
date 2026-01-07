@@ -282,7 +282,6 @@
 
 	<Style Selector="Border.TopBar">
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}"/>
-		<Setter Property="Height" Value="0"/>
 		<Setter Property="Margin" Value="0"/>
 	</Style>
 
