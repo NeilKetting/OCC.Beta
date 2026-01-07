@@ -27,6 +27,20 @@ namespace OCC.Client.Services
             }
         }
 
+        private string _apiBaseUrl = "http://102.39.20.146:8081/";
+        public string ApiBaseUrl
+        {
+            get => _apiBaseUrl;
+            set
+            {
+                if (_apiBaseUrl != value)
+                {
+                    _apiBaseUrl = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private ConnectionSettings() { }
 
         public event PropertyChangedEventHandler? PropertyChanged;

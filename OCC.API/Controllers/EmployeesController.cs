@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using OCC.API.Data;
 using OCC.Shared.Models;
+using OCC.API.Hubs;
 
 namespace OCC.API.Controllers
 {
@@ -14,9 +15,9 @@ namespace OCC.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<EmployeesController> _logger;
-        private readonly Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> _hubContext;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public EmployeesController(AppDbContext context, ILogger<EmployeesController> logger, Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> hubContext)
+        public EmployeesController(AppDbContext context, ILogger<EmployeesController> logger, IHubContext<Hubs.NotificationHub> hubContext)
         {
             _context = context;
             _logger = logger;

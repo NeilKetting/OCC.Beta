@@ -23,8 +23,10 @@ namespace OCC.Client.Services
         {
             _authService = authService;
             _httpClient = new HttpClient();
-            // TODO: Move base address to configuration/settings
-            _httpClient.BaseAddress = new Uri("http://102.39.20.146:8081/"); 
+            // Use centralized setting
+            var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            _httpClient.BaseAddress = new Uri(baseUrl); 
         }
 
         protected virtual void EnsureAuthorization()

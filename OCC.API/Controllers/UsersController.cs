@@ -5,6 +5,7 @@ using OCC.API.Data;
 using OCC.Shared.Models;
 using Microsoft.AspNetCore.SignalR;
 using OCC.API.Services;
+using OCC.API.Hubs;
 
 namespace OCC.API.Controllers
 {
@@ -16,9 +17,9 @@ namespace OCC.API.Controllers
         private readonly AppDbContext _context;
         private readonly PasswordHasher _passwordHasher;
         private readonly ILogger<UsersController> _logger;
-        private readonly IHubContext<Hubs.NotificationHub> _hubContext;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<NotificationHub> _hubContext;
 
-        public UsersController(AppDbContext context, PasswordHasher passwordHasher, ILogger<UsersController> logger, Microsoft.AspNetCore.SignalR.IHubContext<OCC.API.Hubs.NotificationHub> hubContext)
+        public UsersController(AppDbContext context, PasswordHasher passwordHasher, ILogger<UsersController> logger, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _passwordHasher = passwordHasher;

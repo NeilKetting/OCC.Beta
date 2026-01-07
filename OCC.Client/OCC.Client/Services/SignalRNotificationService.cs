@@ -13,9 +13,18 @@ namespace OCC.Client.Services
 
         public SignalRNotificationService()
         {
-            // TODO: Move URL to AppSettings
+            var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            
+            // Adjust protocol if needed (http vs https). 
+            // The API is http://102.39.20.146:8081/, so SignalR is on the same host/port.
+            // CAREFUL: SignalR client might default to forcing HTTPS or need options.
+            // If the server is HTTP, we use HTTP.
+            
+            var hubUrl = $"{baseUrl}hubs/notifications";
+
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7193/hubs/notifications") // Adjust port as needed
+                .WithUrl(hubUrl) 
                 .WithAutomaticReconnect()
                 .Build();
 
