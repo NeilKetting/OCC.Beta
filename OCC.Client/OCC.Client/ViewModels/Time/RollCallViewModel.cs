@@ -42,7 +42,7 @@ namespace OCC.Client.ViewModels.Time
 
         // Branch Selection
         [ObservableProperty]
-        private string _selectedBranch = "Johannesburg";
+        private string _selectedBranch = string.Empty;
         
         public string[] Branches => new[] { "Johannesburg", "Cape Town" }; // Hardcoded for now based on request
 
