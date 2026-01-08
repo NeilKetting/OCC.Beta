@@ -12,11 +12,20 @@ namespace OCC.Client.ViewModels.Time
         #region Observables
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsClockSystemActive))]
+        [NotifyPropertyChangedFor(nameof(IsLeaveActive))]
+        [NotifyPropertyChangedFor(nameof(IsOvertimeActive))]
         private string _activeTab = "Live";
 
-        #endregion
+        public bool IsClockSystemActive => ActiveTab is "Daily Roll Call" or "Clock Out" or "History";
+        public bool IsLeaveActive => ActiveTab is "Leave Application" or "LeaveApprovals";
+        public bool IsOvertimeActive => ActiveTab is "Overtime" or "OvertimeApproval";
 
-        #region Constructors
+        [RelayCommand]
+        private void SetActiveTab(string tabName)
+        {
+            ActiveTab = tabName;
+        }
 
         private readonly IPermissionService _permissionService;
 
@@ -38,12 +47,6 @@ namespace OCC.Client.ViewModels.Time
         #endregion
 
         #region Commands
-
-        [RelayCommand]
-        private void SetActiveTab(string tabName)
-        {
-            ActiveTab = tabName;
-        }
 
         [RelayCommand]
         private void OpenNotifications()
