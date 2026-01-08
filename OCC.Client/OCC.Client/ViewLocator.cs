@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using OCC.Client.ViewModels;
+using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client
 {

@@ -3,12 +3,17 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services;
 using OCC.Client.ViewModels.Home;
 using OCC.Client.ViewModels.Messages;
+using OCC.Client.ViewModels.Core; // Added
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using System;
 
-namespace OCC.Client.ViewModels
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure;
+
+
+namespace OCC.Client.ViewModels.Login
 {
     public partial class LoginViewModel : ViewModelBase
     {
@@ -16,7 +21,8 @@ namespace OCC.Client.ViewModels
 
         private readonly IAuthService _authService;
         private readonly IServiceProvider _serviceProvider;
-        private readonly LocalSettingsService _localSettingsService;
+        private readonly LocalSettingsService _localSettings;
+        private readonly ConnectionSettings _connectionSettings;
 
         #endregion
 
@@ -34,26 +40,27 @@ namespace OCC.Client.ViewModels
         #endregion
 
         #region Constructors
-
         public LoginViewModel()
         {
             // Parameterless constructor for design-time support
             _authService = null!;
+            _localSettings = null!;
+            _connectionSettings = null!;
             _serviceProvider = null!;
-            _localSettingsService = null!;
         }
 
-        public LoginViewModel(IAuthService authService, IServiceProvider serviceProvider, LocalSettingsService localSettingsService)
+        public LoginViewModel(IAuthService authService, LocalSettingsService localSettings, ConnectionSettings connectionSettings, IServiceProvider serviceProvider)
         {
             _authService = authService;
+            _localSettings = localSettings;
+            _connectionSettings = connectionSettings;
             _serviceProvider = serviceProvider;
-            _localSettingsService = localSettingsService;
 
             // Load saved email
-            Email = _localSettingsService.Settings.LastEmail;
+            Email = _localSettings.Settings.LastEmail;
             
             // Sync with singleton
-            Services.ConnectionSettings.Instance.PropertyChanged += (s, e) =>
+            _connectionSettings.PropertyChanged += (s, e) =>
             {
             };
         }
@@ -79,8 +86,8 @@ namespace OCC.Client.ViewModels
             else
             {
                 // Save email on successful login
-                _localSettingsService.Settings.LastEmail = Email;
-                _localSettingsService.Save();
+                _localSettings.Settings.LastEmail = Email;
+                _localSettings.Save();
 
                 ErrorMessage = null;
                 var shellViewModel = _serviceProvider.GetRequiredService<ShellViewModel>();

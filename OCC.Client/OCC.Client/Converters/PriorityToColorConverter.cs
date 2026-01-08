@@ -5,6 +5,13 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a Priority string (Critical, High, Medium, Low) to a corresponding Brush color.
+    /// used to color-code task priorities.
+    /// 
+    /// Used in:
+    /// - TaskListView.axaml
+    /// </summary>
     public class PriorityToColorConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

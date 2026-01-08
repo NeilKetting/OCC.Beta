@@ -5,6 +5,14 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a percentage (0-100) and a total width (double) into a calculated width.
+    /// Used for variable-width bars in graphs where Grid.Column definitions aren't sufficient.
+    /// 
+    /// Used in:
+    /// - TaskStatusGraphView.axaml
+    /// - TimeEfficiencyGraphView.axaml
+    /// </summary>
     public class PercentageToWidthConverter : IMultiValueConverter
     {
         public static readonly PercentageToWidthConverter Instance = new();

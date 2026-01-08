@@ -6,6 +6,16 @@ using Avalonia.Media;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// A collection of static converters used for the Sidebar logic.
+    /// - CollapseWidth: Calculates sidebar width (70 vs 250).
+    /// - BoolToRotation: Rotates chevron based on expansion.
+    /// - CollapseIcon: Switches chevron icon resource.
+    /// - ActiveColor: Highlights the active navigation item.
+    /// 
+    /// Used in:
+    /// - SideMenuView.axaml
+    /// </summary>
     public class SidebarConverters
     {
         public static readonly IValueConverter CollapseWidth = 
@@ -29,6 +39,13 @@ namespace OCC.Client.Converters
         public static readonly IValueConverter ActiveColor = new ActiveColorConverter();
     }
 
+    /// <summary>
+    /// Highlights the active sidebar section by comparing the bound section string with a parameter.
+    /// Returns Blue if match, Gray if not.
+    /// 
+    /// Used in:
+    /// - SideMenuView.axaml
+    /// </summary>
     public class ActiveColorConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -45,4 +62,7 @@ namespace OCC.Client.Converters
             throw new NotImplementedException();
         }
     }
+
+    /// <summary>
+    /// Highlights the active sidebar section by comparing the bound section string with a parameter.
 }

@@ -5,6 +5,8 @@ using OCC.Shared.Models;
 using System;
 using System.Collections.ObjectModel;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Home.Tasks
 {
     public partial class TaskTreeItemViewModel : ViewModelBase

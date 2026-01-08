@@ -15,13 +15,14 @@
             <SolidColorBrush x:Key="PrimaryTeal">#00b5ad</SolidColorBrush>
             <SolidColorBrush x:Key="PrimaryTealHover">#00a39c</SolidColorBrush>
             <SolidColorBrush x:Key="PrimaryTealLight">#e0f2f1</SolidColorBrush>
-            <SolidColorBrush x:Key="AccentOrange">#ffa500</SolidColorBrush>
+            <SolidColorBrush x:Key="AccentOrange">#ED985F</SolidColorBrush>
 
             <!-- Background & Surface Colors -->
             <SolidColorBrush x:Key="AppBackgroundSlate">#f8fafc</SolidColorBrush>
-            <SolidColorBrush x:Key="SurfaceLightGray">#e9ebee</SolidColorBrush>
+            <SolidColorBrush x:Key="SurfaceLightGray">#dedfe2</SolidColorBrush>
             <SolidColorBrush x:Key="SurfaceWhite">#FFFFFF</SolidColorBrush>
             <SolidColorBrush x:Key="BorderGray">#e2e8f0</SolidColorBrush>
+            <SolidColorBrush x:Key="BorderDark">#00252e</SolidColorBrush>
             <SolidColorBrush x:Key="BorderBlack">#000000</SolidColorBrush>
             <SolidColorBrush x:Key="LimeGreen">#A3E635</SolidColorBrush>            
 
@@ -42,6 +43,16 @@
             <SolidColorBrush x:Key="HoverButtonBackground">#c5c5c5</SolidColorBrush>
             <SolidColorBrush x:Key="GreenButtonBackground">#B6F500</SolidColorBrush>
             <SolidColorBrush x:Key="CancelGrayButtonBackground">#D7DEE7</SolidColorBrush>
+
+            <!-- Gradients -->
+            <LinearGradientBrush x:Key="SideMenuGradient" StartPoint="0%,0%" EndPoint="100%,0%">
+                <GradientStop Offset="0" Color="#F7D1BA"/>
+                <GradientStop Offset="0.69" Color="#DEDFE2"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="HomeMenuGradient" StartPoint="50%,0%" EndPoint="100%,0%">
+                <GradientStop Offset="0" Color="#DEDFE2"/>
+                <GradientStop Offset="0.90" Color="#ED985F"/>
+            </LinearGradientBrush>
             
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">10</x:Double>

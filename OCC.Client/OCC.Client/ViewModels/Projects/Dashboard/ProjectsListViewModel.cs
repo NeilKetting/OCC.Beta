@@ -1,0 +1,62 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+
+namespace OCC.Client.ViewModels.Projects.Dashboard
+{
+    public partial class ProjectsListViewModel : ViewModelBase
+    {
+        private readonly IRepository<Project> _projectRepository;
+
+        [ObservableProperty]
+        private ObservableCollection<ProjectDashboardItemViewModel> _projects = new();
+
+        public ProjectsListViewModel(IRepository<Project> projectRepository)
+        {
+            _projectRepository = projectRepository;
+        }
+
+        public ProjectsListViewModel()
+        {
+            // Design-time
+            _projectRepository = null!;
+            Projects = new ObservableCollection<ProjectDashboardItemViewModel>
+            {
+                new ProjectDashboardItemViewModel { Name = "Construction Schedule", Progress = 7, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2026, 7, 13) },
+                new ProjectDashboardItemViewModel { Name = "Engen", Progress = 97, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2025, 11, 6) }
+            };
+        }
+
+        public async void LoadProjects()
+        {
+            if (_projectRepository == null) return;
+
+            var projects = await _projectRepository.GetAllAsync();
+            
+            // Transform to dashboard items
+            // This is a mockup transformation since we might not have all this data in the plain Project model yet
+            var dashboardItems = projects.Select(p => new ProjectDashboardItemViewModel
+            {
+                Name = p.Name,
+                Progress = 0, // Mockup
+                ProjectManagerInitials = "OR", // Mockup
+                Members = new() { "OR" }, // Mockup
+                Status = "Planning", // Mockup
+                LatestFinish = p.EndDate
+            });
+
+            Projects = new ObservableCollection<ProjectDashboardItemViewModel>(dashboardItems);
+        }
+
+        [RelayCommand]
+        private void NewProject()
+        {
+            // Logic to create new project (maybe navigate to wizard)
+        }
+    }
+}

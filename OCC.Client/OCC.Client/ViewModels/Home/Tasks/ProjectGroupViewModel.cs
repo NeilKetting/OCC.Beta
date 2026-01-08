@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.ViewModels;
 using System.Collections.ObjectModel;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Home.Tasks
 {
     public partial class ProjectGroupViewModel : ViewModelBase

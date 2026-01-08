@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.Models;
 using System;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Time
 {
     public partial class StaffAttendanceViewModel : ViewModelBase

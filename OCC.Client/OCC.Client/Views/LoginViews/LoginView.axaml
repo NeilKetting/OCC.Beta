@@ -2,14 +2,29 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="clr-namespace:OCC.Client.ViewModels"
-			 mc:Ignorable="d" d:DesignHeight="850"
-			 x:Class="OCC.Client.Views.LoginView"
+			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Login;assembly=OCC.Client"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="OCC.Client.Views.Login.LoginView"
 			 x:DataType="vm:LoginViewModel">
 
 	<Design.DataContext>
 		<vm:LoginViewModel/>
 	</Design.DataContext>
+
+	<UserControl.Styles>
+		<Style Selector="ScrollViewer.AnimateIn">
+			<Style.Animations>
+				<Animation Duration="0:0:2.0" Easing="CircularEaseOut" FillMode="Forward">
+				<KeyFrame KeyTime="0:0:0">
+					<Setter Property="Opacity" Value="0"/>
+				</KeyFrame>
+					<KeyFrame KeyTime="0:0:2.0">
+						<Setter Property="Opacity" Value="1"/>
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
+	</UserControl.Styles>
 
 	<Grid>
 		<!-- Background -->
@@ -20,7 +35,7 @@
 				<Image Grid.Column="1" Source="/Assets/Images/occ_bgi.jpg"
 					   Stretch="UniformToFill" />
 				<!-- Dark Overlay -->
-				<Rectangle Grid.Column="1" Fill="{DynamicResource LoginBackgroundDark}" Opacity="0.50" />
+				<Rectangle Grid.Column="1" Fill="{DynamicResource LoginBackgroundDark}" Opacity="0.40" />
 
 				<Rectangle Grid.Column="2" Fill="{DynamicResource AccentOrange}" />
 				<!-- logo -->
@@ -37,19 +52,22 @@
 									   />
 						</Grid>
 					</Border>
-					<TextBlock Classes="BrandName" Margin="15,0,0,0"><Span Foreground="{DynamicResource AccentOrange}">O</Span>range <Span Foreground="{DynamicResource AccentOrange}">C</Span>ircle <Span Foreground="{DynamicResource AccentOrange}">C</Span>onstruction</TextBlock>
+					<TextBlock Classes="BrandName" Margin="15,0,0,0"><Span FontSize="26" Foreground="{DynamicResource AccentOrange}">O</Span>range <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>ircle <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>onstruction</TextBlock>
 				</StackPanel>
 			</Grid>
 		</Panel>
 
 
 		<!-- Content -->
-		<ScrollViewer>
-			<Border Padding="20" VerticalAlignment="Center" >
+		<ScrollViewer Classes="AnimateIn">
+			<Border Padding="20" VerticalAlignment="Center"
+					BorderThickness="2">
 				<Grid>
 					<StackPanel Spacing="40">
 						<!-- Login Card -->
-						<Border Classes="Card" Width="480" VerticalAlignment="Center">
+						<Border Classes="Card" Width="480" VerticalAlignment="Center" Margin="15"
+			  BorderBrush="{DynamicResource BorderGray}" BorderThickness="5"
+								BoxShadow="0 0 20 8 #ffa500">
 							<StackPanel Spacing="25">
 								<TextBlock Text="Log in to your account below"
 										   HorizontalAlignment="Center"

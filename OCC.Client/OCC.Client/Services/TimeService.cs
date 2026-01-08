@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using OCC.Shared.Models;
 
+using OCC.Client.Services.Interfaces;
+
 namespace OCC.Client.Services
 {
     public class TimeService : ITimeService

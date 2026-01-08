@@ -7,6 +7,9 @@ using OCC.Shared.Models;
 using System;
 using OCC.Client.Services;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Projects
 {
     public partial class ProjectListViewModel : ViewModelBase

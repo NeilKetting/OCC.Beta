@@ -4,6 +4,13 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts an Enum to its Integer value.
+    /// Useful for binding Enums to controls that expect an index or integer (like ComboBox SelectedIndex).
+    /// 
+    /// Used in:
+    /// - RollCallView.axaml
+    /// </summary>
     public class EnumToIntConverter : IValueConverter
     {
         public static readonly EnumToIntConverter Instance = new();

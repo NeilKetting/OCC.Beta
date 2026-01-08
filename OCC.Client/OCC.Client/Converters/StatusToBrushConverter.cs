@@ -5,6 +5,14 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a status string (Green, Gray, Red, Orange) to a SolidColorBrush.
+    /// Used for status indicators columns in lists.
+    /// 
+    /// Used in:
+    /// - ProjectListView.axaml
+    /// - TaskListView.axaml
+    /// </summary>
     public class StatusToBrushConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

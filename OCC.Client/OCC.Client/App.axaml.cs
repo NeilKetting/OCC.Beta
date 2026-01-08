@@ -4,20 +4,33 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Services;
+using OCC.Client.Services.Interfaces; // Added
+using OCC.Client.Services.Infrastructure; // Added
+using OCC.Client.Services.ApiServices;
 using OCC.Client.ViewModels;
+using OCC.Client.ViewModels.Core; // Added for ViewModelBase/Core VMs
+using OCC.Client.ViewModels.Login; // Added
 using OCC.Client.ViewModels.EmployeeManagement;
 using OCC.Client.ViewModels.Home;
 using OCC.Client.ViewModels.Home.Dashboard;
 using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Home.Shared;
 using OCC.Client.ViewModels.Home.Tasks;
+using OCC.Client.ViewModels.Notifications; // Added
 using OCC.Client.ViewModels.Projects;
 using OCC.Client.ViewModels.Shared;
 using OCC.Client.Views;
+using OCC.Client.Views.Core;
 using System;
 using System.Linq;
 using Serilog;
 using OCC.Shared.Models;
+using OCC.Client.ViewModels.Home.Calendar;
+using OCC.Client.ViewModels.Time;
+using OCC.Client.ViewModels.Settings;
+using OCC.Client.ViewModels.Projects.Shared;
+using OCC.Client.ViewModels.Projects.Dashboard;
+
 
 namespace OCC.Client
 {
@@ -114,37 +127,52 @@ namespace OCC.Client
             services.AddSingleton<SignalRNotificationService>();
             services.AddSingleton<IPermissionService, PermissionService>();
             services.AddSingleton<LocalSettingsService>();
+            services.AddSingleton(ConnectionSettings.Instance);
 
             // Logging
             services.AddLogging(l => l.AddSerilog());
 
             // ViewModels
-            services.AddTransient<MainViewModel>();
-            services.AddTransient<LoginViewModel>();
-            services.AddTransient<RegisterViewModel>();
+
+            // Core
             services.AddTransient<ShellViewModel>();
+            services.AddTransient<MainViewModel>();
+            services.AddSingleton<SideMenuViewModel>();
+
+            // Login and Registration
+
+            services.AddTransient<RegisterViewModel>();
+            services.AddTransient<LoginViewModel>();
+            
+            // Home
+            services.AddTransient<HomeMenuViewModel>();
             services.AddTransient<HomeViewModel>();
             services.AddTransient<HomeViewModel>();
-            services.AddSingleton<SidebarViewModel>();
-            services.AddTransient<TopBarViewModel>();
-            services.AddTransient<TopBarViewModel>();
             services.AddTransient<SummaryViewModel>();
             services.AddTransient<TasksWidgetViewModel>();
             services.AddTransient<PulseViewModel>();
             services.AddTransient<NotificationViewModel>();
+            
+            // Project
+            
+            services.AddTransient<ProjectsViewModel>();
+            services.AddTransient<ProjectMainMenuViewModel>();
+
+
+
             services.AddTransient<ProjectSummaryViewModel>();
             services.AddTransient<TaskListViewModel>();
-            services.AddTransient<ProjectsViewModel>();
             services.AddTransient<ProjectListViewModel>();
+            services.AddTransient<ProjectsListViewModel>();
 
             services.AddTransient<ProjectGanttViewModel>();
-            services.AddTransient<ViewModels.Settings.UserManagementViewModel>();
-            services.AddTransient<ViewModels.Settings.ManageUsersViewModel>();
-            services.AddTransient<ViewModels.Settings.AuditLogViewModel>();
+            services.AddTransient<UserManagementViewModel>();
+            services.AddTransient<ManageUsersViewModel>();
+            services.AddTransient<AuditLogViewModel>();
             services.AddTransient<TaskDetailViewModel>(); // If needed
             services.AddTransient<EmployeeManagementViewModel>();
-            services.AddTransient<ViewModels.Time.TimeViewModel>();
-            services.AddTransient<ViewModels.Home.Calendar.CalendarViewModel>();
+            services.AddTransient<TimeViewModel>();
+            services.AddTransient<CalendarViewModel>();
             services.AddTransient<ProfileViewModel>();
         }
 

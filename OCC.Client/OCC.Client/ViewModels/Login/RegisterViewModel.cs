@@ -9,7 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace OCC.Client.ViewModels
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
+namespace OCC.Client.ViewModels.Login
 {
     public partial class RegisterViewModel : ViewModelBase
     {

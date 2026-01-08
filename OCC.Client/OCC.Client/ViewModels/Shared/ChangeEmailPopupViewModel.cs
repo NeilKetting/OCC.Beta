@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Shared
 {
     public partial class ChangeEmailPopupViewModel : ViewModelBase

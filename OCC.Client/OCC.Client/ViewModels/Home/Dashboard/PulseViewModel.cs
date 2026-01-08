@@ -3,6 +3,9 @@ using OCC.Client.Services;
 using OCC.Shared.Models;
 using System.Collections.ObjectModel;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Home.Dashboard
 {
     public partial class PulseViewModel : ViewModelBase

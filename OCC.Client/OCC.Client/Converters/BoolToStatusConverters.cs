@@ -5,6 +5,13 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a boolean status (Approved/Pending) to a color Brush.
+    /// True (Approved) -> Green, False (Pending) -> Orange.
+    /// 
+    /// Used in:
+    /// - ManageUsersView.axaml
+    /// </summary>
     public class BoolToStatusColorConverter : IValueConverter
     {
         public static readonly BoolToStatusColorConverter Instance = new();
@@ -24,6 +31,13 @@ namespace OCC.Client.Converters
         }
     }
 
+    /// <summary>
+    /// Converts a boolean status (Approved/Pending) to text representation.
+    /// True -> "APPROVED", False -> "PENDING".
+    /// 
+    /// Used in:
+    /// - ManageUsersView.axaml
+    /// </summary>
     public class BoolToStatusTextConverter : IValueConverter
     {
         public static readonly BoolToStatusTextConverter Instance = new();

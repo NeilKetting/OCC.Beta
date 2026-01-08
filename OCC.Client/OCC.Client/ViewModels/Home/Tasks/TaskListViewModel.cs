@@ -1,14 +1,13 @@
-using System;
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using OCC.Client.Services;
-using OCC.Shared.Models;
-using OCC.Client.ViewModels.Home.Shared;
-using OCC.Client.ViewModels;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace OCC.Client.ViewModels.Home.Tasks
@@ -31,7 +30,7 @@ namespace OCC.Client.ViewModels.Home.Tasks
         #endregion
 
         #region Events
-
+        // Events to notify selection or new task request
         public event EventHandler<string>? TaskSelectionRequested;
         public event EventHandler? NewTaskRequested;
 
@@ -46,7 +45,7 @@ namespace OCC.Client.ViewModels.Home.Tasks
             _logger = null!;
         }
 
-        public TaskListViewModel(IRepository<ProjectTask> taskRepository, Microsoft.Extensions.Logging.ILogger<TaskListViewModel> logger)
+        public TaskListViewModel(IRepository<ProjectTask> taskRepository, ILogger<TaskListViewModel> logger)
         {
             _taskRepository = taskRepository;
             _logger = logger;

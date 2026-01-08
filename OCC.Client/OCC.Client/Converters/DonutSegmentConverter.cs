@@ -6,6 +6,12 @@ using Avalonia.Media;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a start angle and sweep angle into a StreamGeometry for a donut chart segment.
+    /// 
+    /// Used in:
+    /// - TimeEfficiencyGraphView.axaml
+    /// </summary>
     public class DonutSegmentConverter : IMultiValueConverter
     {
         public object? Convert(System.Collections.Generic.IList<object?> values, Type targetType, object? parameter, CultureInfo culture)

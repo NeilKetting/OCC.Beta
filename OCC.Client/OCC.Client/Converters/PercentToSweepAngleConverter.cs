@@ -4,6 +4,13 @@ using Avalonia.Data.Converters;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a percentage (0-100) to a sweep angle (0-360) for circular geometry.
+    /// Multiplier is 3.6.
+    /// 
+    /// Used in:
+    /// - TimeEfficiencyGraphView.axaml (Donut charts)
+    /// </summary>
     public class PercentToSweepAngleConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

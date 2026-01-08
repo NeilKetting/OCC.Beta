@@ -5,6 +5,14 @@ using System.Globalization;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts an integer level to a left-margin Thickness.
+    /// Used for identifying tree-structure depth in Lists.
+    /// Default multiplier is 20, can be overridden by parameter.
+    /// 
+    /// Used in:
+    /// - ProjectListView.axaml (Task Hierarchy)
+    /// </summary>
     public class IntToIndentationConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

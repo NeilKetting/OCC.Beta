@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Projects.Shared
 {
     public partial class ProjectTopBarViewModel : ViewModelBase

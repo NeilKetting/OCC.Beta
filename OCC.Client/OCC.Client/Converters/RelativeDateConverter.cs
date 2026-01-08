@@ -4,6 +4,13 @@ using Avalonia.Data.Converters;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a DateTime to a relative human-readable string.
+    /// Returns "Today", "Yesterday", "Tomorrow", or formatted date "MMM d".
+    /// 
+    /// Used in:
+    /// - TaskDetailView.axaml
+    /// </summary>
     public class RelativeDateConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -36,6 +43,12 @@ namespace OCC.Client.Converters
         }
     }
 
+    /// <summary>
+    /// Converts a TimeSpan or double (hours) to a duration string (e.g., "5 days").
+    /// 
+    /// Used in:
+    /// - TaskDetailView.axaml (Gantt duration display)
+    /// </summary>
     public class DurationConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

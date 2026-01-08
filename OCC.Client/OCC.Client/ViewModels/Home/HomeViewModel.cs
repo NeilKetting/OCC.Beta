@@ -4,15 +4,16 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services;
 using OCC.Client.ViewModels.Home.Dashboard;
 using OCC.Client.ViewModels.Home.ProjectSummary;
+using OCC.Client.ViewModels.Home.MySummary;
 using OCC.Client.ViewModels.Home.Shared;
 using OCC.Client.ViewModels.Home.Tasks;
 using OCC.Client.ViewModels.Messages;
 using OCC.Client.ViewModels.Projects;
 using OCC.Shared.Models;
 using System;
-
-
 using Microsoft.Extensions.Logging;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.Home
 {
@@ -38,46 +39,22 @@ namespace OCC.Client.ViewModels.Home
         #region Observables
 
         [ObservableProperty]
-        private TopBarViewModel _topBar;
+        private HomeMenuViewModel _homeMenu;
 
         [ObservableProperty]
-        private SummaryViewModel _mySummary;
+        private ViewModelBase _currentView;
 
         [ObservableProperty]
-        private TasksWidgetViewModel _myTasks;
+        private MySummaryPageViewModel _mySummaryPage;
 
         [ObservableProperty]
-        private PulseViewModel _projectPulse;
-
-        [ObservableProperty]
-        private ProjectSummaryViewModel _projectSummary;
-
-        [ObservableProperty]
-        private TeamSummaryViewModel _teamSummary;
-
-        [ObservableProperty]
-        private bool _isDashboardVisible = true;
-
-        [ObservableProperty]
-        private bool _isMySummaryVisible = true;
-
-        [ObservableProperty]
-        private bool _isTeamSummaryVisible = false;
-
-        [ObservableProperty]
-        private bool _isProjectSummaryVisible = false;
+        private ProjectSummaryPageViewModel _projectSummaryPage;
 
         [ObservableProperty]
         private Calendar.CalendarViewModel _calendar;
 
         [ObservableProperty]
         private TaskListViewModel _taskList;
-
-        [ObservableProperty]
-        private bool _isListVisible;
-
-        [ObservableProperty]
-        private bool _isCalendarVisible;
 
         [ObservableProperty]
         private string _greeting = string.Empty;
@@ -117,14 +94,12 @@ namespace OCC.Client.ViewModels.Home
         {
             // Parameterless constructor for design-time support
             Greeting = "Good day, User";
-            _topBar = null!;
-            _mySummary = null!;
-            _myTasks = null!;
-            _projectPulse = null!;
-            _projectSummary = null!;
-            _teamSummary = null!;
+            _homeMenu = null!;
+            _mySummaryPage = null!;
+            _projectSummaryPage = null!;
             _calendar = null!;
             _taskList = null!;
+            _currentView = null!;
             _authService = null!;
             _timeService = null!;
             _projectTaskRepository = null!;
@@ -139,7 +114,7 @@ namespace OCC.Client.ViewModels.Home
             _loggerFactory = null!;
         }
 
-        public HomeViewModel(TopBarViewModel topBar,
+        public HomeViewModel(HomeMenuViewModel homeMenu,
                              SummaryViewModel mySummary,
                              TasksWidgetViewModel myTasks,
                              PulseViewModel projectPulse,
@@ -158,6 +133,7 @@ namespace OCC.Client.ViewModels.Home
                              ILoggerFactory loggerFactory)
         {
             _authService = authService;
+            _currentView = null!; // Silence warning, set in Initialize()
             _timeService = timeService;
             _projectTaskRepository = projectTaskRepository;
             _projectRepository = projectRepository;
@@ -170,12 +146,11 @@ namespace OCC.Client.ViewModels.Home
             _userRepository = userRepository;
             _loggerFactory = loggerFactory;
 
-            TopBar = topBar;
-            MySummary = mySummary;
-            MyTasks = myTasks;
-            ProjectPulse = projectPulse;
-            ProjectSummary = projectSummary;
-            TeamSummary = new TeamSummaryViewModel();
+            HomeMenu = homeMenu;
+            
+            // Initialize Pages
+            MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks, projectPulse);
+            ProjectSummaryPage = new ProjectSummaryPageViewModel(projectSummary, new TeamSummaryViewModel());
             Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
             
@@ -189,7 +164,7 @@ namespace OCC.Client.ViewModels.Home
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
             WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup());
 
-            TopBar.PropertyChanged += TopBar_PropertyChanged;
+            HomeMenu.PropertyChanged += HomeMenu_PropertyChanged;
 
             Initialize();
         }
@@ -223,11 +198,14 @@ namespace OCC.Client.ViewModels.Home
             var now = DateTime.Now;
             Greeting = GetGreeting(now);
             CurrentDate = now.ToString("dd MMMM yyyy");
+            
+            // Set default view
+            UpdateVisibility();
         }
 
-        private void TopBar_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void HomeMenu_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(TopBarViewModel.ActiveTab))
+            if (e.PropertyName == nameof(HomeMenuViewModel.ActiveTab))
             {
                 UpdateVisibility();
             }
@@ -235,32 +213,36 @@ namespace OCC.Client.ViewModels.Home
 
         private void UpdateVisibility()
         {
-            // Reset all
-            IsMySummaryVisible = false;
-            IsTeamSummaryVisible = false;
-            IsProjectSummaryVisible = false;
-            IsCalendarVisible = false;
-            IsListVisible = false;
-
-            // Only care about tabs relevant to Dashboard
-            switch (TopBar.ActiveTab)
+            switch (HomeMenu.ActiveTab)
             {
                 case "Portfolio Summary":
                 case "Project Summary":
-                    IsProjectSummaryVisible = true;
+                    CurrentView = ProjectSummaryPage;
                     break;
                 case "Team Summary":
-                    IsTeamSummaryVisible = true;
+                     // Currently mapped to ProjectSummaryPage as well or needs its own?
+                     // Based on previous logic, TeamSummary was a separate boolean.
+                     // But I put TeamSummary INSIDE ProjectSummaryPage.
+                     // IMPORTANT: If they are different tabs, showing BOTH on one page is confusing if they are separate tabs.
+                     // The user request said "Reorganizing... MySummary, ProjectSummary, List, Calendar".
+                     // It didn't mention Portfolio Summary or Team Summary explicitly as top level folders, but logically they might be.
+                     // For now, I'll map Team Summary to ProjectSummaryPage too, or create a specific one.
+                     // Actually, in the old logic, IsTeamSummaryVisible was separate.
+                     // If I put TeamSummaryViewModel inside ProjectSummaryPageViewModel, then ProjectSummaryPageView shows BOTH.
+                     // If the user clicks "Team Summary", they expect to see Team Summary.
+                     // Logic: If active tab is Team Summary, maybe show ProjectSummaryPage but scroll to Team Summary? Or just show it.
+                     // Let's stick to ProjectSummaryPage for now.
+                    CurrentView = ProjectSummaryPage; 
                     break;
                 case "Calendar": 
-                    IsCalendarVisible = true;
+                    CurrentView = Calendar;
                     break;
                 case "List":
-                    IsListVisible = true;
+                    CurrentView = TaskList;
                     break;
                 case "My Summary":
                 default:
-                    IsMySummaryVisible = true;
+                    CurrentView = MySummaryPage;
                     break;
             }
         }
@@ -317,11 +299,6 @@ namespace OCC.Client.ViewModels.Home
 
         private void ProjectCreatedHandler(object? sender, Guid projectId)
         {
-            // CreateProjectViewModel already sends the Created message with full details.
-            // We just need to ensure selection if needed, although SidebarViewModel also handles navigation.
-            // Actually, SidebarViewModel's Created handler calls NavigateToProject which sends ProjectSelectedMessage.
-            // So HomeViewModel might not need to do ANYTHING here if Sidebar handles it.
-            // But let's be safe and just remove the duplicates.
         }
 
         #endregion

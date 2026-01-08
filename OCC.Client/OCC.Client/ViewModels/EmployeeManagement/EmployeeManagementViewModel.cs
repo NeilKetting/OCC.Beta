@@ -8,6 +8,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.EmployeeManagement
 {
     public partial class EmployeeManagementViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ViewModels.Messages.EntityUpdatedMessage>

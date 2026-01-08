@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Time
 {
     public partial class TimesheetRowViewModel : ViewModelBase

@@ -5,28 +5,31 @@ using Avalonia.Media;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a tab name (string) and an active tab name (parameter) into a Brush color.
+    /// Used to highlight the currently selected tab in navigation menus.
+    /// 
+    /// Used in:
+    /// - ProjectTopBarView.axaml
+    /// </summary>
     public class ActiveTabToBrushConverter : IValueConverter
     {
-        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (value?.ToString() is string activeTab && parameter?.ToString() is string tabName)
-            {
-                if (activeTab.Equals(tabName, StringComparison.OrdinalIgnoreCase))
-                {
-                    // AccentOrange
-                    if (Avalonia.Application.Current != null && Avalonia.Application.Current.TryGetResource("AccentOrange", null, out var resource) && resource is IBrush brush)
-                    {
-                        return brush;
-                    }
-                    return Brushes.Orange; 
-                }
-            }
-            return Brushes.Transparent;
+            var activeTab = value as string;
+            var buttonTab = parameter as string;
+
+            if (string.IsNullOrEmpty(activeTab) || string.IsNullOrEmpty(buttonTab))
+                return Brushes.Transparent;
+
+            return activeTab == buttonTab 
+                ? new SolidColorBrush(Color.Parse("#2563EB")) // Active: Blue
+                : Brushes.Transparent; // Inactive
         }
 
-        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-             throw new NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

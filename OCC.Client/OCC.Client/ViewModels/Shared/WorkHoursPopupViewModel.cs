@@ -6,6 +6,8 @@ using OCC.Client.Data;
 using Microsoft.EntityFrameworkCore;
 using OCC.Shared.Models;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Shared
 {
     public partial class WorkHoursPopupViewModel : ViewModelBase

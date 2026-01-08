@@ -10,6 +10,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Messages;
 using System.Linq;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Projects
 {
     public partial class CreateProjectViewModel : ViewModelBase

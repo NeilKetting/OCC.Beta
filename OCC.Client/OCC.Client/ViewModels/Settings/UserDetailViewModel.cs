@@ -5,6 +5,9 @@ using OCC.Shared.Models;
 using System;
 using System.Threading.Tasks;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Settings
 {
     public partial class UserDetailViewModel : ViewModelBase

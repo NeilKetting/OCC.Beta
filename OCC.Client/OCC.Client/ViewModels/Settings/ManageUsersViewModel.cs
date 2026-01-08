@@ -7,6 +7,9 @@ using OCC.Client.Services;
 using OCC.Shared.Models;
 using System.Linq;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Settings
 {
     public partial class ManageUsersViewModel : ViewModelBase

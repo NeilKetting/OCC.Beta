@@ -1,18 +1,32 @@
 using OCC.Client.Infrastructure;
 using OCC.Shared.Models;
-using System;
+
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure; // If needed
 
 namespace OCC.Client.Services
 {
+    /// <summary>
+    /// Service responsible for determining user access and permissions based on their role.
+    /// </summary>
     public class PermissionService : IPermissionService
     {
         private readonly IAuthService _authService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PermissionService"/> class.
+        /// </summary>
+        /// <param name="authService">The authentication service to retrieve the current user.</param>
         public PermissionService(IAuthService authService)
         {
             _authService = authService;
         }
 
+        /// <summary>
+        /// Determines if the current user has access to a specific route or feature.
+        /// </summary>
+        /// <param name="route">The navigation route or feature key to check access for.</param>
+        /// <returns>True if the user is authorized; otherwise, false.</returns>
         public bool CanAccess(string route)
         {
             var user = _authService.CurrentUser;
@@ -22,6 +36,7 @@ namespace OCC.Client.Services
             if (user.UserRole == UserRole.Admin) return true;
 
             // Site Manager Access
+            // Can access all core operational modules but restricted from User Management
             if (user.UserRole == UserRole.SiteManager)
             {
                 return route switch
@@ -32,19 +47,21 @@ namespace OCC.Client.Services
                     NavigationRoutes.Time => true,
                     NavigationRoutes.Calendar => true,
                     NavigationRoutes.Notifications => true,
-                    "UserManagement" => false, // No user management
+                    "UserManagement" => false, 
                     _ => false
                 };
             }
 
             // Contractor/Guest Access
+            // Restricted access to specific modules (Home, Projects, Time, Calendar)
+            // No access to Staff or User Management
             if (user.UserRole == UserRole.ExternalContractor || user.UserRole == UserRole.Guest)
             {
                  return route switch
                 {
                     NavigationRoutes.Home => true,
-                    NavigationRoutes.Projects => true, // Maybe read-only? Handled in view
-                    NavigationRoutes.Time => true, // Can log time
+                    NavigationRoutes.Projects => true, 
+                    NavigationRoutes.Time => true, 
                     NavigationRoutes.Calendar => true,
                     NavigationRoutes.Notifications => true,
                     NavigationRoutes.StaffManagement => false,

@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.Models;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Home.Calendar
 {
     public partial class CalendarDayViewModel : ViewModelBase

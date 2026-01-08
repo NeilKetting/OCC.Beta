@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using OCC.Client.Services;
+using OCC.Client.Services.Interfaces;
+using OCC.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

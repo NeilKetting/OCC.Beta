@@ -5,6 +5,14 @@ using Avalonia.Data.Converters;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts an Enum Value to a friendly string by splitting keys by capitals.
+    /// Example: "SiteManager" -> "Site Manager".
+    /// 
+    /// Used in:
+    /// - UserManagementView.axaml
+    /// - EmployeeDetailView.axaml
+    /// </summary>
     public class FriendlyEnumConverter : IValueConverter
     {
         public static readonly FriendlyEnumConverter Instance = new();

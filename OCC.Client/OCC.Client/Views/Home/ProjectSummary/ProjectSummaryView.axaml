@@ -4,7 +4,7 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Home.ProjectSummary"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
-			 xmlns:local="clr-namespace:OCC.Client.Views.Home.ProjectSummary"
+			 xmlns:widgets="clr-namespace:OCC.Client.Views.Home.ProjectSummary.Widgets"
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
 			 x:Class="OCC.Client.Views.Home.ProjectSummary.ProjectSummaryView"
 			 x:DataType="vm:ProjectSummaryViewModel">
@@ -19,16 +19,16 @@
 			<!-- Project Summary Section (Pipeline & Cost/Budget) -->
 			<!-- Using a Grid to simulate the original 50% width constraint if desired, or let it stretch -->
 			<!-- The view itself handles internal columns, so stretching is fine (it will use 50% internally) -->
-			<local:ProjectSummarySectionView Margin="0,0,0,20"/>
+			<widgets:ProjectSummarySectionView Margin="0,0,0,20"/>
 
 			<!-- Project Breakdown -->
-			<local:ProjectBreakdownView/>
+			<widgets:ProjectBreakdownView/>
 		</StackPanel>
 
 		<!-- Right Column Group -->
 		<StackPanel MinWidth="350" Margin="0,0,20,20">
 			<!-- Team Pulse -->
-			<local:ProjectPulseView/>
+			<widgets:ProjectPulseView/>
 		</StackPanel>
 	</WrapPanel>
 </UserControl>

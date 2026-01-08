@@ -5,6 +5,9 @@ using System.Linq;
 using OCC.Client.Services;
 using OCC.Shared.Models;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Home.ProjectSummary
 {
     public partial class ProjectSummaryViewModel : ViewModelBase

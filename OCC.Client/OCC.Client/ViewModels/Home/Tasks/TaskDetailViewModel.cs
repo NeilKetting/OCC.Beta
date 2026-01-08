@@ -9,8 +9,18 @@ using OCC.Shared.Models;
 using System.Threading.Tasks;
 using System.Threading;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Client.ModelWrappers;
+
 namespace OCC.Client.ViewModels.Home.Tasks
 {
+    /// <summary>
+    /// ViewModel for displaying and editing details of a specific ProjectTask.
+    /// This ViewModel uses the Model Wrapper pattern (<see cref="ProjectTaskWrapper"/>) to 
+    /// separate presentation logic from the data model and ensure clean, reactive bindings.
+    /// It manages subtasks, assignments, comments, and orchestrates data loading and saving via repositories.
+    /// </summary>
     public partial class TaskDetailViewModel : ViewModelBase
     {
         #region Private Members
@@ -23,7 +33,6 @@ namespace OCC.Client.ViewModels.Home.Tasks
         private readonly SemaphoreSlim _updateLock = new(1, 1);
         private Guid _currentTaskId; 
         private bool _isLoading = false;
-        private bool _isUpdatingDuration = false;
 
         #endregion
 
@@ -35,95 +44,72 @@ namespace OCC.Client.ViewModels.Home.Tasks
 
         #region Observables
 
+        /// <summary>
+        /// The wrapper around the current ProjectTask, providing reactive properties for the UI.
+        /// </summary>
         [ObservableProperty]
-        private string _id = "T-1";
+        private ProjectTaskWrapper _task;
 
-        [ObservableProperty]
-        private string _title = "Test";
-
-        [ObservableProperty]
-        private bool? _isCompleted;
-
-        [ObservableProperty]
-        private string _description = "Add a description";
-
+        /// <summary>
+        /// Collection of checklist items (To-Do list) associated with the task.
+        /// Changes to this collection notify the SubtaskCount property.
+        /// </summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(SubtaskCount))]
         private ObservableCollection<ChecklistItem> _toDoList = new ObservableCollection<ChecklistItem>();
 
+        /// <summary>
+        /// Collection of tags or labels applied to the task.
+        /// </summary>
         [ObservableProperty]
         private ObservableCollection<string> _tags = new ObservableCollection<string>();
 
+        /// <summary>
+        /// Helper property for the input field when adding a new checklist item.
+        /// </summary>
         [ObservableProperty]
         private string _newToDoContent = string.Empty;
 
-        [ObservableProperty]
-        private DateTime? _plannedStartDate; 
-
-        [ObservableProperty]
-        private DateTime? _dueDate;
-
-        [ObservableProperty]
-        private string _plannedDuration = "None"; 
-
-        [ObservableProperty]
-        private double? _plannedHours;
-
-        [ObservableProperty]
-        private string _plannedCost = "R200";
-
-        [ObservableProperty]
-        private DateTime? _actualStartDate;
-
-        [ObservableProperty]
-        private DateTime? _doneDate;
-
-        [ObservableProperty]
-        private string _actualDuration = "None";
-
-        [ObservableProperty]
-        private double? _actualHours;
-
-        [ObservableProperty]
-        private string _actualCost = "None";
-
+        /// <summary>
+        /// Collection of comments posted primarily on this task.
+        /// </summary>
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(CommentsCount))]
         private ObservableCollection<TaskComment> _comments = new();
 
+        /// <summary>
+        /// Helper property for the input field when adding a new comment.
+        /// </summary>
         [ObservableProperty]
         private string _newCommentContent = string.Empty;
 
-        [ObservableProperty]
-        private string _status = "Not Started";
-
-        [ObservableProperty]
-        private double _progressPercent = 0;
-
-        [ObservableProperty]
-        private bool _isOnHold;
-
-        [ObservableProperty] 
-        private string _priority = "Medium";
-
-        [ObservableProperty]
-        private string _statusColor = "#CBD5E1"; 
-
-        [ObservableProperty]
-        private int _percentComplete;
-
+        /// <summary>
+        /// The list of users assigned to this task.
+        /// </summary>
         [ObservableProperty]
         private ObservableCollection<TaskAssignment> _assignments = new();
 
+        /// <summary>
+        /// The complete list of subtasks (children) for this task.
+        /// </summary>
         [ObservableProperty]
         private ObservableCollection<ProjectTask> _subtasks = new();
 
+        /// <summary>
+        /// The subset of subtasks currently visible in the UI (handles pagination/preview limits).
+        /// </summary>
         [ObservableProperty]
         private ObservableCollection<ProjectTask> _visibleSubtasks = new();
 
+        /// <summary>
+        /// Indicates if there are more subtasks than currently displayed.
+        /// </summary>
         [ObservableProperty]
         private bool _hasMoreSubtasks;
 
+        /// <summary>
+        /// Toggles whether to show the full list of subtasks or just a preview.
+        /// </summary>
         [ObservableProperty]
         private bool _isShowingAllSubtasks;
 
@@ -131,8 +117,16 @@ namespace OCC.Client.ViewModels.Home.Tasks
 
         #region Properties
 
+        /// <summary>
+        /// Gets the total count of items in the To-Do list.
+        /// </summary>
         public int SubtaskCount => ToDoList?.Count ?? 0;
+
+        /// <summary>
+        /// Gets the total count of comments on this task.
+        /// </summary>
         public int CommentsCount => Comments?.Count ?? 0;
+
         public int AttachmentsCount => 0; // Placeholder for now
 
         public ObservableCollection<string> PriorityLevels { get; } = new() 
@@ -147,15 +141,26 @@ namespace OCC.Client.ViewModels.Home.Tasks
 
         #region Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskDetailViewModel"/> class.
+        /// Parameterless constructor required for design-time support.
+        /// </summary>
         public TaskDetailViewModel()
         {
-            // Parameterless constructor for design-time support
              _projectTaskRepository = null!;
              _staffRepository = null!;
              _assignmentRepository = null!;
              _commentRepository = null!;
+             _task = new ProjectTaskWrapper(new ProjectTask());
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskDetailViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="projectTaskRepository">Repository for accessing ProjectTask data.</param>
+        /// <param name="staffRepository">Repository for accessing Employee data.</param>
+        /// <param name="assignmentRepository">Repository for managing task assignments.</param>
+        /// <param name="commentRepository">Repository for managing task comments.</param>
         public TaskDetailViewModel(
             IRepository<ProjectTask> projectTaskRepository,
             IRepository<Employee> staffRepository,
@@ -166,31 +171,47 @@ namespace OCC.Client.ViewModels.Home.Tasks
             _staffRepository = staffRepository;
             _assignmentRepository = assignmentRepository;
             _commentRepository = commentRepository;
+            _task = new ProjectTaskWrapper(new ProjectTask());
         }
 
         #endregion
 
         #region Commands
 
+        /// <summary>
+        /// Updates the status of the current task.
+        /// </summary>
+        /// <param name="status">The new status string (e.g. "InProgress", "Done").</param>
         [RelayCommand]
         public void SetStatus(string status)
         {
-            Status = status;
+            Task.Status = status;
         }
 
+        /// <summary>
+        /// Toggles the 'On Hold' state of the task, updating the status color accordingly.
+        /// </summary>
         [RelayCommand]
         public void ToggleOnHold()
         {
-            IsOnHold = !IsOnHold;
+            Task.IsOnHold = !Task.IsOnHold;
         }
 
+        /// <summary>
+        /// Updates the priority level of the task.
+        /// </summary>
+        /// <param name="priority">The new priority level (e.g. "High", "Low").</param>
         [RelayCommand]
         public void SetPriority(string priority)
         {
-            Priority = priority;
-            // OnPriorityChanged handles update
+            Task.Priority = priority;
         }
 
+        /// <summary>
+        /// Assigns a staff member to the current task.
+        /// Prevents duplicate assignments for the same staff member.
+        /// </summary>
+        /// <param name="staff">The employee to assign.</param>
         [RelayCommand]
         public async System.Threading.Tasks.Task AssignStaff(Employee staff)
         {
@@ -216,6 +237,10 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
+        /// <summary>
+        /// Removes an existing assignment from the task.
+        /// </summary>
+        /// <param name="assignment">The assignment record to remove.</param>
         [RelayCommand]
         public async System.Threading.Tasks.Task RemoveAssignment(TaskAssignment assignment)
         {
@@ -233,13 +258,19 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
+        /// <summary>
+        /// Commits planned and actual duration changes to the model.
+        /// Triggered manually or by loss of focus on duration fields.
+        /// </summary>
         [RelayCommand]
         public void CommitDurations()
         {
-            FormatPlannedDuration(PlannedDuration);
-            FormatActualDuration(ActualDuration);
+           // Handled by Wrapper logic via TwoWay binding
         }
 
+        /// <summary>
+        /// Adds a new item to the To-Do checklist based on the NewToDoContent property.
+        /// </summary>
         [RelayCommand]
         private void AddToDo()
         {
@@ -251,6 +282,9 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
+        /// <summary>
+        /// Adds a new comment to the task and saves it to the repository.
+        /// </summary>
         [RelayCommand]
         private void AddComment()
         {
@@ -273,12 +307,21 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
+        /// <summary>
+        /// Closes the Task Detail view.
+        /// Raises the CloseRequested event and cleans up subscriptions.
+        /// </summary>
         [RelayCommand]
         private void Close()
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
+            // Clean up subscription
+            if(Task != null) Task.PropertyChanged -= Task_PropertyChanged;
         }
 
+        /// <summary>
+        /// Expands the subtask list to show all children, instead of just the preview limit.
+        /// </summary>
         [RelayCommand]
         private void ShowAllSubtasks()
         {
@@ -286,29 +329,32 @@ namespace OCC.Client.ViewModels.Home.Tasks
             UpdateVisibleSubtasks();
         }
 
+        /// <summary>
+        /// Navigates to or loads the details of a specific subtask.
+        /// </summary>
+        /// <param name="subtask">The subtask to open.</param>
         [RelayCommand]
         private void OpenSubtask(ProjectTask subtask)
         {
-             // For now, load this subtask in the current view? 
-             // Or request navigation. Ideally request navigation.
-             // We can re-use LoadTaskById logic effectively "drilling down".
              if (subtask != null)
              {
                  LoadTaskById(subtask.Id);
              }
         }
 
+        /// <summary>
+        /// Creates a new child task (subtask) under the current task.
+        /// Note: This currently creates an in-memory subtask. 
+        /// In a full implementation, this should persist the new subtask to the repository.
+        /// </summary>
         [RelayCommand]
         private void AddSubtask()
         {
-            // Placeholder: Add a new dummy subtask for now, or logic to create real one
              var newSubtask = new ProjectTask
              {
                  Name = "New Subtask",
-                 ProjectId = Guid.Empty, // Should link to parent's project
-                 // ParentId? Model doesn't have it explicit but IndentLevel/Order implies it.
-                 // For this simple view, we just add it to Children.
-                 IndentLevel = 1 // Simplified
+                 ProjectId = Guid.Empty, 
+                 IndentLevel = 1 
              };
              
              Subtasks.Add(newSubtask);
@@ -319,6 +365,10 @@ namespace OCC.Client.ViewModels.Home.Tasks
 
         #region Methods
 
+        /// <summary>
+        /// Loads a task by its ID from the repository and initializes all related resources.
+        /// </summary>
+        /// <param name="taskId">The GUID of the task to load.</param>
         public async void LoadTaskById(Guid taskId)
         {
             _currentTaskId = taskId;
@@ -328,6 +378,9 @@ namespace OCC.Client.ViewModels.Home.Tasks
             await LoadAssignableResources();
         }
 
+        /// <summary>
+        /// Loads available staff, comments, and current assignments for the task.
+        /// </summary>
         private async Task LoadAssignableResources()
         {
             AvailableStaff.Clear();
@@ -338,6 +391,9 @@ namespace OCC.Client.ViewModels.Home.Tasks
             await LoadAssignments();
         }
 
+        /// <summary>
+        /// Fetches comments associated with the current task and populates the Comments collection.
+        /// </summary>
         private async Task LoadComments()
         {
              Comments.Clear();
@@ -350,6 +406,9 @@ namespace OCC.Client.ViewModels.Home.Tasks
              OnPropertyChanged(nameof(CommentsCount));
         }
 
+        /// <summary>
+        /// Fetches assignments for the current task and populates the Assignments collection.
+        /// </summary>
         private async Task LoadAssignments()
         {
              Assignments.Clear();
@@ -360,33 +419,21 @@ namespace OCC.Client.ViewModels.Home.Tasks
              }
         }
 
+        /// <summary>
+        /// Initializes the ViewModel with a specific ProjectTask instance.
+        /// Sets up the wrapper, subscriptions, and subtask visibility.
+        /// </summary>
+        /// <param name="task">The ProjectTask model to display.</param>
         private void LoadTask(ProjectTask task)
         {
             _isLoading = true;
             try
             {
-                Id = $"T-{task.Id.ToString().Substring(task.Id.ToString().Length - 4)}"; 
-                Title = task.Name;
-                Description = task.Description;
-                IsCompleted = task.IsComplete;
-                Status = task.Status;
-                PercentComplete = task.PercentComplete;
-                ProgressPercent = task.PercentComplete;
-                IsOnHold = task.IsOnHold;
-                Priority = task.Priority;
+                // Unsubscribe previous
+                if (Task != null) Task.PropertyChanged -= Task_PropertyChanged;
 
-                // Map Dates
-                PlannedStartDate = task.StartDate == DateTime.MinValue ? null : task.StartDate;
-                DueDate = task.FinishDate == DateTime.MinValue ? null : task.FinishDate;
-                ActualStartDate = task.ActualStartDate;
-                DoneDate = task.ActualCompleteDate;
-
-                // Calculations
-                PlannedHours = task.PlanedDurationHours?.TotalHours ?? CalculatePlannedHours(task);
-                ActualHours = task.ActualDuration?.TotalHours;
-
-                UpdatePlannedDuration();
-                UpdateActualDuration();
+                Task = new ProjectTaskWrapper(task);
+                Task.PropertyChanged += Task_PropertyChanged;
 
                 // Load Subtasks
                 Subtasks.Clear();
@@ -404,43 +451,34 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
-        public async void UpdateTask()
+        /// <summary>
+        /// Event handler for property changes on the task wrapper.
+        /// Triggers an async update to the data model.
+        /// </summary>
+        private async void Task_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            await UpdateTask();
+        }
+
+        /// <summary>
+        /// Persists changes from the wrapper back to the data model/database.
+        /// Uses a semaphore to ensure serial access and sends a TaskUpdatedMessage upon success.
+        /// </summary>
+        public async System.Threading.Tasks.Task UpdateTask()
         {
             if (_isLoading) return;
             if (_currentTaskId == Guid.Empty) return;
 
-            // Wait for lock to prevent threading issues on DbContext
             await _updateLock.WaitAsync();
             try
             {
-                var task = await _projectTaskRepository.GetByIdAsync(_currentTaskId);
-                if (task == null) return;
+                // Sync Wrapper back to Model
+                Task.CommitToModel();
 
-                // Update fields from properties
-                task.Name = Title;
-                task.Description = Description;
-                
-                task.StartDate = PlannedStartDate ?? DateTime.Now; 
-                task.FinishDate = DueDate ?? DateTime.Now;
-                task.ActualStartDate = ActualStartDate;
-                task.ActualCompleteDate = DoneDate;
-                
-                task.Status = Status;
-                task.PercentComplete = (int)ProgressPercent;
-                task.IsOnHold = IsOnHold;
-                task.Priority = Priority;
-
-                if (PlannedHours.HasValue)
-                    task.PlanedDurationHours = TimeSpan.FromHours(PlannedHours.Value);
-                else
-                    task.PlanedDurationHours = null;
-
-                if (ActualHours.HasValue)
-                    task.ActualDuration = TimeSpan.FromHours(ActualHours.Value);
-                else
-                    task.ActualDuration = null;
-
-                await _projectTaskRepository.UpdateAsync(task);
+                // Save to DB
+                // Note: Task.Model is the same reference we passed in, so we just save it.
+                await _projectTaskRepository.UpdateAsync(Task.Model);
                 
                 // Notify listeners
                 CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
@@ -451,6 +489,10 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
+        /// <summary>
+        /// Saves a new comment to the repository.
+        /// </summary>
+        /// <param name="comment">The TaskComment to save.</param>
         private async void SaveCommentToTask(TaskComment comment)
         {
             if (_currentTaskId == Guid.Empty) return;
@@ -467,209 +509,9 @@ namespace OCC.Client.ViewModels.Home.Tasks
             }
         }
 
-        #endregion
-
-        #region Helper Methods
-
-        private double CalculatePlannedHours(ProjectTask task)
-        {
-             // Fallback calculation
-             var days = (task.FinishDate - task.StartDate).TotalDays + 1;
-             return Math.Round(days * 8, 1);
-        }
-
-        async partial void OnStatusChanged(string value)
-        {
-            // Auto-update progress
-            switch(value)
-            {
-                case "Not Started": 
-                    ProgressPercent = 0; 
-                    StatusColor = "#CBD5E1"; // Gray
-                    break;
-                case "Started": 
-                case "Halfway": 
-                case "Almost Done": 
-                    ProgressPercent = value == "Started" ? 25 : (value == "Halfway" ? 50 : 75); 
-                    StatusColor = "#EF4444"; // Red
-                    break;
-                case "Done": 
-                    ProgressPercent = 100; 
-                    IsCompleted = true; 
-                    StatusColor = "#EF4444"; // Red
-                    break;
-            }
-            if (value != "Done" && IsCompleted == true) IsCompleted = false;
-
-            if (IsOnHold) StatusColor = "#22C55E"; // Green
-
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnIsOnHoldChanged(bool value)
-        {
-             if (value) StatusColor = "#22C55E"; // Green
-             else 
-             {
-                 switch(Status)
-                 {
-                    case "Not Started": StatusColor = "#CBD5E1"; break;
-                    default: StatusColor = "#EF4444"; break;
-                 }
-             }
-             await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnPriorityChanged(string value) => await Task.Run(() => UpdateTask());
-
-        async partial void OnPlannedStartDateChanged(DateTime? value) 
-        {
-            if (PlannedStartDate.HasValue && DueDate.HasValue)
-                 PlannedHours = CalculatePlannedHours(new ProjectTask { StartDate = PlannedStartDate.Value, FinishDate = DueDate.Value });
-            UpdatePlannedDuration();
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnDueDateChanged(DateTime? value) 
-        {
-            if (PlannedStartDate.HasValue && DueDate.HasValue)
-                 PlannedHours = CalculatePlannedHours(new ProjectTask { StartDate = PlannedStartDate.Value, FinishDate = DueDate.Value });
-            UpdatePlannedDuration();
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnPlannedHoursChanged(double? value) 
-        {
-            if (_isUpdatingDuration) return;
-            
-            // Sync Duration Text
-            if (value.HasValue)
-            {
-                _isUpdatingDuration = true;
-                double days = value.Value / 8.0;
-                PlannedDuration = $"{days} {(days == 1 ? "day" : "days")}";
-                _isUpdatingDuration = false;
-            }
-            
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnActualStartDateChanged(DateTime? value) 
-        {
-            UpdateActualDuration();
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnDoneDateChanged(DateTime? value) 
-        {
-            UpdateActualDuration();
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnPlannedDurationChanged(string value)
-        {
-            if (_isUpdatingDuration) return;
-
-             // Try parse days
-             FormatPlannedDuration(value);
-
-            await Task.Run(() => UpdateTask());
-        }
-
-        async partial void OnActualDurationChanged(string value)
-        {
-            if (_isUpdatingDuration) return;
-            await Task.Run(() => UpdateTask());
-        }
-
-        private void FormatPlannedDuration(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value) || value == "None") return;
-            
-            var numericPart = "";
-            bool foundDecimal = false;
-            foreach (char c in value)
-            {
-                if (char.IsDigit(c)) numericPart += c;
-                else if (c == '.' && !foundDecimal) { numericPart += c; foundDecimal = true; }
-                else if (numericPart.Length > 0) break;
-            }
-
-            if (double.TryParse(numericPart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double days))
-            {
-                _isUpdatingDuration = true;
-                PlannedDuration = $"{days} {(days == 1 ? "day" : "days")}";
-                
-                // Sync Hours
-                PlannedHours = days * 8.0;
-                
-                _isUpdatingDuration = false;
-            }
-        }
-
-        private void FormatActualDuration(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value) || value == "None") return;
-
-            var numericPart = "";
-            bool foundDecimal = false;
-            foreach (char c in value)
-            {
-                if (char.IsDigit(c)) numericPart += c;
-                else if (c == '.' && !foundDecimal) { numericPart += c; foundDecimal = true; }
-                else if (numericPart.Length > 0) break;
-            }
-
-            if (double.TryParse(numericPart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double days))
-            {
-                _isUpdatingDuration = true;
-                ActualDuration = $"{days} {(days == 1 ? "day" : "days")}";
-                _isUpdatingDuration = false;
-            }
-        }
-
-        private void UpdatePlannedDuration()
-        {
-            if (PlannedStartDate.HasValue && DueDate.HasValue)
-            {
-                var days = (DueDate.Value.Date - PlannedStartDate.Value.Date).TotalDays + 1;
-                _isUpdatingDuration = true;
-                PlannedDuration = $"{days} {(days == 1 ? "day" : "days")}";
-                _isUpdatingDuration = false;
-            }
-            else
-            {
-                _isUpdatingDuration = true;
-                PlannedDuration = "None";
-                _isUpdatingDuration = false;
-            }
-        }
-
-        private void UpdateActualDuration()
-        {
-            if (ActualStartDate.HasValue && DoneDate.HasValue)
-            {
-                var days = (DoneDate.Value.Date - ActualStartDate.Value.Date).TotalDays + 1;
-                ActualDuration = $"{days} {(days == 1 ? "day" : "days")}";
-            }
-            else
-            {
-                ActualDuration = "None";
-            }
-        }
-
-        async partial void OnActualHoursChanged(double? value) => await Task.Run(() => UpdateTask());
-        async partial void OnDescriptionChanged(string value) => await Task.Run(() => UpdateTask());
-        async partial void OnTitleChanged(string value) => await Task.Run(() => UpdateTask());
-        async partial void OnIsCompletedChanged(bool? value) 
-        {
-             // Special handling for Done Checkbox (could set DoneDate automatically)
-             if(value == true && DoneDate == null) DoneDate = DateTime.Now;
-             if(value == false) DoneDate = null;
-             
-             await Task.Run(() => UpdateTask());
-        }
-
+        /// <summary>
+        /// Updates the VisibleSubtasks collection based on the 'Show All' toggle and preview limit.
+        /// </summary>
         private void UpdateVisibleSubtasks()
         {
             VisibleSubtasks.Clear();

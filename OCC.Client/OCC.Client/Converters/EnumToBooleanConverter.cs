@@ -6,6 +6,14 @@ using OCC.Shared.Models;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts an Enum value to a boolean, checking if it matches the parameter.
+    /// Commonly used for RadioButton bindings to Enum properties.
+    /// 
+    /// Used in:
+    /// - RegisterView.axaml (Role selection)
+    /// - RollCallView.axaml (Attendance status)
+    /// </summary>
     public class EnumToBooleanConverter : IValueConverter
     {
         public static readonly EnumToBooleanConverter Instance = new();

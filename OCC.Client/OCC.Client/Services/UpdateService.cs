@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using Velopack;
 using Velopack.Sources;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure;
+
 namespace OCC.Client.Services
 {
     public class UpdateService : IUpdateService

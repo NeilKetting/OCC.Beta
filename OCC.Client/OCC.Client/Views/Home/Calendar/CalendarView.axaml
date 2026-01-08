@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:OCC.Client.ViewModels.Home.Calendar"
              xmlns:converters="clr-namespace:OCC.Client.Converters"
-             xmlns:local="clr-namespace:OCC.Client.Views.Home.Calendar"
+             xmlns:widgets="clr-namespace:OCC.Client.Views.Home.Calendar.Widgets"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="OCC.Client.Views.Home.Calendar.CalendarView"
              x:DataType="vm:CalendarViewModel"
@@ -159,7 +159,7 @@
                         Command="{Binding CloseCreatePopupCommand}"/>
                 
                 <!-- Popup Content -->
-                <local:CreateTaskPopupView DataContext="{Binding CreateTaskPopup}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <widgets:CreateTaskPopupView DataContext="{Binding CreateTaskPopup}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Grid>
         </Grid>
 

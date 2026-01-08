@@ -9,17 +9,6 @@ namespace OCC.Client.Views.Projects
         public ProjectsView()
         {
             InitializeComponent();
-        }
-
-        private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
-        {
-            if (e.Source is Grid grid && grid.Name == "OverlayGrid")
-            {
-                if (DataContext is ProjectsViewModel vm)
-                {
-                    vm.CloseTaskDetailCommand.Execute(null);
-                }
-            }
-        }
+        }       
     }
 }

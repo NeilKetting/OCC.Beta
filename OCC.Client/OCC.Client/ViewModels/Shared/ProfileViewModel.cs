@@ -6,6 +6,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Shared
 {
     public partial class ProfileViewModel : ViewModelBase

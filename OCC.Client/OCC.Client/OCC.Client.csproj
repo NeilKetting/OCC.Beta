@@ -42,8 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource Update="Assets\Images\occ_background.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AvaloniaResource>
+    <Folder Include="ModelWrappers\" />
   </ItemGroup>
 </Project>

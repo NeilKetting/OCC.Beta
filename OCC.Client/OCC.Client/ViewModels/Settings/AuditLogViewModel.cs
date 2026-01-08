@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using OCC.Shared.Models;
 using System;
 
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Settings
 {
     public partial class AuditLogViewModel : ViewModelBase

@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:OCC.Client.ViewModels.Home.MySummary"
+             xmlns:widgets="clr-namespace:OCC.Client.Views.Home.MySummary.Widgets"
+             xmlns:local="clr-namespace:OCC.Client.Views.Home.MySummary"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
+             x:Class="OCC.Client.Views.Home.MySummary.MySummaryPageView"
+             x:DataType="vm:MySummaryPageViewModel">
+
+    <ScrollViewer Padding="20">
+        <StackPanel Spacing="20">
+            <!-- Greeting or Top Section could go here if not in HomeView -->
+            
+            <!-- Pulse and Summary Row -->
+            <WrapPanel Orientation="Horizontal">
+                <widgets:PulseView DataContext="{Binding Pulse}" Margin="0,0,20,20" MinWidth="600"/>
+                <local:MySummaryView DataContext="{Binding Summary}" Margin="0,0,0,20" MinWidth="400"/>
+            </WrapPanel>
+
+            <!-- Tasks Widget -->
+            <widgets:TasksWidgetView DataContext="{Binding TasksWidget}"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

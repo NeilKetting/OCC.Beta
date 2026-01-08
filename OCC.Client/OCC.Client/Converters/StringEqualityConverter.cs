@@ -4,6 +4,13 @@ using Avalonia.Data.Converters;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Checks if a string (Value) matches another string (Parameter).
+    /// Used for toggle buttons or tab selection state.
+    /// 
+    /// Used in:
+    /// - UserManagementView.axaml
+    /// </summary>
     public class StringEqualityConverter : IValueConverter
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

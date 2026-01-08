@@ -5,6 +5,14 @@ using System.Linq;
 
 namespace OCC.Client.Converters
 {
+    /// <summary>
+    /// Converts a full name (string) to initials (maximum 2 characters).
+    /// "John Doe" -> "JD", "Neil" -> "NE".
+    /// 
+    /// Used in:
+    /// - Shared/TopBarView.axaml (User avatar)
+    /// - UserManagementView.axaml (User avatar)
+    /// </summary>
     public class NameToInitialsConverter : IValueConverter
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

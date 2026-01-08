@@ -9,6 +9,9 @@ using OCC.Client.Services;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Messages;
 
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+
 namespace OCC.Client.ViewModels.Time
 {
     public partial class TimeViewModel : ViewModelBase
