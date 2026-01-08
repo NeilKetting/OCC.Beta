@@ -59,5 +59,49 @@ namespace OCC.Client.ViewModels.Time
         }
 
         #endregion
+
+        #region Computed Properties
+
+        public double HoursWorked
+        {
+            get
+            {
+                if (ClockInTime.HasValue)
+                {
+                    // Assuming Today for active roll call / clock out
+                    var inTime = DateTime.Today.Add(ClockInTime.Value);
+                    var now = DateTime.Now;
+                    if (now > inTime)
+                        return (now - inTime).TotalHours;
+                }
+                return 0;
+            }
+        }
+        
+        public string HoursWorkedDisplay => HoursWorked > 0 ? $"{HoursWorked:F2}h" : "-";
+
+        public decimal Wage
+        {
+            get
+            {
+                if (_staff.RateType == RateType.Hourly)
+                {
+                    return (decimal)(HoursWorked * _staff.HourlyRate);
+                }
+                return 0;
+            }
+        }
+        
+        public string WageDisplay => _staff.RateType == RateType.Hourly ? $"{Wage:C}" : "Salary";
+
+        public void Refresh()
+        {
+            OnPropertyChanged(nameof(HoursWorked));
+            OnPropertyChanged(nameof(HoursWorkedDisplay));
+            OnPropertyChanged(nameof(Wage));
+            OnPropertyChanged(nameof(WageDisplay));
+        }
+
+        #endregion
     }
 }

@@ -488,9 +488,9 @@
 
 											<Border Width="2" Height="2" CornerRadius="1" Background="{DynamicResource TextSecondaryGray}" VerticalAlignment="Center"/>
 
-											<!-- Trash -->
+											<!-- Remove User -->
 											<Button Classes="IconButton" Width="20" Height="20" Padding="0">
-												<PathIcon Data="{StaticResource IconTrash}" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryGray}"/>
+												<PathIcon Data="{StaticResource IconUserRemove}" Width="12" Height="12" Foreground="{DynamicResource TextSecondaryGray}"/>
 											</Button>
 
 										</StackPanel>

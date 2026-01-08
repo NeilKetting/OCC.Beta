@@ -24,10 +24,10 @@ namespace OCC.Client.ViewModels.Time
         private Employee? _selectedEmployee;
 
         [ObservableProperty]
-        private DateTimeOffset? _startDate = DateTime.Today;
+        private DateTime? _startDate = DateTime.Today;
 
         [ObservableProperty]
-        private DateTimeOffset? _endDate = DateTime.Today;
+        private DateTime? _endDate = DateTime.Today;
 
         [ObservableProperty]
         private LeaveType _selectedLeaveType = LeaveType.Annual;
@@ -36,6 +36,10 @@ namespace OCC.Client.ViewModels.Time
 
         [ObservableProperty]
         private string _reason = string.Empty;
+
+
+
+        private System.Collections.Generic.List<Employee> _allEmployees = new();
 
         [ObservableProperty]
         private int _calculatedDays;
@@ -76,16 +80,18 @@ namespace OCC.Client.ViewModels.Time
         private async Task LoadDataAsync()
         {
              var emps = await _employeeRepository.GetAllAsync();
-             Employees.Clear();
-             foreach(var e in emps.OrderBy(e => e.LastName)) Employees.Add(e);
+             // Sort by Name
+             _allEmployees = emps.OrderBy(e => e.FirstName).ThenBy(e => e.LastName).ToList();
+             Employees = new ObservableCollection<Employee>(_allEmployees);
              
              if (Employees.Any()) SelectedEmployee = Employees.First();
         }
 
-        partial void OnStartDateChanged(DateTimeOffset? value) => RecalculateDaysCommand.Execute(null);
-        partial void OnEndDateChanged(DateTimeOffset? value) => RecalculateDaysCommand.Execute(null);
+        partial void OnStartDateChanged(DateTime? value) => RecalculateDaysCommand.Execute(null);
+        partial void OnEndDateChanged(DateTime? value) => RecalculateDaysCommand.Execute(null);
         partial void OnSelectedEmployeeChanged(Employee? value) => RecalculateDaysCommand.Execute(null);
         partial void OnSelectedLeaveTypeChanged(LeaveType value) => RecalculateDaysCommand.Execute(null);
+
 
         [RelayCommand]
         private async Task RecalculateDaysAsync()

@@ -100,38 +100,14 @@ namespace OCC.Client
 
             // Fallback for any other type not explicitly mapped (e.g. TimeRecord) - though unlikely to be used if we covered main ones
             // services.AddTransient(typeof(IRepository<>), typeof(SqlRepository<>));
-            
-            // Services
-            // For AuthService, we might need a real implementation that uses the SqlRepository, or update the mock to use it?
-            // The user said "I repositories can save to the db".
-            // Let's assume we use the generic repository for everything.
-            
-            // However, AuthService usually needs specific logic (login). 
-            // For now, let's keep MockAuthService but maybe it needs to interact with the DB?
-            // Or let's use a real AuthService if we had one? The user only mentioned repositories.
-            // Let's swap the repositories first.
-            
-            // Auth Services
-            services.AddSingleton<ApiAuthService>();
-            services.AddSingleton<IAuthService>(sp => sp.GetRequiredService<ApiAuthService>());
-            
-            // Re-register specific repositories if they have specific interfaces or we want to force the generic one?
-            // The generic registration `typeof(IRepository<>), typeof(SqlRepository<>)` handles any `IRepository<T>` request.
-            // So we don't need to manually register each `<TaskItem>`, `<Project>` etc. unless we want singletons (SqlRepo should be Scoped usually).
-            
-            // IMPORTANT: Avalonia ViewModels are often Transients or Singletons. If Singletons, they can't easily consume Scoped services (DbContext).
-            // But we can register DbContext/Repo as Transient or Singleton strictly for this client-side-only usage.
-            // Since it's a desktop app with single user, Singleton Context is risky (concurrency) but Transient Context means new connection per usage?
-            // Let's try Singleton for DbContext/Repo for simplicity in a desktop app without threading issues initially, OR Transient.
-            // EF Core Context is not thread safe.
-            // Let's stick to Transient for Repos/Context to be safe, or Scoped if we had a scope.
-            // We'll use Transient for now.
-            
-            // services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 
-            // services.AddTransient(typeof(IRepository<>), typeof(Data.SqlRepository<>));
 
-            // services.AddSingleton<ITimeService, TimeService>();
+             // services.AddSingleton<ITimeService, TimeService>();
              services.AddSingleton<ITimeService, TimeService>();
+             
+             // Auth Services
+             services.AddSingleton<ApiAuthService>();
+             services.AddSingleton<IAuthService>(sp => sp.GetRequiredService<ApiAuthService>());
+
             services.AddSingleton<INotificationService, ApiNotificationService>();
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<IExportService, ExportService>();

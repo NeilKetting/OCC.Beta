@@ -14,9 +14,16 @@
 			<StackPanel Orientation="Horizontal" Spacing="20">
 				<TextBlock Text="Clock Out Early" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}"/>
 				
+                <!-- Search Box -->
+                 <TextBox Width="200" Watermark="Search..." Text="{Binding SearchText}" VerticalAlignment="Center" Classes="FormInput">
+                    <TextBox.InnerRightContent>
+                        <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16" Margin="10,0" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+
 				<!-- Branch Filter -->
 				<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}" 
-                          Width="200" Classes="FormInput" VerticalAlignment="Center"/>
+                          Width="150" Classes="FormInput" VerticalAlignment="Center"/>
 			</StackPanel>
             
             <TextBlock Grid.Column="2" Text="Enter a reason and click Clock Out" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
@@ -28,7 +35,7 @@
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
 						<Border BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="15">
-							<Grid ColumnDefinitions="2*, Auto, 3*, 120">
+							<Grid ColumnDefinitions="2*, Auto, Auto, 3*, 120">
 								<!-- Name -->
 								<StackPanel Grid.Column="0" VerticalAlignment="Center">
 									<TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource TextPrimaryDark}"/>
@@ -41,12 +48,18 @@
                                      <TextBlock Text="{Binding ClockInTime, StringFormat='{}{0:hh\\:mm}'}" FontWeight="SemiBold"/>
                                 </StackPanel>
 
+                                <!-- Duration & Wage -->
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,20,0">
+                                     <TextBlock Text="{Binding HoursWorkedDisplay}" FontWeight="Bold" Foreground="{DynamicResource PrimaryTeal}"/>
+                                     <TextBlock Text="{Binding WageDisplay}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
+                                </StackPanel>
+
 								<!-- Reason Input -->
-								<TextBox Grid.Column="2" Text="{Binding LeaveReason}" Watermark="Reason for leaving early..." 
+								<TextBox Grid.Column="3" Text="{Binding LeaveReason}" Watermark="Reason for leaving early..." 
                                          Classes="FormInput" Margin="0,0,20,0" VerticalAlignment="Center"/>
 
 								<!-- Action Button -->
-								<Button Grid.Column="3" Classes="Secondary" Background="#D32F2F" Foreground="White" BorderThickness="0"
+								<Button Grid.Column="4" Classes="Secondary" Background="#D32F2F" Foreground="White" BorderThickness="0"
                                         Command="{Binding #Root.((vm:ClockOutViewModel)DataContext).ClockOutCommand}"
                                         CommandParameter="{Binding}"
                                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">

@@ -123,6 +123,10 @@ namespace OCC.Shared.Models
         /// Determines if the rate is Hourly or a Monthly Salary.
         /// </summary>
         public RateType RateType { get; set; } = RateType.Hourly;
+        public override string ToString()
+        {
+            return DisplayName;
+        }
     }
 
     public enum RateType

@@ -13,6 +13,13 @@ namespace OCC.Client.DevelopmentToBeDeleted
         private readonly string _rawVersion;
 
         public event Action? Accepted;
+        public event Action? OpenReleaseNotesRequested;
+
+        [RelayCommand]
+        private void OpenReleaseNotes()
+        {
+            OpenReleaseNotesRequested?.Invoke();
+        }
 
         public BetaNoticeViewModel(string version)
         {

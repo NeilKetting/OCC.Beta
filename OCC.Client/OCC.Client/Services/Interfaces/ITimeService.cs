@@ -11,8 +11,10 @@ namespace OCC.Client.Services.Interfaces
         Task SaveTimeRecordAsync(TimeRecord record);
         Task<IEnumerable<AttendanceRecord>> GetDailyAttendanceAsync(DateTime date);
         Task SaveAttendanceRecordAsync(AttendanceRecord record);
+        Task<AttendanceRecord?> GetAttendanceRecordByIdAsync(Guid id);
         Task ClearAllAttendanceAsync();
         Task<IEnumerable<AttendanceRecord>> GetAttendanceByRangeAsync(DateTime startDate, DateTime endDate);
+        Task<IEnumerable<AttendanceRecord>> GetActiveAttendanceAsync();
         Task<IEnumerable<Employee>> GetAllStaffAsync();
     }
 }

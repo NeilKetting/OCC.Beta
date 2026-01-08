@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:OCC.Client.ViewModels.Settings"
+             xmlns:models="using:OCC.Shared.Models"
              xmlns:views="using:OCC.Client.Views.Settings"
              xmlns:conv="clr-namespace:OCC.Client.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -93,6 +94,21 @@
                   GridLinesVisibility="Horizontal"
                   Background="White">
             
+            <DataGrid.Styles>
+                 <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+                     <Setter Property="Fill" Value="{DynamicResource HomeMenuGradient}"/>
+                 </Style>
+                 <Style Selector="DataGridRow" x:DataType="models:User">
+                     <Setter Property="ContextMenu">
+                         <ContextMenu>
+                            <MenuItem Header="Edit" Command="{Binding $parent[UserControl].((vm:UserManagementViewModel)DataContext).EditUserCommand}" CommandParameter="{Binding .}"/>
+                            <MenuItem Header="Approve" Command="{Binding $parent[UserControl].((vm:UserManagementViewModel)DataContext).ApproveUserCommand}" CommandParameter="{Binding .}" IsVisible="{Binding !IsApproved}"/>
+                            <MenuItem Header="Delete" Command="{Binding $parent[UserControl].((vm:UserManagementViewModel)DataContext).DeleteUserCommand}" CommandParameter="{Binding .}" Foreground="Red"/>
+                         </ContextMenu>
+                     </Setter>
+                 </Style>
+            </DataGrid.Styles>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="NAME" Binding="{Binding DisplayName}" Width="*"/>
                 <DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="1.5*"/>

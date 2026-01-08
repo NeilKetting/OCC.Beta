@@ -46,7 +46,7 @@
 						<TextBlock Text="{Binding DisplayName}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
 						<TextBlock Text="Employee Details." FontSize="16" Foreground="{DynamicResource TextSecondaryGray}"/>
 					</StackPanel>
-					<Button Grid.Column="1" Classes="IconButton" Command="{Binding CancelCommand}" VerticalAlignment="Top"
+					<Button Grid.Column="1" Classes="IconButtonClose" Command="{Binding CancelCommand}" VerticalAlignment="Top"
 							ToolTip.Tip="Close details without saving">
 						<PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
 					</Button>

@@ -40,6 +40,11 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isSaving;
 
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        private System.Collections.Generic.List<StaffAttendanceViewModel> _allStaff = new();
+
         // Branch Selection
         [ObservableProperty]
         private string _selectedBranch = "Johannesburg";
@@ -175,7 +180,37 @@ namespace OCC.Client.ViewModels.Time
 
         partial void OnSelectedBranchChanged(string value)
         {
-            _ = LoadStaff();
+            FilterStaff();
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterStaff();
+        }
+
+        private void FilterStaff()
+        {
+            if (_allStaff == null) return;
+            
+            var query = SearchText?.Trim();
+            var branch = SelectedBranch?.Trim();
+
+            var filtered = _allStaff.AsEnumerable();
+
+            // Filter by Branch
+            if (!string.IsNullOrEmpty(branch) && !branch.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+               filtered = filtered.Where(s => string.Equals(s.Branch?.Trim(), branch, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Filter by Search Text
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                filtered = filtered.Where(s => 
+                    s.Name != null && s.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+            }
+
+            StaffList = new ObservableCollection<StaffAttendanceViewModel>(filtered);
         }
 
         private async Task LoadStaff()
@@ -183,39 +218,30 @@ namespace OCC.Client.ViewModels.Time
             try
             {
                 var staff = await _timeService.GetAllStaffAsync();
+                // Sort by Name immediately
+                var sortedStaff = staff.OrderBy(s => s.FirstName).ThenBy(s => s.LastName);
+                
                 var existingRecords = (await _timeService.GetDailyAttendanceAsync(Date)).ToList();
             
-                // Filter by Branch
-                if (!string.IsNullOrEmpty(SelectedBranch) && !SelectedBranch.Equals("All", StringComparison.OrdinalIgnoreCase))
-                {
-                    staff = staff.Where(s => string.Equals(s.Branch?.Trim(), SelectedBranch.Trim(), StringComparison.OrdinalIgnoreCase));
-                }
+                _allStaff.Clear();
 
-                StaffList.Clear();
-                foreach (var s in staff)
+                foreach (var s in sortedStaff)
                 {
                     // SPLIT SHIFT CHANGE:
                     // Check if they have an ACTIVE session (CheckIn but NO CheckOut)
                     var activeSession = existingRecords.FirstOrDefault(r => r.EmployeeId == s.Id && r.CheckOutTime == null);
                 
-                    // If they are currently clocked in, DO NOT SHOW in Roll Call (they must clock out first)
+                    // If active session exists, don't show in Roll Call (they must clock out active session first)
                     if (activeSession != null)
                     {
                         continue;
                     }
-
-                    // If they have previous CLOSED sessions, that's fine. We show them so they can start a NEW session.
                 
                     var vm = new StaffAttendanceViewModel(s);
-                    // We DO NOT map ID here, because we want a NEW record if they clock in.
-                    // UNLESS... do we want to support "Resume"? No, that's complex. New Session is cleaner.
-                
-                    // Pre-populate Shift Start Time from Employee settings (not previous record)
-                    // If they have a shift set on employee profile, use it? 
-                    // Currently just defaults to 7:00 in VM ctor or similar.
-                
-                    StaffList.Add(vm);
+                    _allStaff.Add(vm);
                 }
+
+                FilterStaff();
             }
             catch (Exception ex)
             {

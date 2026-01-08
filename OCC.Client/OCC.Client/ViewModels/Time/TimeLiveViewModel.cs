@@ -105,12 +105,20 @@ namespace OCC.Client.ViewModels.Time
             try
             {
                 var allStaff = await _timeService.GetAllStaffAsync();
+                
+                // Fetch today's records (for historical 'today' view) AND any active records (including yesterday's carry-over)
                 var todayAttendance = await _timeService.GetDailyAttendanceAsync(DateTime.Today);
+                var activeAttendance = await _timeService.GetActiveAttendanceAsync();
+                
+                // Combine and distinct by ID
+                var mergedAttendance = todayAttendance.Concat(activeAttendance)
+                                                      .DistinctBy(x => x.Id)
+                                                      .ToList();
 
                 var userViewModels = new List<LiveUserCardViewModel>();
 
                 // Only show employees that have an attendance record for today (meaning Roll Call was done)
-                foreach (var attendance in todayAttendance)
+                foreach (var attendance in mergedAttendance)
                 {
                     var employee = allStaff.FirstOrDefault(e => e.Id == attendance.EmployeeId);
                     if (employee == null) continue;

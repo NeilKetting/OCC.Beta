@@ -61,6 +61,16 @@ namespace OCC.Client.Services
             return await _attendanceRepository.FindAsync(r => r.Date >= startDate && r.Date <= endDate);
         }
 
+        public async Task<IEnumerable<AttendanceRecord>> GetActiveAttendanceAsync()
+        {
+            return await _attendanceRepository.FindAsync(r => r.CheckOutTime == null);
+        }
+
+        public async Task<AttendanceRecord?> GetAttendanceRecordByIdAsync(Guid id)
+        {
+            return await _attendanceRepository.GetByIdAsync(id);
+        }
+
         public async Task SaveAttendanceRecordAsync(AttendanceRecord record)
         {
             if (record.Id == Guid.Empty || (await _attendanceRepository.GetByIdAsync(record.Id)) == null)

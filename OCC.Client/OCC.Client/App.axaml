@@ -44,6 +44,9 @@
             <SolidColorBrush x:Key="GreenButtonBackground">#B6F500</SolidColorBrush>
             <SolidColorBrush x:Key="CancelGrayButtonBackground">#D7DEE7</SolidColorBrush>
 
+            
+            <SolidColorBrush x:Key="WarningYellow">#FFC785</SolidColorBrush>
+
             <!-- Gradients -->
             <LinearGradientBrush x:Key="SideMenuGradient" StartPoint="0%,0%" EndPoint="100%,0%">
                 <GradientStop Offset="0" Color="#F7D1BA"/>

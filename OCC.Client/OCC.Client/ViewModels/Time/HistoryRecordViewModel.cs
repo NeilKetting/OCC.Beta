@@ -29,17 +29,26 @@ namespace OCC.Client.ViewModels.Time
         {
             get
             {
-                if (_attendance.CheckInTime.HasValue && _attendance.CheckOutTime.HasValue)
+                var checkOut = _attendance.CheckOutTime;
+                
+                // Live calculation for active sessions (regardless of start date)
+                if (!checkOut.HasValue)
                 {
-                    return (_attendance.CheckOutTime.Value - _attendance.CheckInTime.Value).TotalHours;
+                    checkOut = DateTime.Now;
                 }
-                // Fallback for manual ClockInTime + CheckOutTime?
-                // Logic: ClockInTime is TimeSpan, CheckOutTime is DateTime.
-                if (_attendance.ClockInTime.HasValue && _attendance.CheckOutTime.HasValue)
+
+                if (_attendance.CheckInTime.HasValue)
                 {
-                    // Assuming Date + ClockInTime
+                    if (checkOut.HasValue)
+                        return (checkOut.Value - _attendance.CheckInTime.Value).TotalHours;
+                }
+                
+                // Fallback for manual ClockInTime + CheckOutTime/Now
+                if (_attendance.ClockInTime.HasValue)
+                {
                     var inDt = _attendance.Date.Add(_attendance.ClockInTime.Value);
-                    return (_attendance.CheckOutTime.Value - inDt).TotalHours;
+                    if (checkOut.HasValue)
+                        return (checkOut.Value - inDt).TotalHours;
                 }
                 return 0;
             }
@@ -64,6 +73,14 @@ namespace OCC.Client.ViewModels.Time
         }
         
         public string WageDisplay => _employee.RateType == RateType.Hourly ? $"{Wage:C}" : "Salary";
+
+        public void Refresh()
+        {
+            OnPropertyChanged(nameof(HoursWorked));
+            OnPropertyChanged(nameof(HoursWorkedDisplay));
+            OnPropertyChanged(nameof(Wage));
+            OnPropertyChanged(nameof(WageDisplay));
+        }
 
         // Expose underlying data for Export
         public Employee Employee => _employee;

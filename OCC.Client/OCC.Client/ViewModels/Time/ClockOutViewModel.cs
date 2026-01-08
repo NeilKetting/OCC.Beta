@@ -9,6 +9,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Time
 {
@@ -33,13 +34,29 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isSaving;
 
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
         #endregion
 
         private System.Collections.Generic.List<StaffAttendanceViewModel> _allLoadedStaff = new();
+        private readonly DispatcherTimer _timer;
 
         public ClockOutViewModel(ITimeService timeService)
         {
             _timeService = timeService;
+            
+            // Timer for Live Updates
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
+            _timer.Tick += (s, e) => 
+            {
+                 foreach (var item in StaffList)
+                 {
+                     item.Refresh();
+                 }
+            };
+            _timer.Start();
+            
             InitializeCommand.Execute(null);
         }
 
@@ -61,13 +78,11 @@ namespace OCC.Client.ViewModels.Time
         {
             var date = DateTime.Today;
             var allStaff = await _timeService.GetAllStaffAsync();
-            var dailyRecords = await _timeService.GetDailyAttendanceAsync(date);
-
-            // 1. Populate Branches (Only once or if needed, but safe here if we don't trigger change)
+            
+            // 1. Populate Branches
             var branches = allStaff.Select(s => s.Branch ?? "Unassigned").Distinct().OrderBy(b => b).ToList();
             branches.Insert(0, "All");
             
-            // Only update Branches if different to avoid binding triggers
             if (Branches.Count != branches.Count || !Branches.SequenceEqual(branches))
             {
                 Branches = new ObservableCollection<string>(branches);
@@ -78,13 +93,10 @@ namespace OCC.Client.ViewModels.Time
             // 2. Build Cache of Display Models
             _allLoadedStaff.Clear();
 
-            // Filter: Only those who are PRESENT or LATE and NOT yet clocked out
-            var clockedInRecords = dailyRecords
-                .Where(r => (r.Status == AttendanceStatus.Present || r.Status == AttendanceStatus.Late) 
-                         && r.CheckOutTime == null)
-                .ToList();
+            // Use GetActiveAttendanceAsync to ensure we catch overnight/forgotten clock-ins
+            var activeRecords = await _timeService.GetActiveAttendanceAsync();
 
-            foreach (var record in clockedInRecords)
+            foreach (var record in activeRecords)
             {
                 var staff = allStaff.FirstOrDefault(e => e.Id == record.EmployeeId);
                 if (staff == null) continue;
@@ -99,6 +111,9 @@ namespace OCC.Client.ViewModels.Time
                 _allLoadedStaff.Add(vm);
             }
 
+            // Sort by Name
+            _allLoadedStaff = _allLoadedStaff.OrderBy(s => s.Name).ToList();
+
             ApplyFilter();
         }
 
@@ -106,15 +121,27 @@ namespace OCC.Client.ViewModels.Time
         {
             if (_allLoadedStaff == null) return;
 
-            var filtered = _allLoadedStaff.Where(s => SelectedBranch == "All" || s.Branch == SelectedBranch);
+            var filtered = _allLoadedStaff.AsEnumerable();
+            
+            // Branch Filter
+            if (SelectedBranch != "All")
+            {
+                filtered = filtered.Where(s => s.Branch == SelectedBranch);
+            }
+            
+            // Search Filter
+            var query = SearchText?.Trim();
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                 filtered = filtered.Where(s => s.Name != null && s.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+            }
+
             StaffList = new ObservableCollection<StaffAttendanceViewModel>(filtered);
         }
 
         // Re-load when filter changes
-        partial void OnSelectedBranchChanged(string value)
-        {
-            ApplyFilter();
-        }
+        partial void OnSelectedBranchChanged(string value) => ApplyFilter();
+        partial void OnSearchTextChanged(string value) => ApplyFilter();
 
         [RelayCommand]
         private async Task ClockOut(StaffAttendanceViewModel item)
@@ -122,11 +149,6 @@ namespace OCC.Client.ViewModels.Time
             if (item == null) return;
             if (string.IsNullOrWhiteSpace(item.LeaveReason))
             {
-                // In a real app we might show a dialog or validation error.
-                // For now, we rely on the UI 'watermark' or maybe a quick check.
-                // Assuming the View binds to LeaveReason on the VM.
-                
-                // Let's enforce it:
                  // TODO: Show notification "Reason Required"
                  return;
             }
@@ -134,37 +156,33 @@ namespace OCC.Client.ViewModels.Time
             IsSaving = true;
             try
             {
-                var record = new AttendanceRecord
-                {
-                    Id = item.Id,
-                    EmployeeId = item.EmployeeId,
-                    Date = DateTime.Today,
-                    Status = AttendanceStatus.LeaveEarly,
-                    CheckOutTime = DateTime.Now,
-                    LeaveReason = item.LeaveReason,
-                    Branch = item.Branch
-                    // Start time is preserved in DB merge or we should fetch existing?
-                    // The API Update method usually replaces. 
-                    // Best practice: Fetch, Update, Save.
-                };
-
-                // Fetch existing to be safe
-                var dailyRecords = await _timeService.GetDailyAttendanceAsync(DateTime.Today);
-                var existing = dailyRecords.FirstOrDefault(r => r.Id == item.Id);
+                // Fetch the ACTUAL record from DB to ensure we preserve CheckInTime
+                var existing = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
+                
                 if (existing != null)
                 {
                     existing.CheckOutTime = DateTime.Now;
-                    existing.Status = AttendanceStatus.LeaveEarly;
+                    existing.Status = AttendanceStatus.LeaveEarly; // Or based on time? Defaulting to LeaveEarly as per previous logic
                     existing.LeaveReason = item.LeaveReason;
                     await _timeService.SaveAttendanceRecordAsync(existing);
                 }
                 else
                 {
-                     // Should exist if they are in this list, but fallback logic:
-                    await _timeService.SaveAttendanceRecordAsync(record);
+                    // Fallback (Should typically not happen if ID maps correctly)
+                    var record = new AttendanceRecord
+                    {
+                        Id = item.Id,
+                        EmployeeId = item.EmployeeId,
+                        Date = DateTime.Today,
+                        Status = AttendanceStatus.LeaveEarly,
+                        CheckOutTime = DateTime.Now,
+                        LeaveReason = item.LeaveReason,
+                        Branch = item.Branch
+                    };
+                     await _timeService.SaveAttendanceRecordAsync(record);
                 }
 
-                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage("Clocked Out Early"));
+                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage("Clocked Out"));
                 WeakReferenceMessenger.Default.Send(new EntityUpdatedMessage("AttendanceRecord", "Updated", item.Id));
 
                 StaffList.Remove(item);

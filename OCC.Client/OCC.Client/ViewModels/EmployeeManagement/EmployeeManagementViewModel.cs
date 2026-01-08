@@ -93,11 +93,14 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             
             _teamsVM.EditTeamRequested += (s, team) => 
             {
-                var vm = _serviceProvider.GetRequiredService<TeamDetailViewModel>();
-                vm.Load(team);
-                vm.CloseRequested += (s2, e2) => IsAddTeamPopupVisible = false;
-                TeamDetailPopup = vm;
-                IsAddTeamPopupVisible = true;
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => 
+                {
+                    var vm = _serviceProvider.GetRequiredService<TeamDetailViewModel>();
+                    vm.Load(team);
+                    vm.CloseRequested += (s2, e2) => IsAddTeamPopupVisible = false;
+                    TeamDetailPopup = vm;
+                    IsAddTeamPopupVisible = true;
+                });
             };
 
             LoadData();
@@ -225,7 +228,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
                 var employees = await _employeeRepository.GetAllAsync();
                 
-                _allEmployees = employees.ToList(); // Cache full list
+                // Sort by Name
+                _allEmployees = employees.OrderBy(e => e.FirstName).ThenBy(e => e.LastName).ToList(); // Cache full list
                 FilterEmployees();
 
                 // Restore selection

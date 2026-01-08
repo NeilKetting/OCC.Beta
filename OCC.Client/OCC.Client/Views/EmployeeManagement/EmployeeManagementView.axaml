@@ -3,6 +3,7 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.EmployeeManagement"
+			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:views="clr-namespace:OCC.Client.Views.EmployeeManagement"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -117,6 +118,19 @@
 				          BorderThickness="0"
 				          DoubleTapped="DataGrid_DoubleTapped">
 
+                    <DataGrid.Styles>
+                         <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+                             <Setter Property="Fill" Value="{DynamicResource HomeMenuGradient}"/>
+                         </Style>
+                         <Style Selector="DataGridRow" x:DataType="models:Employee">
+                             <Setter Property="ContextMenu">
+                                 <ContextMenu>
+                                    <MenuItem Header="Edit" Command="{Binding $parent[UserControl].((vm:EmployeeManagementViewModel)DataContext).EditEmployeeCommand}" CommandParameter="{Binding .}"/>
+                                    <MenuItem Header="Delete" Command="{Binding $parent[UserControl].((vm:EmployeeManagementViewModel)DataContext).DeleteEmployeeCommand}" CommandParameter="{Binding .}" Foreground="Red"/>
+                                 </ContextMenu>
+                             </Setter>
+                         </Style>
+                    </DataGrid.Styles>
 
 			        <DataGrid.Columns>
 				        <!-- Employee Number -->

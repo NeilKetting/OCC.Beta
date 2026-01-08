@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:OCC.Client.ViewModels.Time"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="450"
              x:Class="OCC.Client.Views.Time.OvertimeView"
              x:DataType="vm:OvertimeViewModel">
 
@@ -91,7 +91,7 @@
             <DataGrid Grid.Row="1" ItemsSource="{Binding MyRequests}" IsReadOnly="True" GridLinesVisibility="Horizontal">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d'}" Width="100"/>
-                    <DataGridTextColumn Header="Hours" Binding="{Binding DurationHours, StringFormat='N1'}" Width="60"/>
+                    <DataGridTextColumn Header="Hours" Binding="{Binding DurationHours, StringFormat='N1'}" Width="90"/>
                     <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                     <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
                 </DataGrid.Columns>

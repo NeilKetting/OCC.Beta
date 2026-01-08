@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Time
 {
@@ -55,6 +56,12 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isLoading;
 
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        private System.Collections.Generic.List<HistoryRecordViewModel> _allRecords = new();
+        private readonly DispatcherTimer _timer;
+
         #endregion
 
         public HistoryViewModel(ITimeService timeService, IExportService exportService)
@@ -62,6 +69,27 @@ namespace OCC.Client.ViewModels.Time
             _timeService = timeService;
             _exportService = exportService;
             
+            // Timer for Live Updates
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
+            _timer.Tick += (s, e) => 
+            {
+                 foreach (var r in Records)
+                 {
+                     // Refresh active records
+                     if (r.Attendance.CheckOutTime == null)
+                     {
+                         r.Refresh();
+                     }
+                 }
+                 // Recalculate Totals?
+                 if (Records.Any())
+                 {
+                     TotalWages = Records.Sum(r => r.Wage);
+                     TotalHours = Records.Sum(r => r.HoursWorked);
+                 }
+            };
+            _timer.Start();
+
             // Set default range logic (This Week)
             SetRange("This Week");
             
@@ -141,6 +169,34 @@ namespace OCC.Client.ViewModels.Time
             await LoadData();
         }
 
+        partial void OnSearchTextChanged(string value) => FilterRecords();
+
+        private void FilterRecords()
+        {
+            if (_allRecords == null) return;
+            
+            var query = SearchText?.Trim();
+            var filtered = string.IsNullOrWhiteSpace(query)
+                ? _allRecords
+                : _allRecords.Where(r => 
+                    r.EmployeeName != null && r.EmployeeName.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            var list = new ObservableCollection<HistoryRecordViewModel>(filtered);
+            Records = list;
+            
+            // Recalculate totals for filtered view
+            if (filtered.Any())
+            {
+                TotalWages = filtered.Sum(r => r.Wage);
+                TotalHours = filtered.Sum(r => r.HoursWorked);
+            }
+            else
+            {
+                 TotalWages = 0;
+                 TotalHours = 0;
+            }
+        }
+
         private void SetRange(string range)
         {
             var today = DateTime.Today;
@@ -214,25 +270,21 @@ namespace OCC.Client.ViewModels.Time
                 var attendance = await _timeService.GetAttendanceByRangeAsync(s, e);
                 var allEmployee = await _timeService.GetAllStaffAsync();
 
-                var list = new ObservableCollection<HistoryRecordViewModel>();
-                decimal wages = 0;
-                double hours = 0;
+                var list = new System.Collections.Generic.List<HistoryRecordViewModel>();
 
-                foreach (var rec in attendance.OrderByDescending(x => x.Date).ThenBy(x => x.CheckInTime))
+                foreach (var rec in attendance)
                 {
                     var emp = allEmployee.FirstOrDefault(em => em.Id == rec.EmployeeId);
                     if (emp == null) continue;
 
                     var vm = new HistoryRecordViewModel(rec, emp);
                     list.Add(vm);
-
-                    wages += vm.Wage;
-                    hours += vm.HoursWorked;
                 }
 
-                Records = list;
-                TotalWages = wages;
-                TotalHours = hours;
+                // Sort by Name, then Date Descending
+                _allRecords = list.OrderBy(x => x.EmployeeName).ThenByDescending(x => x.Date).ThenBy(x => x.InTime).ToList();
+
+                FilterRecords();
             }
             finally
             {

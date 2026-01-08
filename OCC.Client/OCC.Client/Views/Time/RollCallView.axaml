@@ -19,8 +19,14 @@
 					<TextBlock Text="{Binding Date, StringFormat='{}{0:dddd, dd MMMM yyyy}'}" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12"/>
 				</StackPanel>
                 
-				<!-- Branch Selector -->
+                <!-- Branch Selector -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20" Margin="0,0,20,0">
+                    <TextBox Width="200" Watermark="Search..." Text="{Binding SearchText}" VerticalAlignment="Center" Classes="FormInput">
+                        <TextBox.InnerRightContent>
+                            <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16" Margin="10,0" Foreground="{DynamicResource TextSecondaryGray}"/>
+                        </TextBox.InnerRightContent>
+                    </TextBox>
+
                     <ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}" 
                               Width="150" VerticalAlignment="Center" Classes="FormInput"/>
                 </StackPanel>

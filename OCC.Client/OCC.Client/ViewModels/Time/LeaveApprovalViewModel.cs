@@ -66,7 +66,11 @@ namespace OCC.Client.ViewModels.Time
                 
                 var requests = await _leaveService.GetPendingRequestsAsync();
                 PendingRequests.Clear();
-                foreach (var r in requests) PendingRequests.Add(r);
+                
+                // Sort by Name
+                var sorted = requests.OrderBy(r => r.Employee?.FirstName).ThenBy(r => r.Employee?.LastName);
+                
+                foreach (var r in sorted) PendingRequests.Add(r);
             }
             finally
             {

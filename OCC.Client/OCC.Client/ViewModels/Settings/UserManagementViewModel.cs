@@ -143,7 +143,8 @@ namespace OCC.Client.ViewModels.Settings
             try
             {
                 var users = await _userRepository.GetAllAsync();
-                _allUsers = users.ToList();
+                // Sort by Name
+                _allUsers = users.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToList();
                 
                 TotalUsers = _allUsers.Count;
                 PendingApprovalCount = _allUsers.Count(u => !u.IsApproved);

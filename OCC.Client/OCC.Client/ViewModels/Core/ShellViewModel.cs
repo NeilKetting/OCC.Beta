@@ -15,6 +15,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Threading;
+using System.Linq;
 
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Infrastructure;
@@ -101,6 +102,16 @@ namespace OCC.Client.ViewModels.Core
                 {
                     NavigateTo(Infrastructure.NavigationRoutes.Home);
                 };
+                betaVM.OpenReleaseNotesRequested += () =>
+                {
+                    var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
+                    releaseNotesVM.CloseRequested += (s, e) => 
+                    {
+                        // Return to Beta Notice
+                        CurrentPage = betaVM;
+                    };
+                    CurrentPage = releaseNotesVM;
+                };
                 CurrentPage = betaVM;
             }
             else
@@ -185,6 +196,11 @@ namespace OCC.Client.ViewModels.Core
                 case "HealthSafety":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
                     break;
+                case "Help":
+                     var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
+                     releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
+                     CurrentPage = releaseNotesVM;
+                     break;
                  default:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
                     break;
@@ -208,7 +224,10 @@ namespace OCC.Client.ViewModels.Core
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 ConnectedUsers.Clear();
-                foreach (var u in users) 
+                // Filter distinct users by UserName to avoid duplicates from multiple connections
+                var distinctUsers = users.DistinctBy(u => u.UserName).ToList();
+                
+                foreach (var u in distinctUsers) 
                 {
                     var timeOnline = DateTime.UtcNow - u.ConnectedAt;
                     var timeStr = timeOnline.TotalMinutes < 1 ? "Just now" : 
@@ -217,7 +236,7 @@ namespace OCC.Client.ViewModels.Core
 
                     ConnectedUsers.Add(new UserDisplayModel(u.UserName, timeStr));
                 }
-                OnlineCount = users.Count;
+                OnlineCount = distinctUsers.Count;
             });
         }
         

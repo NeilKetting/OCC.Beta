@@ -77,12 +77,12 @@
 						Orientation="Horizontal" Spacing="10" 
 						DoubleTapped="Sidebar_DoubleTapped" 
 						Background="Transparent">
-				<Image Source="/Assets/Images/occ-logo.jpg" Stretch="UniformToFill"/>
-				<!--<Ellipse Width="40" Height="40" Stroke="{DynamicResource AccentOrange}" StrokeThickness="4"/>
+				<!--<Image Source="/Assets/Images/occ-logo.jpg" Stretch="UniformToFill"/>-->
+				<Ellipse Width="40" Height="40" Stroke="{DynamicResource AccentOrange}" StrokeThickness="8"/>
 				<StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsCollapsed}">
 					<TextBlock Text="Orange Circle" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
 					<TextBlock Text="Construction" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" HorizontalAlignment="Center"/>
-				</StackPanel>-->
+				</StackPanel>
 			</StackPanel>
 
 			<!-- Separator -->
@@ -157,7 +157,7 @@
 				</Grid>
 
 				<!-- Help Button -->
-				<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}">
+				<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
 					<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 						<PathIcon Data="{StaticResource IconHelp}" Classes="IconStyle"/>
 						<TextBlock Text="Help" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
