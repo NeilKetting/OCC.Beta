@@ -132,6 +132,13 @@ namespace OCC.API.Controllers
                     return NotFound();
                 }
 
+                // Safe Deletion: Check for members
+                var hasMembers = await _context.TeamMembers.AnyAsync(tm => tm.TeamId == id);
+                if (hasMembers)
+                {
+                     return Conflict("Cannot delete team because it has associated members. Please remove all members first.");
+                }
+
                 _context.Teams.Remove(team);
                 await _context.SaveChangesAsync();
                 

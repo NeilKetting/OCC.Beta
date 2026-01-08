@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Shared.Models;
 using OCC.Client.Services.Interfaces;
 using System.Collections.ObjectModel;
@@ -25,6 +26,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private bool _isBusy;
 
+        [ObservableProperty]
+        private string? _errorMessage;
+
         public event EventHandler<Team>? EditTeamRequested;
 
         public TeamManagementViewModel(IRepository<Team> teamRepository, IServiceProvider serviceProvider)
@@ -39,6 +43,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private async void LoadData()
         {
             IsBusy = true;
+            ErrorMessage = null;
             try 
             {
                 var teams = await _teamRepository.GetAllAsync();
@@ -75,9 +80,35 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private async Task DeleteTeam(Team team)
         {
              if (team == null) return;
-             // Here we should probably show a confirmation dialog
-             await _teamRepository.DeleteAsync(team.Id);
-             // SignalR will trigger reload
+             
+             ErrorMessage = null;
+             
+             try
+             {
+                 await _teamRepository.DeleteAsync(team.Id);
+             }
+             catch (System.Net.Http.HttpRequestException ex)
+             {
+                 // Handle specific status codes if needed
+                 if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                 {
+                     ErrorMessage = "Cannot delete: Team has existing members. Please remove members first.";
+                     // Ideally show a popup here
+                     System.Diagnostics.Debug.WriteLine($"[TeamManagementViewModel] Delete Conflict: {ex.Message}");
+                     CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new ViewModels.Messages.UpdateStatusMessage(ErrorMessage));
+                 }
+                 else
+                 {
+                     ErrorMessage = $"Error deleting team: {ex.Message}";
+                     System.Diagnostics.Debug.WriteLine($"[TeamManagementViewModel] Delete Error: {ex.Message}");
+                 }
+             }
+             catch (Exception ex)
+             {
+                 ErrorMessage = "An unexpected error occurred.";
+                 System.Diagnostics.Debug.WriteLine($"[TeamManagementViewModel] General Error: {ex.Message}");
+             }
+             // SignalR will trigger reload on success
         }
     }
 }

@@ -7,7 +7,7 @@
              x:Class="OCC.Client.Views.EmployeeManagement.TeamsView"
              x:DataType="vm:TeamManagementViewModel">
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, Auto, *">
         <!-- Toolbar -->
         <Border Grid.Row="0" Classes="TopHeader" Margin="0,0,0,20">
             <Grid ColumnDefinitions="*, Auto">
@@ -25,20 +25,23 @@
             </Grid>
         </Border>
 
+        <!-- Error Message -->
+        <TextBlock Grid.Row="1" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,0,0,10"
+                   IsVisible="{Binding !!ErrorMessage}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+
         <!-- Grid -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}"
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}"
                   AutoGenerateColumns="False" IsReadOnly="True"
                   HeadersVisibility="Column" GridLinesVisibility="Horizontal" Background="White">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="2*"/>
-                <!-- <DataGridTextColumn Header="MEMBERS" Binding="{Binding Members.Count}" Width="Auto"/> EF Core Count issue potentially if not loaded? -->
                 
                 <DataGridTemplateColumn Width="Auto">
                      <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:TeamManagementViewModel)DataContext).DeleteTeamCommand}" CommandParameter="{Binding .}" Foreground="Red">
-                                <PathIcon Data="{StaticResource IconDelete}" Width="16" Height="16"/>
+                                <PathIcon Data="{StaticResource IconTrash}" Width="16" Height="16"/>
                             </Button>
                         </DataTemplate>
                      </DataGridTemplateColumn.CellTemplate>

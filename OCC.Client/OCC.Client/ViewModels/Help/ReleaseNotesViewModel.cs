@@ -32,6 +32,10 @@ namespace OCC.Client.ViewModels.Help
                     Description = "Overnight Shift Fixes & Team Management Polish",
                     Changes = new ObservableCollection<string>
                     {
+                        "NEW: Implemented Safe Deletion Logic (Prevents accidental deletion of active Teams/Employees).",
+                        "FIXED: 'Save Changes' not persisting to database properly.",
+                        "FIXED: Fixed various UI layout issues (DataGrid Overflow).",
+                        "FIXED: Fixed Null Reference crash on Login.",
                         "FIXED: Active users no longer disappear from 'Live View' after midnight (Midnight Vanish Bug).",
                         "FIXED: Real-time Wage & Hour calculations now work correctly for overnight shifts.",
                         "FIXED: Clock-Out logic improved to ensure valid Start/End times for overnight records.",

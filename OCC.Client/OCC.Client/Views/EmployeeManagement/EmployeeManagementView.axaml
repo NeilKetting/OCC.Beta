@@ -47,7 +47,7 @@
         <Grid Grid.Row="1">
             
             <!-- STAFF VIEW -->
-            <Grid RowDefinitions="Auto, *" IsVisible="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Employees'}">
+            <Grid RowDefinitions="Auto, Auto, *" IsVisible="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Employees'}">
                 <!-- Stats Bar -->
 		        <Border Grid.Row="0" Classes="TopHeader">
 			        <Grid ColumnDefinitions="Auto, *, Auto">
@@ -106,8 +106,12 @@
 			        </Grid>
 		        </Border>
 
+                <!-- Error Message -->
+                <TextBlock Grid.Row="1" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,5,0,5"
+                           IsVisible="{Binding !!ErrorMessage}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+
 		        <!-- Employee Grid -->
-		        <DataGrid Grid.Row="1"
+		        <DataGrid Grid.Row="2"
 				          ItemsSource="{Binding Employees}"
 				          SelectedItem="{Binding SelectedEmployee}"
 				          AutoGenerateColumns="False"

@@ -168,14 +168,39 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             IsAddEmployeePopupVisible = true;
         }
 
+        [ObservableProperty]
+        private string? _errorMessage;
+
         [RelayCommand]
         public async Task DeleteEmployee(Employee employee)
         {
             if (employee == null) return;
+            
+            ErrorMessage = null;
 
-            // Optional: Confirm dialog could go here
-            await _employeeRepository.DeleteAsync(employee.Id);
-            LoadData();
+            try
+            {
+                await _employeeRepository.DeleteAsync(employee.Id);
+                LoadData();
+            }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                if (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    ErrorMessage = "Cannot delete employee. They may be assigned to tasks, managing projects, or in a team. Please check dependencies.";
+                    CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new ViewModels.Messages.UpdateStatusMessage(ErrorMessage));
+                }
+                else
+                {
+                    ErrorMessage = $"Error deleting employee: {ex.Message}";
+                }
+                System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] Delete Error: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "An unexpected error occurred.";
+                System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] General Error: {ex.Message}");
+            }
         }
 
         [RelayCommand]
