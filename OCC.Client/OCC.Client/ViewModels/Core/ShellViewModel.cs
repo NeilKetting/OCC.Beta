@@ -60,6 +60,9 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private System.Collections.ObjectModel.ObservableCollection<UserDisplayModel> _connectedUsers = new();
 
+        [ObservableProperty]
+        private string _userActivityStatus = "Active";
+
         #endregion
 
         #region Constructors
@@ -80,12 +83,23 @@ namespace OCC.Client.ViewModels.Core
             SideMenuViewModel sideMenuViewModel, 
             IUpdateService updateService, 
             IPermissionService permissionService,
-            SignalRNotificationService signalRService)
+            SignalRNotificationService signalRService,
+            UserActivityService userActivityService)
         {
             _serviceProvider = serviceProvider;
             _permissionService = permissionService;
             _signalRService = signalRService;
             _signalRService.OnUserListReceived += OnUserUiUpdate;
+            
+            // User Activity
+            UserActivityStatus = userActivityService.StatusText;
+            userActivityService.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(UserActivityService.StatusText))
+                {
+                    UserActivityStatus = userActivityService.StatusText;
+                }
+            };
 
             _sideMenuViewModel = sideMenuViewModel;
             _sideMenuViewModel.PropertyChanged += SideMenu_PropertyChanged;

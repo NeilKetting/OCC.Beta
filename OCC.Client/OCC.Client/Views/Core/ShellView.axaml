@@ -48,7 +48,15 @@
 
             <!-- Bottom Status Bar -->
             <Border Grid.Row="1" Background="{DynamicResource SurfaceWhite}" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,1,0,0" Padding="10,5">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Grid>
+                    <!-- Left: User Activity -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5" Margin="5,0,0,0">
+                        <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource TextSecondaryGray}"/>
+                        <TextBlock Text="{Binding UserActivityStatus}" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    </StackPanel>
+
+                    <!-- Right: Online Users -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
                     <Button Background="Transparent" BorderThickness="0" Padding="4,2">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <PathIcon Data="{StaticResource IconUserOnline}" Width="14" Height="14" Foreground="{DynamicResource PrimaryTeal}"/>
@@ -81,6 +89,7 @@
                         </Button.Flyout>
                     </Button>
                 </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 	</Grid>

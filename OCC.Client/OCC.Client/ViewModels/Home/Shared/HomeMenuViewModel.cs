@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Messages;
 
 using OCC.Client.ViewModels.Core;
+using OCC.Client.ViewModels.Notifications;
 
 namespace OCC.Client.ViewModels.Home.Shared
 {
@@ -21,8 +22,11 @@ namespace OCC.Client.ViewModels.Home.Shared
 
         #region Constructors
 
-        public HomeMenuViewModel()
+        public NotificationViewModel NotificationVM { get; }
+
+        public HomeMenuViewModel(NotificationViewModel notificationVM)
         {
+            NotificationVM = notificationVM;
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
 

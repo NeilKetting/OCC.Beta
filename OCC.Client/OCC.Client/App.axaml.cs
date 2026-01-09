@@ -53,10 +53,19 @@ namespace OCC.Client
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
+                
+                // Resolve the MainViewModel (or ShellViewModel if that's the intended top-level VM)
+                // Assuming 'shellViewModel' in the instruction refers to the main view model for the desktop app.
+                var shellViewModel = Services.GetRequiredService<MainViewModel>(); 
+
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = Services.GetRequiredService<MainViewModel>()
+                    DataContext = shellViewModel
                 };
+
+                // Hook up user activity monitoring
+                var activityService = Services.GetRequiredService<UserActivityService>();
+                activityService.Monitor(desktop.MainWindow);
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
@@ -110,6 +119,7 @@ namespace OCC.Client
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<IExportService, ExportService>();
             services.AddSingleton<SignalRNotificationService>();
+            services.AddSingleton<UserActivityService>();
             services.AddSingleton<IPermissionService, PermissionService>();
             services.AddSingleton<LocalSettingsService>();
             services.AddSingleton(ConnectionSettings.Instance);

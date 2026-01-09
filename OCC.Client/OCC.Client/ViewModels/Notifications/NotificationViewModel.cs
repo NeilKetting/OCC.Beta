@@ -26,6 +26,9 @@ namespace OCC.Client.ViewModels.Notifications
         [ObservableProperty]
         private bool _isAdmin;
 
+        [ObservableProperty]
+        private int _notificationCount;
+
         private readonly SignalRNotificationService _signalRService;
         private readonly IAuthService _authService;
         private readonly IRepository<User> _userRepository;
@@ -50,7 +53,12 @@ namespace OCC.Client.ViewModels.Notifications
 
             // Initialize with empty list for now
             HasNotifications = Notifications.Count > 0;
-            Notifications.CollectionChanged += (s, e) => HasNotifications = Notifications.Count > 0;
+            NotificationCount = Notifications.Count;
+            Notifications.CollectionChanged += (s, e) => 
+            {
+                HasNotifications = Notifications.Count > 0;
+                NotificationCount = Notifications.Count;
+            };
 
             _signalRService.OnNotificationReceived += OnNotificationReceived;
 
@@ -214,20 +222,34 @@ namespace OCC.Client.ViewModels.Notifications
                     } 
                     catch { }
                 }
-                else if (isLeave) title = "Leave Request";
-                else if (isOvertime) title = "Overtime Request";
+                else if (isLeave)
+                {
+                     title = "Leave Request";
+                     targetAction = "ManageLeave"; // Or specific action
+                     // Try to match user from name? Simpler to just show message for now.
+                     // Message format: "New Leave Request from {Name}"
+                }
+                else if (isOvertime)
+                {
+                     title = "Overtime Request";
+                     targetAction = "ManageOvertime";
+                }
 
                 Dispatcher.UIThread.Post(() =>
                 {
-                    Notifications.Insert(0, new Notification 
-                    { 
-                        Title = title, 
-                        Message = message, 
-                        Timestamp = DateTime.Now,
-                        IsRead = false,
-                        TargetAction = targetAction, 
-                        UserId = matchedUserId 
-                    });
+                    // Avoid duplicates
+                    if (!Notifications.Any(n => n.Message == message && (DateTime.Now - n.Timestamp).TotalMinutes < 1))
+                    {
+                        Notifications.Insert(0, new Notification 
+                        { 
+                            Title = title, 
+                            Message = message, 
+                            Timestamp = DateTime.Now,
+                            IsRead = false,
+                            TargetAction = targetAction, 
+                            UserId = matchedUserId 
+                        });
+                    }
                 });
             });
         }
