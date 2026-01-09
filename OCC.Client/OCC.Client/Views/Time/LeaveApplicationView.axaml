@@ -18,10 +18,16 @@
                 
                 <AutoCompleteBox ItemsSource="{Binding Employees}" 
                                  SelectedItem="{Binding SelectedEmployee}"
-                                 FilterMode="Contains"
+                                 FilterMode="Contains"                                 
                                  Watermark="Search and Select Employee..."
                                  ValueMemberBinding="{Binding DisplayName, x:DataType=models:Employee}"
-                                 HorizontalAlignment="Stretch"/>
+                                 HorizontalAlignment="Stretch">
+                    <AutoCompleteBox.Styles>
+                        <Style Selector="AutoCompleteBox /template/ TextBox#PART_TextBox">
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </AutoCompleteBox.Styles>
+                </AutoCompleteBox>
             </StackPanel>
 
             <!-- Dates -->

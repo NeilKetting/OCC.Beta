@@ -162,10 +162,41 @@ namespace OCC.Client.ViewModels.Time
         [RelayCommand]
         private async Task ClockOutIndividual(StaffAttendanceViewModel item)
         {
-             // If we are allowing Clock Out from here, we need Id.
-             // But simpler to rely on ClockOutViewModel for that.
              if (item == null) return;
-             await Task.CompletedTask;
+             IsSaving = true;
+             try
+             {
+                 // Create a record that signifies "Not Here" or "Immediately Left".
+                 // Initial thought: Mark as 'Absent'? 
+                 // Or if the user clicked "Out" implies they are present but leaving?
+                 // Context: Roll Call is usually "Who is here?". 
+                 // If I click "Out", it likely means "Cancel" or "Mark as Absent" if they were not clocked in yet.
+                 // BUT if they are not in the list (because active session filtered out), this button only appears for those NOT clocked in yet.
+                 // So "Out" here likely means "Mark as Absent".
+                 
+                 var record = new AttendanceRecord
+                 {
+                     Id = Guid.NewGuid(),
+                     EmployeeId = item.EmployeeId,
+                     Date = Date,
+                     Status = AttendanceStatus.Absent, // Mark as Absent
+                     LeaveReason = "Marked Absent in Roll Call",
+                     Branch = item.Branch
+                 };
+
+                 await _timeService.SaveAttendanceRecordAsync(record);
+                 
+                 // Notify Live View
+                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage("Marked as Absent"));
+                 WeakReferenceMessenger.Default.Send(new EntityUpdatedMessage("AttendanceRecord", "Updated", record.Id));
+
+                 // Remove from list
+                 StaffList.Remove(item);
+             }
+             finally
+             {
+                 IsSaving = false;
+             }
         }
 
         [RelayCommand]

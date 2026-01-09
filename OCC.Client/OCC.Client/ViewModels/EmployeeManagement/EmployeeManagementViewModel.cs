@@ -78,6 +78,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _employeeRepository = null!;
             _teamsVM = null!;
             _serviceProvider = null!;
+            CurrentContent = this;
         }
 
         private readonly IServiceProvider _serviceProvider;
@@ -107,6 +108,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             
             // Register for real-time updates
             CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
+
+            CurrentContent = this;
         }
 
         public void Receive(ViewModels.Messages.EntityUpdatedMessage message)
@@ -203,10 +206,21 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
         }
 
+        [ObservableProperty]
+        private object _currentContent;
+
         [RelayCommand]
         private void SetActiveTab(string tabName)
         {
             ActiveTab = tabName;
+            if (tabName == "Employees")
+            {
+                CurrentContent = this;
+            }
+            else if (tabName == "Teams")
+            {
+                CurrentContent = TeamsVM;
+            }
         }
 
         [RelayCommand]
