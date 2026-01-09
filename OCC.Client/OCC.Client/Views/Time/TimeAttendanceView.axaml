@@ -25,6 +25,9 @@
 		<DataTemplate DataType="{x:Type vm:LeaveApplicationViewModel}">
 			<viewTime:LeaveApplicationView/>
 		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:GlobalCalendarViewModel}">
+			<viewTime:GlobalCalendarView/>
+		</DataTemplate>
 	</UserControl.DataTemplates>
 
 	<Grid RowDefinitions="60, Auto, *" Background="{DynamicResource AppBackgroundSlate}">

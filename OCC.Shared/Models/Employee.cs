@@ -132,10 +132,22 @@ namespace OCC.Shared.Models
         public double LeaveBalance { get; set; } = 15.0; // Default Logic? 
         
 
+        /// <summary>
+        /// Current status of the employee (Active, Inactive, Terminated).
+        /// </summary>
+        public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
+
         public override string ToString()
         {
             return DisplayName;
         }
+    }
+
+    public enum EmployeeStatus
+    {
+        Active,
+        Inactive,
+        Terminated
     }
 
     public enum RateType
@@ -143,6 +155,9 @@ namespace OCC.Shared.Models
         Hourly,
         MonthlySalary
     }
+    
+    // ... rest of enums
+
 
     /// <summary>
     /// Defines the nature of the employment contract.

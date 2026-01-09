@@ -24,5 +24,15 @@ namespace OCC.Client.Services.Interfaces
         /// Calculates business days between two dates, excluding weekends and public holidays.
         /// </summary>
         Task<int> CalculateBusinessDaysAsync(DateTime start, DateTime end);
+
+        /// <summary>
+        /// Calculates Annual Leave accrual based on BCEA (1 day per 17 worked).
+        /// </summary>
+        double CalculateAnnualLeaveAccrual(double daysWorked);
+
+        /// <summary>
+        /// Calculates Sick Leave accrual for first 6 months (1 day per 26 worked).
+        /// </summary>
+        double CalculateSickLeaveAccrual(double daysWorked);
     }
 }

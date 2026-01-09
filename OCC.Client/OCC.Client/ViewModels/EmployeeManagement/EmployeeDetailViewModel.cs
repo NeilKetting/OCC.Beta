@@ -116,6 +116,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private double _sickLeaveBalance = 30; // Default SA Limit
 
+        [ObservableProperty]
+        private DateTimeOffset? _leaveCycleStartDate;
+
+        [ObservableProperty]
+        private string _sickLeaveCycleEndDisplay = "N/A";
+
 
         #endregion
 
@@ -272,6 +278,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             // Leave Balances
             staff.AnnualLeaveBalance = AnnualLeaveBalance;
             staff.SickLeaveBalance = SickLeaveBalance;
+            staff.LeaveCycleStartDate = LeaveCycleStartDate?.DateTime;
             
             // Banking
             // Banking
@@ -352,7 +359,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             // Leave Balances
             AnnualLeaveBalance = staff.AnnualLeaveBalance;
+            AnnualLeaveBalance = staff.AnnualLeaveBalance;
             SickLeaveBalance = staff.SickLeaveBalance;
+            LeaveCycleStartDate = staff.LeaveCycleStartDate.HasValue ? staff.LeaveCycleStartDate.Value : null;
 
             // Banking
             AccountNumber = staff.AccountNumber ?? string.Empty;
@@ -427,6 +436,20 @@ namespace OCC.Client.ViewModels.EmployeeManagement
              if (value == IdType.RSAId && IdNumber.Length >= 6)
             {
                 CalculateDoBFromRsaId(IdNumber);
+            }
+        }
+
+        partial void OnLeaveCycleStartDateChanged(DateTimeOffset? value)
+        {
+            if (value.HasValue)
+            {
+                // SA BCEA: Sick leave cycle is 36 months (3 years) from start of employment or cycle
+                var endDate = value.Value.AddMonths(36).AddDays(-1);
+                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
+            }
+            else
+            {
+                SickLeaveCycleEndDisplay = "N/A";
             }
         }
 

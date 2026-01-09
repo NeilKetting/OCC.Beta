@@ -87,6 +87,27 @@ namespace OCC.Client.ViewModels.Time
                     return CalculateAccurateWage();
                 }
                 // RateType.MonthlySalary
+                // Refined Logic v2: Dynamic Shift Hours
+                // 1. Calculate Daily Rate = Monthly / 21.67
+                // 2. Calculate Standard Daily Hours = ShiftEnd - ShiftStart
+                // 3. Hourly Rate = Daily Rate / Standard Hours
+                // 4. Wage = Hourly Rate * HoursWorked
+                if (HoursWorked > 0)
+                {
+                    decimal monthlyRate = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
+                    decimal dailyRate = monthlyRate / 21.67m;
+                    
+                    // Default to 9 hours if shift times are missing, but User says they should be there.
+                    double standardHours = 9.0;
+                    if (_employee.ShiftStartTime.HasValue && _employee.ShiftEndTime.HasValue)
+                    {
+                        var span = _employee.ShiftEndTime.Value - _employee.ShiftStartTime.Value;
+                        if (span.TotalHours > 0) standardHours = span.TotalHours;
+                    }
+
+                    decimal hourlyRate = dailyRate / (decimal)standardHours;
+                    return hourlyRate * (decimal)HoursWorked;
+                }
                 return 0;
             }
         }
@@ -160,7 +181,7 @@ namespace OCC.Client.ViewModels.Time
             return 1.0;
         }
         
-        public string WageDisplay => _employee.RateType == RateType.Hourly ? $"{Wage:C}" : "Salary";
+        public string WageDisplay => $"{Wage:C}";
 
         public void Refresh()
         {

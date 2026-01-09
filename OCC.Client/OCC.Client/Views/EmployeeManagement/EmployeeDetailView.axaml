@@ -287,6 +287,26 @@
                                     <TextBox Text="{Binding SickLeaveBalance}" Classes="FormInput" Watermark="30.0"/>
                                 </StackPanel>
                             </Grid>
+                            
+                            <!-- Leave Cycle Start -->
+                            <StackPanel>
+                                <TextBlock Text="Current Leave Cycle Start Date" Classes="FormLabel"/>
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBox Grid.Column="0" Text="{Binding LeaveCycleStartDate, StringFormat='dd MMM yyyy'}" IsReadOnly="True" Classes="FormInput" Watermark="Select Date"/>
+                                    <Button Grid.Column="1" Classes="IconButton" Margin="5,0,0,0" ToolTip.Tip="Select Cycle Start Date">
+                                        <PathIcon Data="{StaticResource IconCalendar}" Width="16" Height="16"/>
+                                        <Button.Flyout>
+                                            <Flyout Placement="Bottom">
+                                                <Calendar SelectedDate="{Binding LeaveCycleStartDate}" SelectionMode="SingleDate"/>
+                                            </Flyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="5">
+                                    <TextBlock Text="Sick Leave Cycle Ends:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
+                                    <TextBlock Text="{Binding SickLeaveCycleEndDisplay}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTeal}"/>
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
 					</StackPanel>
 					</Grid>

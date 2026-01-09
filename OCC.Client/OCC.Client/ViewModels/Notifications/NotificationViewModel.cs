@@ -82,6 +82,22 @@ namespace OCC.Client.ViewModels.Notifications
              _overtimeRepository = null!;
         }
 
+        public void AddSystemNotification(string title, string message)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                Notifications.Insert(0, new Notification
+                {
+                    Title = title,
+                    Message = message,
+                    Timestamp = DateTime.Now,
+                    IsRead = false,
+                    TargetAction = "Info", // Just info
+                    UserId = null
+                });
+            });
+        }
+
         // ... methods ...
 
         private async void LoadPendingApprovals()

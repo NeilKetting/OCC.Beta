@@ -23,7 +23,9 @@ using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Views.Core; // Added
 using OCC.Client.Views.Login; // Added
+using OCC.Client.Views.Login; // Added
 using OCC.Client.ViewModels.Login; // Added
+using OCC.Shared.Models; // Added for Employee
 
 namespace OCC.Client.ViewModels.Core
 {
@@ -154,6 +156,61 @@ namespace OCC.Client.ViewModels.Core
             _ = _signalRService.RestartAsync();
 
             // Auto-Update removed from here - moved to App Startup
+            
+            // Check Birthdays
+            CheckBirthdaysAsync(serviceProvider.GetRequiredService<IRepository<Employee>>());
+        }
+
+        private async void CheckBirthdaysAsync(IRepository<Employee> employeeRepository)
+        {
+             // Run on background initially but Dialog must be on UI
+             await Task.Delay(2000); // Wait for things to settle
+
+             try
+             {
+                 var today = DateTime.Today;
+                 var employees = await employeeRepository.GetAllAsync();
+                 var birthdayPeople = employees.Where(e => e.Status == EmployeeStatus.Active && 
+                                                      e.DoB.Date.Month == today.Month && 
+                                                      e.DoB.Date.Day == today.Day).ToList();
+
+                 if (!birthdayPeople.Any()) return;
+
+                 var currentUser = _authService.CurrentUser;
+                 
+                 foreach (var person in birthdayPeople)
+                 {
+                     // Personal Wish
+                     // Check if this person IS the current user
+                     // We link by LinkedUserId
+                     if (currentUser != null && person.LinkedUserId == currentUser.Id)
+                     {
+                         if (currentUser.UserRole == UserRole.Admin || currentUser.UserRole == UserRole.Office)
+                         {
+                             // Professional Wish Popup
+                             await _dialogService.ShowAlertAsync("Happy Birthday! 🎂", 
+                                 $"Dear {person.FirstName},\n\n" +
+                                 "Wishing you a fantastic birthday filled with success and happiness.\n" +
+                                 "Thank you for your hard work and dedication!\n\n" +
+                                 "Best Regards,\n OCC Management");
+                         }
+                     }
+                 }
+                 
+                 // Send General Notifications for valid birthdays
+                 // Make sure loop above didn't block.
+                 // We'll just populate the Notification Center
+                 var names = string.Join(", ", birthdayPeople.Select(b => b.FirstName));
+                 if (!string.IsNullOrEmpty(names))
+                 {
+                     _notificationVM.AddSystemNotification("Birthdays", $"Happy Birthday to: {names} 🎂");
+                 }
+             }
+             catch (Exception ex)
+             {
+                 // Ignore
+                 System.Diagnostics.Debug.WriteLine($"Birthday check failed: {ex.Message}");
+             }
         }
 
         private async void OnSessionWarning(object? sender, EventArgs e)

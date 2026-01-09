@@ -81,6 +81,7 @@ namespace OCC.Client.Services
             }
         }
 
+
         public async Task<int> CalculateBusinessDaysAsync(DateTime start, DateTime end)
         {
             if (end < start) return 0;
@@ -98,6 +99,20 @@ namespace OCC.Client.Services
             }
 
             return businessDays;
+        }
+
+        public double CalculateAnnualLeaveAccrual(double daysWorked)
+        {
+            // BCEA: 1 day for every 17 days worked
+            if (daysWorked <= 0) return 0;
+            return daysWorked / 17.0;
+        }
+
+        public double CalculateSickLeaveAccrual(double daysWorked)
+        {
+            // BCEA First 6 months: 1 day for every 26 days worked
+            if (daysWorked <= 0) return 0;
+            return daysWorked / 26.0;
         }
     }
 }

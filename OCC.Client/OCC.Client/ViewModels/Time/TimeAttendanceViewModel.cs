@@ -32,6 +32,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
+        [ObservableProperty] private GlobalCalendarViewModel _globalCalendarVM; // Added
 
         [ObservableProperty]
         private string _greeting = string.Empty;
@@ -54,6 +55,7 @@ namespace OCC.Client.ViewModels.Time
             _leaveApprovalVM = null!;
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
+            _globalCalendarVM = null!; // Added
             _currentView = null!;
 
             _authService = null!;
@@ -68,6 +70,7 @@ namespace OCC.Client.ViewModels.Time
             LeaveApprovalViewModel leaveApprovalViewModel,
             OvertimeViewModel overtimeViewModel,
             OvertimeApprovalViewModel overtimeApprovalViewModel,
+            GlobalCalendarViewModel globalCalendarViewModel, // Added
             IAuthService authService)
         {
             _timeMenu = timeMenu;
@@ -78,6 +81,7 @@ namespace OCC.Client.ViewModels.Time
             _leaveApprovalVM = leaveApprovalViewModel;
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
+            _globalCalendarVM = globalCalendarViewModel; // Added
             _authService = authService;
             
             // Default View
@@ -131,6 +135,9 @@ namespace OCC.Client.ViewModels.Time
                     break;
                 case "LeaveApprovals":
                     CurrentView = LeaveApprovalVM;
+                    break;
+                case "Calendar": // Added
+                    CurrentView = GlobalCalendarVM;
                     break;
                 case "Overtime":
                     CurrentView = OvertimeVM;

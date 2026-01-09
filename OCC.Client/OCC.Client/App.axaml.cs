@@ -204,6 +204,7 @@ namespace OCC.Client
             services.AddTransient<OvertimeViewModel>();
             services.AddTransient<OvertimeApprovalViewModel>();
             services.AddTransient<CalendarViewModel>();
+            services.AddTransient<GlobalCalendarViewModel>();
             // services.AddTransient<TeamsViewModel>(); // Removed
             services.AddTransient<TeamManagementViewModel>();
             services.AddTransient<TeamDetailViewModel>();

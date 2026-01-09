@@ -24,13 +24,6 @@
 				<TextBlock Text="{Binding LastUpdatedText}" HorizontalAlignment="Center" Margin="10,0,0,3" Foreground="{DynamicResource TextTertiarySlate}" FontSize="12"/>
 			</StackPanel>
 
-			<Button Grid.Column="1" Command="{Binding OpenTimesheetCommand}" Classes="Primary">
-				<StackPanel Orientation="Horizontal" Spacing="5">
-					<PathIcon Data="{StaticResource IconList}" Width="16" Height="16"/>
-					<TextBlock Text="Timesheet / Roll Call"/>
-				</StackPanel>
-			</Button>
-
 			<!-- Dev Tool: Clear Data -->
 			<Button Grid.Column="2" Command="{Binding ClearAttendanceCommand}" Margin="10,0,0,0" Background="Transparent" BorderBrush="Transparent">
 				<PathIcon Data="{StaticResource IconTrash}" Width="16" Height="16" Foreground="Red"/>
