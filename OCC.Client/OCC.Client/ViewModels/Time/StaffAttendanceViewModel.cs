@@ -40,6 +40,12 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isOverrideEnabled;
 
+        [ObservableProperty]
+        private bool _isOnLeave;
+
+        [ObservableProperty]
+        private string _leaveType = string.Empty;
+
         #endregion
 
         #region Properties

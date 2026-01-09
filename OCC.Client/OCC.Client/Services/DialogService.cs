@@ -37,5 +37,68 @@ namespace OCC.Client.Services
             }
             return null;
         }
+
+        public async Task<bool> ShowConfirmationAsync(string title, string message)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var dialog = new OCC.Client.Views.ConfirmationDialog(title, message);
+                await dialog.ShowDialog(desktop.MainWindow);
+                return dialog.Result;
+            }
+            return false;
+        }
+
+        public async Task ShowAlertAsync(string title, string message)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // Re-use ConfirmationDialog but hide Cancel button? Or just use it as is for now.
+                // Minimal implementation:
+                var dialog = new OCC.Client.Views.ConfirmationDialog(title, message);
+                // We'd ideally hide the Cancel button, but for MVP it's fine.
+                await dialog.ShowDialog(desktop.MainWindow);
+            }
+        }
+        public async Task<(bool Confirmed, string? Reason, string? Note)> ShowLeaveEarlyReasonAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var dialog = new OCC.Client.Views.Time.LeaveEarlyReasonDialog();
+                var result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
+                
+                if (result == true)
+                {
+                    return (true, dialog.Reason, dialog.Note);
+                }
+            }
+            return (false, null, null);
+        }
+        public async Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var dialog = new OCC.Client.Views.Time.EditAttendanceDialog(currentIn, currentOut);
+                var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
+                
+                if (result)
+                {
+                    return (true, dialog.ClockInTime, dialog.ClockOutTime);
+                }
+            }
+            return (false, null, null);
+        }
+        public async Task<bool> ShowSessionTimeoutAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var dialog = new OCC.Client.Views.Confirmation.SessionTimeoutDialog();
+                // Show as Modal?
+                // Depending on requirements, maybe ShowDialog is best to block input.
+                var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
+                return result;
+            }
+            return false;
+        }
     }
 }

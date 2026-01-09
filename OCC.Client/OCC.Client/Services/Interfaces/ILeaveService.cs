@@ -11,6 +11,11 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<LeaveRequest>> GetEmployeeRequestsAsync(Guid employeeId);
         Task<IEnumerable<LeaveRequest>> GetPendingRequestsAsync();
         
+        /// <summary>
+        /// Gets all approved leave requests that active on the specific date.
+        /// </summary>
+        Task<IEnumerable<LeaveRequest>> GetApprovedRequestsForDateAsync(DateTime date);
+        
         Task SubmitRequestAsync(LeaveRequest request);
         Task ApproveRequestAsync(Guid requestId, Guid approverId);
         Task RejectRequestAsync(Guid requestId, Guid approverId, string reason);

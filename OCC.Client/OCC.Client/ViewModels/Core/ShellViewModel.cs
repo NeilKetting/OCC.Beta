@@ -21,6 +21,9 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Core;
+using OCC.Client.Views.Core; // Added
+using OCC.Client.Views.Login; // Added
+using OCC.Client.ViewModels.Login; // Added
 
 namespace OCC.Client.ViewModels.Core
 {
@@ -34,6 +37,8 @@ namespace OCC.Client.ViewModels.Core
         private readonly IServiceProvider _serviceProvider;
         private readonly IPermissionService _permissionService;
         private readonly SignalRNotificationService _signalRService;
+        private readonly IAuthService _authService;
+        private readonly IDialogService _dialogService;
 
         #endregion
 
@@ -84,11 +89,16 @@ namespace OCC.Client.ViewModels.Core
             IUpdateService updateService, 
             IPermissionService permissionService,
             SignalRNotificationService signalRService,
-            UserActivityService userActivityService)
+            UserActivityService userActivityService,
+            IDialogService dialogService,
+            IAuthService authService)
         {
             _serviceProvider = serviceProvider;
             _permissionService = permissionService;
             _signalRService = signalRService;
+            _authService = authService;
+            _dialogService = dialogService;
+            
             _signalRService.OnUserListReceived += OnUserUiUpdate;
             
             // User Activity
@@ -100,6 +110,8 @@ namespace OCC.Client.ViewModels.Core
                     UserActivityStatus = userActivityService.StatusText;
                 }
             };
+            userActivityService.SessionWarning += OnSessionWarning;
+            userActivityService.SessionExpired += OnSessionExpired;
 
             _sideMenuViewModel = sideMenuViewModel;
             _sideMenuViewModel.PropertyChanged += SideMenu_PropertyChanged;
@@ -141,23 +153,54 @@ namespace OCC.Client.ViewModels.Core
             // Start/Restart SignalR Connection Globally to ensure Auth Token is used
             _ = _signalRService.RestartAsync();
 
-            // Check for updates in background, but show UI if found
-            Task.Run(async () => 
+            // Auto-Update removed from here - moved to App Startup
+        }
+
+        private async void OnSessionWarning(object? sender, EventArgs e)
+        {
+            var result = await _dialogService.ShowSessionTimeoutAsync();
+            if (!result)
             {
-                var updateInfo = await updateService.CheckForUpdatesAsync();
-                if (updateInfo != null)
-                {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() => 
-                    {
-                        var dialog = new Views.Shared.UpdateDialogView();
-                        dialog.DataContext = new ViewModels.Shared.UpdateDialogViewModel(updateService, updateInfo, () => dialog.Close());
-                        
-                        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null) 
-                        {
-                            dialog.ShowDialog(desktop.MainWindow);
-                        }
-                    });
-                }
+                // User didn't click "Yes" (Timed out or closed)
+                PerformLogout();
+            }
+            // If result is true, UserActivityService handles the "Active" logic via input detection.
+        }
+
+        private void OnSessionExpired(object? sender, EventArgs e)
+        {
+            // Failsafe if dialog didn't close or wasn't shown
+            PerformLogout();
+        }
+
+        private void PerformLogout()
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+            {
+                // 1. Clear Auth
+                await _authService.LogoutAsync(); 
+                
+                // 2. Stop SignalR
+                // _signalRService.StopAsync(); // Optional, but good practice
+
+                // 3. Navigate to Login (Assuming MainWindow handles CurrentPage logic or we restart shell)
+                
+                // Let's assume we can replace the Main Window content
+                 if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+                 {
+                     var loginVM = _serviceProvider.GetRequiredService<LoginViewModel>();
+                     
+                     // Let's try restarting the main window content.
+                     if (desktop.MainWindow is OCC.Client.Views.Core.MainWindow mainWindow)
+                     {
+                         mainWindow.Content = new OCC.Client.Views.Login.LoginView { DataContext = loginVM };
+                     }
+                     else if (desktop.MainWindow != null)
+                     {
+                         // Fallback for any window
+                         desktop.MainWindow.Content = new OCC.Client.Views.Login.LoginView { DataContext = loginVM };
+                     }
+                 }
             });
         }
 
@@ -221,6 +264,9 @@ namespace OCC.Client.ViewModels.Core
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
                      CurrentPage = releaseNotesVM;
                      break;
+                case "AuditLog":
+                    CurrentPage = _serviceProvider.GetRequiredService<AuditLogViewModel>();
+                    break;
                  default:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
                     break;
@@ -264,13 +310,18 @@ namespace OCC.Client.ViewModels.Core
                                   timeOnline.TotalHours < 1 ? $"{timeOnline.Minutes}m" : 
                                   $"{timeOnline.Hours}h {timeOnline.Minutes}m";
 
-                    ConnectedUsers.Add(new UserDisplayModel(u.UserName, timeStr));
+                    var display = new UserDisplayModel(
+                        u.UserName, 
+                        timeStr, 
+                        u.Status == "Away" ? Avalonia.Media.Brushes.Orange : Avalonia.Media.Brushes.Green
+                    );
+                    ConnectedUsers.Add(display);
                 }
                 OnlineCount = distinctUsers.Count;
             });
         }
         
-        public record UserDisplayModel(string Name, string TimeOnline);
+        public record UserDisplayModel(string Name, string TimeOnline, Avalonia.Media.IBrush StatusColor);
 
         #endregion
     }

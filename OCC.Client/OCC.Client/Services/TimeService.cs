@@ -66,7 +66,9 @@ namespace OCC.Client.Services
 
         public async Task<IEnumerable<AttendanceRecord>> GetActiveAttendanceAsync()
         {
-            return await _attendanceRepository.FindAsync(r => r.CheckOutTime == null);
+            return await _attendanceRepository.FindAsync(r => 
+                (r.CheckOutTime == null || r.CheckOutTime == DateTime.MinValue) && 
+                r.Status != AttendanceStatus.Absent);
         }
 
         public async Task<AttendanceRecord?> GetAttendanceRecordByIdAsync(Guid id)

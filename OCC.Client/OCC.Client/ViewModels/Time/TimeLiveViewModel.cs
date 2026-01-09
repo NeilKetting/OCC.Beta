@@ -35,10 +35,10 @@ namespace OCC.Client.ViewModels.Time
         private string _lastUpdatedText = "Updated on " + DateTime.Now.ToString("dd MMMM yyyy HH:mmtt").ToLower();
 
         [ObservableProperty]
-        private bool _isRollCallVisible = false;
+        private bool _isTimesheetVisible = false;
 
         [ObservableProperty]
-        private RollCallViewModel? _currentRollCall;
+        private DailyTimesheetViewModel? _currentTimesheet;
 
         #endregion
 
@@ -74,18 +74,18 @@ namespace OCC.Client.ViewModels.Time
         }
 
         [RelayCommand]
-        private void OpenRollCall()
+        private void OpenTimesheet()
         {
-            CurrentRollCall = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<RollCallViewModel>(_serviceProvider);
-            CurrentRollCall.CloseRequested += (s, e) => CloseRollCall();
-            IsRollCallVisible = true;
+            CurrentTimesheet = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<DailyTimesheetViewModel>(_serviceProvider);
+            CurrentTimesheet.CloseRequested += (s, e) => CloseTimesheet();
+            IsTimesheetVisible = true;
         }
 
         [RelayCommand]
-        private void CloseRollCall()
+        private void CloseTimesheet()
         {
-            IsRollCallVisible = false;
-            CurrentRollCall = null;
+            IsTimesheetVisible = false;
+            CurrentTimesheet = null;
         }
 
         [RelayCommand]

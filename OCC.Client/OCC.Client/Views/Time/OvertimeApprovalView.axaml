@@ -24,12 +24,12 @@
                   GridLinesVisibility="Horizontal"
                   BorderThickness="1" BorderBrush="{DynamicResource BorderGray}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="*"/>
-                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d'}" Width="120"/>
-                <DataGridTextColumn Header="Start" Binding="{Binding StartTime}" Width="100"/>
-                <DataGridTextColumn Header="End" Binding="{Binding EndTime}" Width="100"/>
-                <DataGridTextColumn Header="Hours" Binding="{Binding DurationHours, StringFormat='N1'}" Width="80"/>
-                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="2*"/>
+                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="Auto"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d'}" Width="Auto"/>
+                <DataGridTextColumn Header="Start" Binding="{Binding StartTime}" Width="Auto"/>
+                <DataGridTextColumn Header="End" Binding="{Binding EndTime}" Width="Auto"/>
+                <DataGridTextColumn Header="Hours" Binding="{Binding DurationHours, StringFormat='N1'}" Width="Auto"/>
+                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
                 <DataGridTemplateColumn Header="Actions" Width="Auto">
                    <DataGridTemplateColumn.CellTemplate>
                        <DataTemplate>

@@ -32,6 +32,12 @@ namespace OCC.Client.ViewModels.Help
                     Description = "Overnight Shift Fixes & Team Management Polish",
                     Changes = new ObservableCollection<string>
                     {
+                        "NEW: Session Timeout & Auto-Logout - Adds security by logging out inactive users (5m).",
+                        "NEW: Pre-Login Auto-Update - App updates now install cleanly via Splash Screen before login.",
+                        "NEW: 'Leave Early' Reason Dialog - Prompts for a reason/notes when clocking out >15 mins early.",
+                        "NEW: Time Correction - Added 'Edit' button to fix Timesheet entries manually.",
+                        "NEW: User Presence - See who is Online vs Away (Orange) in real-time.",
+                        "IMPROVED: Daily Timesheet View - Split 'Pending' vs 'Actioned' for better workflow.",
                         "NEW: Implemented Safe Deletion Logic (Prevents accidental deletion of active Teams/Employees).",
                         "FIXED: 'Save Changes' not persisting to database properly.",
                         "FIXED: Fixed various UI layout issues (DataGrid Overflow).",

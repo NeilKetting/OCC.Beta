@@ -48,10 +48,15 @@ namespace OCC.API.Hubs
 
         private async Task BroadcastUserList()
         {
-            // Distinct users by name, taking the earliest connection time
+            // Distinct users by name. Prioritize "Online" status if multiple connections exist.
             var users = _connectedUsers.Values
                 .GroupBy(u => u.UserName)
-                .Select(g => g.OrderBy(u => u.ConnectedAt).First())
+                .Select(g => 
+                {
+                     // If any connection is Online, show Online. Else show Away.
+                     var active = g.FirstOrDefault(x => x.Status == "Online") ?? g.First();
+                     return active;
+                })
                 .OrderBy(u => u.UserName)
                 .ToList();
                 
@@ -61,6 +66,15 @@ namespace OCC.API.Hubs
         public async Task SendNotification(string message)
         {
             await Clients.All.SendAsync("ReceiveNotification", message);
+        }
+
+        public async Task UpdateStatus(string status)
+        {
+            if (_connectedUsers.TryGetValue(Context.ConnectionId, out var info))
+            {
+                info.Status = status;
+                await BroadcastUserList();
+            }
         }
     }
 }

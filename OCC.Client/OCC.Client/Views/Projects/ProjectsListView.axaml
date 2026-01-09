@@ -14,8 +14,36 @@
     </Interaction.Behaviors>
 
     <Grid Background="White" RowDefinitions="Auto, *">
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Padding="20" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
+        <!-- Tool Bar -->
+        <Border Grid.Row="0" Classes="TopHeader">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <!-- Tools -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                    
+                    <Button Command="{Binding NewProjectCommand}" Classes="Primary">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <PathIcon Data="{StaticResource IconAddUser}" Width="16" Height="16"/>
+                            <TextBlock Text="Add Employee" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Search -->
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                        <TextBox Width="200" Watermark="Search projects..." VerticalContentAlignment="Center" Text="" Background="White" BorderBrush="{DynamicResource BorderGray}" Padding="30,5,10,5"/>
+                        <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    </StackPanel>
+
+                    <!-- Filter Projects by Status -->
+                    <ComboBox Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
+                        <ComboBoxItem>Everyone</ComboBoxItem>
+                        <ComboBoxItem>Permanent</ComboBoxItem>
+                        <ComboBoxItem>Contract</ComboBoxItem>
+                    </ComboBox>
+                    
+                </StackPanel>
+            </Grid>
+        </Border>
+        <!--<Border Grid.Row="0" Padding="20" Classes="Topbar" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <Button Grid.Column="0" Command="{Binding NewProjectCommand}" Classes="Primary" Height="36" Padding="15,0">
                     <TextBlock Text="New Project" FontSize="13" FontWeight="SemiBold"/>
@@ -36,7 +64,7 @@
                     </Button>
                 </StackPanel>
             </Grid>
-        </Border>
+        </Border>-->
 
         <!-- Projects Grid -->
         <DataGrid Grid.Row="1" ItemsSource="{Binding Projects}"

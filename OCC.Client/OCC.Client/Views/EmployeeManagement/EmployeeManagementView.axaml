@@ -27,7 +27,7 @@
 					<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Employees"
 							Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Employees'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconUser}" Width="16" Height="16"/>
+							<PathIcon Data="{StaticResource IconManageEmployees}" Height="16"/>
 							<TextBlock Text="MANAGE EMPLOYEES"/>
 						</StackPanel>
 					</Button>
@@ -35,7 +35,7 @@
 					<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Teams"
 							Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Teams'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconTeam}" Width="16" Height="16"/>
+							<PathIcon Data="{StaticResource IconTeam}" Height="16"/>
 							<TextBlock Text="TEAMS"/>
 						</StackPanel>
 					</Button>

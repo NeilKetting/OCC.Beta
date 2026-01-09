@@ -18,15 +18,15 @@
             BoxShadow="0 2 15 5 #292828">
         <StackPanel Background="Transparent" Margin="5,5">
             <!-- Company Settings Group -->
-            <TextBlock Text="SETTINGS" Classes="LabelSmall" Margin="25,10,20,5"/>
+            <TextBlock Text="SETTINGS" Classes="LabelSmall" Margin="20"/>
             <!-- Separator -->
-            <Border BorderBrush="{DynamicResource AccentOrange}" BorderThickness="1" Margin="0,10,0,20"/>
+            <Border BorderBrush="{DynamicResource AccentOrange}" BorderThickness="1" Margin="10"/>
 
             <!-- Buttons -->
             <Button Classes="PopupMenuButton" Command="{Binding UsersTeamsCommand}" IsVisible="{Binding CanManageUsers}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconUserManagement}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
-                    <TextBlock Text="Users" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="User Management" VerticalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Button>
             

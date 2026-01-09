@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:OCC.Client.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="OCC.Client.Views.SplashView"
+        x:DataType="vm:SplashViewModel"
+        Title="Orange Circle Construction"
+        Width="400" Height="300" 
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        Topmost="True">
+
+    <Border Background="White" CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" Padding="20" BoxShadow="0 4 20 0 #20000000">
+        <Grid RowDefinitions="*, Auto, Auto">
+            
+            <!-- Logo area -->
+            <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                <!-- Placeholder for Logo if available, using Text for now -->
+                <Image Source="Assets/Images/occ-logo.jpg"/>
+            </StackPanel>
+
+            <!-- Status -->
+            <StackPanel Grid.Row="1" Spacing="10" Margin="0,30,0,0">
+                <TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
+                <ProgressBar IsIndeterminate="{Binding IsChecking}" Value="{Binding Progress}" Maximum="100" Height="4" Width="200" Foreground="{DynamicResource PrimaryTeal}"/>
+            </StackPanel>
+            
+            <!-- Version -->
+            <TextBlock Grid.Row="2" Text="{Binding CurrentVersion}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="10" Foreground="Gray"/>
+        </Grid>
+    </Border>
+</Window>

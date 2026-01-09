@@ -36,7 +36,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
                     <Button Command="{Binding ExportEmployeesCommand}" Classes="Secondary" Margin="0,0,10,0" ToolTip.Tip="Export all data to JSON (My Documents)">
                         <StackPanel Orientation="Horizontal" Spacing="5">
-                            <PathIcon Data="{StaticResource IconSave}" Width="16" Height="16"/>
+                            <PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
                             <TextBlock Text="Export Data" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

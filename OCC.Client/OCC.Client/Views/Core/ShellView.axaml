@@ -74,7 +74,7 @@
                                                 <Border Padding="5,2" Background="#F5F5F5" CornerRadius="4" Margin="0,2">
                                                      <Grid ColumnDefinitions="*, Auto">
                                                          <StackPanel Orientation="Horizontal" Spacing="5">
-                                                            <Ellipse Width="8" Height="8" Fill="#10B981" VerticalAlignment="Center"/> <!-- Green Dot -->
+                                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusColor}" VerticalAlignment="Center"/> <!-- Status Dot -->
                                                             <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
                                                          </StackPanel>
                                                          <TextBlock Grid.Column="1" Text="{Binding TimeOnline}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" VerticalAlignment="Center" Margin="10,0,0,0"/>

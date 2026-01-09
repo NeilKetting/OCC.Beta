@@ -39,6 +39,16 @@ namespace OCC.Client.Services
             return all.Where(r => r.Status == LeaveStatus.Pending).OrderBy(r => r.StartDate);
         }
 
+        public async Task<IEnumerable<LeaveRequest>> GetApprovedRequestsForDateAsync(DateTime date)
+        {
+            var all = await _leaveRepository.GetAllAsync();
+            // Check if date falls within Start/End (Inclusive) and Status is Approved
+            return all.Where(r => 
+                r.Status == LeaveStatus.Approved && 
+                date.Date >= r.StartDate.Date && 
+                date.Date <= r.EndDate.Date);
+        }
+
         public async Task SubmitRequestAsync(LeaveRequest request)
         {
             // Calculate days before submitting

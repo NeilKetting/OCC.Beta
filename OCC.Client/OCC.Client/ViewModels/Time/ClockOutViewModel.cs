@@ -80,7 +80,7 @@ namespace OCC.Client.ViewModels.Time
             var allStaff = await _timeService.GetAllStaffAsync();
             
             // 1. Populate Branches
-            var branches = allStaff.Select(s => s.Branch ?? "Unassigned").Distinct().OrderBy(b => b).ToList();
+            var branches = allStaff.Select(s => s.Branch ?? "Johannesburg").Distinct().OrderBy(b => b).ToList();
             branches.Insert(0, "All");
             
             if (Branches.Count != branches.Count || !Branches.SequenceEqual(branches))
@@ -94,25 +94,68 @@ namespace OCC.Client.ViewModels.Time
             _allLoadedStaff.Clear();
 
             // Use GetActiveAttendanceAsync to ensure we catch overnight/forgotten clock-ins
-            var activeRecords = await _timeService.GetActiveAttendanceAsync();
+            var activeRecords = (await _timeService.GetActiveAttendanceAsync()).ToList();
+            
+            // REDUNDANCY: Fetch Today's records too, just in case "Active" logic missed recently added ones
+            var todayRecords = (await _timeService.GetDailyAttendanceAsync(DateTime.Today)).ToList();
+            
+            // Merge: Add any from Today that are Active (CheckOutTime is null) and not already in activeRecords
+            // Merge: Add any from Today that are Active (CheckOutTime is null)
+            // REMOVED stricter checks temporarily to ensure we see EVERYONE logged in today
+            foreach (var t in todayRecords)
+            {
+                // DEBUG: Show EVERYONE from today, even if they have clocked out.
+                // This confirms if we are even receiving the records.
+                // if ((t.CheckOutTime == null || t.CheckOutTime == DateTime.MinValue) && 
+                //     !activeRecords.Any(r => r.Id == t.Id))
+                
+                // Just check ID uniqueness
+                if (!activeRecords.Any(r => r.Id == t.Id))
+                {
+                    activeRecords.Add(t);
+                    System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] Added record {t.Id} from Daily fetch (Forced). Status: {t.Status}, Out: {t.CheckOutTime}");
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] Found {activeRecords.Count} TOTAL active records.");
+            System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] Total staff loaded: {allStaff.Count()}");
 
             foreach (var record in activeRecords)
             {
                 var staff = allStaff.FirstOrDefault(e => e.Id == record.EmployeeId);
-                if (staff == null) continue;
+                
+                if (staff == null) 
+                {
+                     // FALLBACK: Show them anyway so user knows "someone" is clocked in
+                     System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] Active record {record.Id} has EmployeeId {record.EmployeeId} which was NOT found in staff list.");
+                     staff = new Employee 
+                     { 
+                         FirstName = "Unknown", 
+                         LastName = "Staff", 
+                         Role = OCC.Shared.Models.EmployeeRole.GeneralWorker 
+                     };
+                }
 
                 var vm = new StaffAttendanceViewModel(staff)
                 {
                     Id = record.Id,
                     Status = record.Status,
                     ClockInTime = record.CheckInTime?.TimeOfDay ?? record.ClockInTime,
-                    Branch = staff.Branch ?? "Unassigned"
+                    Branch = staff.Branch ?? "Johannesburg"
                 };
+                
+                if (staff.FirstName == "Unknown")
+                {
+                    // Ensure ID is preserved for reference if needed
+                     // We can't set Name on VM (computed), but "Unknown Staff" will show.
+                }
+
                 _allLoadedStaff.Add(vm);
             }
 
             // Sort by Name
             _allLoadedStaff = _allLoadedStaff.OrderBy(s => s.Name).ToList();
+            System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] _allLoadedStaff count: {_allLoadedStaff.Count}");
 
             ApplyFilter();
         }
@@ -126,7 +169,8 @@ namespace OCC.Client.ViewModels.Time
             // Branch Filter
             if (SelectedBranch != "All")
             {
-                filtered = filtered.Where(s => s.Branch == SelectedBranch);
+                // Relaxed filtering: Case-insensitive and Trimmed
+                filtered = filtered.Where(s => string.Equals(s.Branch?.Trim(), SelectedBranch?.Trim(), StringComparison.OrdinalIgnoreCase));
             }
             
             // Search Filter
@@ -136,7 +180,10 @@ namespace OCC.Client.ViewModels.Time
                  filtered = filtered.Where(s => s.Name != null && s.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
             }
 
-            StaffList = new ObservableCollection<StaffAttendanceViewModel>(filtered);
+            var resultingList = filtered.ToList();
+            System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] Filter applied. Branch: '{SelectedBranch}', Result Count: {resultingList.Count}");
+            StaffList = new ObservableCollection<StaffAttendanceViewModel>(resultingList);
+            System.Diagnostics.Debug.WriteLine($"[ClockOutViewModel] StaffList updated. Count: {StaffList.Count}");
         }
 
         // Re-load when filter changes

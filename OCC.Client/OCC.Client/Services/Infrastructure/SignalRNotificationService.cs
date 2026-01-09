@@ -81,6 +81,14 @@ namespace OCC.Client.Services.Infrastructure
             }
         }
 
+        public async Task UpdateStatusAsync(string status)
+        {
+            if (_hubConnection.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.InvokeAsync("UpdateStatus", status);
+            }
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (_hubConnection is not null)

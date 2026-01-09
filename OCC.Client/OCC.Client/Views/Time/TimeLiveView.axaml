@@ -24,10 +24,10 @@
 				<TextBlock Text="{Binding LastUpdatedText}" HorizontalAlignment="Center" Margin="10,0,0,3" Foreground="{DynamicResource TextTertiarySlate}" FontSize="12"/>
 			</StackPanel>
 
-			<Button Grid.Column="1" Command="{Binding OpenRollCallCommand}" Classes="Primary">
+			<Button Grid.Column="1" Command="{Binding OpenTimesheetCommand}" Classes="Primary">
 				<StackPanel Orientation="Horizontal" Spacing="5">
 					<PathIcon Data="{StaticResource IconList}" Width="16" Height="16"/>
-					<TextBlock Text="Roll Call"/>
+					<TextBlock Text="Timesheet / Roll Call"/>
 				</StackPanel>
 			</Button>
 
@@ -92,8 +92,8 @@
 		</ScrollViewer>
 
 		<!-- Roll Call Overlay -->
-		<Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsRollCallVisible}">
-			<views:RollCallView DataContext="{Binding CurrentRollCall}"
+		<Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsTimesheetVisible}">
+			<views:DailyTimesheetView DataContext="{Binding CurrentTimesheet}"
 								HorizontalAlignment="Center" VerticalAlignment="Center"/>
 		</Grid>
 

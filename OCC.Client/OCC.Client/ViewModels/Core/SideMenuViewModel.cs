@@ -393,7 +393,13 @@ namespace OCC.Client.ViewModels.Core
         private void Alerts() { }
 
         [RelayCommand]
-        private void AuditLog() { }
+        private void AuditLog() 
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+            ActiveSection = "AuditLog";
+            UpdateLastActionMessage("Navigating to Audit Log");
+        }
 
         [RelayCommand]
         private void AccountExport() { }

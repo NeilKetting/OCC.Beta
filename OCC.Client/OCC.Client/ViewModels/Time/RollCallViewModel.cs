@@ -19,6 +19,7 @@ namespace OCC.Client.ViewModels.Time
         #region Private Members
 
         private readonly ITimeService _timeService;
+        private readonly ILeaveService _leaveService;
         private readonly IDialogService _dialogService;
 
         #endregion
@@ -56,9 +57,10 @@ namespace OCC.Client.ViewModels.Time
 
         #region Constructors
 
-        public RollCallViewModel(ITimeService timeService, IDialogService dialogService)
+        public RollCallViewModel(ITimeService timeService, ILeaveService leaveService, IDialogService dialogService)
         {
             _timeService = timeService;
+            _leaveService = leaveService;
             _dialogService = dialogService;
             _ = LoadStaff();
         }
@@ -279,6 +281,9 @@ namespace OCC.Client.ViewModels.Time
                 var sortedStaff = staff.OrderBy(s => s.FirstName).ThenBy(s => s.LastName);
                 
                 var existingRecords = (await _timeService.GetDailyAttendanceAsync(Date)).ToList();
+                
+                // Fetch Approved Leave for Today
+                var approvedLeave = await _leaveService.GetApprovedRequestsForDateAsync(Date);
             
                 _allStaff.Clear();
 
@@ -295,6 +300,15 @@ namespace OCC.Client.ViewModels.Time
                     }
                 
                     var vm = new StaffAttendanceViewModel(s);
+                    
+                    // Check if on Leave
+                    var leave = approvedLeave.FirstOrDefault(l => l.EmployeeId == s.Id);
+                    if (leave != null)
+                    {
+                        vm.IsOnLeave = true;
+                        vm.LeaveType = leave.LeaveType.ToString(); // e.g., "Sick", "Annual"
+                    }
+                    
                     _allStaff.Add(vm);
                 }
 

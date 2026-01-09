@@ -14,9 +14,9 @@
             Width="180"
             BoxShadow="0 2 15 5 #292828">
         <StackPanel>
-            <TextBlock Text="ACTIONS" Classes="LabelSmall" Margin="25,10,20,10"/>
+            <TextBlock Text="ACTIONS" Classes="LabelSmall" Margin="20,10"/>
             <!-- Separator -->
-            <Border BorderBrush="{DynamicResource AccentOrange}" BorderThickness="1" Margin="0,10,0,20"/>
+            <Border BorderBrush="{DynamicResource AccentOrange}" BorderThickness="1" Margin="10"/>
 
             <Button Classes="PopupMenuButton" Command="{Binding NewTaskCommand}">
                 <Grid ColumnDefinitions="*, Auto">

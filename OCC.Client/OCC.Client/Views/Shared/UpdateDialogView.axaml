@@ -25,7 +25,7 @@
 				BorderThickness="2"
 				Padding="20"
 				Margin="15"
-				BoxShadow="0 0 10 8 #04d9ff">
+				BoxShadow="0 0 10 8 #0000">
 
 			<Grid RowDefinitions="Auto,*,Auto,Auto">
 
@@ -56,10 +56,6 @@
 					<Button Content="Update Now"
 							Command="{Binding StartUpdateCommand}"
 							Classes="accent"
-							IsEnabled="{Binding !IsDownloading}"/>
-
-					<Button Content="Later"
-							Command="{Binding CloseCommand}"
 							IsEnabled="{Binding !IsDownloading}"/>
 				</StackPanel>
 			</Grid>

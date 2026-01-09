@@ -46,7 +46,14 @@
 									<Grid ColumnDefinitions="2*, Auto, Auto, Auto, 3*">
                                         <!-- Name & Role -->
 										<StackPanel Grid.Column="0" VerticalAlignment="Center">
-											<TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+											    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                                                <!-- Leave Badge -->
+                                                <Border Background="#FFF3E0" BorderBrush="#FF9800" BorderThickness="1" CornerRadius="4" Padding="6,2"
+                                                        IsVisible="{Binding IsOnLeave}">
+                                                    <TextBlock Text="{Binding LeaveType}" Foreground="#EF6C00" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </StackPanel>
 											<TextBlock Text="{Binding Role}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
 										</StackPanel>
 

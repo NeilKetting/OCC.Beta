@@ -54,18 +54,39 @@ namespace OCC.Client
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
                 
-                // Resolve the MainViewModel (or ShellViewModel if that's the intended top-level VM)
-                // Assuming 'shellViewModel' in the instruction refers to the main view model for the desktop app.
+                // Resolve the MainViewModel
                 var shellViewModel = Services.GetRequiredService<MainViewModel>(); 
 
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = shellViewModel
-                };
+                // Startup Logic: Splash -> Check Updates -> Main Window
+                var updateService = Services.GetRequiredService<IUpdateService>();
+                
+                Views.SplashView? splashWindow = null;
 
-                // Hook up user activity monitoring
-                var activityService = Services.GetRequiredService<UserActivityService>();
-                activityService.Monitor(desktop.MainWindow);
+                var splashVm = new ViewModels.SplashViewModel(updateService, () =>
+                {
+                    // On Splash Completed (No update or skipped)
+                    var mainWindow = new MainWindow
+                    {
+                        DataContext = shellViewModel
+                    };
+                    
+                    // Hook up user activity monitoring
+                    var activityService = Services.GetRequiredService<UserActivityService>();
+                    activityService.Monitor(mainWindow);
+
+                    desktop.MainWindow = mainWindow;
+                    mainWindow.Show();
+                    
+                    // Close Splash
+                    splashWindow?.Close();
+                });
+
+                splashWindow = new Views.SplashView
+                {
+                    DataContext = splashVm
+                };
+                
+                desktop.MainWindow = splashWindow;
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
@@ -114,6 +135,7 @@ namespace OCC.Client
              // Auth Services
              services.AddSingleton<ApiAuthService>();
              services.AddSingleton<IAuthService>(sp => sp.GetRequiredService<ApiAuthService>());
+             services.AddSingleton<IAuditLogService, ApiAuditLogService>();
 
             services.AddSingleton<INotificationService, ApiNotificationService>();
             services.AddSingleton<IUpdateService, UpdateService>();
@@ -173,6 +195,7 @@ namespace OCC.Client
             services.AddTransient<TimeMenuViewModel>();
             services.AddTransient<TimeAttendanceViewModel>();
             services.AddTransient<RollCallViewModel>(); // Added
+            services.AddTransient<DailyTimesheetViewModel>(); // Unified View
             services.AddTransient<ClockOutViewModel>();
             services.AddTransient<HistoryViewModel>();
             services.AddTransient<LeaveApplicationViewModel>();
