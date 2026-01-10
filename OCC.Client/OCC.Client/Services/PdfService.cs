@@ -417,7 +417,7 @@ namespace OCC.Client.Services
                 // Items
                 foreach (var line in order.Lines)
                 {
-                    table.Cell().Element(CellStyle).Text(order.Lines.IndexOf(line) + 1);
+                    table.Cell().Element(CellStyle).Text((order.Lines.IndexOf(line) + 1).ToString());
                     table.Cell().Element(CellStyle).Text(line.ItemCode);
                     table.Cell().Element(CellStyle).Text(line.Description);
                     table.Cell().Element(CellStyle).AlignRight().Text($"{line.QuantityOrdered}");

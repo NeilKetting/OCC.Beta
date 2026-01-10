@@ -8,6 +8,7 @@ namespace OCC.Shared.Models
         
         public string ProductName { get; set; } = string.Empty;
         public string Category { get; set; } = "General";
+        public string Supplier { get; set; } = string.Empty;
         public string Location { get; set; } = "Warehouse"; // Rack A, Shelf 1
         
         public double QuantityOnHand { get; set; }

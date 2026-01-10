@@ -14,7 +14,7 @@ namespace OCC.Client.Services
     {
         public async Task<string?> PickFileAsync(string title, IEnumerable<string> extensions)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var topLevel = TopLevel.GetTopLevel(desktop.MainWindow);
                 if (topLevel == null) return null;
@@ -40,7 +40,7 @@ namespace OCC.Client.Services
 
         public async Task<bool> ShowConfirmationAsync(string title, string message)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var dialog = new OCC.Client.Views.ConfirmationDialog(title, message);
                 await dialog.ShowDialog(desktop.MainWindow);
@@ -51,7 +51,7 @@ namespace OCC.Client.Services
 
         public async Task ShowAlertAsync(string title, string message)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 // Re-use ConfirmationDialog but hide Cancel button? Or just use it as is for now.
                 // Minimal implementation:
@@ -62,7 +62,7 @@ namespace OCC.Client.Services
         }
         public async Task<(bool Confirmed, string? Reason, string? Note)> ShowLeaveEarlyReasonAsync()
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var dialog = new OCC.Client.Views.Time.LeaveEarlyReasonDialog();
                 var result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
@@ -76,7 +76,7 @@ namespace OCC.Client.Services
         }
         public async Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var dialog = new OCC.Client.Views.Time.EditAttendanceDialog(currentIn, currentOut);
                 var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
@@ -90,7 +90,7 @@ namespace OCC.Client.Services
         }
         public async Task<bool> ShowSessionTimeoutAsync()
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var dialog = new OCC.Client.Views.Confirmation.SessionTimeoutDialog();
                 // Show as Modal?

@@ -221,6 +221,7 @@ namespace OCC.Client
             services.AddTransient<OrderMenuViewModel>();
             services.AddTransient<OrderViewModel>();
             services.AddTransient<InventoryViewModel>();
+            services.AddTransient<ItemListViewModel>();
             services.AddTransient<CreateOrderViewModel>();
             services.AddTransient<OrderListViewModel>();
             services.AddTransient<SupplierListViewModel>();

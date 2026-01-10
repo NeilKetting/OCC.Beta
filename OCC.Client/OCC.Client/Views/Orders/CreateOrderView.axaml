@@ -34,6 +34,7 @@
 			<Setter Property="Height" Value="22"/>
 			<Setter Property="Padding" Value="8,3"/>
 			<Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="TextBlock.Label">
 			<Setter Property="FontSize" Value="12"/>
@@ -42,9 +43,23 @@
 		</Style>
 		<Style Selector="CalendarDatePicker">
 			<Setter Property="Height" Value="24"/>
-			<Setter Property="Padding" Value="8,2"/>
+			<Setter Property="Padding" Value="6,0"/>
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="Background" Value="White"/>
+		</Style>
+		
+		<!-- Remove Hover Effect (Border Color Change) -->
+		<Style Selector="CalendarDatePicker:pointerover /template/ Border">
+			<Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMid}"/>
+			<Setter Property="Background" Value="White"/>
+		</Style>
+
+		<!-- Fix Button Clipping in Small Function -->
+		<Style Selector="CalendarDatePicker /template/ Button#PART_Button">
+			<Setter Property="Padding" Value="0"/>
+			<Setter Property="Margin" Value="0"/>
+			<Setter Property="Width" Value="20"/>
 		</Style>
 	</UserControl.Styles>
 
@@ -324,6 +339,32 @@
 						<StackPanel Spacing="5">
 							<TextBlock Text="Product Name" Classes="Label"/>
 							<TextBox Text="{Binding NewProductName}" Watermark="e.g. Cement 50kg" Classes="FormInput"/>
+						</StackPanel>
+						
+						<StackPanel Spacing="5">
+							<TextBlock Text="Category" Classes="Label"/>
+							<Grid ColumnDefinitions="*, Auto">
+								<!-- Dropdown -->
+								<ComboBox ItemsSource="{Binding ProductCategories}" 
+										  SelectedItem="{Binding NewProductCategory}" 
+										  HorizontalAlignment="Stretch"
+										  IsVisible="{Binding !IsInputtingNewCategory}"/>
+								
+								<!-- Input -->
+								<TextBox Text="{Binding NewProductCategory}" 
+										 Watermark="New Category Name" 
+										 Classes="FormInput"
+										 IsVisible="{Binding IsInputtingNewCategory}"/>
+								
+								<!-- Toggle -->
+								<Button Grid.Column="1" Command="{Binding ToggleNewCategoryModeCommand}" 
+										Margin="10,0,0,0" Classes="Secondary" Padding="8" Width="35" Height="35">
+									<Panel>
+										<PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12" IsVisible="{Binding !IsInputtingNewCategory}"/>
+										<PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" Width="12" Height="12" IsVisible="{Binding IsInputtingNewCategory}"/>
+									</Panel>
+								</Button>
+							</Grid>
 						</StackPanel>
 						<StackPanel Spacing="5">
 							<TextBlock Text="Unit of Measure" Classes="Label"/>

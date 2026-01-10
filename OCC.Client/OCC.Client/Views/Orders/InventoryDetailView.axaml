@@ -18,6 +18,7 @@
 			<Setter Property="Height" Value="22"/>
 			<Setter Property="Padding" Value="8,3"/>
 			<Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="TextBlock.Label">
 			<Setter Property="FontSize" Value="12"/>
@@ -107,7 +108,8 @@
                     <Grid ColumnDefinitions="*, 20, *">
                         <StackPanel Grid.Column="0" Spacing="10">
                             <TextBlock Text="Quantity On Hand" Classes="FormLabel"/>
-                            <TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0"/>
+                            <!-- Read Only to prevent manual edits bypassing Receive/Adjust flow -->
+                            <TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0" IsReadOnly="True" Background="#F8FAFC"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2" Spacing="10">

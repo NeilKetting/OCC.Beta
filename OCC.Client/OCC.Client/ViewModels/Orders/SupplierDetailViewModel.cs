@@ -135,7 +135,7 @@ namespace OCC.Client.ViewModels.Orders
             // Map Bank Name Back
             if (SelectedBank == OCC.Shared.Models.BankName.None)
             {
-                 Supplier.BankName = null;
+                 Supplier.BankName = string.Empty;
             }
             else
             {

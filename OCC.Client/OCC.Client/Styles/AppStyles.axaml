@@ -1,3 +1,4 @@
+
 <Styles xmlns="https://github.com/avaloniaui"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
@@ -398,6 +399,13 @@
 		<Setter Property="BoxShadow" Value="0 10 30 0 #20000000" />
 	</Style>
 
+	<Style Selector="Border.CardMedium">
+		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
+		<Setter Property="Padding" Value="20" />
+		<Setter Property="CornerRadius" Value="8" />
+		<Setter Property="BoxShadow" Value="0 10 30 5 #20000000" />
+	</Style>
+
 	<Style Selector="Border.WidgetCard">
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}"/>
 		<Setter Property="CornerRadius" Value="8"/>
@@ -624,5 +632,3 @@
 	</Styles.Resources>
 
 </Styles>
-
-

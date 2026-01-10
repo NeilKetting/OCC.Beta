@@ -13,6 +13,7 @@
 
     <UserControl.Resources>
         <conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
+        <conv:EnumToIntConverter x:Key="EnumToIntConverter"/>
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto, *">
@@ -25,8 +26,18 @@
                     <TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search Order # or Entity..." Classes="SearchBox"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
-                    <Button Classes="Secondary" Content="Filter" IsEnabled="False"/> <!-- Placeholder -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20">
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding FilteredTotal, StringFormat='Total: {0:C}'}" 
+                                   FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextPrimaryDark}"
+                                   VerticalAlignment="Center"/>
+                        <Border Width="1" Height="20" Background="{DynamicResource ThemeBorderLow}"/>
+                    </StackPanel>
+
+                    <ComboBox ItemsSource="{Binding TimeFilters}" 
+                              SelectedIndex="{Binding TimeFilter, Mode=TwoWay, Converter={StaticResource EnumToIntConverter}}"
+                              Width="140" Classes="FormInput"/>
+                              
                     <Button Classes="Primary" Content="Export" IsEnabled="False"/>
                 </StackPanel>
             </Grid>

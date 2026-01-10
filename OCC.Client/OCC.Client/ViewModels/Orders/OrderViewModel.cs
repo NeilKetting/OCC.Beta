@@ -38,6 +38,9 @@ namespace OCC.Client.ViewModels.Orders
         private InventoryViewModel _inventoryListVM;
         
         [ObservableProperty]
+        private ItemListViewModel _itemListVM; // Different from InventoryListVM (Stock)
+
+        [ObservableProperty]
         private CreateOrderViewModel _orderDetailVM;
         
         [ObservableProperty]
@@ -73,6 +76,7 @@ namespace OCC.Client.ViewModels.Orders
             CreateOrderViewModel createOrderVM,
             ReceiveOrderViewModel receiveOrderVM,
             InventoryViewModel inventoryVM,
+            ItemListViewModel itemListVM,
             SupplierListViewModel supplierListVM,
             SupplierDetailViewModel supplierDetailVM,
             IDialogService dialogService,
@@ -84,6 +88,7 @@ namespace OCC.Client.ViewModels.Orders
             OrderDetailVM = createOrderVM;
             ReceiveOrderVM = receiveOrderVM;
             InventoryListVM = inventoryVM;
+            ItemListVM = itemListVM;
             SupplierListVM = supplierListVM;
             SupplierDetailVM = supplierDetailVM;
             _dialogService = dialogService;
@@ -165,6 +170,10 @@ namespace OCC.Client.ViewModels.Orders
                 case "Inventory":
                     CurrentView = InventoryListVM;
                     // _ = InventoryListVM.LoadData(); // If needed
+                    break;
+                case "ItemList": // New
+                    CurrentView = ItemListVM;
+                    _ = ItemListVM.Refresh();
                     break;
                 default:
                     CurrentView = DashboardVM;

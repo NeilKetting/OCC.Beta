@@ -47,6 +47,7 @@ namespace OCC.Client.ViewModels.Orders
         public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
         
         public List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
+        public ObservableCollection<string> ProductCategories { get; } = new();
         
         // Selected Items
         [ObservableProperty]
@@ -81,6 +82,12 @@ namespace OCC.Client.ViewModels.Orders
 
         [ObservableProperty]
         private string _newProductUOM = "ea";
+
+        [ObservableProperty]
+        private string _newProductCategory = "General";
+
+        [ObservableProperty]
+        private bool _isInputtingNewCategory;
         
         [ObservableProperty]
         private bool _isAddingNewSupplier;
@@ -188,7 +195,7 @@ namespace OCC.Client.ViewModels.Orders
                 DestinationType = OrderDestinationType.Stock
             };
             IsOfficeDelivery = true;
-            NewOrder.Attention = null; // Ensure null for validation test
+            NewOrder.Attention = string.Empty; // Reset string
             UpdateOrderTypeFlags();
         }
 
@@ -327,6 +334,16 @@ namespace OCC.Client.ViewModels.Orders
              var list = await _inventoryService.GetInventoryAsync();
              InventoryItems.Clear();
              foreach(var i in list) InventoryItems.Add(i);
+
+             // Extract Categories
+             var cats = list.Select(x => x.Category)
+                            .Where(c => !string.IsNullOrWhiteSpace(c))
+                            .Distinct()
+                            .OrderBy(c => c);
+             
+             ProductCategories.Clear();
+             foreach(var c in cats) ProductCategories.Add(c);
+             if (!ProductCategories.Contains("General")) ProductCategories.Add("General");
         }
 
         [ObservableProperty]
@@ -472,6 +489,22 @@ namespace OCC.Client.ViewModels.Orders
             {
                 NewProductName = "";
                 NewProductUOM = "ea";
+                NewProductCategory = "General";
+                IsInputtingNewCategory = false;
+            }
+        }
+
+        [RelayCommand]
+        public void ToggleNewCategoryMode()
+        {
+            IsInputtingNewCategory = !IsInputtingNewCategory;
+            if (IsInputtingNewCategory)
+            {
+                NewProductCategory = ""; // Clear for input
+            }
+            else
+            {
+                NewProductCategory = "General"; // Reset to default
             }
         }
         
@@ -495,12 +528,21 @@ namespace OCC.Client.ViewModels.Orders
                 var item = new InventoryItem 
                 { 
                     ProductName = NewProductName, 
-                    UnitOfMeasure = NewProductUOM 
+                    UnitOfMeasure = NewProductUOM,
+                    Category = string.IsNullOrWhiteSpace(NewProductCategory) ? "General" : NewProductCategory,
+                    Supplier = SelectedSupplier?.Name ?? string.Empty
                 };
                 
                 var created = await _inventoryService.CreateItemAsync(item);
                 
                 InventoryItems.Add(created);
+                
+                // Update Categories if new
+                if (!ProductCategories.Contains(created.Category))
+                {
+                    ProductCategories.Add(created.Category);
+                }
+
                 SelectedInventoryItem = created;
                 IsAddingNewProduct = false;
             }

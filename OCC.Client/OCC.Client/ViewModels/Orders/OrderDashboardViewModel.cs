@@ -9,10 +9,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
+using OCC.Client.ViewModels.Messages;
 
 namespace OCC.Client.ViewModels.Orders
 {
-    public partial class OrderDashboardViewModel : ViewModelBase, IRecipient<Messages.EntityUpdatedMessage>
+    public partial class OrderDashboardViewModel : ViewModelBase, IRecipient<EntityUpdatedMessage>
     {
         private readonly IOrderService _orderService;
         private readonly IInventoryService _inventoryService;
@@ -33,6 +34,14 @@ namespace OCC.Client.ViewModels.Orders
         public ObservableCollection<Order> RecentOrders { get; } = new();
         public ObservableCollection<InventoryItem> LowStockItems { get; } = new();
 
+        public OrderDashboardViewModel()
+        {
+            // Parameterless constructor for design-time support
+            _orderService = null!;
+            _inventoryService = null!;
+            _logger = null!;
+        }
+
         public OrderDashboardViewModel(IOrderService orderService, IInventoryService inventoryService, ILogger<OrderDashboardViewModel> logger)
         {
             _orderService = orderService;
@@ -45,7 +54,7 @@ namespace OCC.Client.ViewModels.Orders
             _ = LoadData(); 
         }
 
-        public void Receive(ViewModels.Messages.EntityUpdatedMessage message)
+        public void Receive(EntityUpdatedMessage message)
         {
             if (message.Value.EntityType == "Order" || message.Value.EntityType == "Inventory")
             {

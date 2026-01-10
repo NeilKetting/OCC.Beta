@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Core;
@@ -11,7 +12,7 @@ using System.Collections.Generic;
 
 namespace OCC.Client.ViewModels.Orders
 {
-    public partial class OrderListViewModel : ViewModelBase
+    public partial class OrderListViewModel : ViewModelBase, IRecipient<Messages.EntityUpdatedMessage>
     {
         private readonly IOrderService _orderService;
         private readonly IDialogService _dialogService;
@@ -34,7 +35,20 @@ namespace OCC.Client.ViewModels.Orders
         {
             _orderService = orderService;
             _dialogService = dialogService;
+            
+            // Register for Real-time Updates
+            WeakReferenceMessenger.Default.Register(this);
+            
             LoadOrders();
+        }
+
+        public void Receive(Messages.EntityUpdatedMessage message)
+        {
+            if (message.Value.EntityType == "Order")
+            {
+                // Refresh list if Orders change (e.g. Status update from Receive)
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadOrders);
+            }
         }
 
         // public OrderListViewModel() { } // Design-time
@@ -64,18 +78,76 @@ namespace OCC.Client.ViewModels.Orders
             FilterOrders();
         }
 
+        [ObservableProperty]
+        private OrderDateFilter _timeFilter = OrderDateFilter.All;
+
+        [ObservableProperty]
+        private decimal _filteredTotal;
+
+        public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
+
+        // Helper to convert string back if binding to string
+        partial void OnTimeFilterChanged(OrderDateFilter value)
+        {
+            FilterOrders();
+        }
+
         private void FilterOrders()
         {
             Orders.Clear();
-            var filtered = string.IsNullOrWhiteSpace(SearchQuery) 
-                ? _allOrders 
-                : _allOrders.Where(o => o.OrderNumber.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) 
-                                     || o.SupplierName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            
+            var query = _allOrders.AsEnumerable();
 
-            foreach (var order in filtered)
+            // 1. Text Search
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                query = query.Where(o => o.OrderNumber.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) 
+                                      || (o.SupplierName?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            // 2. Date Filter
+            var now = DateTime.Now.Date;
+            switch (TimeFilter)
+            {
+                case OrderDateFilter.Today:
+                    query = query.Where(o => o.OrderDate.Date == now);
+                    break;
+                case OrderDateFilter.Yesterday:
+                    query = query.Where(o => o.OrderDate.Date == now.AddDays(-1));
+                    break;
+                case OrderDateFilter.This_Week:
+                    // Assuming Week starts Monday? Or Sunday?
+                    // Simple approach: Start of week
+                    var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday); // Monday start
+                    var endOfWeek = startOfWeek.AddDays(7);
+                    query = query.Where(o => o.OrderDate.Date >= startOfWeek && o.OrderDate.Date < endOfWeek);
+                    break;
+                 case OrderDateFilter.Last_Week:
+                    var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).AddDays(-7);
+                    var endOfLastWeek = startOfLastWeek.AddDays(7);
+                    query = query.Where(o => o.OrderDate.Date >= startOfLastWeek && o.OrderDate.Date < endOfLastWeek);
+                    break;
+                case OrderDateFilter.This_Month:
+                    var startOfMonth = new DateTime(now.Year, now.Month, 1);
+                    query = query.Where(o => o.OrderDate.Date >= startOfMonth && o.OrderDate.Date < startOfMonth.AddMonths(1));
+                    break;
+                case OrderDateFilter.Last_Month:
+                    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
+                    query = query.Where(o => o.OrderDate.Date >= startOfLastMonth && o.OrderDate.Date < startOfLastMonth.AddMonths(1));
+                    break;
+                case OrderDateFilter.All:
+                default:
+                    break;
+            }
+
+            var result = query.OrderByDescending(o => o.OrderDate).ToList(); // Sort by newest first
+
+            foreach (var order in result)
             {
                 Orders.Add(order);
             }
+
+            FilteredTotal = result.Sum(o => o.TotalAmount);
         }
 
         [RelayCommand]
@@ -110,5 +182,16 @@ namespace OCC.Client.ViewModels.Orders
             if (order == null) return;
             ViewOrderRequested?.Invoke(this, order);
         }
+    }
+
+    public enum OrderDateFilter
+    {
+        All,
+        Today,
+        Yesterday,
+        This_Week,
+        Last_Week,
+        This_Month,
+        Last_Month
     }
 }

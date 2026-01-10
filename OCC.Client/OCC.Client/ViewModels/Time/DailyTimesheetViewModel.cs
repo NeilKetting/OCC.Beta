@@ -16,6 +16,7 @@ namespace OCC.Client.ViewModels.Time
     {
         private readonly ITimeService _timeService;
         private readonly ILeaveService _leaveService;
+        private readonly IRepository<OvertimeRequest> _overtimeRepository;
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
 
@@ -52,12 +53,14 @@ namespace OCC.Client.ViewModels.Time
 
         public DailyTimesheetViewModel(
             ITimeService timeService, 
-            ILeaveService leaveService, 
+            ILeaveService leaveService,
+            IRepository<OvertimeRequest> overtimeRepository, // NEW
             IDialogService dialogService,
             IAuthService authService)
         {
             _timeService = timeService;
             _leaveService = leaveService;
+            _overtimeRepository = overtimeRepository;
             _dialogService = dialogService;
             _authService = authService;
             
@@ -111,8 +114,24 @@ namespace OCC.Client.ViewModels.Time
 
                 // 3. Populate Logged (All records, supporting multiple per employee)
                 // We iterate records instead of staff to allow multiple rows
-                // SORT: Descending (Newest First) per user request "be at the top"
-                foreach (var record in todayRecords.OrderByDescending(r => r.ClockInTime))
+                
+                // MERGE: If viewing Today, include ALL active records (even from yesterday)
+                // This fixes the bug where "Overtime" staff from yesterday don't appear in the list to be clocked out.
+                var recordsToProcess = todayRecords.ToList();
+                
+                if (Date.Date >= DateTime.Today)
+                {
+                    foreach (var active in activeRecords)
+                    {
+                        if (!recordsToProcess.Any(r => r.Id == active.Id))
+                        {
+                            recordsToProcess.Add(active);
+                        }
+                    }
+                }
+
+                // SORT: Descending by CheckInTime (Full DateTime) so newest is top
+                foreach (var record in recordsToProcess.OrderByDescending(r => r.CheckInTime))
                 {
                     var emp = allStaff.FirstOrDefault(e => e.Id == record.EmployeeId);
                     if (emp == null) continue; // Should not happen
@@ -343,31 +362,84 @@ namespace OCC.Client.ViewModels.Time
         private async Task ClockOut(StaffAttendanceViewModel item)
         {
             if (item == null || item.Id == Guid.Empty) return;
-            
-            // 1. Business Hours
-            var branch = item.Branch ?? "Johannesburg";
-            var endTime = GetBusinessEndTime(branch);
-            var now = DateTime.Now;
 
+            // 1. Determine Business Hours / Expected End Time
+            // Priority:
+            // A. Approved Overtime End Time
+            // B. Employee Specific Shift End Time
+            // C. Branch Default (Fallback)
+
+            TimeSpan expectedEndTime;
+
+            // B. Employee Shift
+            // We need to fetch the employee for this info, waiting on item.Staff might be cached snapshot but should be mostly fine.
+            // For rigorous check we can fetch from Repo but item.Staff is decent.
+            if (item.Staff != null && item.Staff.ShiftEndTime.HasValue)
+            {
+                expectedEndTime = item.Staff.ShiftEndTime.Value;
+            }
+            else
+            {
+                // C. Branch Default
+                // JHB: 16:00, CPT: 17:00
+                string branch = item.Branch ?? "Johannesburg";
+                expectedEndTime = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
+                    ? new TimeSpan(17, 0, 0) 
+                    : new TimeSpan(16, 0, 0);
+            }
+
+            // A. Overtime Check
+            // Find APPROVED overtime for this user on THIS DATE (The date of the attendance record, not necessarily today if clocking out late)
+            // But we typically clock out "now".
+            // Logic: If I have approved overtime until 20:00, and I leave at 18:00, I am leaving early.
+            
+            try 
+            {
+                var allOvertime = await _overtimeRepository.GetAllAsync();
+                var approvedOt = allOvertime.FirstOrDefault(o => 
+                    o.EmployeeId == item.EmployeeId && 
+                    o.Date.Date == Date.Date && // Match sheet date
+                    o.Status == LeaveStatus.Approved); // MUST be Approved
+
+                if (approvedOt != null)
+                {
+                    // If OT extends beyond normal shift, use OT end time.
+                    if (approvedOt.EndTime > expectedEndTime)
+                    {
+                        expectedEndTime = approvedOt.EndTime;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+               System.Diagnostics.Debug.WriteLine($"[ClockOut] Error fetching overtime: {ex.Message}");
+            }
+
+            var now = DateTime.Now;
             string? leaveReason = null;
             string? leaveNote = null;
-            // var finalStatus = AttendanceStatus.Present; // Removed unused variable
 
-            // 2. Check if Early
-            if (now.TimeOfDay < endTime)
+            // Check if Early
+            // Note: IF "Now" is next day (e.g. night shift or forgot to clock out), this logic might need day awareness.
+            // Assuming "Daily Timesheet" implies we are handling that specific day's shift.
+            // If I clock out at 08:00 AM next day for a 16:00 PM shift, technically I am LATE, not early. 
+            // Simple check: If TimeOfDay < Expected AND Date is same.
+            
+            bool isSameDay = now.Date == Date.Date;
+            
+            if (isSameDay && now.TimeOfDay < expectedEndTime)
             {
-                var diff = endTime - now.TimeOfDay;
-                // If early by more than 15 mins (buffer), prompt
-                if (diff.TotalMinutes > 15)
+                var diff = expectedEndTime - now.TimeOfDay;
+                if (diff.TotalMinutes > 15) // 15 min buffer
                 {
                     var result = await _dialogService.ShowLeaveEarlyReasonAsync();
-                    if (!result.Confirmed) return; // User cancelled clock out
+                    if (!result.Confirmed) return;
 
                     leaveReason = result.Reason;
                     leaveNote = result.Note;
-                    // finalStatus = AttendanceStatus.LeaveEarly; // Unused
                 }
             }
+            // If clocking out on a FUTURE date (e.g. next morning), we assume they worked full shift + more, so no "Early" prompt.
 
             IsSaving = true;
             try 
@@ -385,13 +457,16 @@ namespace OCC.Client.ViewModels.Time
                     }
                     else
                     {
-                        record.Status = AttendanceStatus.Present; // Ensure status reverts to Present if normal clock out
+                        // Logic: If status was already something else (e.g. Present), keep it. 
+                        // If they worked full shift, it stays Present.
+                        // If they arrived Late, it stays Late.
                     }
                     
                     await _timeService.SaveAttendanceRecordAsync(record);
                     
                     item.ClockOutTime = record.CheckOutTime.Value.TimeOfDay;
-                    item.Status = record.Status; // Update UI status
+                    // status might update if 'LeaveEarly' was set
+                    item.Status = record.Status; 
                     
                     // Trigger UI refresh?
                     var loggedItem = LoggedStaff.FirstOrDefault(x => x.Id == item.Id);
@@ -400,7 +475,7 @@ namespace OCC.Client.ViewModels.Time
                         loggedItem.ClockOutTime = item.ClockOutTime;
                         loggedItem.Status = item.Status;
                     }
-                    // AND NOW: Move back to Pending (Left) because they are inactive!
+                    // Move back to Pending
                     MoveToPending(item);
                 }
             }
@@ -410,18 +485,6 @@ namespace OCC.Client.ViewModels.Time
                  if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to clock out: {ex.Message}");
             }
             finally { IsSaving = false; }
-        }
-
-        private TimeSpan GetBusinessEndTime(string branch)
-        {
-            // JHB: 07:00 - 16:00
-            // CPT: 08:00 - 17:00
-            if (branch.Contains("Cape", StringComparison.OrdinalIgnoreCase))
-            {
-                return new TimeSpan(17, 0, 0);
-            }
-            // Default JHB
-            return new TimeSpan(16, 0, 0);
         }
 
         [RelayCommand]
