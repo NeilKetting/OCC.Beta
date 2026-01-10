@@ -230,7 +230,7 @@
 						   TextAlignment="Center"/>
 
 				<!-- Setup / Version Info -->
-				<StackPanel Margin="0,30,0,15" IsVisible="{Binding !IsCollapsed}">
+				<StackPanel Margin="0,10,0,15" IsVisible="{Binding !IsCollapsed}">
 					<TextBlock FontSize="9"
 							   FontWeight="Bold"
 							   HorizontalAlignment="Center">
@@ -256,15 +256,7 @@
 							HorizontalAlignment="Center"
 							Background="Transparent"
 							BorderThickness="0"
-							Foreground="{DynamicResource AccentOrange}"/>
-					<Button Content="🎂 Test Birthday"
-							Command="{Binding SimulateBirthdayCommand}"
-							FontSize="10"
-							HorizontalAlignment="Center"
-							Background="Transparent"
-							BorderThickness="0"
-							Foreground="{DynamicResource TextTertiarySlate}"
-							Margin="0,5,0,0"/>
+							Foreground="{DynamicResource AccentOrange}"/>					
 				</StackPanel>
 			</StackPanel>
 		</Grid>
