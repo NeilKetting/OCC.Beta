@@ -31,7 +31,8 @@ namespace OCC.Client.ViewModels.Core
 {
     public partial class ShellViewModel : ViewModelBase, 
         IRecipient<OpenNotificationsMessage>,
-        IRecipient<OpenManageUsersMessage>
+        IRecipient<OpenManageUsersMessage>,
+        IRecipient<TestBirthdayMessage>
     {
 
         #region Private Members
@@ -261,6 +262,23 @@ namespace OCC.Client.ViewModels.Core
             });
         }
 
+        [RelayCommand]
+        public async Task TestBirthday()
+        {
+             var currentUser = _authService.CurrentUser;
+             var name = currentUser?.FirstName ?? "User";
+             
+             // Professional Wish Popup Simulation
+             await _dialogService.ShowAlertAsync("Happy Birthday! 🎂", 
+                 $"Dear {name},\n\n" +
+                 "Wishing you a fantastic birthday filled with success and happiness.\n" +
+                 "Thank you for your hard work and dedication!\n\n" +
+                 "Best Regards,\n OCC Management");
+                 
+             // Also simulate notification
+             _notificationVM.AddSystemNotification("Birthdays", $"Happy Birthday to: {name} 🎂");
+        }
+
         #endregion
 
         #region Helper Methods
@@ -344,6 +362,11 @@ namespace OCC.Client.ViewModels.Core
             {
                 vm.OpenUser(message.Value.Value);
             }
+        }
+
+        public void Receive(TestBirthdayMessage message)
+        {
+            TestBirthday();
         }
 
         [RelayCommand]

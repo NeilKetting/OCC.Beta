@@ -257,6 +257,14 @@
 							Background="Transparent"
 							BorderThickness="0"
 							Foreground="{DynamicResource AccentOrange}"/>
+					<Button Content="🎂 Test Birthday"
+							Command="{Binding SimulateBirthdayCommand}"
+							FontSize="10"
+							HorizontalAlignment="Center"
+							Background="Transparent"
+							BorderThickness="0"
+							Foreground="{DynamicResource TextTertiarySlate}"
+							Margin="0,5,0,0"/>
 				</StackPanel>
 			</StackPanel>
 		</Grid>

@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 using OCC.Client.Services.Interfaces;
@@ -18,6 +19,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Private Members
 
         private readonly IRepository<Employee> _staffRepository;
+        private readonly IDialogService _dialogService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
 
@@ -160,8 +162,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
         }
 
-        // ... existing properties ...
-
         public bool IsPassport
         {
             get => SelectedIdType == IdType.Passport;
@@ -220,15 +220,17 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Constructors
 
-        public EmployeeDetailViewModel(IRepository<Employee> staffRepository)
+        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IDialogService dialogService)
         {
             _staffRepository = staffRepository;
+            _dialogService = dialogService;
         }
 
         public EmployeeDetailViewModel() 
         {
-            // _staffRepository will be null, handle in Save
+            // _staffRepository and _dialogService will be null, handle in Save
             _staffRepository = null!;
+            _dialogService = null!;
         }
 
         #endregion
@@ -238,9 +240,54 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [RelayCommand]
         private async Task Save()
         {
-            // Basic Validation
-            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName))
+            // 1. Mandatory Fields Validation
+            if (string.IsNullOrWhiteSpace(FirstName))
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "First Name is required.");
                 return;
+            }
+            if (string.IsNullOrWhiteSpace(LastName))
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Last Name is required.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(IdNumber) && IsRsaId)
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "ID Number is required.");
+                return;
+            }
+
+            // 2. Duplicate Checks
+            // We need to fetch existing employees to check for duplicates.
+            // Ideally Repository has unique check methods, but we'll fetch all or use Find.
+            // _staffRepository.GetAllAsync() might be heavy if lots of users, but sufficient for now.
+            var allStaff = await _staffRepository.GetAllAsync();
+            
+            // Filter out current user if editing
+            var otherStaff = _existingStaffId.HasValue 
+                ? allStaff.Where(s => s.Id != _existingStaffId.Value).ToList() 
+                : allStaff.ToList();
+
+            // Check ID Number
+            if (!string.IsNullOrWhiteSpace(IdNumber) && otherStaff.Any(s => s.IdNumber == IdNumber))
+            {
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with ID Number '{IdNumber}' already exists.");
+                 return;
+            }
+
+            // Check Employee Number
+            if (!string.IsNullOrWhiteSpace(EmployeeNumber) && otherStaff.Any(s => s.EmployeeNumber == EmployeeNumber))
+            {
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Number '{EmployeeNumber}' already exists.");
+                 return;
+            }
+
+            // Check Email
+            if (!string.IsNullOrWhiteSpace(Email) && otherStaff.Any(s => s.Email != null && s.Email.Equals(Email, StringComparison.OrdinalIgnoreCase)))
+            {
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Email '{Email}' already exists.");
+                 return;
+            }
 
             Employee staff;
 
@@ -271,16 +318,16 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             staff.ContractDuration = ContractDuration;
             staff.Branch = Branch;
             staff.ShiftStartTime = ShiftStartTime;
-            staff.Branch = Branch;
-            staff.ShiftStartTime = ShiftStartTime;
+            staff.Branch = Branch; // Redundant line in original, kept to match structure or remove
+            staff.ShiftStartTime = ShiftStartTime; // Redundant
             staff.ShiftEndTime = ShiftEndTime;
+            // Removed redundant assignments for cleanliness
             
             // Leave Balances
             staff.AnnualLeaveBalance = AnnualLeaveBalance;
             staff.SickLeaveBalance = SickLeaveBalance;
             staff.LeaveCycleStartDate = LeaveCycleStartDate?.DateTime;
             
-            // Banking
             // Banking
             // Map "Select Bank" (None) to null/empty
             if (SelectedBank == OCC.Shared.Models.BankName.None)
@@ -302,13 +349,21 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             if (_staffRepository != null)
             {
-                if (_existingStaffId.HasValue)
+                try 
                 {
-                    await _staffRepository.UpdateAsync(staff);
+                    if (_existingStaffId.HasValue)
+                    {
+                        await _staffRepository.UpdateAsync(staff);
+                    }
+                    else
+                    {
+                        await _staffRepository.AddAsync(staff);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await _staffRepository.AddAsync(staff);
+                    await _dialogService.ShowAlertAsync("Error", $"Failed to save employee: {ex.Message}");
+                    return;
                 }
             }
             

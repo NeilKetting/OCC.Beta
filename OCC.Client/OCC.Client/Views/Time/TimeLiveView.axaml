@@ -41,7 +41,7 @@
 				</ItemsControl.ItemsPanel>
 				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<Border Width="260" Height="150" Margin="10" CornerRadius="8" Background="White"
+						<Border Width="220" Height="140" Margin="10" CornerRadius="8" Background="White"
 								BorderThickness="2" BorderBrush="{Binding BorderBrush}"
 								BoxShadow="0 2 4 0 #10000000">
 							<Grid RowDefinitions="Auto, Auto, *">

@@ -62,13 +62,34 @@ namespace OCC.Client.DevelopmentToBeDeleted
                 if (!File.Exists(path)) return false;
 
                 var savedVersion = File.ReadAllText(path).Trim();
-                // Compare saved string with current passed version
-                return string.Equals(savedVersion, currentVersion, StringComparison.OrdinalIgnoreCase);
+                
+                // Normalize versions to avoid "1.1.11" vs "1.1.11.0" mismatch
+                var normCurrent = NormalizeVersion(currentVersion);
+                var normSaved = NormalizeVersion(savedVersion);
+
+                return string.Equals(normSaved, normCurrent, StringComparison.OrdinalIgnoreCase);
             }
             catch
             {
                 return false;
             }
+        }
+
+        private static string NormalizeVersion(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version)) return version;
+            try
+            {
+                // Try to parse as Version object to handle standard formats
+                if (Version.TryParse(version, out var v))
+                {
+                    // Return Major.Minor.Build (ignoring Revision if 0 or irrelevant for this check)
+                    // If Build is -1, default to 0
+                    return $"{v.Major}.{v.Minor}.{(v.Build < 0 ? 0 : v.Build)}";
+                }
+            }
+            catch { }
+            return version.Trim();
         }
 
         private static string GetAcceptanceFilePath()

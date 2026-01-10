@@ -469,6 +469,13 @@ namespace OCC.Client.ViewModels.Core
             UpdateLastActionMessage("Action Triggered: New Team Member");
         }
 
+        [RelayCommand]
+        public void SimulateBirthday()
+        {
+            IsQuickActionsOpen = false;
+            WeakReferenceMessenger.Default.Send(new TestBirthdayMessage());
+        }
+
         #endregion
 
         #region Helper Methods

@@ -59,6 +59,10 @@ namespace OCC.Client.ViewModels.Time
                 PendingRequests.Clear();
                 foreach (var r in pending) PendingRequests.Add(r);
             }
+            catch (Exception ex)
+            {
+                await _notificationService.SendReminderAsync("Error", $"Failed to load overtime requests: {ex.Message}");
+            }
             finally
             {
                 IsBusy = false;

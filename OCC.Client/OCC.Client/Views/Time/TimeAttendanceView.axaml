@@ -28,6 +28,15 @@
 		<DataTemplate DataType="{x:Type vm:GlobalCalendarViewModel}">
 			<viewTime:GlobalCalendarView/>
 		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:LeaveApprovalViewModel}">
+			<viewTime:LeaveApprovalView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:OvertimeViewModel}">
+			<viewTime:OvertimeView/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:OvertimeApprovalViewModel}">
+			<viewTime:OvertimeApprovalView/>
+		</DataTemplate>
 	</UserControl.DataTemplates>
 
 	<Grid RowDefinitions="60, Auto, *" Background="{DynamicResource AppBackgroundSlate}">

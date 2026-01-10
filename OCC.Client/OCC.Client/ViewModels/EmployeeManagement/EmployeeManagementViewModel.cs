@@ -20,6 +20,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Private Members
 
         private readonly IRepository<Employee> _employeeRepository;
+        private readonly IDialogService _dialogService;
         
         /// <summary>
         /// Cache for all loaded employees to support filtering without database calls
@@ -68,6 +69,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         [ObservableProperty]
         private TeamManagementViewModel _teamsVM;
+
+        [ObservableProperty]
+        private bool _isAddTeamPopupVisible;
+
+        [ObservableProperty]
+        private TeamDetailViewModel? _teamDetailPopup;
+
         #endregion
 
         #region Constructors
@@ -78,6 +86,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _employeeRepository = null!;
             _teamsVM = null!;
             _serviceProvider = null!;
+            _dialogService = null!;
             CurrentContent = this;
         }
 
@@ -86,11 +95,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         public EmployeeManagementViewModel(
             IRepository<Employee> employeeRepository, 
             TeamManagementViewModel teamsVM,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IDialogService dialogService)
         {
             _employeeRepository = employeeRepository;
             _teamsVM = teamsVM;
             _serviceProvider = serviceProvider;
+            _dialogService = dialogService;
             
             _teamsVM.EditTeamRequested += (s, team) => 
             {
@@ -121,23 +132,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
         }
 
-        private void OnEditTeamRequested(object? sender, Team team)
-        {
-            // Resolve TeamDetailViewModel via DI or Factory if possible, or create manually if dependencies allow.
-            // Since we didn't inject a factory, we might need IServiceProvider or pass dependencies.
-            // For now, let's assume we can resolve it or create it.
-            // We need: IRepository<Team>, IRepository<TeamMember>, IRepository<Employee>, SignalR
-            // This is getting complex to instantiate manually.
-            // BETTER: Inject IServiceProvider to resolve transient VMs.
-        }
-        
-        // Simpler for now: Add Properties first.
-        [ObservableProperty]
-        private bool _isAddTeamPopupVisible;
-
-        [ObservableProperty]
-        private TeamDetailViewModel? _teamDetailPopup;
-
         #endregion
 
         #region Commands
@@ -145,7 +139,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [RelayCommand]
         private void AddEmployee()
         {
-            AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository);
+            AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _dialogService);
             AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
             AddEmployeePopup.EmployeeAdded += (s, e) => 
             {
@@ -160,7 +154,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         {
             if (employee == null) return;
 
-            AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository);
+            AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _dialogService);
             AddEmployeePopup.Load(employee);
             AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
             AddEmployeePopup.EmployeeAdded += (s, e) => 
