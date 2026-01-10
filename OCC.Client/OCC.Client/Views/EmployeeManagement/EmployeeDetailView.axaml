@@ -286,6 +286,7 @@
 									<PathIcon Data="{StaticResource IconCalendar}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
 									<TextBlock Text="Initial Leave Balances (Days)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 								</StackPanel>
+								<TextBlock Text="{Binding LeaveAccrualRule}" Classes="StatLabel" TextWrapping="Wrap" Margin="0,0,0,5"/>
 
 								<Grid ColumnDefinitions="*, 10, *">
 									<!-- Annual Leave -->

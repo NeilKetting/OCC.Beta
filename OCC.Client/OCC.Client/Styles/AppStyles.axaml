@@ -262,7 +262,7 @@
 
 	<!-- Shared Input Styles (TextBox, ComboBox, DatePicker) -->
 	<Style Selector="TextBox, ComboBox, DatePicker">
-		<Setter Property="Height" Value="40"/>
+		<Setter Property="Height" Value="36"/>
 		<Setter Property="BorderThickness" Value="1" />
 		<Setter Property="BorderBrush" Value="{DynamicResource BorderGray}" />
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
@@ -274,12 +274,12 @@
 
 	<!-- Specific Input Overrides -->
 	<Style Selector="TextBox">
-		<Setter Property="Padding" Value="12,8" />
+		<Setter Property="Padding" Value="12,6" />
 		<Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryDark}" />
 	</Style>
 
 	<Style Selector="ComboBox">
-		<Setter Property="Padding" Value="12,8" />
+		<Setter Property="Padding" Value="12,6" />
 	</Style>
 
 	<Style Selector="DatePicker">

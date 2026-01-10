@@ -130,6 +130,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private string _sickLeaveCycleEndDisplay = "N/A";
 
+        [ObservableProperty]
+        private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
 
         #endregion
 
@@ -427,6 +429,16 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             SickLeaveBalance = staff.SickLeaveBalance;
             LeaveCycleStartDate = staff.LeaveCycleStartDate.HasValue ? staff.LeaveCycleStartDate.Value : null;
 
+            // Set Initial Rule Text
+            if (SelectedEmploymentType == EmploymentType.Contract)
+            {
+                 LeaveAccrualRule = "Accural: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
+            }
+            else
+            {
+                 LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
+            }
+
             // Banking
             AccountNumber = staff.AccountNumber ?? string.Empty;
             TaxNumber = staff.TaxNumber ?? string.Empty;
@@ -567,6 +579,30 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         partial void OnFirstNameChanged(string value) => OnPropertyChanged(nameof(DisplayName));
         partial void OnLastNameChanged(string value) => OnPropertyChanged(nameof(DisplayName));
+
+        partial void OnSelectedEmploymentTypeChanged(EmploymentType value)
+        {
+            if (value == EmploymentType.Contract)
+            {
+                LeaveAccrualRule = "Accural: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
+                // Suggest 0 defaults for new contract
+                if (!_existingStaffId.HasValue) 
+                {
+                    AnnualLeaveBalance = 0;
+                    SickLeaveBalance = 0;
+                }
+            }
+            else
+            {
+                LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
+                 // Suggest defaults for new permanent if they were 0
+                if (!_existingStaffId.HasValue && AnnualLeaveBalance == 0 && SickLeaveBalance == 0)
+                {
+                    AnnualLeaveBalance = 0; // Usually accumulate but start 0 too? Or pro-rata. Let's keep 0 safe or 1.25.
+                    SickLeaveBalance = 30; // Standard cycle
+                }
+            }
+        }
 
         private void CalculateDoBFromRsaId(string id)
         {
