@@ -72,6 +72,12 @@
             </Grid>
         </Grid>
 
+        <Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsReceiveOrderVisible}">
+             <Grid Background="Transparent">
+                <views:ReceiveOrderView DataContext="{Binding ReceiveOrderVM}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </Grid>
+
 		<!-- View Content -->
         <TransitioningContentControl Grid.Row="2" Content="{Binding CurrentView}">
             <TransitioningContentControl.PageTransition>

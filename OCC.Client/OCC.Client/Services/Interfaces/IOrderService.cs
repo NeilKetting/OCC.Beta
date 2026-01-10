@@ -11,6 +11,7 @@ namespace OCC.Client.Services.Interfaces
         Task<Order?> GetOrderAsync(Guid id);
         Task<Order> CreateOrderAsync(Order order);
         Task UpdateOrderAsync(Order order);
+        Task ReceiveOrderAsync(Order order, List<OrderLine> updatedLines);
         Task DeleteOrderAsync(Guid id);
     }
 }

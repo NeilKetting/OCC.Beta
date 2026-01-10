@@ -66,6 +66,9 @@
                                 <Button Classes="IconButton" ToolTip.Tip="Edit/View">
                                     <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
                                 </Button>
+                                <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:OrderListViewModel)DataContext).RequestReceiveOrderCommand}" CommandParameter="{Binding .}" ToolTip.Tip="Receive Items">
+                                     <PathIcon Data="{StaticResource IconCart}" Width="16" Height="16" Foreground="{DynamicResource PrimaryTeal}"/>
+                                </Button>
                                 <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:OrderListViewModel)DataContext).DeleteOrderCommand}" CommandParameter="{Binding .}">
                                     <PathIcon Data="{StaticResource IconDelete}" Foreground="Red" Width="16" Height="16"/>
                                 </Button>

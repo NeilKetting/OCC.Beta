@@ -13,17 +13,29 @@ namespace OCC.Client.Services
     public class SettingsService : ISettingsService
     {
         private readonly HttpClient _httpClient;
+        private readonly IAuthService _authService;
         private const string KeyName = "CompanyProfile";
 
-        public SettingsService(HttpClient httpClient)
+        public SettingsService(HttpClient httpClient, IAuthService authService)
         {
             _httpClient = httpClient;
+            _authService = authService;
+        }
+
+        private void EnsureAuthorization()
+        {
+            var token = _authService.AuthToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         public async Task<CompanyDetails> GetCompanyDetailsAsync()
         {
             try
             {
+                EnsureAuthorization();
                 var settings = await _httpClient.GetFromJsonAsync<List<AppSetting>>("api/AppSettings");
                 var profile = settings?.FirstOrDefault(s => s.Key == KeyName);
 
@@ -45,6 +57,7 @@ namespace OCC.Client.Services
         {
             try
             {
+                EnsureAuthorization();
                 // check if exists first
                 var settings = await _httpClient.GetFromJsonAsync<List<AppSetting>>("api/AppSettings");
                 var existing = settings?.FirstOrDefault(s => s.Key == KeyName);

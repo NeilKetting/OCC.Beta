@@ -3,9 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:OCC.Client.ViewModels.Orders"
+             xmlns:conv="using:OCC.Client.Converters"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
              x:Class="OCC.Client.Views.Orders.SupplierDetailView"
              x:DataType="vm:SupplierDetailViewModel">
+
+    <UserControl.Resources>
+        <conv:BoolToTextConverter x:Key="BoolToTextConverter" />
+    </UserControl.Resources>
 
     <Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1" MaxWidth="600" MaxHeight="700">
         <Grid RowDefinitions="Auto, *, Auto">

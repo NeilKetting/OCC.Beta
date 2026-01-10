@@ -19,6 +19,7 @@ namespace OCC.Client.ViewModels.Orders
         public SupplierListViewModel SupplierListVM { get; }
         public InventoryViewModel InventoryListVM { get; } // Was InventoryVM
         public CreateOrderViewModel OrderDetailVM { get; } 
+        public ReceiveOrderViewModel ReceiveOrderVM { get; }
         public SupplierDetailViewModel SupplierDetailVM { get; }
 
         [ObservableProperty]
@@ -30,6 +31,9 @@ namespace OCC.Client.ViewModels.Orders
         // Popups
         [ObservableProperty]
         private bool _isOrderDetailVisible;
+        
+        [ObservableProperty]
+        private bool _isReceiveOrderVisible;
 
         [ObservableProperty]
         private bool _isSupplierDetailVisible;
@@ -38,6 +42,7 @@ namespace OCC.Client.ViewModels.Orders
             OrderDashboardViewModel dashboardVM,
             OrderListViewModel listVM,
             CreateOrderViewModel createOrderVM,
+            ReceiveOrderViewModel receiveOrderVM,
             InventoryViewModel inventoryVM,
             SupplierListViewModel supplierListVM,
             SupplierDetailViewModel supplierDetailVM,
@@ -47,6 +52,7 @@ namespace OCC.Client.ViewModels.Orders
             DashboardVM = dashboardVM;
             OrderListVM = listVM;
             OrderDetailVM = createOrderVM; 
+            ReceiveOrderVM = receiveOrderVM;
             InventoryListVM = inventoryVM;
             SupplierListVM = supplierListVM;
             SupplierDetailVM = supplierDetailVM;
@@ -57,6 +63,9 @@ namespace OCC.Client.ViewModels.Orders
             
             // Wire up popup events
             OrderDetailVM.CloseRequested += (s, e) => IsOrderDetailVisible = false;
+            ReceiveOrderVM.CloseRequested += (s, e) => IsReceiveOrderVisible = false;
+            
+            OrderListVM.ReceiveOrderRequested += (s, order) => NavigateToReceiveOrder(order);
             
             SupplierListVM.AddSupplierRequested += (s, e) => 
             {
@@ -121,6 +130,13 @@ namespace OCC.Client.ViewModels.Orders
              // Let's assume PO for now.
              OrderDetailVM.LoadData(); // Reset
              IsOrderDetailVisible = true;
+        }
+
+        [RelayCommand]
+        public void NavigateToReceiveOrder(Order order)
+        {
+            ReceiveOrderVM.Initialize(order);
+            IsReceiveOrderVisible = true;
         }
     }
 }

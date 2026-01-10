@@ -35,6 +35,8 @@ namespace OCC.Client.ViewModels.Orders
         public ObservableCollection<ProjectBase> Projects { get; } = new();
         public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
         
+        public List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
+        
         // Selected Items
         [ObservableProperty]
         private Supplier? _selectedSupplier;

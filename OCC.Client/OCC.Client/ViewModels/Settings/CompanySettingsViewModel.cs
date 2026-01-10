@@ -13,6 +13,7 @@ namespace OCC.Client.ViewModels.Settings
     {
         private readonly ISettingsService _settingsService;
         private readonly IDialogService _dialogService;
+        private readonly SideMenuViewModel _sideMenuViewModel;
 
         [ObservableProperty]
         private CompanyDetails _companyDetails = new();
@@ -22,11 +23,16 @@ namespace OCC.Client.ViewModels.Settings
 
         private readonly ILogger<CompanySettingsViewModel> _logger;
 
-        public CompanySettingsViewModel(ISettingsService settingsService, IDialogService dialogService, ILogger<CompanySettingsViewModel> logger)
+        public CompanySettingsViewModel(
+            ISettingsService settingsService, 
+            IDialogService dialogService, 
+            ILogger<CompanySettingsViewModel> logger,
+            SideMenuViewModel sideMenuViewModel)
         {
             _settingsService = settingsService;
             _dialogService = dialogService;
             _logger = logger;
+            _sideMenuViewModel = sideMenuViewModel;
             LoadData();
         }
         
@@ -36,6 +42,7 @@ namespace OCC.Client.ViewModels.Settings
              _settingsService = null!;
              _dialogService = null!;
              _logger = null!;
+             _sideMenuViewModel = null!;
              CompanyDetails = new CompanyDetails();
         }
 
@@ -105,6 +112,13 @@ namespace OCC.Client.ViewModels.Settings
             {
                 IsBusy = false;
             }
+        }
+
+        [RelayCommand]
+        public void Close()
+        {
+            // Navigate back to Home/Dashboard
+            _sideMenuViewModel.ActiveSection = OCC.Client.Infrastructure.NavigationRoutes.Home;
         }
     }
 }

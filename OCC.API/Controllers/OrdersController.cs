@@ -142,31 +142,16 @@ namespace OCC.API.Controllers
                 // 4. Inventory Logic: If Status changes to Completed (or specific trigger)
                 // We assume once Completed, stock is moved. 
                 // Note: NOT handling reversion if status moves BACK from Completed.
+                // 4. Inventory Logic
+                // REMOVED: Managed by granular ReceiveOrder logic in Client/Service to support partial deliveries.
+                // Previous logic only handled "On Complete" and risked double-counting or missing partial updates.
+                
+                /* 
                 if (oldStatus != OrderStatus.Completed && order.Status == OrderStatus.Completed)
                 {
-                    foreach (var line in order.Lines)
-                    {
-                        if (line.InventoryItemId.HasValue)
-                        {
-                            var item = await _context.InventoryItems.FindAsync(line.InventoryItemId.Value);
-                            if (item != null)
-                            {
-                                switch(order.OrderType)
-                                {
-                                    case OrderType.PurchaseOrder:
-                                        item.QuantityOnHand += line.QuantityReceived; // Or Ordered if auto-receiving
-                                        break;
-                                    case OrderType.SalesOrder:
-                                        item.QuantityOnHand -= line.QuantityOrdered; // Sales deduct
-                                        break;
-                                    case OrderType.ReturnToInventory:
-                                        item.QuantityOnHand += line.QuantityReceived; // Return adds back
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
+                    // Legacy auto-update removed
+                } 
+                */
 
                 await _context.SaveChangesAsync();
 

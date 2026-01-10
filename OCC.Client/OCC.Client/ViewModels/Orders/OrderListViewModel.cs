@@ -18,6 +18,8 @@ namespace OCC.Client.ViewModels.Orders
         private List<Order> _allOrders = new();
 
         public ObservableCollection<Order> Orders { get; } = new();
+        
+        public event EventHandler<Order>? ReceiveOrderRequested;
 
         [ObservableProperty]
         private string _searchQuery = "";
@@ -88,6 +90,13 @@ namespace OCC.Client.ViewModels.Orders
             {
                  System.Diagnostics.Debug.WriteLine($"Error deleting order: {ex.Message}");
             }
+        }
+        
+        [RelayCommand]
+        public void RequestReceiveOrder(Order order)
+        {
+            if (order == null) return;
+            ReceiveOrderRequested?.Invoke(this, order);
         }
     }
 }
