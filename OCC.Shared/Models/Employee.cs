@@ -57,6 +57,11 @@ namespace OCC.Shared.Models
         public string IdNumber { get; set; } = string.Empty;
 
         /// <summary>
+        /// Optional Permit Number for non-RSA residents.
+        /// </summary>
+        public string? PermitNumber { get; set; }
+
+        /// <summary>
         /// Contact email address.
         /// </summary>
         public string Email { get; set; } = string.Empty;

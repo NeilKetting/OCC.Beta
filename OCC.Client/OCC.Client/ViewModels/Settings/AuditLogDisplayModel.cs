@@ -23,7 +23,7 @@ namespace OCC.Client.ViewModels.Settings
         public string RecordId => Log.RecordId;
         public string? NewValues => Log.NewValues;
         public string? OldValues => Log.OldValues;
-        public DateTime Timestamp => Log.Timestamp;
+        public DateTime Timestamp => Log.Timestamp.ToLocalTime();
         // UserId is replaced by UserName for display
     }
 }

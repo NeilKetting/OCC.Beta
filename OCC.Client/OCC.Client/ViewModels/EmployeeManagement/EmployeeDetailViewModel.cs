@@ -47,6 +47,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private string _idNumber = string.Empty;
 
         [ObservableProperty]
+        private string _permitNumber = string.Empty;
+
+        [ObservableProperty]
         private IdType _selectedIdType = IdType.RSAId;
 
         [ObservableProperty]
@@ -97,6 +100,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         [ObservableProperty]
         private string _accountNumber = string.Empty;
+
+        [ObservableProperty]
+        private string _taxNumber = string.Empty;
 
         [ObservableProperty]
         private string _branchCode = string.Empty;
@@ -307,6 +313,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             staff.FirstName = FirstName;
             staff.LastName = LastName;
             staff.IdNumber = IdNumber;
+            staff.PermitNumber = PermitNumber;
             staff.IdType = SelectedIdType;
             staff.Email = Email;
             staff.Phone = Phone;
@@ -340,6 +347,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
 
             staff.AccountNumber = AccountNumber;
+            staff.TaxNumber = TaxNumber;
             staff.BranchCode = BranchCode;
             
             // Map "Select Account Type" to null
@@ -399,6 +407,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             FirstName = staff.FirstName;
             LastName = staff.LastName;
             IdNumber = staff.IdNumber;
+            PermitNumber = staff.PermitNumber ?? string.Empty;
             SelectedIdType = staff.IdType;
             Email = staff.Email;
             Phone = staff.Phone ?? string.Empty;
@@ -420,6 +429,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             // Banking
             AccountNumber = staff.AccountNumber ?? string.Empty;
+            TaxNumber = staff.TaxNumber ?? string.Empty;
             BranchCode = staff.BranchCode ?? string.Empty;
             AccountType = string.IsNullOrEmpty(staff.AccountType) ? "Select Account Type" : staff.AccountType;
             SelectedRateType = staff.RateType;
