@@ -38,7 +38,7 @@ namespace OCC.Client.Views.Home
         protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
-            var taskDetail = this.FindControl<List.Widgets.TaskDetailView>("TaskDetailView");
+            var taskDetail = this.FindControl<Projects.Tasks.Widgets.TaskDetailView>("TaskDetailView");
             if (taskDetail != null)
             {
                 taskDetail.PropertyChanged += async (s, args) =>

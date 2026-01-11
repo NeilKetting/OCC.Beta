@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using System;
 using System.Threading.Tasks;
 using Velopack;

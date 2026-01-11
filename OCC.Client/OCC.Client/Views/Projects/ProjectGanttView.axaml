@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:OCC.Client.ViewModels.Projects"
-             xmlns:local="using:OCC.Client.Views.Projects"
+             xmlns:vm="clr-namespace:OCC.Client.ViewModels.Projects"
+             xmlns:local="clr-namespace:OCC.Client.Views.Projects"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="OCC.Client.Views.Projects.ProjectGanttView"
              x:DataType="vm:ProjectGanttViewModel">
@@ -72,17 +72,34 @@
                                 </Style>
                              </ItemsControl.Styles>
                              <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas Width="300" Height="{Binding $parent[UserControl].DataContext.CanvasHeight}"/>
-                                </ItemsPanelTemplate>
+                                 <ItemsPanelTemplate>
+                                     <Canvas Height="{Binding $parent[UserControl].DataContext.CanvasHeight}"/>
+                                 </ItemsPanelTemplate>
                              </ItemsControl.ItemsPanel>
                              <ItemsControl.ItemTemplate>
                                  <DataTemplate>
-                                     <Border Height="{Binding RowHeight}" Width="300" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
-                                         <TextBlock Text="{Binding Task.Name}" 
-                                                    Margin="{Binding IndentMargin}"
-                                                    VerticalAlignment="Center"
-                                                    Classes.summary="{Binding IsSummary}"/>
+                                     <Border Height="{Binding RowHeight}" Width="{Binding $parent[ScrollViewer].Bounds.Width}" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+                                         <StackPanel Orientation="Horizontal" Margin="{Binding IndentMargin}">
+                                             <!-- Expander Button -->
+                                             <Button Classes="IconButton" 
+                                                     Command="{Binding ToggleCommand}" 
+                                                     Width="20" Height="20" 
+                                                     Margin="0,0,5,0"
+                                                     IsVisible="{Binding HasChildren}">
+                                                  <Panel>
+                                                      <PathIcon Data="{StaticResource IconChevronDown}" Width="10" Height="10" 
+                                                                IsVisible="{Binding Task.IsExpanded}"/>
+                                                      <PathIcon Data="{StaticResource IconChevronRight}" Width="10" Height="10" 
+                                                                IsVisible="{Binding !Task.IsExpanded}"/>
+                                                  </Panel>
+                                             </Button>
+                                             <!-- Spacer if no children -->
+                                             <Panel Width="25" IsVisible="{Binding !HasChildren}"/>
+                                             
+                                             <TextBlock Text="{Binding Task.Name}" 
+                                                        VerticalAlignment="Center"
+                                                        Classes.summary="{Binding IsSummary}"/>
+                                         </StackPanel>
                                      </Border>
                                  </DataTemplate>
                              </ItemsControl.ItemTemplate>

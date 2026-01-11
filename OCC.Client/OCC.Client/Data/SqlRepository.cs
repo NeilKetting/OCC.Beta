@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
 using System;
 using System.Collections.Generic;

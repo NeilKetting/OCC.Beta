@@ -18,7 +18,7 @@
 		<vm:EmployeeManagementViewModel/>
 	</Design.DataContext>
 
-	<Grid RowDefinitions="50, *">
+	<Grid RowDefinitions="Auto, *">
 		<!-- Top Bar -->
 		<Border Grid.Row="0" Classes="Topbar">
 			<Grid ColumnDefinitions="Auto, *, Auto, Auto">

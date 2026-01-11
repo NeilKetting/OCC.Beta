@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Velopack;
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.Shared

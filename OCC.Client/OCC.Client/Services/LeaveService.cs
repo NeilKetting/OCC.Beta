@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
 
 namespace OCC.Client.Services

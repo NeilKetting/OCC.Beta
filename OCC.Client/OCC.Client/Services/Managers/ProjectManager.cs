@@ -1,0 +1,172 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using OCC.Shared.Models;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
+
+namespace OCC.Client.Services.Managers
+{
+    /// <summary>
+    /// Implementation of IProjectManager that provides centralized business logic for project and task management.
+    /// This class acts as a bridge between the repositories and the ViewModels, handling complex operations
+    /// like hierarchy building and expansion logic.
+    /// </summary>
+    public class ProjectManager : IProjectManager
+    {
+        private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<ProjectTask> _taskRepository;
+        private readonly IRepository<Employee> _employeeRepository;
+
+        /// <summary>
+        /// Initializes a new instance of the ProjectManager class.
+        /// </summary>
+        /// <param name="projectRepository">The repository for project data.</param>
+        /// <param name="taskRepository">The repository for task data.</param>
+        public ProjectManager(
+            IRepository<Project> projectRepository,
+            IRepository<ProjectTask> taskRepository,
+            IRepository<Employee> employeeRepository)
+        {
+            _projectRepository = projectRepository;
+            _taskRepository = taskRepository;
+            _employeeRepository = employeeRepository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<Project>> GetProjectsAsync()
+        {
+            return await _projectRepository.GetAllAsync();
+        }
+
+        /// <inheritdoc/>
+        public async Task<Project?> GetProjectByIdAsync(Guid id)
+        {
+            return await _projectRepository.GetByIdAsync(id);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<ProjectTask>> GetTasksForProjectAsync(Guid projectId)
+        {
+            return await _taskRepository.FindAsync(t => t.ProjectId == projectId);
+        }
+
+        /// <summary>
+        /// Reconstructs the task hierarchy (parent-child relationships) from a flat list, 
+        /// typically retrieved from the database. It uses the IndentLevel and relative order
+        /// to infer the hierarchy, similar to how Microsoft Project (MSP) data is structured.
+        /// </summary>
+        public List<ProjectTask> BuildTaskHierarchy(IEnumerable<ProjectTask> allTasks)
+        {
+            var taskList = allTasks.OrderBy(t => t.OrderIndex).ToList();
+            var rootTasks = new List<ProjectTask>();
+            var parentStack = new Stack<ProjectTask>();
+
+            foreach (var task in taskList)
+            {
+                task.Children.Clear();
+
+                // Pop items from the stack that are at the same level or deeper than the current task.
+                // This finds the closest previous task that has a smaller indent level, which is the parent.
+                while (parentStack.Count > 0 && parentStack.Peek().IndentLevel >= task.IndentLevel)
+                {
+                    parentStack.Pop();
+                }
+
+                if (parentStack.Count > 0)
+                {
+                    var parent = parentStack.Peek();
+                    parent.Children.Add(task);
+                    task.ParentId = parent.Id;
+                }
+                else
+                {
+                    // No parent found in stack, so this is a root-level task.
+                    rootTasks.Add(task);
+                }
+
+                // Push current task onto the stack as it might be a potential parent for subsequent tasks.
+                parentStack.Push(task);
+            }
+
+            return rootTasks;
+        }
+
+        /// <summary>
+        /// Converts the hierarchical tree of tasks back into a flat list for UI display (e.g., DataGrid).
+        /// Iterates only through the branches that are currently expanded by the user.
+        /// </summary>
+        public List<ProjectTask> FlattenHierarchy(IEnumerable<ProjectTask> rootTasks)
+        {
+            var flatList = new List<ProjectTask>();
+            foreach (var rootTask in rootTasks)
+            {
+                FlattenTask(rootTask, flatList, 0);
+            }
+            return flatList;
+        }
+
+        /// <summary>
+        /// Recursively adds a task and its visible children to the flat list.
+        /// </summary>
+        private void FlattenTask(ProjectTask task, List<ProjectTask> flatList, int level)
+        {
+            task.IndentLevel = level;
+            flatList.Add(task);
+
+            // Only traverse children if the parent task is expanded in the UI.
+            if (task.IsExpanded && task.Children != null && task.Children.Any())
+            {
+                foreach (var child in task.Children)
+                {
+                    FlattenTask(child, flatList, level + 1);
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task SaveTaskAsync(ProjectTask task)
+        {
+            if (task.Id == Guid.Empty)
+            {
+                await _taskRepository.AddAsync(task);
+            }
+            else
+            {
+                await _taskRepository.UpdateAsync(task);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteProjectAsync(Guid projectId)
+        {
+            await _projectRepository.DeleteAsync(projectId);
+        }
+
+        /// <inheritdoc/>
+        public void ToggleExpand(ProjectTask task)
+        {
+            if (task == null) return;
+            task.IsExpanded = !task.IsExpanded;
+        }
+
+        /// <inheritdoc/>
+        public async Task AssignSiteManagerAsync(Guid projectId, Guid managerId)
+        {
+            var project = await _projectRepository.GetByIdAsync(projectId);
+            if (project != null)
+            {
+                project.SiteManagerId = managerId;
+                await _projectRepository.UpdateAsync(project);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Employee>> GetSiteManagersAsync()
+        {
+            var employees = await _employeeRepository.GetAllAsync();
+            return employees.Where(e => e.Role == EmployeeRole.SiteManager).ToList();
+        }
+    }
+}

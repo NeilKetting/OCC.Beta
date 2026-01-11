@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 
 namespace OCC.Client.ViewModels.Settings
 {

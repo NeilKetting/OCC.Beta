@@ -1,17 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using OCC.Client.Services;
+using Microsoft.Extensions.DependencyInjection; // Added
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Microsoft.Extensions.DependencyInjection; // Added
-using OCC.Client.Services.Interfaces;
-using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.EmployeeManagement
 {
@@ -264,10 +263,14 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Methods
 
+        [ObservableProperty]
+        private bool _isLoading;
+
         public async void LoadData()
         {
             try 
             {
+                IsLoading = true;
                 // Capture current selection ID
                 var selectedId = SelectedEmployee?.Id;
 
@@ -286,6 +289,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading employees: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 

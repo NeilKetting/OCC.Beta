@@ -6,13 +6,15 @@ using OCC.Client.ViewModels.Home.Dashboard;
 using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Home.MySummary;
 using OCC.Client.ViewModels.Home.Shared;
-using OCC.Client.ViewModels.Home.Tasks;
+using OCC.Client.ViewModels.Projects.Tasks;
 using OCC.Client.ViewModels.Messages;
 using OCC.Client.ViewModels.Projects;
 using OCC.Shared.Models;
 using System;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.Home

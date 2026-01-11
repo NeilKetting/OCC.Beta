@@ -4,9 +4,14 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Services;
-using OCC.Client.Services.ApiServices;
+using OCC.Client.Services.Repositories.ApiServices;
 using OCC.Client.Services.Infrastructure; // Added
-using OCC.Client.Services.Interfaces; // Added
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces; // Added
+using OCC.Client.Services.Managers;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core; // Added for ViewModelBase/Core VMs
 using OCC.Client.ViewModels.EmployeeManagement;
 using OCC.Client.ViewModels.HealthSafety;
@@ -15,7 +20,7 @@ using OCC.Client.ViewModels.Home.Calendar;
 using OCC.Client.ViewModels.Home.Dashboard;
 using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Home.Shared;
-using OCC.Client.ViewModels.Home.Tasks;
+using OCC.Client.ViewModels.Projects.Tasks;
 using OCC.Client.ViewModels.Login; // Added
 using OCC.Client.ViewModels.Notifications; // Added
 using OCC.Client.ViewModels.Orders;
@@ -154,6 +159,7 @@ namespace OCC.Client
             services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IPdfService, PdfService>();
+            services.AddSingleton<IProjectManager, ProjectManager>();
 
             // Logging
             services.AddLogging(l => l.AddSerilog());

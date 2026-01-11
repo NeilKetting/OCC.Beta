@@ -6,12 +6,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Shared.Models;
 using System;
 using OCC.Client.Services;
-
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
-
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Projects
 {
@@ -19,10 +20,9 @@ namespace OCC.Client.ViewModels.Projects
     {
         #region Private Members
 
-        private readonly IRepository<ProjectTask> _taskRepository;
-        private readonly IRepository<Project> _projectRepository;
-        private readonly IAuthService _authService;
+        private readonly IProjectManager _projectManager;
         private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
+        private List<ProjectTask> _rootTasks = new();
 
         #endregion
 
@@ -36,22 +36,56 @@ namespace OCC.Client.ViewModels.Projects
         #region Observables
 
         [ObservableProperty]
-        private ObservableCollection<ProjectTask> _tasks = new();
-
-        [ObservableProperty]
         private Shared.ProjectTopBarViewModel _topBar;
 
         [ObservableProperty]
-        private ProjectTask? _selectedTask;
+        private Core.ViewModelBase _currentView;
+
+        [ObservableProperty]
+        private ProjectTaskListViewModel _listVM;
+
+        [ObservableProperty]
+        private ProjectGanttViewModel _ganttVM;
 
         [ObservableProperty]
         private Guid _currentProjectId;
+
+        [ObservableProperty]
+        private string _siteManagerInitials = "UA";
+
+        [ObservableProperty]
+        private string _siteManagerName = "Unassigned";
+
+        [ObservableProperty]
+        private string _siteManagerColor = "#EF4444"; // Red for UA
+
+        [ObservableProperty]
+        private bool _isSiteManagerAssigned;
+
+        [ObservableProperty]
+        private ObservableCollection<Employee> _availableSiteManagers = new();
+
+        [ObservableProperty]
+        private ObservableCollection<Employee> _filteredSiteManagers = new();
+
+        private string _managerSearchText = string.Empty;
+        public string ManagerSearchText
+        {
+            get => _managerSearchText;
+            set
+            {
+                if (SetProperty(ref _managerSearchText, value))
+                {
+                    ApplyManagerFilter();
+                }
+            }
+        }
 
         #endregion
 
         #region Properties
 
-        public bool HasTasks => Tasks.Count > 0;
+        public bool HasTasks => ListVM.HasTasks;
 
         #endregion
 
@@ -59,24 +93,27 @@ namespace OCC.Client.ViewModels.Projects
 
         public ProjectDetailViewModel()
         {
-            // Parameterless constructor for design-time support
-            _taskRepository = null!;
-            _projectRepository = null!;
-            _authService = null!;
+            _projectManager = null!;
             _topBar = new Shared.ProjectTopBarViewModel();
+            _listVM = new ProjectTaskListViewModel();
+            _ganttVM = new ProjectGanttViewModel();
+            _currentView = _listVM;
         }
         
-        public ProjectDetailViewModel(
-            IRepository<ProjectTask> taskRepository,
-            IRepository<Project> projectRepository,
-            IAuthService authService)
+        public ProjectDetailViewModel(IProjectManager projectManager)
         {
-            _taskRepository = taskRepository;
-            _projectRepository = projectRepository;
-            _authService = authService;
+            _projectManager = projectManager;
             _topBar = new Shared.ProjectTopBarViewModel();
+            _listVM = new ProjectTaskListViewModel();
+            _ganttVM = new ProjectGanttViewModel(_projectManager);
+
+            _currentView = _listVM;
+
+            _listVM.TaskSelectionRequested += (s, id) => TaskSelectionRequested?.Invoke(this, id);
+            _listVM.ToggleExpandRequested += (s, e) => { RefreshDisplayList(); };
+
+            _topBar.PropertyChanged += TopBar_PropertyChanged;
             
-            // Subscribe to updates
             WeakReferenceMessenger.Default.Register<ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
             {
                 if (CurrentProjectId != Guid.Empty)
@@ -97,6 +134,31 @@ namespace OCC.Client.ViewModels.Projects
             NewTaskRequested?.Invoke(this, EventArgs.Empty);
         }
 
+        [RelayCommand]
+        private async Task AssignSiteManager(Employee manager)
+        {
+            if (CurrentProjectId == Guid.Empty || manager == null) return;
+
+            await _projectManager.AssignSiteManagerAsync(CurrentProjectId, manager.Id);
+            
+            // UI Update
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                SiteManagerName = manager.DisplayName;
+                SiteManagerInitials = GetInitials(manager.DisplayName);
+                SiteManagerColor = "#14B8A6"; 
+                IsSiteManagerAssigned = true;
+            });
+        }
+
+        [RelayCommand]
+        private void ToggleExpand(ProjectTask task)
+        {
+            if (task == null) return;
+            _projectManager.ToggleExpand(task);
+            RefreshDisplayList();
+        }
+
         #endregion
 
         #region Methods
@@ -108,30 +170,41 @@ namespace OCC.Client.ViewModels.Projects
             {
                 CurrentProjectId = projectId;
                 
-                // Load Project Details for TopBar
-                var project = await _projectRepository.GetByIdAsync(projectId);
-                if (project != null)
+                var project = await _projectManager.GetProjectByIdAsync(projectId);
+                var managers = await _projectManager.GetSiteManagersAsync();
+                var tasks = await _projectManager.GetTasksForProjectAsync(projectId);
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    if (project != null)
                     {
                         TopBar.ProjectName = project.Name;
                         TopBar.ProjectId = project.Id;
                         TopBar.ProjectIconInitials = GetInitials(project.Name);
-                        // TopBar.TrialDaysLeft? 
-                    });
-                }
 
-                var tasks = await _taskRepository.FindAsync(t => t.ProjectId == projectId);
-                
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    Tasks.Clear();
-                    var flatList = BuildTaskHierarchy(tasks);
-                    foreach (var task in flatList)
-                    {
-                        Tasks.Add(task);
+                        if (project.SiteManager != null)
+                        {
+                            SiteManagerName = project.SiteManager.DisplayName;
+                            SiteManagerInitials = GetInitials(project.SiteManager.DisplayName);
+                            SiteManagerColor = "#14B8A6"; 
+                            IsSiteManagerAssigned = true;
+                        }
+                        else
+                        {
+                            SiteManagerName = "Unassigned";
+                            SiteManagerInitials = "UA";
+                            SiteManagerColor = "#EF4444";
+                            IsSiteManagerAssigned = false;
+                        }
                     }
-                    OnPropertyChanged(nameof(HasTasks));
+
+                    AvailableSiteManagers.Clear();
+                    foreach (var m in managers) AvailableSiteManagers.Add(m);
+                    ApplyManagerFilter();
+
+                    _rootTasks = _projectManager.BuildTaskHierarchy(tasks);
+                    RefreshDisplayList();
+                    GanttVM.LoadTasks(projectId);
                 });
             }
             finally
@@ -140,107 +213,45 @@ namespace OCC.Client.ViewModels.Projects
             }
         }
 
-        private List<ProjectTask> _rootTasks = new();
-
-        private List<ProjectTask> BuildTaskHierarchy(IEnumerable<ProjectTask> allTasks)
+        private void TopBar_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            var taskList = allTasks.OrderBy(t => t.OrderIndex).ToList();
-            _rootTasks.Clear();
-
-            // Stack-based hierarchy inference (MSP Style)
-            // This allows us to build the tree even if ParentId is not explicitly set in the DB,
-            // relying on OrderIndex + IndentLevel.
-            var parentStack = new Stack<ProjectTask>();
-
-            foreach (var task in taskList)
+            if (e.PropertyName == nameof(Shared.ProjectTopBarViewModel.ActiveTab))
             {
-                task.Children.Clear(); // Reset children
-
-                // 1. Find correct parent in stack
-                // Pop while the potential parent at the top is a sibling or deeper (IndentLevel >= current)
-                // We want a parent with IndentLevel < current
-                while (parentStack.Count > 0 && parentStack.Peek().IndentLevel >= task.IndentLevel)
+                switch (TopBar.ActiveTab)
                 {
-                    parentStack.Pop();
-                }
-
-                if (parentStack.Count > 0)
-                {
-                    // Found a parent
-                    var parent = parentStack.Peek();
-                    parent.Children.Add(task);
-                    task.ParentId = parent.Id; // Fix up model in memory if needed
-                }
-                else
-                {
-                    // No parent, it's a root
-                    _rootTasks.Add(task);
-                }
-
-                // Push current as potential parent for next items
-                parentStack.Push(task);
-            }
-            
-            // 2. Refresh the display list based on expansion state
-            return RefreshTaskList();
-        }
-
-        private List<ProjectTask> RefreshTaskList()
-        {
-            var flatList = new List<ProjectTask>();
-            foreach (var rootTask in _rootTasks)
-            {
-                FlattenTask(rootTask, flatList, 0);
-            }
-            return flatList;
-        }
-
-        private void FlattenTask(ProjectTask task, List<ProjectTask> flatList, int level)
-        {
-            task.IndentLevel = level;
-            flatList.Add(task);
-
-            // Only add children if expanded
-            if (task.IsExpanded && task.Children != null && task.Children.Any())
-            {
-                foreach (var child in task.Children) 
-                {
-                   // Recursively add children
-                   FlattenTask(child, flatList, level + 1);
+                    case "List":
+                        CurrentView = ListVM;
+                        break;
+                    case "Gantt":
+                        CurrentView = GanttVM;
+                        break;
                 }
             }
         }
 
-        [RelayCommand]
-        private void ToggleExpand(ProjectTask task)
+        private void RefreshDisplayList()
         {
-            if (task == null) return;
-            task.IsExpanded = !task.IsExpanded;
-            
-            // Re-flatten and update UI
-            var newFlatList = RefreshTaskList();
-            
-            Tasks.Clear();
-            foreach(var t in newFlatList)
-            {
-                Tasks.Add(t);
-            }
+            var flatList = _projectManager.FlattenHierarchy(_rootTasks);
+            ListVM.UpdateTasks(flatList);
+            OnPropertyChanged(nameof(HasTasks));
         }
+
+        private void ApplyManagerFilter()
+        {
+            var filtered = string.IsNullOrWhiteSpace(ManagerSearchText)
+                ? AvailableSiteManagers
+                : AvailableSiteManagers.Where(m => m.DisplayName.Contains(ManagerSearchText, StringComparison.OrdinalIgnoreCase));
+
+            FilteredSiteManagers.Clear();
+            foreach (var m in filtered) FilteredSiteManagers.Add(m);
+        }
+
         private string GetInitials(string? name)
         {
             if (string.IsNullOrWhiteSpace(name)) return "P";
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 1) return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
             return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpper();
-        }
-
-        partial void OnSelectedTaskChanged(ProjectTask? value)
-        {
-            if (value != null)
-            {
-                TaskSelectionRequested?.Invoke(this, value.Id);
-                SelectedTask = null; // Reset selection so it can be clicked again
-            }
         }
 
         #endregion

@@ -5,9 +5,11 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using OCC.Client.Services.ApiServices;
+using OCC.Client.Services.Repositories.ApiServices;
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.Home.Dashboard

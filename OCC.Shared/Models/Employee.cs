@@ -202,7 +202,8 @@ namespace OCC.Shared.Models
         PlasterLabour = 17,
         SeniorForeman = 18,
         Foreman = 19,
-        Welder = 20
+        Welder = 20,
+        SiteManager = 21
     }
 
     /// <summary>

@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
@@ -14,7 +16,7 @@ namespace OCC.Client.ViewModels.Projects
 {
     public partial class ProjectListViewModel : ViewModelBase
     {
-        private readonly IRepository<Project> _projectRepository;
+        private readonly IProjectManager _projectManager;
         private readonly IDialogService _dialogService;
 
         [ObservableProperty]
@@ -23,16 +25,16 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private ProjectDashboardItemViewModel? _selectedProject;
 
-        public ProjectListViewModel(IRepository<Project> projectRepository, IDialogService dialogService)
+        public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService)
         {
-            _projectRepository = projectRepository;
+            _projectManager = projectManager;
             _dialogService = dialogService;
         }
 
         public ProjectListViewModel()
         {
             // Design-time
-            _projectRepository = null!;
+            _projectManager = null!;
             _dialogService = null!;
             Projects = new ObservableCollection<ProjectDashboardItemViewModel>
             {
@@ -51,12 +53,12 @@ namespace OCC.Client.ViewModels.Projects
         [RelayCommand]
         public async Task LoadProjects()
         {
-            if (_projectRepository == null) return;
+            if (_projectManager == null) return;
 
             try 
             {
                 System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Projects...");
-                var projects = await _projectRepository.GetAllAsync();
+                var projects = await _projectManager.GetProjectsAsync();
                 
                 // Transform to dashboard items
                 // This is a mockup transformation since we might not have all this data in the plain Project model yet

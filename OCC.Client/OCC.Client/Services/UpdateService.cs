@@ -4,6 +4,8 @@ using Velopack;
 using Velopack.Sources;
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 
 namespace OCC.Client.Services

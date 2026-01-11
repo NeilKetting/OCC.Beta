@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using OCC.Shared.Models;
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 
 namespace OCC.Client.Services
 {

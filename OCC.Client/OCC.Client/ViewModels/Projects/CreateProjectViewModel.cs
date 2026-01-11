@@ -11,6 +11,8 @@ using OCC.Client.ViewModels.Messages;
 using System.Linq;
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Core;
 

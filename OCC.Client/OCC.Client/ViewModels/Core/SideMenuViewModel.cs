@@ -16,6 +16,8 @@ using System.Threading.Tasks; // Added for Task
 
 
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Login;
 using OCC.Client.ViewModels.Notifications;

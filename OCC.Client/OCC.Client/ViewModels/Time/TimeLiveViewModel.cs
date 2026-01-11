@@ -9,6 +9,8 @@ using OCC.Client.Services;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Messages;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using System.Collections.Generic;
 using Avalonia.Threading;

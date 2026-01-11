@@ -1,4 +1,6 @@
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

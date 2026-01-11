@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using OCC.Shared.Models;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System;

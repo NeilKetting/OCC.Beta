@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.Models;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using System;
 
 namespace OCC.Client.ViewModels.Time

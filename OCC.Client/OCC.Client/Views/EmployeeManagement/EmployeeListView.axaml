@@ -126,5 +126,19 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Loading Overlay -->
+        <Border Grid.Row="2" Background="#80FFFFFF" IsVisible="{Binding IsLoading}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+                <ProgressBar IsIndeterminate="True" 
+                             Width="200" 
+                             Height="4" 
+                             Foreground="{DynamicResource AccentOrange}"/>
+                <TextBlock Text="Loading employees..." 
+                           HorizontalAlignment="Center" 
+                           Classes="StatLabel" 
+                           FontSize="14"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
