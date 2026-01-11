@@ -10,7 +10,7 @@ using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Time
 {
-    public partial class HistoryViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ViewModels.Messages.EntityUpdatedMessage>
+    public partial class AttendanceHistoryViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ViewModels.Messages.EntityUpdatedMessage>
     {
         private readonly ITimeService _timeService;
         private readonly IExportService _exportService;
@@ -69,7 +69,7 @@ namespace OCC.Client.ViewModels.Time
         public bool IsWageVisible { get; }
         private readonly IHolidayService _holidayService;
 
-        public HistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService)
+        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService)
         {
             _timeService = timeService;
             _exportService = exportService;
@@ -289,7 +289,21 @@ namespace OCC.Client.ViewModels.Time
                 var e = EndDate.DateTime;
                 
                 // Fetch
-                var attendance = await _timeService.GetAttendanceByRangeAsync(s, e);
+                var attendanceEnumerable = await _timeService.GetAttendanceByRangeAsync(s, e);
+                var attendance = attendanceEnumerable.ToList();
+
+                // FIX: Also include ANY active records (Clocked In) regardless of date, 
+                // so they appear in the history list (e.g. if Shift started yesterday).
+                // Only do this if the range implies "Current" relevance, or generally helpful to seeing status.
+                // We'll merge them in.
+                var activeRecords = await _timeService.GetActiveAttendanceAsync();
+                foreach (var active in activeRecords)
+                {
+                    if (!attendance.Any(x => x.Id == active.Id))
+                    {
+                        attendance.Add(active);
+                    }
+                }
                 var allEmployee = await _timeService.GetAllStaffAsync();
 
                 var list = new System.Collections.Generic.List<HistoryRecordViewModel>();

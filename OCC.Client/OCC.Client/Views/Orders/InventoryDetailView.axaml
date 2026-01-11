@@ -34,7 +34,7 @@
     <Border Background="{DynamicResource SurfaceWhite}"
             CornerRadius="0"
             Width="500"
-            Height="600"
+            Height="700"
             BoxShadow="0 2 15 5 #292828"
             VerticalAlignment="Center"
             HorizontalAlignment="Center">
@@ -67,6 +67,11 @@
                     <TextBlock Text="General Information" Classes="SectionHeader" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource PrimaryTeal}"/>
                     
                     <StackPanel Spacing="10">
+                        <TextBlock Text="Product Code / SKU" Classes="FormLabel"/>
+                        <TextBox Text="{Binding Sku}" Classes="FormInput" Watermark="e.g. CEM-50"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10">
                         <TextBlock Text="Product Name" Classes="FormLabel"/>
                         <TextBox Text="{Binding ProductName}" Classes="FormInput" Watermark="e.g. Cement 50kg"/>
                     </StackPanel>
@@ -94,6 +99,17 @@
                                        PlaceholderText="Select Unit"/>
                         </StackPanel>
                     </Grid>
+
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Preferred Supplier" Classes="FormLabel"/>
+                        <ComboBox ItemsSource="{Binding AvailableSuppliers}" 
+                                  SelectedValue="{Binding SupplierName}"
+                                  SelectedValueBinding="{Binding Name}"
+                                  DisplayMemberBinding="{Binding Name}"
+                                  Classes="FormInput"
+                                  HorizontalAlignment="Stretch"
+                                  PlaceholderText="Select Supplier"/>
+                    </StackPanel>
 
                     <StackPanel Spacing="10">
                         <TextBlock Text="Location (Warehouse)" Classes="FormLabel"/>

@@ -65,12 +65,12 @@ namespace OCC.API.Controllers
         [HttpPost]
         public async Task<ActionResult<InventoryItem>> CreateItem(InventoryItem item)
         {
-             try
+            try
             {
                 if (item == null) return BadRequest("Item data is null.");
 
                 item.Id = Guid.NewGuid();
-                
+
                 _context.InventoryItems.Add(item);
                 await _context.SaveChangesAsync();
 
@@ -98,11 +98,11 @@ namespace OCC.API.Controllers
             {
                 _context.Entry(item).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-                
+
                 _logger.LogInformation("Inventory item {ProductName} updated by {User}", item.ProductName, User.FindFirst(ClaimTypes.Name)?.Value);
 
                 // Notify clients
-                 await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemUpdated");
+                await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemUpdated");
 
                 return NoContent();
             }
@@ -117,6 +117,39 @@ namespace OCC.API.Controllers
             {
                 _logger.LogError(ex, "Error occurred while updating inventory item {ItemId}", id);
                 return StatusCode(500, "An error occurred while updating the inventory item.");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteInventoryItem(Guid id)
+        {
+            try
+            {
+                var item = await _context.InventoryItems.FindAsync(id);
+                if (item == null)
+                {
+                    return NotFound();
+                }
+
+                // Check for usage in OrderLines
+                bool isUsed = await _context.OrderLines.AnyAsync(ol => ol.InventoryItemId == id);
+                if (isUsed)
+                {
+                    return Conflict("Item cannot be deleted because it is used in existing orders.");
+                }
+
+                _context.InventoryItems.Remove(item);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Inventory item {ProductName} deleted by {User}", item.ProductName, User.FindFirst(ClaimTypes.Name)?.Value);
+                await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemDeleted");
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting inventory item {ItemId}", id);
+                return StatusCode(500, "An error occurred while deleting the item.");
             }
         }
 

@@ -54,5 +54,16 @@ namespace OCC.Client.Services
              var response = await _httpClient.PutAsJsonAsync($"api/Inventory/{item.Id}", item);
              response.EnsureSuccessStatusCode();
         }
+        public async Task DeleteItemAsync(Guid id)
+        {
+             EnsureAuthorization();
+             var response = await _httpClient.DeleteAsync($"api/Inventory/{id}");
+             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+             {
+                 var msg = await response.Content.ReadAsStringAsync();
+                 throw new InvalidOperationException(msg); // Custom exception for logic handling
+             }
+             response.EnsureSuccessStatusCode();
+        }
     }
 }

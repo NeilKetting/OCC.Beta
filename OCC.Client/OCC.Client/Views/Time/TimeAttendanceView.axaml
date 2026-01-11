@@ -19,8 +19,8 @@
 		<DataTemplate DataType="{x:Type vm:DailyTimesheetViewModel}">
 			<viewTime:DailyTimesheetView/>
 		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:HistoryViewModel}">
-			<viewTime:HistoryView/>
+		<DataTemplate DataType="{x:Type vm:AttendanceHistoryViewModel}">
+			<viewTime:AttendanceHistoryView/>
 		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:LeaveApplicationViewModel}">
 			<viewTime:LeaveApplicationView/>

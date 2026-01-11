@@ -1,6 +1,6 @@
 namespace OCC.Shared.Models
 {
-    public class ProjectTask : IEntity
+    public class ProjectTask : IEntity, System.ComponentModel.INotifyPropertyChanged
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string? LegacyId { get; set; } // For MSP or other string IDs
@@ -22,11 +22,29 @@ namespace OCC.Shared.Models
         public Guid ProjectId { get; set; }
         public virtual Project? Project { get; set; }
         
+        public Guid? ParentId { get; set; }
         public List<ProjectTask> Children { get; set; } = new();
         public List<string> Predecessors { get; set; } = new();
         public int OrderIndex { get; set; }
         public int IndentLevel { get; set; }
         public bool IsGroup { get; set; } // Renamed from IsSummary to avoid confusion with MSP Summary property if exists
+        
+        // UI Helpers
+        private bool _isExpanded = true;
+        public bool IsExpanded 
+        { 
+            get => _isExpanded; 
+            set 
+            {
+                if (_isExpanded != value)
+                {
+                    _isExpanded = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        
+        public bool HasChildren => Children != null && Children.Any();
 
         /// <summary>
         /// Gets or sets the actual date and time when the task was completed.
@@ -42,6 +60,12 @@ namespace OCC.Shared.Models
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         #endregion
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public enum TaskType

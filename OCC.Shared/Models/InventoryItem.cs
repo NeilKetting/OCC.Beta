@@ -15,6 +15,7 @@ namespace OCC.Shared.Models
         public double ReorderPoint { get; set; }
         public string UnitOfMeasure { get; set; } = "ea";
         
+        public string Sku { get; set; } = string.Empty;
         public decimal AverageCost { get; set; }
 
         // Status

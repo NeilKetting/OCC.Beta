@@ -1,131 +1,94 @@
-using Avalonia.Threading;
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using OCC.Shared.Models;
-using System;
-using OCC.Client.Services;
-
 using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using OCC.Client.ViewModels.Projects.Dashboard;
 
 namespace OCC.Client.ViewModels.Projects
 {
     public partial class ProjectListViewModel : ViewModelBase
     {
-        #region Private Members
-
-        private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<Project> _projectRepository;
-        private readonly IAuthService _authService;
-        private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
-
-        #endregion
-
-        #region Events
-
-        public event EventHandler<Guid>? TaskSelectionRequested;
-        public event EventHandler? NewTaskRequested;
-
-        #endregion
-
-        #region Observables
+        private readonly IDialogService _dialogService;
 
         [ObservableProperty]
-        private ObservableCollection<ProjectTask> _tasks = new();
+        private ObservableCollection<ProjectDashboardItemViewModel> _projects = new();
 
         [ObservableProperty]
-        private ProjectTask? _selectedTask;
+        private ProjectDashboardItemViewModel? _selectedProject;
 
-        [ObservableProperty]
-        private Guid _currentProjectId;
-
-        #endregion
-
-        #region Properties
-
-        public bool HasTasks => Tasks.Count > 0;
-
-        #endregion
-
-        #region Constructors
+        public ProjectListViewModel(IRepository<Project> projectRepository, IDialogService dialogService)
+        {
+            _projectRepository = projectRepository;
+            _dialogService = dialogService;
+        }
 
         public ProjectListViewModel()
         {
-            // Parameterless constructor for design-time support
-            _taskRepository = null!;
+            // Design-time
             _projectRepository = null!;
-            _authService = null!;
-        }
-        
-        public ProjectListViewModel(
-            IRepository<ProjectTask> taskRepository,
-            IRepository<Project> projectRepository,
-            IAuthService authService)
-        {
-            _taskRepository = taskRepository;
-            _projectRepository = projectRepository;
-            _authService = authService;
-            
-            // Subscribe to updates
-            WeakReferenceMessenger.Default.Register<ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
+            _dialogService = null!;
+            Projects = new ObservableCollection<ProjectDashboardItemViewModel>
             {
-                if (CurrentProjectId != Guid.Empty)
-                {
-                    LoadTasks(CurrentProjectId);
-                }
-            });
+                new ProjectDashboardItemViewModel { Name = "Construction Schedule", Progress = 7, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2026, 7, 13) },
+                new ProjectDashboardItemViewModel { Name = "Engen", Progress = 97, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2025, 11, 6) }
+            };
         }
-
-        #endregion
-
-        #region Commands
 
         [RelayCommand]
-        private void AddNewTask()
+        private void OpenProject(ProjectDashboardItemViewModel project)
         {
-            if (CurrentProjectId == Guid.Empty) return;
-            NewTaskRequested?.Invoke(this, EventArgs.Empty);
+            if (project == null) return;
+            WeakReferenceMessenger.Default.Send(new Messages.ProjectSelectedMessage(new Project { Id = project.Id, Name = project.Name }));
         }
 
-        #endregion
-
-        #region Methods
-
-        public async void LoadTasks(Guid projectId)
+        [RelayCommand]
+        public async Task LoadProjects()
         {
-            await _loadLock.WaitAsync();
-            try
+            if (_projectRepository == null) return;
+
+            try 
             {
-                CurrentProjectId = projectId;
-                var tasks = await _taskRepository.FindAsync(t => t.ProjectId == projectId);
+                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Projects...");
+                var projects = await _projectRepository.GetAllAsync();
                 
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                // Transform to dashboard items
+                // This is a mockup transformation since we might not have all this data in the plain Project model yet
+                var dashboardItems = projects.Select(p => new ProjectDashboardItemViewModel
                 {
-                    Tasks.Clear();
-                    foreach (var task in tasks)
-                    {
-                        Tasks.Add(task);
-                    }
-                    OnPropertyChanged(nameof(HasTasks));
+                    Id = p.Id,
+                    Name = p.Name,
+                    Progress = 0, // Mockup
+                    ProjectManagerInitials = "OR", // Mockup
+                    Members = new() { "OR" }, // Mockup
+                    Status = "Planning", // Mockup
+                    LatestFinish = p.EndDate
                 });
+
+                Projects = new ObservableCollection<ProjectDashboardItemViewModel>(dashboardItems);
+                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Load Projects Complete. Count: {Projects.Count}");
             }
-            finally
+            catch (Exception ex)
             {
-                _loadLock.Release();
+                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] CRASH in LoadProjects: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Stack: {ex.StackTrace}");
+                if (_dialogService != null)
+                {
+                    await _dialogService.ShowAlertAsync("Error", $"Critical Error loading projects: {ex.Message}");
+                }
             }
         }
 
-        partial void OnSelectedTaskChanged(ProjectTask? value)
+        [RelayCommand]
+        private void NewProject()
         {
-            if (value != null)
-            {
-                TaskSelectionRequested?.Invoke(this, value.Id);
-                SelectedTask = null; // Reset selection so it can be clicked again
-            }
+            // Logic to create new project (maybe navigate to wizard)
         }
-
-        #endregion
     }
 }

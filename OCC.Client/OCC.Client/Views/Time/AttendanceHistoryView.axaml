@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:OCC.Client.ViewModels.Time"
              mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
-             x:Class="OCC.Client.Views.Time.HistoryView"
-             x:DataType="vm:HistoryViewModel"
+             x:Class="OCC.Client.Views.Time.AttendanceHistoryView"
+             x:DataType="vm:AttendanceHistoryViewModel"
              x:Name="Root">
 
 	<Grid RowDefinitions="Auto, Auto, *">

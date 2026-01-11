@@ -26,10 +26,22 @@ namespace OCC.Client.ViewModels.Orders
 
         [ObservableProperty]
         private bool _isBusy;
+        
+        [ObservableProperty]
+        private InventoryItem? _selectedItem;
 
-        public ItemListViewModel(IInventoryService inventoryService, IDialogService dialogService, ILogger<ItemListViewModel> logger)
+        [ObservableProperty]
+        private bool _isDetailVisible;
+
+        [ObservableProperty]
+        private InventoryDetailViewModel? _detailViewModel;
+
+        private readonly ISupplierService _supplierService;
+
+        public ItemListViewModel(IInventoryService inventoryService, ISupplierService supplierService, IDialogService dialogService, ILogger<ItemListViewModel> logger)
         {
             _inventoryService = inventoryService;
+            _supplierService = supplierService;
             _dialogService = dialogService;
             _logger = logger;
             _ = LoadItemsAsync();
@@ -80,6 +92,52 @@ namespace OCC.Client.ViewModels.Orders
         public async Task Refresh()
         {
             await LoadItemsAsync();
+        }
+
+        [RelayCommand]
+        public void EditItem(InventoryItem item)
+        {
+            if (item == null) return;
+            
+            var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
+
+            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
+            DetailViewModel.Load(item, categories);
+            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
+            DetailViewModel.ItemSaved += (s, e) => 
+            {
+                IsDetailVisible = false;
+                _ = LoadItemsAsync();
+            };
+            IsDetailVisible = true;
+        }
+
+        [RelayCommand]
+        public async Task DeleteItem(InventoryItem item)
+        {
+             if (item == null) return;
+
+             var confirm = await _dialogService.ShowConfirmationAsync("Delete Item", $"Are you sure you want to delete '{item.ProductName}'? This cannot be undone.");
+             if (!confirm) return;
+
+             try 
+             {
+                 IsBusy = true;
+                 await _inventoryService.DeleteItemAsync(item.Id);
+                 await LoadItemsAsync(); // Reload to refresh list
+             }
+             catch (InvalidOperationException ex) // Conflict
+             {
+                 await _dialogService.ShowAlertAsync("Cannot Delete", ex.Message);
+             }
+             catch(Exception ex)
+             {
+                 await _dialogService.ShowAlertAsync("Error", "Failed to delete item: " + ex.Message);
+             }
+             finally
+             {
+                 IsBusy = false;
+             }
         }
     }
 }

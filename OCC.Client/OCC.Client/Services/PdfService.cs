@@ -5,7 +5,6 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace OCC.Client.Services
@@ -70,112 +69,203 @@ namespace OCC.Client.Services
                 page.Size(PageSizes.A4);
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial).FontColor(ColorSecondary));
 
-                page.Header().Element(c => ComposePremiumHeader(c, order, company));
-                page.Content().PaddingHorizontal(40).PaddingVertical(20).Element(c => ComposePremiumContent(c, order));
+                page.Header().SkipOnce().Element(c => ComposePremiumHeader(c, order, company));
+                page.Content().PaddingHorizontal(20).PaddingVertical(20).Element(c => ComposePremiumContent(c, order, company));
                 page.Footer().PaddingHorizontal(40).PaddingBottom(20).Element(c => ComposePremiumFooter(c, company));
             });
         }
 
         private void ComposePremiumHeader(IContainer container, Order order, CompanyDetails company)
         {
-            container.Row(row =>
+            container.PaddingTop(20).PaddingHorizontal(20).Row(row =>
             {
-                // Left: Logo and Address
-                row.RelativeItem().PaddingTop(30).PaddingLeft(40).Column(column =>
+                // Left: Title and PO Number
+                row.RelativeItem().Column(col =>
                 {
-                    // Logo
-                    var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "occ-logo.jpg");
-                    if (File.Exists(logoPath))
-                    {
-                        column.Item().Height(60).Image(logoPath).FitArea();
-                    }
-                    else
-                    {
-                        column.Item().Text(company.CompanyName.ToUpper()).FontSize(24).ExtraBold().FontColor(ColorPrimary);
-                    }
+                   col.Item().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
+                       .FontSize(20).ExtraBold().FontColor(Colors.Black); // Smaller font
 
-                    column.Item().PaddingTop(10).Text(company.CompanyName).SemiBold();
-                    column.Item().Text(company.FullAddress);
-                    column.Item().Text($"Tel: {company.Phone} | Email: {company.Email}").FontSize(9);
-                    if(!string.IsNullOrEmpty(company.VatNumber))
-                         column.Item().Text($"VAT: {company.VatNumber}").FontSize(9);
+                   col.Item().Text(order.OrderNumber).FontSize(16).SemiBold().FontColor(ColorPrimary);
                 });
 
-                // Right: Purchase Order Strip
-                row.RelativeItem().Column(column =>
+                // Right: Logo and Address
+                row.RelativeItem().AlignRight().Column(c =>
                 {
-                    column.Item().Height(30); // Spacer top
-                    column.Item().Background(ColorPrimary).PaddingVertical(20).PaddingHorizontal(30).Column(c =>
-                    {
-                        c.Item().AlignRight().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
-                            .FontSize(24).ExtraBold().FontColor(Colors.White);
-                        
-                        c.Item().PaddingTop(10).AlignRight().Text(order.OrderNumber)
-                            .FontSize(18).SemiBold().FontColor(Colors.White);
+                     // Logo
+                     byte[]? logoBytes = null;
+                     try 
+                     {
+                         // Try Avalonia Resources first (embedded)
+                         var uri = new Uri("avares://OCC.Client/Assets/Images/occ-logo.jpg");
+                         if (Avalonia.Platform.AssetLoader.Exists(uri))
+                         {
+                             using var stream = Avalonia.Platform.AssetLoader.Open(uri);
+                             using var ms = new MemoryStream();
+                             stream.CopyTo(ms);
+                             logoBytes = ms.ToArray();
+                         }
+                         // Fallback to file system
+                         else 
+                         {
+                             var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "occ-logo.jpg");
+                             if (File.Exists(logoPath))
+                             {
+                                 logoBytes = File.ReadAllBytes(logoPath);
+                             }
+                         }
+                     }
+                     catch (Exception) { /* Ignore load errors */ }
 
-                        c.Item().PaddingTop(5).AlignRight().Text($"Date: {order.OrderDate:yyyy-MM-dd}")
-                             .FontSize(10).FontColor(Colors.White);
-                    });
+                     if (logoBytes != null)
+                     {
+                          c.Item().Height(80).AlignRight().Image(logoBytes).FitArea();
+                     }
+                     else
+                     {
+                          c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(ColorPrimary);
+                     }
+                     
+                     // Address (Moved from Content)
+                     c.Item().PaddingTop(10).AlignRight().Text(company.CompanyName).Bold();
+                     c.Item().AlignRight().Text(company.FullAddress);
+
+                     if(!string.IsNullOrEmpty(company.RegistrationNumber))
+                           c.Item().PaddingTop(2).AlignRight().Text($"Reg No: {company.RegistrationNumber}");
+                     
+                     c.Item().PaddingTop(2).AlignRight().Text($"Tel: {company.Phone}");
+                     c.Item().AlignRight().Text($"Email: {company.Email}");
                 });
             });
         }
 
-        private void ComposePremiumContent(IContainer container, Order order)
+        private void ComposePremiumContent(IContainer container, Order order, CompanyDetails company)
         {
-            container.Column(column =>
-            {
-                column.Item().PaddingTop(20).Row(row =>
-                {
-                    // Supplier Box
-                    row.RelativeItem().Border(1).BorderColor(ColorGreyBorder).Padding(15).Column(c =>
-                    {
-                        c.Item().Text("VENDOR").FontSize(9).FontColor(Colors.Grey.Medium).SemiBold();
-                        c.Item().PaddingTop(5).Text(order.SupplierName ?? "Unknown Supplier").FontSize(12).Bold();
-                        
-                        if (!string.IsNullOrEmpty(order.EntityAddress)) c.Item().Text(order.EntityAddress);
-                        if (!string.IsNullOrEmpty(order.EntityTel)) c.Item().Text($"Tel: {order.EntityTel}");
-                        if (!string.IsNullOrEmpty(order.Attention)) c.Item().Text($"Attn: {order.Attention}");
-                    });
+             // Master Layout for Page 1 (Includes Header Elements to control spacing)
+             container.Column(column =>
+             {
+                 column.Item().Row(row =>
+                 {
+                     // LEFT COLUMN: Title -> PO -> Supplier -> ShipTo
+                     row.ConstantItem(300).Column(col =>
+                     {
+                         // 1. Header: Title & PO
+                         col.Item().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
+                            .FontSize(20).ExtraBold().FontColor(Colors.Black);
+                         col.Item().Text(order.OrderNumber).FontSize(16).SemiBold().FontColor(ColorPrimary);
 
-                    row.ConstantItem(20); // Spacer
+                         // 2. GAP (Precise control)
+                         col.Item().Height(15);
 
-                    // Ship To Box
-                    row.RelativeItem().Border(1).BorderColor(ColorGreyBorder).Padding(15).Column(c =>
-                    {
-                        c.Item().Text("SHIP TO / DELIVERY").FontSize(9).FontColor(Colors.Grey.Medium).SemiBold();
-                        c.Item().PaddingTop(5).Text(order.DestinationType.ToString()).FontSize(12).Bold();
-                        
-                        if(order.ExpectedDeliveryDate.HasValue)
-                             c.Item().Text($"Expected: {order.ExpectedDeliveryDate:yyyy-MM-dd}");
-                    });
-                });
+                         // 3. Supplier Box (Constrained Width inside this column)
+                         col.Item().Border(1).BorderColor(Colors.Grey.Lighten2).Column(box =>
+                         {
+                             box.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text("Supplier").SemiBold();
+                             box.Item().Padding(5).Column(details =>
+                             {
+                                 details.Item().Text(order.SupplierName ?? "Unknown Supplier").SemiBold();
+                                 if (!string.IsNullOrEmpty(order.EntityAddress)) details.Item().Text(order.EntityAddress);
+                                 if (!string.IsNullOrEmpty(order.EntityTel)) details.Item().Text(order.EntityTel);
+                                 if (!string.IsNullOrEmpty(order.Attention)) details.Item().Text($"Attn: {order.Attention}");
+                             });
+                         });
 
-                // Order Items Table
-                column.Item().PaddingTop(30).Element(c => ComposePremiumTable(c, order));
+                         col.Item().Height(10); // Spacer
 
-                // Totals
-                column.Item().PaddingTop(20).Row(row => 
-                {
-                    row.RelativeItem(); // Spacer
-                    row.ConstantItem(250).Element(c => ComposePremiumTotals(c, order));
-                });
-                
-                // Signatures
-                 column.Item().PaddingTop(40).Row(row =>
-                {
-                    row.RelativeItem().Column(col => {
-                         col.Item().PaddingBottom(5).Text("Authorized Signature").FontSize(9).FontColor(Colors.Grey.Medium);
-                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Medium);
-                    });
-                    
-                    row.ConstantItem(40); // Spacer
+                         // 4. Ship To Box
+                         col.Item().Border(1).BorderColor(Colors.Grey.Lighten2).Column(box =>
+                         {
+                             box.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text("Ship To / Delivery").SemiBold();
+                             box.Item().Padding(5).Column(details =>
+                             {
+                                if(order.DestinationType == OrderDestinationType.Stock)
+                                {
+                                     details.Item().Text(company.CompanyName).SemiBold(); 
+                                     details.Item().Text(company.AddressLine1);
+                                     details.Item().Text($"{company.AddressLine2}, {company.City}");
+                                     details.Item().Text(company.PostalCode);
+                                }
+                                else
+                                {
+                                    // Site Delivery
+                                    details.Item().Text("SITE DELIVERY").SemiBold();
+                                    details.Item().Text($"Project: {order.ProjectName}");
+                                    
+                                    if(!string.IsNullOrEmpty(order.Attention))
+                                        details.Item().Text($"Attn: {order.Attention}");
 
-                    row.RelativeItem().Column(col => {
-                         col.Item().PaddingBottom(5).Text("Received By").FontSize(9).FontColor(Colors.Grey.Medium);
-                         col.Item().LineHorizontal(1).LineColor(Colors.Grey.Medium);
-                    });
-                });
-            });
+                                    if(order.ExpectedDeliveryDate.HasValue) 
+                                        details.Item().Text($"Expected: {order.ExpectedDeliveryDate:yyyy-MM-dd}");
+                                }
+                             });
+                         });
+                     });
+
+                     // Spacer between Left and Right main columns
+                     row.ConstantItem(20);
+
+                     // RIGHT COLUMN: Logo -> Address -> Date -> VAT
+                     row.RelativeItem().AlignRight().Column(c =>
+                     {
+                          // Logo logic (Replicated for Page 1 Control)
+                         byte[]? logoBytes = null;
+                         try 
+                         {
+                             var uri = new Uri("avares://OCC.Client/Assets/Images/occ-logo.jpg");
+                             if (Avalonia.Platform.AssetLoader.Exists(uri))
+                             {
+                                 using var stream = Avalonia.Platform.AssetLoader.Open(uri);
+                                 using var ms = new MemoryStream();
+                                 stream.CopyTo(ms);
+                                 logoBytes = ms.ToArray();
+                             }
+                             else 
+                             {
+                                 var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "occ-logo.jpg");
+                                 if (File.Exists(logoPath)) logoBytes = File.ReadAllBytes(logoPath);
+                             }
+                         }
+                         catch (Exception) { }
+
+                         if (logoBytes != null)
+                             c.Item().Height(80).AlignRight().Image(logoBytes).FitArea();
+                         else
+                             c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(ColorPrimary);
+                         
+                         // Address
+                         c.Item().PaddingTop(10).AlignRight().Text(company.CompanyName).Bold();
+                         c.Item().AlignRight().Text(company.FullAddress);
+
+                         if(!string.IsNullOrEmpty(company.RegistrationNumber))
+                               c.Item().PaddingTop(2).AlignRight().Text($"Reg No: {company.RegistrationNumber}");
+                         
+                         c.Item().PaddingTop(2).AlignRight().Text($"Tel: {company.Phone}");
+                         c.Item().AlignRight().Text($"Email: {company.Email}");
+
+                         // Date & VAT (Moved here)
+                         c.Item().PaddingTop(20).AlignRight().Text(t => 
+                         {
+                             t.Span("Document Date: ").SemiBold();
+                             t.Span($"{order.OrderDate:yyyy-MM-dd}");
+                         });
+                         
+                         c.Item().PaddingTop(5).AlignRight().Text(t => 
+                         {
+                             t.Span("VAT No: ").SemiBold();
+                             t.Span(company.VatNumber ?? "");
+                         });
+                     });
+                 });
+
+                 // Order Items Table
+                 column.Item().PaddingTop(20).Element(c => ComposePremiumTable(c, order));
+
+                 // Totals
+                 column.Item().PaddingTop(20).Row(row => 
+                 {
+                     row.RelativeItem(); // Spacer
+                     row.ConstantItem(250).Element(c => ComposePremiumTotals(c, order));
+                 });
+             });
         }
 
         private void ComposePremiumTable(IContainer container, Order order)
@@ -261,18 +351,38 @@ namespace OCC.Client.Services
         
         private void ComposePremiumFooter(IContainer container, CompanyDetails company)
         {
-             container.Row(row =>
-            {
-                row.RelativeItem().Text(x =>
-                {
-                    x.Span("Page ");
-                    x.CurrentPageNumber();
-                    x.Span(" of ");
-                    x.TotalPages();
-                });
-                
-                row.RelativeItem().AlignRight().Text($"{DateTime.Now:F} - {company.CompanyName} - Confidential");
-            });
+             container.Column(column =>
+             {
+                 // Signatures
+                 column.Item().PaddingBottom(20).Row(row =>
+                 {
+                     row.RelativeItem().Column(col => {
+                          col.Item().PaddingBottom(5).Text("Authorized Signature").FontSize(9).FontColor(Colors.Grey.Medium);
+                          col.Item().LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                     });
+                     
+                     row.ConstantItem(40); // Spacer
+
+                     row.RelativeItem().Column(col => {
+                          col.Item().PaddingBottom(5).Text("Received By").FontSize(9).FontColor(Colors.Grey.Medium);
+                          col.Item().LineHorizontal(1).LineColor(Colors.Grey.Medium);
+                     });
+                 });
+
+                 // Page Info and Generation Date
+                 column.Item().Row(row =>
+                 {
+                     row.RelativeItem().Text(x =>
+                     {
+                         x.Span("Page ");
+                         x.CurrentPageNumber();
+                         x.Span(" of ");
+                         x.TotalPages();
+                     });
+                     
+                     row.RelativeItem().AlignRight().Text($"{DateTime.Now:F} - {company.CompanyName}");
+                 });
+             });
         }
 
         #endregion

@@ -58,7 +58,10 @@
                                         <!-- Item Info -->
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="{Binding Line.Description}" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Line.ItemCode}" FontSize="12" Foreground="{DynamicResource ThemeForegroundLow}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="SKU:" FontSize="12" Foreground="{DynamicResource ThemeForegroundLow}"/>
+                                                <TextBlock Text="{Binding Line.ItemCode}" FontSize="12" Foreground="{DynamicResource TextPrimaryDark}"/>
+                                            </StackPanel>
                                         </StackPanel>
 
                                         <!-- Ordered -->

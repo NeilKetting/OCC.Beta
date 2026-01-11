@@ -8,6 +8,9 @@ namespace OCC.Client.ViewModels.Projects.Dashboard
     public partial class ProjectDashboardItemViewModel : ViewModelBase
     {
         [ObservableProperty]
+        private Guid _id;
+
+        [ObservableProperty]
         private string _name = string.Empty;
 
         [ObservableProperty]

@@ -95,9 +95,7 @@ namespace OCC.Client.ViewModels.Orders
                     return copy;
                 }).ToList();
 
-                await _orderService.ReceiveOrderAsync(Order, updatedLines);
-                
-                await _dialogService.ShowAlertAsync("Success", "Inventories updated and receipt processed.");
+                await _orderService.ReceiveOrderAsync(Order, updatedLines);                
                 
                 ReceiptProccessed?.Invoke(this, EventArgs.Empty);
                 CloseRequested?.Invoke(this, EventArgs.Empty);

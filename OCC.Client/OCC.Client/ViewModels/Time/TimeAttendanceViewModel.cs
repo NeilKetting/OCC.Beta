@@ -27,7 +27,7 @@ namespace OCC.Client.ViewModels.Time
         // Sub-ViewModels
         [ObservableProperty] private TimeLiveViewModel _liveView;
         [ObservableProperty] private DailyTimesheetViewModel _dailyTimesheetView;
-        [ObservableProperty] private HistoryViewModel _historyView;
+        [ObservableProperty] private AttendanceHistoryViewModel _attendanceHistoryView;
         [ObservableProperty] private LeaveApplicationViewModel _leaveApplicationView;
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
@@ -50,7 +50,7 @@ namespace OCC.Client.ViewModels.Time
             _timeMenu = null!;
             _liveView = null!;
             _dailyTimesheetView = null!;
-            _historyView = null!;
+            _attendanceHistoryView = null!;
             _leaveApplicationView = null!;
             _leaveApprovalVM = null!;
             _overtimeVM = null!;
@@ -65,7 +65,7 @@ namespace OCC.Client.ViewModels.Time
             TimeMenuViewModel timeMenu,
             TimeLiveViewModel liveView,
             DailyTimesheetViewModel dailyTimesheetView,
-            HistoryViewModel historyView,
+            AttendanceHistoryViewModel attendanceHistoryView,
             LeaveApplicationViewModel leaveApplicationView,
             LeaveApprovalViewModel leaveApprovalViewModel,
             OvertimeViewModel overtimeViewModel,
@@ -76,7 +76,7 @@ namespace OCC.Client.ViewModels.Time
             _timeMenu = timeMenu;
             _liveView = liveView;
             _dailyTimesheetView = dailyTimesheetView;
-            _historyView = historyView;
+            _attendanceHistoryView = attendanceHistoryView;
             _leaveApplicationView = leaveApplicationView;
             _leaveApprovalVM = leaveApprovalViewModel;
             _overtimeVM = overtimeViewModel;
@@ -127,8 +127,7 @@ namespace OCC.Client.ViewModels.Time
                     CurrentView = DailyTimesheetView;
                     break;
                 case "History":
-                    CurrentView = HistoryView;
-                    // Trigger refresh if needed, but VM does it on init
+                    CurrentView = AttendanceHistoryView;
                     break;
                 case "Leave Application":
                     CurrentView = LeaveApplicationView;

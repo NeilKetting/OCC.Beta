@@ -387,10 +387,21 @@ namespace OCC.Client.ViewModels.Orders
                 {
                     InventoryItemId = value.Id,
                     Description = value.ProductName,
-                    ItemCode = value.ProductName,
+                    ItemCode = value.Sku, // Do not fallback to ProductName
                     UnitOfMeasure = value.UnitOfMeasure,
                     UnitPrice = value.AverageCost // Prefill with Avg Cost
                 };
+                OnPropertyChanged(nameof(NewLine));
+
+                // Auto-select Supplier if not already set
+                if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
+                {
+                    var match = Suppliers.FirstOrDefault(s => s.Name.Equals(value.Supplier, StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                    {
+                        SelectedSupplier = match;
+                    }
+                }
             }
         }
 
@@ -575,6 +586,37 @@ namespace OCC.Client.ViewModels.Orders
                 _logger.LogError(ex, "Failed to quick create supplier");
                 await _dialogService.ShowAlertAsync("Error", "Failed to create supplier.");
             }
+        }
+
+        [RelayCommand]
+        public async Task PreviewOrder()
+        {
+             try
+             {
+                 // Validate basic info
+                 if (SelectedSupplier == null && IsPurchaseOrder)
+                 {
+                      await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
+                      return;
+                 }
+ 
+                 // Generate PDF to temp path
+                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder);
+                 
+                 // Open PDF
+                 new System.Diagnostics.Process
+                 {
+                     StartInfo = new System.Diagnostics.ProcessStartInfo(path)
+                     {
+                         UseShellExecute = true
+                     }
+                 }.Start();
+             }
+             catch(Exception ex)
+             {
+                 _logger.LogError(ex, "Failed to preview order");
+                 await _dialogService.ShowAlertAsync("Error", "Failed to generate print preview.");
+             }
         }
 
         [RelayCommand]

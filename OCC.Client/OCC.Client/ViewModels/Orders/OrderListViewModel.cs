@@ -116,14 +116,15 @@ namespace OCC.Client.ViewModels.Orders
                     query = query.Where(o => o.OrderDate.Date == now.AddDays(-1));
                     break;
                 case OrderDateFilter.This_Week:
-                    // Assuming Week starts Monday? Or Sunday?
-                    // Simple approach: Start of week
-                    var startOfWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday); // Monday start
+                    // Fix for Sunday (0) to map to 7 for Monday-based week
+                    int dayDiff = (int)now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1; 
+                    var startOfWeek = now.AddDays(-dayDiff);
                     var endOfWeek = startOfWeek.AddDays(7);
                     query = query.Where(o => o.OrderDate.Date >= startOfWeek && o.OrderDate.Date < endOfWeek);
                     break;
                  case OrderDateFilter.Last_Week:
-                    var startOfLastWeek = now.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday).AddDays(-7);
+                    int dayDiffLast = (int)now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1;
+                    var startOfLastWeek = now.AddDays(-dayDiffLast).AddDays(-7);
                     var endOfLastWeek = startOfLastWeek.AddDays(7);
                     query = query.Where(o => o.OrderDate.Date >= startOfLastWeek && o.OrderDate.Date < endOfLastWeek);
                     break;

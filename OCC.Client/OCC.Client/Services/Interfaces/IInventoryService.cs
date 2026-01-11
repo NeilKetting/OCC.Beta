@@ -11,5 +11,6 @@ namespace OCC.Client.Services.Interfaces
         Task<InventoryItem?> GetInventoryItemAsync(Guid id);
         Task<InventoryItem> CreateItemAsync(InventoryItem item);
         Task UpdateItemAsync(InventoryItem item);
+        Task DeleteItemAsync(Guid id);
     }
 }

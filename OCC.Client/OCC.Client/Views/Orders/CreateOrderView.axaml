@@ -19,7 +19,7 @@
 		<vm:CreateOrderViewModel/>
 	</Design.DataContext>
 
-    <UserControl.KeyBindings>
+	<UserControl.KeyBindings>
 		<KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
 	</UserControl.KeyBindings>
 
@@ -34,7 +34,7 @@
 			<Setter Property="Height" Value="22"/>
 			<Setter Property="Padding" Value="8,3"/>
 			<Setter Property="FontSize" Value="12"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="TextBlock.Label">
 			<Setter Property="FontSize" Value="12"/>
@@ -48,7 +48,7 @@
 			<Setter Property="VerticalContentAlignment" Value="Center"/>
 			<Setter Property="Background" Value="White"/>
 		</Style>
-		
+
 		<!-- Remove Hover Effect (Border Color Change) -->
 		<Style Selector="CalendarDatePicker:pointerover /template/ Border">
 			<Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMid}"/>
@@ -219,16 +219,27 @@
 							<Border Background="#F1F5F9" Padding="10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
 								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
 									<!-- Inventory Select -->
-									<Grid Grid.Column="0" ColumnDefinitions="*, Auto">
-										<ComboBox Grid.Column="0" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
-												  PlaceholderText="Select Product..." HorizontalAlignment="Stretch">
+									<!-- Inventory Select / SKU -->
+									<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
+										<!-- SKU Input -->
+										<TextBox Grid.Column="0" Text="{Binding NewLine.ItemCode}" Watermark="SKU" Classes="FormInput" VerticalAlignment="Stretch"/>
+
+										<!-- Product Select -->
+										<ComboBox Grid.Column="2" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
+												  PlaceholderText="Select Product..." HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<ComboBox.ItemTemplate>
 												<DataTemplate>
-													<TextBlock Text="{Binding ProductName}"/>
+													<StackPanel Orientation="Horizontal" Spacing="5">
+														<TextBlock Text="{Binding Sku}" FontWeight="Bold" Width="80" TextTrimming="CharacterEllipsis"/>
+														<TextBlock Text="-" Foreground="{DynamicResource TextSecondaryGray}"/>
+														<TextBlock Text="{Binding ProductName}"/>
+													</StackPanel>
 												</DataTemplate>
 											</ComboBox.ItemTemplate>
 										</ComboBox>
-										<Button Grid.Column="1" Content="+" FontWeight="Bold" Width="30" Height="30"
+
+										<!-- Quick Add -->
+										<Button Grid.Column="3" Content="+" FontWeight="Bold" Width="30" Height="30"
 												HorizontalContentAlignment="Center"
 												Command="{Binding ToggleQuickAddProductCommand}" Classes="Secondary" Margin="5,0,0,0" ToolTip.Tip="Quick Add Product"/>
 									</Grid>
@@ -254,7 +265,7 @@
 							<!-- Table Header -->
 							<Border Background="White" Padding="15,10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
 								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
-									<TextBlock Grid.Column="0" Text="Code" Classes="Label"/>
+									<TextBlock Grid.Column="0" Text="SKU / Code" Classes="Label"/>
 									<TextBlock Grid.Column="2" Text="Description" Classes="Label"/>
 									<TextBlock Grid.Column="4" Text="Qty" Classes="Label"/>
 									<TextBlock Grid.Column="6" Text="Unit" Classes="Label"/>
@@ -270,7 +281,7 @@
 										<DataTemplate>
 											<Border Padding="15,10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Background="White">
 												<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120, 20">
-													<TextBlock Grid.Column="0" Text="{Binding ItemCode}" Foreground="{DynamicResource ThemeForegroundLow}" VerticalAlignment="Center"/>
+													<TextBlock Grid.Column="0" Text="{Binding ItemCode}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
 													<TextBlock Grid.Column="2" Text="{Binding Description}" VerticalAlignment="Center" FontWeight="SemiBold"/>
 													<TextBlock Grid.Column="4" Text="{Binding QuantityOrdered}" VerticalAlignment="Center"/>
 													<TextBlock Grid.Column="6" Text="{Binding UnitOfMeasure}" VerticalAlignment="Center" Foreground="{DynamicResource ThemeForegroundLow}"/>
@@ -317,17 +328,26 @@
 			</Grid>
 
 			<!-- Footer Actions -->
-			<Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20">
+			<Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,10">
 				<Grid ColumnDefinitions="*, Auto">
 					<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" IsEnabled="{Binding !IsReadOnly}">
 						<CheckBox IsChecked="{Binding ShouldPrintOrder}" Content="Print Order"/>
 						<CheckBox IsChecked="{Binding ShouldEmailOrder}" Content="Email Order"/>
+						<!-- Prieview Print Button -->
+						<Button Grid.Column="2" Command="{Binding PreviewOrderCommand}" Classes="Ghost" Margin="15,0,0,0" ToolTip.Tip="Preview PDF">
+							<StackPanel Spacing="10">
+								<PathIcon Data="{StaticResource IconPrintPreview}" Classes="IconStyle" Width="24" Height="24"/>
+								<TextBlock Text="Preview" FontSize="12" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
 					</StackPanel>
 
 					<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
 						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" FontWeight="Bold" IsEnabled="{Binding !IsReadOnly}"/>
 						<Button Command="{Binding CancelCommand}" Content="Cancel" Classes="Cancel" />
 					</StackPanel>
+
+
 				</Grid>
 			</Border>
 
@@ -340,24 +360,24 @@
 							<TextBlock Text="Product Name" Classes="Label"/>
 							<TextBox Text="{Binding NewProductName}" Watermark="e.g. Cement 50kg" Classes="FormInput"/>
 						</StackPanel>
-						
+
 						<StackPanel Spacing="5">
 							<TextBlock Text="Category" Classes="Label"/>
 							<Grid ColumnDefinitions="*, Auto">
 								<!-- Dropdown -->
-								<ComboBox ItemsSource="{Binding ProductCategories}" 
-										  SelectedItem="{Binding NewProductCategory}" 
+								<ComboBox ItemsSource="{Binding ProductCategories}"
+										  SelectedItem="{Binding NewProductCategory}"
 										  HorizontalAlignment="Stretch"
 										  IsVisible="{Binding !IsInputtingNewCategory}"/>
-								
+
 								<!-- Input -->
-								<TextBox Text="{Binding NewProductCategory}" 
-										 Watermark="New Category Name" 
+								<TextBox Text="{Binding NewProductCategory}"
+										 Watermark="New Category Name"
 										 Classes="FormInput"
 										 IsVisible="{Binding IsInputtingNewCategory}"/>
-								
+
 								<!-- Toggle -->
-								<Button Grid.Column="1" Command="{Binding ToggleNewCategoryModeCommand}" 
+								<Button Grid.Column="1" Command="{Binding ToggleNewCategoryModeCommand}"
 										Margin="10,0,0,0" Classes="Secondary" Padding="8" Width="35" Height="35">
 									<Panel>
 										<PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12" IsVisible="{Binding !IsInputtingNewCategory}"/>

@@ -187,7 +187,7 @@ namespace OCC.Client
             services.AddTransient<ProjectSummaryViewModel>();
             services.AddTransient<TaskListViewModel>();
             services.AddTransient<ProjectListViewModel>();
-            services.AddTransient<ProjectsListViewModel>();
+            services.AddTransient<ProjectDetailViewModel>();
 
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<UserManagementViewModel>();
@@ -201,7 +201,7 @@ namespace OCC.Client
 
             services.AddTransient<DailyTimesheetViewModel>(); // Unified View
 
-            services.AddTransient<HistoryViewModel>();
+            services.AddTransient<AttendanceHistoryViewModel>();
             services.AddTransient<LeaveApplicationViewModel>();
             services.AddTransient<LeaveApprovalViewModel>();
             services.AddTransient<OvertimeViewModel>();

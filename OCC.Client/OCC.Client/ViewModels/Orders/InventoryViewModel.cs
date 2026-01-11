@@ -16,6 +16,7 @@ namespace OCC.Client.ViewModels.Orders
     {
         private readonly IInventoryService _inventoryService;
         private readonly IDialogService _dialogService;
+        private readonly ISupplierService _supplierService;
         private readonly Microsoft.Extensions.Logging.ILogger<InventoryViewModel> _logger;
         private List<InventoryItem> _allItems = new();
 
@@ -27,9 +28,10 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private bool _isBusy;
 
-        public InventoryViewModel(IInventoryService inventoryService, IDialogService dialogService, Microsoft.Extensions.Logging.ILogger<InventoryViewModel> logger)
+        public InventoryViewModel(IInventoryService inventoryService, ISupplierService supplierService, IDialogService dialogService, Microsoft.Extensions.Logging.ILogger<InventoryViewModel> logger)
         {
             _inventoryService = inventoryService;
+            _supplierService = supplierService;
             _dialogService = dialogService;
             _logger = logger;
             // Fire and forget initialization
@@ -99,7 +101,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
-            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService);
+            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
             DetailViewModel.Load(null, categories); // Add Mode with Categories
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 
@@ -116,7 +118,7 @@ namespace OCC.Client.ViewModels.Orders
             if (item == null) return;
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
-            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService);
+            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
             DetailViewModel.Load(item, categories); // Edit Mode with Categories
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 

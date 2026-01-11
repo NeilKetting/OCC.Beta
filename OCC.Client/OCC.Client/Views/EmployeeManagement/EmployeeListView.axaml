@@ -15,6 +15,7 @@
         <Border Grid.Row="0" Classes="TopHeader">
             <Grid ColumnDefinitions="Auto, *, Auto">
 
+                <!-- Stats -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <StackPanel Classes="Stat">
                         <TextBlock Text="TOTAL EMPLOYEES" Classes="StatLabel"/>

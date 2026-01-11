@@ -4,6 +4,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Orders
@@ -12,6 +13,7 @@ namespace OCC.Client.ViewModels.Orders
     {
         private readonly IInventoryService _inventoryService;
         private readonly IDialogService _dialogService;
+        private readonly ISupplierService _supplierService;
         private bool _isEditMode;
         private Guid _editingId;
 
@@ -22,10 +24,16 @@ namespace OCC.Client.ViewModels.Orders
         private string _title = "Add New Item";
 
         [ObservableProperty]
+        private string _sku = string.Empty;
+
+        [ObservableProperty]
         private string _productName = string.Empty;
 
         [ObservableProperty]
         private string _category = "General";
+        
+        [ObservableProperty]
+        private string _supplierName = string.Empty;
 
         [ObservableProperty]
         private string _location = "Warehouse";
@@ -46,12 +54,14 @@ namespace OCC.Client.ViewModels.Orders
         private bool _isBusy;
 
         public System.Collections.ObjectModel.ObservableCollection<string> AvailableCategories { get; } = new();
+        public System.Collections.ObjectModel.ObservableCollection<Supplier> AvailableSuppliers { get; } = new();
         public System.Collections.Generic.List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
 
-        public InventoryDetailViewModel(IInventoryService inventoryService, IDialogService dialogService)
+        public InventoryDetailViewModel(IInventoryService inventoryService, IDialogService dialogService, ISupplierService supplierService)
         {
             _inventoryService = inventoryService;
             _dialogService = dialogService;
+            _supplierService = supplierService;
         }
 
         public void Load(InventoryItem? item, System.Collections.Generic.List<string>? categories = null)
@@ -61,13 +71,18 @@ namespace OCC.Client.ViewModels.Orders
             {
                 foreach (var c in categories) AvailableCategories.Add(c);
             }
+            
+            // Load Suppliers
+            _ = LoadSuppliersAsync();
 
             if (item == null)
             {
                 _isEditMode = false;
                 Title = "Add New Item";
+                Sku = "";
                 ProductName = "";
                 Category = "General"; // Default
+                SupplierName = "";
                 Location = "Warehouse";
                 UnitOfMeasure = "ea";
                 QuantityOnHand = 0;
@@ -78,14 +93,33 @@ namespace OCC.Client.ViewModels.Orders
                 _isEditMode = true;
                 _editingId = item.Id;
                 Title = $"Edit {item.ProductName}";
+                Sku = item.Sku;
                 ProductName = item.ProductName;
                 Category = item.Category;
+                SupplierName = item.Supplier;
                 Location = item.Location;
                 UnitOfMeasure = item.UnitOfMeasure;
                 QuantityOnHand = item.QuantityOnHand;
                 ReorderPoint = item.ReorderPoint;
                 AverageCost = item.AverageCost;
             }
+        }
+
+        private async Task LoadSuppliersAsync()
+        {
+             try
+             {
+                 var suppliers = await _supplierService.GetSuppliersAsync();
+                 AvailableSuppliers.Clear();
+                 foreach (var s in suppliers.OrderBy(x => x.Name))
+                 {
+                     AvailableSuppliers.Add(s);
+                 }
+             }
+             catch (Exception ex)
+             {
+                 System.Diagnostics.Debug.WriteLine($"Error loading suppliers: {ex.Message}");
+             }
         }
 
         [RelayCommand]
@@ -104,8 +138,10 @@ namespace OCC.Client.ViewModels.Orders
                 InventoryItem item = new InventoryItem
                 {
                     Id = _isEditMode ? _editingId : Guid.NewGuid(),
+                    Sku = Sku,
                     ProductName = ProductName,
                     Category = Category,
+                    Supplier = SupplierName ?? string.Empty,
                     Location = Location,
                     UnitOfMeasure = UnitOfMeasure,
                     QuantityOnHand = QuantityOnHand,
@@ -121,8 +157,7 @@ namespace OCC.Client.ViewModels.Orders
                 {
                     await _inventoryService.CreateItemAsync(item);
                 }
-
-                await _dialogService.ShowAlertAsync("Success", "Inventory item saved successfully.");
+                
                 ItemSaved?.Invoke(this, EventArgs.Empty);
                 CloseRequested?.Invoke(this, EventArgs.Empty);
             }
