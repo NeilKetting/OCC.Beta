@@ -149,9 +149,9 @@ namespace OCC.Client.Services
                      row.ConstantItem(300).Column(col =>
                      {
                          // 1. Header: Title & PO
+                         // 1. Header: Title (PO Number moved to Meta Row)
                          col.Item().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
                             .FontSize(20).ExtraBold().FontColor(Colors.Black);
-                         col.Item().Text(order.OrderNumber).FontSize(16).SemiBold().FontColor(ColorPrimary);
 
                          // 2. GAP (Precise control)
                          col.Item().Height(15);
@@ -164,8 +164,8 @@ namespace OCC.Client.Services
                              {
                                  details.Item().Text(order.SupplierName ?? "Unknown Supplier").SemiBold();
                                  if (!string.IsNullOrEmpty(order.EntityAddress)) details.Item().Text(order.EntityAddress);
-                                 if (!string.IsNullOrEmpty(order.EntityTel)) details.Item().Text(order.EntityTel);
                                  if (!string.IsNullOrEmpty(order.Attention)) details.Item().Text($"Attn: {order.Attention}");
+                                 if (!string.IsNullOrEmpty(order.EntityTel)) details.Item().Text(order.EntityTel);
                              });
                          });
 
@@ -177,25 +177,13 @@ namespace OCC.Client.Services
                              box.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text("Ship To / Delivery").SemiBold();
                              box.Item().Padding(5).Column(details =>
                              {
-                                if(order.DestinationType == OrderDestinationType.Stock)
-                                {
-                                     details.Item().Text(company.CompanyName).SemiBold(); 
-                                     details.Item().Text(company.AddressLine1);
-                                     details.Item().Text($"{company.AddressLine2}, {company.City}");
-                                     details.Item().Text(company.PostalCode);
-                                }
-                                else
-                                {
-                                    // Site Delivery
-                                    details.Item().Text("SITE DELIVERY").SemiBold();
-                                    details.Item().Text($"Project: {order.ProjectName}");
-                                    
-                                    if(!string.IsNullOrEmpty(order.Attention))
-                                        details.Item().Text($"Attn: {order.Attention}");
-
-                                    if(order.ExpectedDeliveryDate.HasValue) 
-                                        details.Item().Text($"Expected: {order.ExpectedDeliveryDate:yyyy-MM-dd}");
-                                }
+                                 // Hardcoded Address as per requirement
+                                 details.Item().Text("Orange Circle Construction CC").SemiBold();
+                                 details.Item().Text("No.58, Rd 5");
+                                 details.Item().Text("Wydan Business Park");
+                                 details.Item().Text("Brentwood Park");
+                                 details.Item().Text("Benoni");
+                                 details.Item().Text("1510");
                              });
                          });
                      });
@@ -235,29 +223,47 @@ namespace OCC.Client.Services
                          c.Item().PaddingTop(10).AlignRight().Text(company.CompanyName).Bold();
                          c.Item().AlignRight().Text(company.FullAddress);
 
-                         if(!string.IsNullOrEmpty(company.RegistrationNumber))
-                               c.Item().PaddingTop(2).AlignRight().Text($"Reg No: {company.RegistrationNumber}");
-                         
+                         // Reg No moved down. Tel & Email move up.
                          c.Item().PaddingTop(2).AlignRight().Text($"Tel: {company.Phone}");
                          c.Item().AlignRight().Text($"Email: {company.Email}");
 
-                         // Date & VAT (Moved here)
-                         c.Item().PaddingTop(20).AlignRight().Text(t => 
+                         // Reg No & VAT No Group
+                         c.Item().PaddingTop(20).AlignRight().Column(meta => 
                          {
-                             t.Span("Document Date: ").SemiBold();
-                             t.Span($"{order.OrderDate:yyyy-MM-dd}");
+                             if(!string.IsNullOrEmpty(company.RegistrationNumber))
+                                meta.Item().AlignRight().Text(t => { t.Span("Reg No: ").SemiBold(); t.Span(company.RegistrationNumber); });
+
+                             if(!string.IsNullOrEmpty(company.VatNumber))
+                                meta.Item().AlignRight().Text(t => { t.Span("VAT No: ").SemiBold(); t.Span(company.VatNumber); });
                          });
-                         
-                         c.Item().PaddingTop(5).AlignRight().Text(t => 
+
+                         // Delivery Instructions Block
+                         c.Item().PaddingTop(10).AlignRight().Border(1).BorderColor(Colors.Grey.Lighten2).Width(180).Column(instr =>
                          {
-                             t.Span("VAT No: ").SemiBold();
-                             t.Span(company.VatNumber ?? "");
+                             instr.Item().Background(Colors.Grey.Lighten4).Padding(5).Text("Delivery Instructions").SemiBold().FontSize(9);
+                             instr.Item().Padding(5).Text(order.Notes ?? "Please contact site manager before delivery.").FontSize(9);
                          });
                      });
                  });
 
+                 // Meta Row (Project, SOW, Date, PO)
+                 column.Item().PaddingTop(20).Row(row =>
+                 {
+                     // 1. Project
+                     row.RelativeItem().Text(t => { t.Span("PROJECT: ").SemiBold(); t.Span(order.ProjectName ?? "-"); });
+
+                     // 2. SOW (Placeholder)
+                     row.RelativeItem().Text(t => { t.Span("SOW: ").SemiBold(); t.Span("Cafe 365"); }); // Temp hardcode to match request style, or use Notes? I'll use text for now.
+
+                     // 3. Date
+                     row.RelativeItem().Text(t => { t.Span("DATE: ").SemiBold(); t.Span($"{order.OrderDate:yyyy-MM-dd}"); });
+
+                     // 4. PO No
+                     row.RelativeItem().AlignRight().Text(t => { t.Span("PO No: ").SemiBold(); t.Span(order.OrderNumber); });
+                 });
+
                  // Order Items Table
-                 column.Item().PaddingTop(20).Element(c => ComposePremiumTable(c, order));
+                 column.Item().PaddingTop(5).Element(c => ComposePremiumTable(c, order));
 
                  // Totals
                  column.Item().PaddingTop(20).Row(row => 

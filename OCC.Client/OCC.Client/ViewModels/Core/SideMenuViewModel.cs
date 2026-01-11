@@ -409,6 +409,15 @@ namespace OCC.Client.ViewModels.Core
         }
 
         [RelayCommand]
+        private void ViewBugs()
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+            ActiveSection = "BugList";
+            UpdateLastActionMessage("Navigating to Bug Reports");
+        }
+
+        [RelayCommand]
         private void CompanySettings()
         {
             IsQuickActionsOpen = false;

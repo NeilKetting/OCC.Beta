@@ -106,9 +106,10 @@
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconNotifications}" Classes="IconStyle" Foreground="{Binding NotificationIconColor}"/>
 							<TextBlock Text="Notifications" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+							<!-- Red Notification Badge -->
 							<Border Background="Red" CornerRadius="10" MinWidth="20" Height="20"
 									HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,10"
-									IsVisible="{Binding NotificationVM.NotificationCount, Converter={x:Static converters:ObjectConverters.IsNotNull}}">
+									IsVisible="{Binding NotificationVM.HasNotifications}">
 
 								<TextBlock Text="{Binding NotificationVM.NotificationCount, FallbackValue=5}" Foreground="White" FontSize="10" FontWeight="Bold"
 										   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,-1"/>

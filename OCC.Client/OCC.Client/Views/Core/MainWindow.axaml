@@ -8,6 +8,7 @@
         x:Class="OCC.Client.Views.Core.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         Title="Orange Circle Construction">
         <views:MainView />
 </Window>

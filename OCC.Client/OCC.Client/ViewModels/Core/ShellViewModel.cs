@@ -253,8 +253,67 @@ namespace OCC.Client.ViewModels.Core
         [RelayCommand]
         public async Task ReportBug()
         {
-            var viewName = CurrentPage?.GetType().Name.Replace("ViewModel", "View") ?? "ShellView";
-            if (CurrentPage is ViewModels.Home.HomeViewModel) viewName = "Dashboard"; // Friendly names for common ones?
+            var viewName = "Unknown";
+
+            // 1. Check for any open Popup/Dialog windows first
+            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // Find visible windows that are NOT the main window or splash screen
+                var popup = desktop.Windows
+                    .LastOrDefault(w => w.IsVisible && 
+                                        w.GetType().Name != "MainWindow" && 
+                                        w.GetType().Name != "SplashView" &&
+                                        w.GetType().Name != "BugReportDialog"); // Don't report the bug dialog itself if somehow double-triggered
+
+                if (popup != null)
+                {
+                    viewName = popup.GetType().Name.Replace("View", "");
+                    // Optional: Append ViewModel name for clarity
+                    if (popup.DataContext != null)
+                    {
+                        var vmName = popup.DataContext.GetType().Name.Replace("ViewModel", "");
+                        viewName += $" ({vmName})";
+                    }
+                }
+            }
+
+            // 2. Fallback to CurrentPage if no popup found or viewName is still default
+            if (viewName == "Unknown")
+            {
+                if (CurrentPage is ViewModels.Projects.ProjectsViewModel projectsVM && projectsVM.CurrentView != null)
+                {
+                    viewName = projectsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                }
+                else if (CurrentPage is ViewModels.EmployeeManagement.EmployeeManagementViewModel empVM)
+                {
+                    if (empVM.IsAddEmployeePopupVisible) viewName = "EmployeeDetailView";
+                    else if (empVM.IsAddTeamPopupVisible) viewName = "TeamDetailView";
+                }
+                else if (CurrentPage is ViewModels.Settings.UserManagementViewModel userVM && userVM.IsUserPopupVisible)
+                {
+                    viewName = "UserDetailView";
+                }
+                else if (CurrentPage is ViewModels.Orders.OrderViewModel orderVM)
+                {
+                    if (orderVM.IsOrderDetailVisible) viewName = "OrderDetailView";
+                    else if (orderVM.IsReceiveOrderVisible) viewName = "ReceiveOrderView";
+                    else if (orderVM.IsSupplierDetailVisible) viewName = "SupplierDetailView";
+                    else if (orderVM.CurrentView != null) viewName = orderVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                }
+                else if (CurrentPage is ViewModels.Home.Calendar.CalendarViewModel calVM && calVM.IsCreatePopupVisible)
+                {
+                    viewName = "CreateTaskPopupView";
+                }
+                else if (CurrentPage is ViewModels.Time.TimeLiveViewModel timeVM && timeVM.IsTimesheetVisible)
+                {
+                    viewName = "DailyTimesheetView";
+                }
+                else
+                {
+                    viewName = CurrentPage?.GetType().Name.Replace("ViewModel", "View") ?? "ShellView";
+                    if (CurrentPage is ViewModels.Home.HomeViewModel) viewName = "Dashboard";
+                }
+            }
             
             await _dialogService.ShowBugReportAsync(viewName);
         }
@@ -341,6 +400,9 @@ namespace OCC.Client.ViewModels.Core
                     break;
                 case "CompanySettings":
                     CurrentPage = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
+                    break;
+                case "BugList":
+                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
                     break;
                  default:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();

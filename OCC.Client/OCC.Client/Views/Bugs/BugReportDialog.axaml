@@ -16,13 +16,13 @@
     <Border Background="White" CornerRadius="8" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" ClipToBounds="True">
         <Grid RowDefinitions="Auto, *, Auto">
             <!-- Header -->
-            <Border Grid.Row="0" Background="{DynamicResource SurfaceLightGray}" Padding="15">
+            <Border Grid.Row="0" Background="#EF6C00" Padding="15">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="Report a Bug" Classes="H1" FontSize="18"/>
-                        <TextBlock Text="Found an issue? Let us know so we can fix it." Classes="StatLabel"/>
+                        <TextBlock Text="Report a Bug" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Found an issue? Let us know so we can fix it." FontSize="12" Foreground="White" Opacity="0.9"/>
                     </StackPanel>
-                    <PathIcon Grid.Column="1" Data="{StaticResource IconBug}" Foreground="{DynamicResource AccentOrange}" Width="24" Height="24"/>
+                    <PathIcon Grid.Column="1" Data="{StaticResource IconBug}" Foreground="White" Width="32" Height="32"/>
                 </Grid>
             </Border>
 
@@ -49,8 +49,8 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="#F8FAFC" Padding="15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel" Width="100"/>
-                    <Button Content="Submit Report" Command="{Binding SubmitCommand}" Classes="Primary" Width="120" IsEnabled="{Binding !IsSubmitting}"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"/>
+                    <Button Content="Submit Report" Command="{Binding SubmitCommand}" Classes="Primary" IsEnabled="{Binding !IsSubmitting}"/>
                 </StackPanel>
             </Border>
 

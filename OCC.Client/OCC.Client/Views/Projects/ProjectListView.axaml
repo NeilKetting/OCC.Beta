@@ -20,12 +20,13 @@
         <Border Grid.Row="0" Classes="TopHeader">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <!-- Tools -->
+                    <TextBlock Text="Projects" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" 
+                               Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-                    
                     <Button Command="{Binding NewProjectCommand}" Classes="Primary">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <PathIcon Data="{StaticResource IconAddUser}" Width="16" Height="16"/>
-                            <TextBlock Text="Add Employee" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Create Project" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
