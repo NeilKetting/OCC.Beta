@@ -36,6 +36,13 @@
                 </StackPanel>
             </Button>
             
+            <Button Classes="PopupMenuButton" Command="{Binding UserPreferencesCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    <TextBlock Text="User Preferences" VerticalAlignment="Center" FontSize="14"/>
+                </StackPanel>
+            </Button>
+            
             <Button Classes="PopupMenuButton" Command="{Binding AlertsCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>

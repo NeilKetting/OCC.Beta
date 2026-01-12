@@ -21,6 +21,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
+using OCC.Client.Messages; // NEW
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Views.Core; // Added
@@ -118,6 +119,12 @@ namespace OCC.Client.ViewModels.Core
             {
                 _toastService.ShowInfo($"Broadcast from {sender}", message);
             };
+
+            // Subscribe to Navigation Requests
+            WeakReferenceMessenger.Default.Register<NavigationRequestMessage>(this, (r, m) =>
+            {
+                HandleNavigationRequest(m.Value, m.Payload);
+            });
             
             // User Activity
             UserActivityStatus = userActivityService.StatusText;
@@ -414,6 +421,9 @@ namespace OCC.Client.ViewModels.Core
                 case "Orders":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
                     break;
+                case "CreateOrder":
+                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.CreateOrderViewModel>();
+                    break;
                 case "Help":
                      var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
@@ -424,6 +434,9 @@ namespace OCC.Client.ViewModels.Core
                     break;
                 case "CompanySettings":
                     CurrentPage = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
+                    break;
+                case "UserPreferences":
+                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
                     break;
                 case "BugList":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
@@ -441,6 +454,43 @@ namespace OCC.Client.ViewModels.Core
         {
             // Toggle visibility
             IsNotificationOpen = !IsNotificationOpen;
+        }
+
+        private void HandleNavigationRequest(string route, object? payload)
+        {
+            if (route == "InventoryDetail_Create")
+            {
+                // This is a special case where we want to open a DETAIL view for creation
+                // Since our main navigation is usually page-based ("Orders", "Inventory"), 
+                // we might need to navigate to InventoryView first, then trigger the detail popup?
+                // OR we can just replace the CurrentPage with the DetailVM directly if that's supported.
+                
+                // Let's assume we can navigate to the Detail VM directly as a "Page" or Dialog.
+                // Looking at InventoryDetailViewModel, is it a page or a dialog? 
+                // It's used as a dialog/child in InventoryView usually. 
+                // Let's try to simulate navigating to "Orders/Inventory" but forcing the detail view?
+                
+                // Better approach: Open InventoryDetailViewModel as the CurrentPage.
+                var vm = _serviceProvider.GetRequiredService<ViewModels.Orders.InventoryDetailViewModel>();
+                
+                // Setup for creation with pre-filled SKU/Name
+                if (payload is string searchTerm)
+                {
+                    // Heuristic: If it looks like a SKU (all caps, numbers), use as SKU. Else Name.
+                    // For simplicity, let's put it in both or guess
+                    var isSku = searchTerm.Any(char.IsDigit) && searchTerm.Any(char.IsUpper);
+                    
+                    vm.Load(null); // Clear/New
+                    if (isSku) vm.Sku = searchTerm;
+                    else vm.ProductName = searchTerm;
+                }
+                
+                CurrentPage = vm;
+            }
+            else
+            {
+                NavigateTo(route);
+            }
         }
 
         public void Receive(OpenManageUsersMessage message)

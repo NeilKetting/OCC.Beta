@@ -8,6 +8,7 @@ using OCC.Shared.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging; // NEW
 
 namespace OCC.Client.ViewModels.Orders
 {
@@ -16,6 +17,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IInventoryService _inventoryService;
         private readonly IDialogService _dialogService;
         private readonly ISupplierService _supplierService;
+        private readonly Services.Infrastructure.OrderStateService _orderStateService;
         private bool _isEditMode;
         private Guid _editingId;
 
@@ -59,11 +61,16 @@ namespace OCC.Client.ViewModels.Orders
         public System.Collections.ObjectModel.ObservableCollection<Supplier> AvailableSuppliers { get; } = new();
         public System.Collections.Generic.List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
 
-        public InventoryDetailViewModel(IInventoryService inventoryService, IDialogService dialogService, ISupplierService supplierService)
+        public InventoryDetailViewModel(
+            IInventoryService inventoryService, 
+            IDialogService dialogService, 
+            ISupplierService supplierService,
+            Services.Infrastructure.OrderStateService orderStateService)
         {
             _inventoryService = inventoryService;
             _dialogService = dialogService;
             _supplierService = supplierService;
+            _orderStateService = orderStateService;
         }
 
         public void Load(InventoryItem? item, System.Collections.Generic.List<string>? categories = null)
@@ -162,6 +169,14 @@ namespace OCC.Client.ViewModels.Orders
                 
                 ItemSaved?.Invoke(this, EventArgs.Empty);
                 CloseRequested?.Invoke(this, EventArgs.Empty);
+                
+                // If we have a saved order state, we should return to it!
+                if (_orderStateService.HasSavedState)
+                {
+                     CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(
+                         new OCC.Client.Messages.NavigationRequestMessage("CreateOrder") 
+                     );
+                }
             }
             catch (Exception ex)
             {

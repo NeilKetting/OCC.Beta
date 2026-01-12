@@ -87,7 +87,7 @@
 					<Border Height="1" Background="#E2E8F0" Margin="0,20"/>
 
 					<!-- Bottom Inputs -->
-					<Grid RowDefinitions="Auto" ColumnDefinitions="150, *">
+					<Grid RowDefinitions="Auto, Auto" ColumnDefinitions="150, *">
 
 						<TextBlock Grid.Row="0" Grid.Column="0" Text="USER ROLE" Classes="FieldLabel"/>
 						<ComboBox Grid.Row="0" Grid.Column="1" Classes="ProfileCombo"
@@ -103,6 +103,7 @@
 						Background="#C0E800" Foreground="#1E293B" FontWeight="SemiBold"
 						Padding="30,10" HorizontalAlignment="Center" CornerRadius="4"/>
 			</Grid>
+		
 		</Grid>
 	</Border>
 </UserControl>

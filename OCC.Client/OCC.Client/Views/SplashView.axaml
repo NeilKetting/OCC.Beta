@@ -13,7 +13,7 @@
 		Background="Transparent"
 		TransparencyLevelHint="Transparent"
 		Topmost="True"
-		RenderOptions.BitmapInterpolationMode="HighQuality">
+		>
 
 	<Border Background="White" CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000">
 		<Grid RowDefinitions="*, Auto, Auto">
@@ -21,9 +21,7 @@
 			<!-- Logo area -->
 			<StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
 				<!-- Placeholder for Logo if available, using Text for now -->
-				<Image Source="avares://OCC.Client/Assets/Images/occ_logo.png"
-					   Width="300"
-					   Stretch="Uniform"
+				<Image Source="avares://OCC.Client/Assets/Images/occ_logo.jpg"
 					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 			</StackPanel>
 

@@ -119,7 +119,7 @@
 					<!-- Entity Details -->
 					<Grid ColumnDefinitions="*, 30, *, 30,*">
 						<!-- Left Column -->
-						<StackPanel Grid.Column="0" Spacing="20">
+						<StackPanel Grid.Column="0" Spacing="10">
 							<!-- Supplier (PO Only) -->
 							<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
 								<TextBlock Text="Supplier" Classes="Label"/>
@@ -230,35 +230,29 @@
 
 							<!-- Entry Row -->
 							<Border Background="#F1F5F9" Padding="10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
-								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
-									<!-- Inventory Select -->
+								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">									
 									<!-- Inventory Select / SKU -->
 									<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
 										<!-- SKU Input -->
-										<ComboBox Grid.Column="0" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
-												  PlaceholderText="SKU" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-												  IsTextSearchEnabled="True">
-											<ComboBox.ItemTemplate>
-												<DataTemplate>
-													<TextBlock Text="{Binding Sku}"/>
-												</DataTemplate>
-											</ComboBox.ItemTemplate>
-										</ComboBox>
+										<AutoCompleteBox Grid.Column="0" ItemsSource="{Binding InventoryItems}" 
+														 SelectedItem="{Binding SelectedInventoryItem}"
+														 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+														 Width="80"
+														 Watermark="SKU"
+														 FilterMode="StartsWith"
+														 LostFocus="SkuBox_LostFocus"
+														 KeyUp="SkuBox_KeyUp"
+                                                         x:Name="SkuBox"/>
 
 										<!-- Product Select -->
-										<ComboBox Grid.Column="2" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
-												  PlaceholderText="Select Product..." HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-												  IsTextSearchEnabled="True">
-											<ComboBox.ItemTemplate>
-												<DataTemplate>
-													<StackPanel Orientation="Horizontal" Spacing="5">
-														<TextBlock Text="{Binding Sku}" FontWeight="Bold" Width="80" TextTrimming="CharacterEllipsis"/>
-														<TextBlock Text="-" Foreground="{DynamicResource TextSecondaryGray}"/>
-														<TextBlock Text="{Binding ProductName}"/>
-													</StackPanel>
-												</DataTemplate>
-											</ComboBox.ItemTemplate>
-										</ComboBox>
+										<AutoCompleteBox Grid.Column="2" ItemsSource="{Binding InventoryItems}" 
+														 SelectedItem="{Binding SelectedInventoryItem}"
+														 ValueMemberBinding="{Binding ProductName, DataType=models:InventoryItem}"
+														 Watermark="Select Product..."
+														 FilterMode="Contains"
+														 LostFocus="ProductBox_LostFocus"
+														 KeyUp="ProductBox_KeyUp"
+                                                         x:Name="ProductBox"/>
 
 										<!-- Quick Add -->
 										<Button Grid.Column="3" Content="+" FontWeight="Bold" Width="30" Height="30"

@@ -10,7 +10,11 @@ namespace OCC.Client.Services.Infrastructure
     {
         private readonly DispatcherTimer _idleTimer;
         private DateTime _lastActivity = DateTime.Now;
-        private const int IdleThresholdMinutes = 1; // Testing: 1 min. Real: 5+
+        private const int IdleThresholdMinutes = 1; // "Away" status
+
+        // Dynamic properties
+        public double LogoutThresholdMinutes { get; set; } = 5.0;
+        public double WarningThresholdMinutes => Math.Max(0.5, LogoutThresholdMinutes - 1.0);
 
         [ObservableProperty]
         private bool _isAway;
@@ -19,10 +23,16 @@ namespace OCC.Client.Services.Infrastructure
         private string _statusText = "Active";
 
         private readonly SignalRNotificationService _signalRService;
+        private readonly UserPreferencesService _userPreferencesService;
 
-        public UserActivityService(SignalRNotificationService signalRService)
+        public UserActivityService(SignalRNotificationService signalRService, UserPreferencesService userPreferencesService)
         {
             _signalRService = signalRService;
+            _userPreferencesService = userPreferencesService;
+            
+            // Load timeout from preferences
+            LogoutThresholdMinutes = _userPreferencesService.Preferences.SessionTimeoutMinutes;
+
             _idleTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(30)
@@ -46,10 +56,6 @@ namespace OCC.Client.Services.Infrastructure
 
         private bool _warningShown;
         
-        // Thresholds
-        private const double WarningThresholdMinutes = 4.0;
-        private const double LogoutThresholdMinutes = 5.0;
-
         private async void CheckIdleStatus(object? sender, EventArgs e)
         {
             var idleTime = DateTime.Now - _lastActivity;
@@ -106,6 +112,14 @@ namespace OCC.Client.Services.Infrastructure
                 StatusText = "Active";
                 await _signalRService.UpdateStatusAsync("Online");
             }
+        }
+
+        public void UpdateTimeout(int minutes)
+        {
+            LogoutThresholdMinutes = minutes;
+            // Also update preferences service
+            _userPreferencesService.Preferences.SessionTimeoutMinutes = minutes;
+            _userPreferencesService.SavePreferences();
         }
 
         public void Dispose()

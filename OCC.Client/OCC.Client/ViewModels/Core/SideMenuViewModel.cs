@@ -430,6 +430,16 @@ namespace OCC.Client.ViewModels.Core
         }
 
         [RelayCommand]
+        private void UserPreferences()
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+            IsPreferencesOpen = false;
+            ActiveSection = "UserPreferences";
+            UpdateLastActionMessage("Navigating to User Preferences");
+        }
+
+        [RelayCommand]
         private void AccountExport() { }
 
         /// <summary>

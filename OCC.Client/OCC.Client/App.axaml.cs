@@ -144,12 +144,14 @@ namespace OCC.Client
 
             services.AddSingleton<INotificationService, ApiNotificationService>();
             services.AddSingleton<IUpdateService, UpdateService>();
-            services.AddSingleton<IExportService, ExportService>();
+            services.AddSingleton<UserActivityService>();
+            services.AddSingleton<OrderStateService>(); // New
             services.AddSingleton<SignalRNotificationService>();
             services.AddSingleton<UserActivityService>();
             services.AddSingleton<IPermissionService, PermissionService>();
             services.AddTransient<IHolidayService, HolidayService>();
             services.AddSingleton<LocalSettingsService>();
+            services.AddSingleton<UserPreferencesService>(); // Local User Preferences (Timeout etc)
             services.AddSingleton(ConnectionSettings.Instance);
             services.AddTransient<ILeaveService, LeaveService>();
             services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
@@ -240,6 +242,7 @@ namespace OCC.Client
 
             // Settings
             services.AddTransient<CompanySettingsViewModel>();
+            services.AddTransient<UserPreferencesViewModel>(); // New
             services.AddTransient<ViewModels.Developer.DeveloperViewModel>();
         }
 

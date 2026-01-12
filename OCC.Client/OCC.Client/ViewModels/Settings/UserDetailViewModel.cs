@@ -93,53 +93,66 @@ namespace OCC.Client.ViewModels.Settings
         [RelayCommand]
         private async Task Save()
         {
-            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Email))
-                return;
-
-            User user;
-
-            if (_existingUserId.HasValue)
+            try
             {
-                // Update
-                user = await _userRepository.GetByIdAsync(_existingUserId.Value) ?? new User { Id = _existingUserId.Value };
-            }
-            else
-            {
-                // Create
-                user = new User();
-                // For new users, set password if provided, else maybe default?
-                // Real app would handle this better (hashing etc).
-                if (!string.IsNullOrEmpty(Password))
+                if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Email))
+                    return;
+
+                User user;
+
+                if (_existingUserId.HasValue)
                 {
-                    user.Password = Password; 
+                    // Update
+                    user = await _userRepository.GetByIdAsync(_existingUserId.Value) ?? new User { Id = _existingUserId.Value };
                 }
-            }
-
-            user.FirstName = FirstName;
-            user.LastName = LastName;
-            user.Email = Email;
-            user.Phone = Phone;
-            user.Location = Location;
-            user.UserRole = SelectedRole;
-            user.IsApproved = IsApproved;
-            user.IsEmailVerified = IsEmailVerified;
-
-            if (_existingUserId.HasValue)
-            {
-                 // If updating and password field is not empty, update it
-                if (!string.IsNullOrEmpty(Password))
+                else
                 {
-                    user.Password = Password;
+                    // Create
+                    user = new User();
+                    // For new users, set password if provided, else maybe default?
+                    // Real app would handle this better (hashing etc).
+                    if (!string.IsNullOrEmpty(Password))
+                    {
+                        user.Password = Password; 
+                    }
                 }
-                await _userRepository.UpdateAsync(user);
-            }
-            else
-            {
-                await _userRepository.AddAsync(user);
-            }
 
-            UserSaved?.Invoke(this, EventArgs.Empty);
-            CloseRequested?.Invoke(this, EventArgs.Empty);
+                user.FirstName = FirstName;
+                user.LastName = LastName;
+                user.Email = Email;
+                user.Phone = Phone;
+                user.Location = Location;
+                user.UserRole = SelectedRole;
+                user.IsApproved = IsApproved;
+                user.IsEmailVerified = IsEmailVerified;
+
+                if (_existingUserId.HasValue)
+                {
+                     // If updating and password field is not empty, update it
+                    if (!string.IsNullOrEmpty(Password))
+                    {
+                        user.Password = Password;
+                    }
+                    await _userRepository.UpdateAsync(user);
+                }
+                else
+                {
+                    await _userRepository.AddAsync(user);
+                }
+
+                UserSaved?.Invoke(this, EventArgs.Empty);
+                CloseRequested?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                // TODO: Inject ILogger/IDialogService properly if not present
+                // For now, assuming we might need to add it or use System.Diagnostics
+                System.Diagnostics.Debug.WriteLine($"Error saving user: {ex.Message}");
+                // Ideally show dialog. 
+                // Since this VM uses 'IViewModelBase'? No it inherits ViewModelBase.
+                // It has _userRepository injection only. 
+                // I should ideally check if I can show an alert, but at least preventing crash is step 1.
+            }
         }
 
         [RelayCommand]

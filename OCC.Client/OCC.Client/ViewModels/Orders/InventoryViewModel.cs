@@ -30,17 +30,25 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private bool _isBusy;
 
-        public InventoryViewModel(IInventoryService inventoryService, ISupplierService supplierService, IDialogService dialogService, Microsoft.Extensions.Logging.ILogger<InventoryViewModel> logger)
+        private readonly IServiceProvider _serviceProvider;
+
+        public InventoryViewModel(
+            IInventoryService inventoryService, 
+            ISupplierService supplierService, 
+            IDialogService dialogService, 
+            Microsoft.Extensions.Logging.ILogger<InventoryViewModel> logger,
+            IServiceProvider serviceProvider)
         {
             _inventoryService = inventoryService;
             _supplierService = supplierService;
             _dialogService = dialogService;
             _logger = logger;
+            _serviceProvider = serviceProvider;
             // Fire and forget initialization
             _ = LoadInventoryAsync();
         }
 
-        // public InventoryViewModel() { }
+        // ...
 
         public async Task LoadInventoryAsync()
         {
@@ -103,7 +111,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
-            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryDetailViewModel>(_serviceProvider);
             DetailViewModel.Load(null, categories); // Add Mode with Categories
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 
@@ -120,7 +128,7 @@ namespace OCC.Client.ViewModels.Orders
             if (item == null) return;
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
-            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryDetailViewModel>(_serviceProvider);
             DetailViewModel.Load(item, categories); // Edit Mode with Categories
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 

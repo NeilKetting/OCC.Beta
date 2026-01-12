@@ -6,6 +6,9 @@
              RequestedThemeVariant="Light">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
+
+
+
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
@@ -92,6 +95,6 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-        <StyleInclude Source="avares://OCC.Client/Styles/AppStyles.axaml" />
+        <StyleInclude Source="avares://OCC.Client/Styles/AppStyles.axaml" />        
     </Application.Styles>
 </Application>

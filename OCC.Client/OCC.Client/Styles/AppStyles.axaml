@@ -9,6 +9,8 @@
 		</StackPanel>
 	</Design.PreviewWith>
 
+
+
 	<!-- ========================================================================= -->
 	<!-- TEXT STYLES -->
 	<!-- ========================================================================= -->
@@ -61,6 +63,10 @@
 		<Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}"/>
 		<Setter Property="FontWeight" Value="Medium"/>
 		<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+	</Style>
+
+	<Style Selector="TextBox">
+		<Setter Property="VerticalContentAlignment" Value="Center"/>
 	</Style>
 
 
@@ -224,15 +230,15 @@
 		<Setter Property="Padding" Value="30,0,0,0"/>
 	</Style>
 	<Style Selector="Button.SideMenuButton:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource OCCOrange}"/>
+		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}"/>
 	</Style>
 	<Style Selector="Button.SideMenuButton:pressed /template/ ContentPresenter">
 		<Setter Property="Opacity" Value="0.8"/>
 		<Setter Property="RenderTransform" Value="scale(0.98)"/>
 	</Style>
 	<Style Selector="Button.SideMenuButton.Active">
-		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}"/>
-		<Setter Property="BorderThickness" Value="4,0,0,0"/>
+		<Setter Property="Background" Value="{DynamicResource OCCOrange}"/>
+		<Setter Property="BorderThickness" Value="0,0,0,0"/>
 	</Style>
 
 	<Style Selector="Button.SideMenuButton.Collapsed">
@@ -278,10 +284,10 @@
 		<Setter Property="RenderTransform" Value="scale(0.95)"/>
 	</Style>
 	<Style Selector="Button.MenuTabButton:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource OCCOrange}"/>
+		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}"/>
 	</Style>
 	<Style Selector="Button.MenuTabButton.Active /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}"/>
+		<Setter Property="Background" Value="{DynamicResource OCCOrange}"/>
 	</Style>
 
 

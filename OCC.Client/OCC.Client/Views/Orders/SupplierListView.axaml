@@ -61,7 +61,6 @@
                 <DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="VAT NO" Binding="{Binding VatNumber}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="CITY" Binding="{Binding City}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 
                 <!-- Actions -->
                 <DataGridTemplateColumn Header="ACTIONS" Width="Auto">

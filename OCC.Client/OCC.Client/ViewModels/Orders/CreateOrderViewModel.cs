@@ -10,9 +10,10 @@ using OCC.Client.Services.Repositories.Interfaces;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using OCC.Client.Services.Infrastructure;
+using CommunityToolkit.Mvvm.Messaging; // NEW
 
 namespace OCC.Client.ViewModels.Orders
 {
@@ -24,6 +25,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IRepository<Customer> _customerRepository;
         private readonly IRepository<Project> _projectRepository;
         private readonly IDialogService _dialogService;
+        private readonly OrderStateService _orderStateService;
 
         private readonly ILogger<CreateOrderViewModel> _logger;
         private readonly IPdfService _pdfService;
@@ -43,10 +45,15 @@ namespace OCC.Client.ViewModels.Orders
         private OrderLine _newLine = new();
         
         // Selections
-        public ObservableCollection<Supplier> Suppliers { get; } = new();
-        public ObservableCollection<Customer> Customers { get; } = new();
-        public ObservableCollection<ProjectBase> Projects { get; } = new();
-        public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
+        [ObservableProperty]
+        private ObservableCollection<Supplier> _suppliers = new();
+        [ObservableProperty]
+        private ObservableCollection<Customer> _customers = new();
+        [ObservableProperty]
+        private ObservableCollection<Project> _projects = new();
+        
+        [ObservableProperty]
+        private ObservableCollection<InventoryItem> _inventoryItems = new();
         
         public List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
         public List<Branch> Branches { get; } = Enum.GetValues<Branch>().Cast<Branch>().ToList();
@@ -108,7 +115,7 @@ namespace OCC.Client.ViewModels.Orders
         
         [ObservableProperty]
         [property: CustomValidation(typeof(CreateOrderViewModel), nameof(ValidateProjectSelection))]
-        private ProjectBase? _selectedProject;
+        private Project? _selectedProject;
 
         // Validation Logic
         public static ValidationResult? ValidateSupplierSelection(Supplier? supplier, ValidationContext context)
@@ -121,7 +128,7 @@ namespace OCC.Client.ViewModels.Orders
             return ValidationResult.Success;
         }
 
-        public static ValidationResult? ValidateProjectSelection(ProjectBase? project, ValidationContext context)
+        public static ValidationResult? ValidateProjectSelection(Project? project, ValidationContext context)
         {
             var vm = (CreateOrderViewModel)context.ObjectInstance;
             if (vm.IsSalesOrder && project == null)
@@ -141,7 +148,8 @@ namespace OCC.Client.ViewModels.Orders
             IRepository<Project> projectRepository, 
             IDialogService dialogService,
             ILogger<CreateOrderViewModel> logger,
-            IPdfService pdfService)
+            IPdfService pdfService,
+            OrderStateService orderStateService)
         {
             _orderService = orderService;
             _inventoryService = inventoryService;
@@ -151,6 +159,7 @@ namespace OCC.Client.ViewModels.Orders
             _dialogService = dialogService;
             _logger = logger;
             _pdfService = pdfService;
+            _orderStateService = orderStateService;
             
             Reset();
         }
@@ -164,7 +173,9 @@ namespace OCC.Client.ViewModels.Orders
             _projectRepository = null!;
             _dialogService = null!;
             _logger = null!;
+            _logger = null!;
             _pdfService = null!;
+            _orderStateService = null!;
             NewOrder.OrderNumber = "DEMO-0000";
         } // Design-time support
 
@@ -179,6 +190,12 @@ namespace OCC.Client.ViewModels.Orders
                 var t4 = LoadInventory();
                 
                 await Task.WhenAll(t1, t2, t3, t4);
+
+                // Restore State if Available
+                if (_orderStateService.IsReturningFromItemCreation)
+                {
+                    RestoreState();
+                }
             }
             catch(Exception ex)
             {
@@ -284,7 +301,7 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
         
-        partial void OnSelectedProjectChanged(ProjectBase? value)
+        partial void OnSelectedProjectChanged(Project? value)
         {
              if (value != null)
              {
@@ -329,7 +346,7 @@ namespace OCC.Client.ViewModels.Orders
         {
              var list = await _projectRepository.GetAllAsync();
              Projects.Clear();
-             foreach(var i in list) Projects.Add(new ProjectBase { Id = i.Id, Name = i.Name, Location = i.Location });
+             foreach(var i in list) Projects.Add(i);
         }
         
         private async Task LoadInventory()
@@ -752,6 +769,57 @@ namespace OCC.Client.ViewModels.Orders
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
 
+        private void RestoreState()
+        {
+            var (savedOrder, pendingLine, searchTerm) = _orderStateService.RetrieveState();
+            
+            if (savedOrder != null)
+            {
+                LoadExistingOrder(savedOrder);
+                
+                if (pendingLine != null)
+                {
+                    NewLine = pendingLine;
+                }
+                
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                   var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
+                   
+                   if (match != null)
+                   {
+                       SelectedInventoryItem = match;
+                   }
+                }
+            }
+            
+            _orderStateService.ClearState();
+        }
+
+        [RelayCommand]
+        public async Task ValidateItemSearch(string searchText)
+        {
+             if (string.IsNullOrWhiteSpace(searchText)) return;
+             
+             // Check if it exists in current list
+             var exists = InventoryItems.Any(i => 
+                 i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || 
+                 i.ProductName.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+                 
+             if (!exists && SelectedInventoryItem == null)
+             {
+                 bool create = await _dialogService.ShowConfirmationAsync(
+                     "Item Not Found", 
+                     $"'{searchText}' was not found in inventory.\n\nWould you like to create it now?");
+                     
+                 if (create)
+                 {
+                     _orderStateService.SaveState(NewOrder, NewLine, searchText);
+                     CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.Messages.NavigationRequestMessage("InventoryDetail_Create", searchText));
+                 }
+             }
+        }
+
         [ObservableProperty]
         private bool _isAddingProjectAddress;
         
@@ -798,12 +866,4 @@ namespace OCC.Client.ViewModels.Orders
         }
     }
 
-    public class ProjectBase 
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = "";
-        public string Location { get; set; } = "";
-        
-        public override string ToString() => Name;
-    }
 }

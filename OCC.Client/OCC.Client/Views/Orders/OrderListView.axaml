@@ -67,7 +67,7 @@
                 <DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="BRANCH" Binding="{Binding Branch}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="TYPE" Binding="{Binding OrderType}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
-                <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="DATE" Binding="{Binding OrderDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="DESTINATION" Binding="{Binding DestinationDisplay}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>

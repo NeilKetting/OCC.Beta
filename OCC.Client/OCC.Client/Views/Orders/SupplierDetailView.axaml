@@ -46,7 +46,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="White" Width="700" MaxHeight="750" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
+	<Border Background="White" Width="700" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
 			VerticalAlignment="Center" HorizontalAlignment="Center">
 		<Grid RowDefinitions="Auto, *, Auto">
 

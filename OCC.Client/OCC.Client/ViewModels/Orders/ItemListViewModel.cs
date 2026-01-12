@@ -39,13 +39,20 @@ namespace OCC.Client.ViewModels.Orders
         private InventoryDetailViewModel? _detailViewModel;
 
         private readonly ISupplierService _supplierService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ItemListViewModel(IInventoryService inventoryService, ISupplierService supplierService, IDialogService dialogService, ILogger<ItemListViewModel> logger)
+        public ItemListViewModel(
+            IInventoryService inventoryService, 
+            ISupplierService supplierService, 
+            IDialogService dialogService, 
+            ILogger<ItemListViewModel> logger,
+            IServiceProvider serviceProvider)
         {
             _inventoryService = inventoryService;
             _supplierService = supplierService;
             _dialogService = dialogService;
             _logger = logger;
+            _serviceProvider = serviceProvider;
             _ = LoadItemsAsync();
         }
 
@@ -103,7 +110,7 @@ namespace OCC.Client.ViewModels.Orders
             
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
-            DetailViewModel = new InventoryDetailViewModel(_inventoryService, _dialogService, _supplierService);
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryDetailViewModel>(_serviceProvider);
             DetailViewModel.Load(item, categories);
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 

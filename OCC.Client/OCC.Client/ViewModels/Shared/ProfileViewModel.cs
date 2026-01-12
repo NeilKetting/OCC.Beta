@@ -20,7 +20,6 @@ namespace OCC.Client.ViewModels.Shared
         private readonly IAuthService _authService;
         private readonly IRepository<Project> _projectRepository;
 
-
         #endregion
 
         #region Events
@@ -52,7 +51,7 @@ namespace OCC.Client.ViewModels.Shared
 
         [ObservableProperty]
         private UserRole _selectedRole;
-
+        
         #endregion
 
         #region Properties
@@ -63,7 +62,8 @@ namespace OCC.Client.ViewModels.Shared
 
         #region Constructors
 
-        public ProfileViewModel(IAuthService authService, IRepository<Project> projectRepository)
+        public ProfileViewModel(IAuthService authService, 
+                                IRepository<Project> projectRepository)
         {
             _authService = authService;
             _projectRepository = projectRepository;
