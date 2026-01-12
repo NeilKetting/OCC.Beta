@@ -94,16 +94,29 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
+        logger.LogInformation("Starting Database Initialization...");
         var context = services.GetRequiredService<AppDbContext>();
+        
+        // Log connection string (masked)
+        var conn = context.Database.GetConnectionString();
+        logger.LogInformation($"Using Connection String: {conn?.Split(';')[0]}... (Length: {conn?.Length})");
+
         var hasher = services.GetRequiredService<OCC.API.Services.PasswordHasher>();
+        
+        logger.LogInformation("Calling DbInitializer.Initialize()...");
         DbInitializer.Initialize(context, hasher);
+        logger.LogInformation("Database Initialization Completed Successfully.");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred creating the DB.");
+        logger.LogCritical(ex, "FATAL ERROR: Parsing Database Migration failed.");
+        if (ex.InnerException != null)
+        {
+             logger.LogCritical(ex.InnerException, "Inner Exception detected.");
+        }
     }
 }
 
