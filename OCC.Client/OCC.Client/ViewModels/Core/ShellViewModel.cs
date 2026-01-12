@@ -306,7 +306,18 @@ namespace OCC.Client.ViewModels.Core
                 {
                     viewName = "CreateTaskPopupView";
                 }
-                else if (CurrentPage is ViewModels.Time.TimeLiveViewModel timeVM && timeVM.IsTimesheetVisible)
+                else if (CurrentPage is ViewModels.Time.TimeAttendanceViewModel timeVM)
+                {
+                    if (timeVM.CurrentView != null)
+                    {
+                        viewName = timeVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    }
+                    else
+                    {
+                        viewName = "TimeAttendanceView";
+                    }
+                }
+                else if (CurrentPage is ViewModels.Time.TimeLiveViewModel timeLiveVM && timeLiveVM.IsTimesheetVisible)
                 {
                     viewName = "DailyTimesheetView";
                 }

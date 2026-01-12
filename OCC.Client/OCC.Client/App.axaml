@@ -13,6 +13,13 @@
     <Application.Resources>
         <ResourceDictionary>
             <conv:StatusColorConverter x:Key="StatusToColorConverter"/>
+            <!-- ********************************** -->
+            <!-- New Colors -->
+            <!-- ********************************** -->
+            <!-- Brand & Primary Colors -->
+            <SolidColorBrush x:Key="OCCOrange">#FF8F00</SolidColorBrush>
+
+            
             <!-- Brand & Primary Colors -->
             <SolidColorBrush x:Key="PrimaryTeal">#00b5ad</SolidColorBrush>
             <SolidColorBrush x:Key="PrimaryTealHover">#00a39c</SolidColorBrush>
@@ -51,14 +58,15 @@
 
             <!-- Gradients -->
             <LinearGradientBrush x:Key="SideMenuGradient" StartPoint="0%,0%" EndPoint="100%,0%">
-                <GradientStop Offset="0" Color="#F7D1BA"/>
-                <GradientStop Offset="0.69" Color="#DEDFE2"/>
+                <GradientStop Offset="0" Color="#FFFFFFFF"/>
+                <GradientStop Offset="1" Color="#40F78D37"/>
             </LinearGradientBrush>
+
             <LinearGradientBrush x:Key="HomeMenuGradient" StartPoint="50%,0%" EndPoint="100%,0%">
                 <GradientStop Offset="0" Color="#DEDFE2"/>
                 <GradientStop Offset="0.90" Color="#ED985F"/>
             </LinearGradientBrush>
-            
+
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">10</x:Double>
             <x:Double x:Key="FontSizeSmall">12</x:Double>

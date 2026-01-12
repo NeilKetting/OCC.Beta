@@ -98,7 +98,7 @@ namespace OCC.Client.Services
                      try 
                      {
                          // Try Avalonia Resources first (embedded)
-                         var uri = new Uri("avares://OCC.Client/Assets/Images/occ-logo.jpg");
+                         var uri = new Uri("avares://OCC.Client/Assets/Images/occ_logo.png");
                          if (Avalonia.Platform.AssetLoader.Exists(uri))
                          {
                              using var stream = Avalonia.Platform.AssetLoader.Open(uri);
@@ -109,7 +109,7 @@ namespace OCC.Client.Services
                          // Fallback to file system
                          else 
                          {
-                             var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "occ-logo.jpg");
+                             var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "Images", "occ_logo.png");
                              if (File.Exists(logoPath))
                              {
                                  logoBytes = File.ReadAllBytes(logoPath);
@@ -200,7 +200,7 @@ namespace OCC.Client.Services
                          byte[]? logoBytes = null;
                          try 
                          {
-                             var uri = new Uri("avares://OCC.Client/Assets/Images/occ-logo.jpg");
+                             var uri = new Uri("avares://OCC.Client/Assets/Images/occ_logo.png");
                              if (Avalonia.Platform.AssetLoader.Exists(uri))
                              {
                                  using var stream = Avalonia.Platform.AssetLoader.Open(uri);

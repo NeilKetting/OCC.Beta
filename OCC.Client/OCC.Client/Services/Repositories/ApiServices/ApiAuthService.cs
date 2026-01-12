@@ -45,8 +45,20 @@ namespace OCC.Client.Services.Repositories.ApiServices
                 }
                 else
                 {
+                    if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+                    {
+                        return (false, "The service is currently unavailable. Please try again later.");
+                    }
+
                     // Read error message from API (e.g., "Account pending approval...")
                     var errorContent = await response.Content.ReadAsStringAsync();
+
+                    // Check for HTML content in error to avoid displaying raw HTML to the user
+                    if (!string.IsNullOrWhiteSpace(errorContent) && (errorContent.TrimStart().StartsWith("<") || response.Content.Headers.ContentType?.MediaType == "text/html"))
+                    {
+                        return (false, $"An unexpected error occurred. (Status: {response.StatusCode})");
+                    }
+
                     // Clean up quotes if it's a JSON string
                     return (false, errorContent.Trim('"'));
                 }

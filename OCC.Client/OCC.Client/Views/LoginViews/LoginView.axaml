@@ -39,7 +39,9 @@
 
 				<Rectangle Grid.Column="2" Fill="{DynamicResource AccentOrange}" />
 				<!-- logo -->
-				<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Top" Margin="20">
+                <Image Source="avares://OCC.Client/Assets/Images/occ_logo.png" Width="300"/>
+
+				<!--<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Top" Margin="20">
 					<Border Classes="LogoContainer">
 						<Grid>
 							<Ellipse Width="150" Height="150" Stroke="{DynamicResource AccentOrange}" StrokeThickness="8" Margin="0,0,0,0"/>
@@ -53,7 +55,7 @@
 						</Grid>
 					</Border>
 					<TextBlock Classes="BrandName" Margin="15,0,0,0"><Span FontSize="26" Foreground="{DynamicResource AccentOrange}">O</Span>range <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>ircle <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>onstruction</TextBlock>
-				</StackPanel>
+				</StackPanel>-->
 			</Grid>
 		</Panel>
 

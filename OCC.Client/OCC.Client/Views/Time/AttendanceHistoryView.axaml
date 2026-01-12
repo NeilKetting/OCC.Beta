@@ -62,15 +62,15 @@
                   BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderGray}"
                   Background="White" RowBackground="White">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="120"/>
-				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="2*"/>
-				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="150"/>
-				<DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-				<DataGridTextColumn Header="In" Binding="{Binding InTime}" Width="80"/>
-				<DataGridTextColumn Header="Out" Binding="{Binding OutTime}" Width="80"/>
-				<DataGridTextColumn Header="Hours" Binding="{Binding HoursWorkedDisplay}" Width="80"/>
+				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
+				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
+				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
+				<DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+				<DataGridTextColumn Header="In" Binding="{Binding InTime}" Width="Auto"/>
+				<DataGridTextColumn Header="Out" Binding="{Binding OutTime}" Width="Auto"/>
+				<DataGridTextColumn Header="Hours" Binding="{Binding HoursWorkedDisplay}" Width="Auto"/>
 				<!-- Wage Column Hidden via Binding -->
-				<DataGridTextColumn Header="Wage (Est.)" Binding="{Binding WageDisplay}" Width="120" 
+				<DataGridTextColumn Header="Wage (Est.)" Binding="{Binding WageDisplay}" Width="Auto" 
                                     Foreground="#2E7D32" FontWeight="Bold"
                                     IsVisible="{Binding #Root.DataContext.IsWageVisible}"/>
 			</DataGrid.Columns>
