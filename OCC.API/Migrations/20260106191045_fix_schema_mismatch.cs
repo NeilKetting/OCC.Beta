@@ -11,13 +11,11 @@ namespace OCC.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.AddColumn<Guid>(
                 name: "UserId",
                 table: "Notifications",
                 type: "uniqueidentifier",
                 nullable: true);
-            */
         }
 
         /// <inheritdoc />

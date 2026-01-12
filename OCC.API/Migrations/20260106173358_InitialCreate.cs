@@ -11,7 +11,6 @@ namespace OCC.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            /*
             migrationBuilder.CreateTable(
                 name: "AppSettings",
                 columns: table => new
@@ -318,7 +317,6 @@ namespace OCC.API.Migrations
                 name: "IX_TaskComments_ProjectTaskId",
                 table: "TaskComments",
                 column: "ProjectTaskId");
-            */
         }
 
         /// <inheritdoc />
