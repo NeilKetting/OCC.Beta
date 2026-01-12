@@ -281,7 +281,7 @@
 		<Setter Property="Background" Value="{DynamicResource OCCOrange}"/>
 	</Style>
 	<Style Selector="Button.MenuTabButton.Active /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource SurfaceLightGray}"/>
+		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}"/>
 	</Style>
 
 

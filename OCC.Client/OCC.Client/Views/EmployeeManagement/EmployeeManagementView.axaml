@@ -24,7 +24,7 @@
 			<Grid ColumnDefinitions="Auto, *, Auto, Auto">
 				<!-- Tab Buttons -->
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Grid.ColumnSpan="2" HorizontalAlignment="Center">
-					<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Employees"
+					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Employees"
 							Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Employees'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconManageEmployees}" Height="16"/>
@@ -32,7 +32,7 @@
 						</StackPanel>
 					</Button>
 
-					<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Teams"
+					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Teams"
 							Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Teams'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconTeam}" Height="16"/>
