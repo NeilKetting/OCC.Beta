@@ -18,7 +18,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public ApiAuthService()
         {
             _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("http://102.221.36.149/"); // Production Server
+            _httpClient.BaseAddress = new Uri("http://102.221.36.149:8081/"); // Production Server
         }
 
         public User? CurrentUser => _currentUser;

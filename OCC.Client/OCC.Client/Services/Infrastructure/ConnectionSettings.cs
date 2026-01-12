@@ -27,7 +27,7 @@ namespace OCC.Client.Services.Infrastructure
             }
         }
 
-        private string _apiBaseUrl = "http://102.221.36.149/";
+        private string _apiBaseUrl = "http://102.221.36.149:8081/";
         public string ApiBaseUrl
         {
             get => _apiBaseUrl;
