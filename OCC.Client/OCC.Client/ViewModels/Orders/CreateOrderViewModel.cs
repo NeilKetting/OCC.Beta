@@ -49,6 +49,7 @@ namespace OCC.Client.ViewModels.Orders
         public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
         
         public List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
+        public List<Branch> Branches { get; } = Enum.GetValues<Branch>().Cast<Branch>().ToList();
         public ObservableCollection<string> ProductCategories { get; } = new();
         
         // Selected Items
@@ -622,10 +623,75 @@ namespace OCC.Client.ViewModels.Orders
         }
 
         [RelayCommand]
+        public async Task PreviewPreview() // Renaming existing for clarity if I wanted, but I'll stick to new one
+        {
+             await PreviewOrder();
+        }
+
+        [RelayCommand]
+        public async Task EmailOrder()
+        {
+             await PreviewOrder(); // Reuse logic
+        }
+
+        [RelayCommand]
+        public async Task DownloadPrint()
+        {
+             try
+             {
+                 // Validate basic info
+                 if (SelectedSupplier == null && IsPurchaseOrder)
+                 {
+                      await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
+                      return;
+                 }
+ 
+                 // Generate PDF to temp path with PRINT VERSION = TRUE
+                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder, isPrintVersion: true);
+                 
+                 // Open PDF
+                 new System.Diagnostics.Process
+                 {
+                     StartInfo = new System.Diagnostics.ProcessStartInfo(path)
+                     {
+                         UseShellExecute = true
+                     }
+                 }.Start();
+             }
+             catch(Exception ex)
+             {
+                 _logger.LogError(ex, "Failed to generate print version");
+                 await _dialogService.ShowAlertAsync("Error", "Failed to generate grayscale print version.");
+             }
+        }
+
+        [RelayCommand]
         public async Task SubmitOrder()
         {
             try
             {
+                if (NewOrder.ExpectedDeliveryDate == DateTime.MinValue)
+                {
+                     await _dialogService.ShowAlertAsync("Validation", "Please select an Expected Delivery Date.");
+                     return;
+                }
+
+                // Site Delivery Validation
+                if (IsSiteDelivery && string.IsNullOrWhiteSpace(NewOrder.EntityAddress))
+                {
+                     bool add = await _dialogService.ShowConfirmationAsync("Missing Address", "The selected project has no delivery address.\n\nWould you like to add one now?");
+                     if (add)
+                     {
+                         IsAddingProjectAddress = true;
+                         NewProjectAddress = "";
+                         return;
+                     }
+                     else
+                     {
+                         return;
+                     }
+                }
+
                 // Force validation on key selection properties
                 ValidateProperty(SelectedSupplier, nameof(SelectedSupplier));
                 ValidateProperty(SelectedProject, nameof(SelectedProject));
@@ -650,14 +716,16 @@ namespace OCC.Client.ViewModels.Orders
                 {
                     try
                     {
-                        var path = await _pdfService.GenerateOrderPdfAsync(createdOrder);
+                        var path = await _pdfService.GenerateOrderPdfAsync(createdOrder, isPrintVersion: true);
                         
-                        // Open PDF
+                        // Open Print Dialog (via system default)
                         new System.Diagnostics.Process
                         {
                             StartInfo = new System.Diagnostics.ProcessStartInfo(path)
                             {
-                                UseShellExecute = true
+                                Verb = "print",
+                                UseShellExecute = true,
+                                CreateNoWindow = true
                             }
                         }.Start();
                     }
@@ -682,6 +750,51 @@ namespace OCC.Client.ViewModels.Orders
         public void Cancel()
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        [ObservableProperty]
+        private bool _isAddingProjectAddress;
+        
+        [ObservableProperty]
+        private string _newProjectAddress = string.Empty;
+
+        [RelayCommand]
+        public void ToggleAddProjectAddress()
+        {
+            IsAddingProjectAddress = !IsAddingProjectAddress;
+        }
+
+        [RelayCommand]
+        public async Task SaveProjectAddress()
+        {
+             if (string.IsNullOrWhiteSpace(NewProjectAddress) || SelectedProject == null) return;
+             
+             try
+             {
+                 // 1. Update Real Project
+                 var project = await _projectRepository.GetByIdAsync(SelectedProject.Id);
+                 if (project != null)
+                 {
+                     project.Location = NewProjectAddress;
+                     await _projectRepository.UpdateAsync(project);
+                     
+                     // 2. Update Local Wrapper
+                     SelectedProject.Location = NewProjectAddress;
+                     
+                     // 3. Update Order Address
+                     NewOrder.EntityAddress = NewProjectAddress;
+                     
+                     OnPropertyChanged(nameof(NewOrder)); // Refresh
+                     
+                     // 4. Close Overlay
+                     IsAddingProjectAddress = false;
+                 }
+             }
+             catch(Exception ex)
+             {
+                 _logger.LogError(ex, "Failed to update project address");
+                 await _dialogService.ShowAlertAsync("Error", "Failed to save project address.");
+             }
         }
     }
 

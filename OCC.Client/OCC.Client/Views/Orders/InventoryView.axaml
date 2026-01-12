@@ -69,13 +69,13 @@
             
             <DataGrid.Columns>
                 <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryGray}"/>
-                <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="ON HAND" Binding="{Binding QuantityOnHand}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="UNIT" Binding="{Binding UnitOfMeasure}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 
-                <DataGridTemplateColumn Header="STATUS" Width="*">
+                <DataGridTemplateColumn Header="STATUS" Width="Auto">
                      <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Border CornerRadius="4" Padding="8,2" VerticalAlignment="Center" HorizontalAlignment="Left"
@@ -89,7 +89,7 @@
                 </DataGridTemplateColumn>
 
                 <!-- Actions -->
-                <DataGridTemplateColumn Width="Auto">
+                <DataGridTemplateColumn Header="ACTIONS" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Classes="IconButton" Margin="0,0,20,0">
@@ -108,7 +108,7 @@
         </DataGrid>
 
         <!-- Popup Overlay -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsDetailVisible}">
+        <Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}">
             <Grid Background="#50000000"> <!-- Extra click shield -->
                 <views:InventoryDetailView DataContext="{Binding DetailViewModel}"
                                            HorizontalAlignment="Center"

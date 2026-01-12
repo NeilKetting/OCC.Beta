@@ -8,5 +8,6 @@ namespace OCC.Client.Infrastructure
         public const string Time = "Time";
         public const string Calendar = "Calendar";
         public const string Notifications = "Notifications";
+        public const string Developer = "Developer";
     }
 }

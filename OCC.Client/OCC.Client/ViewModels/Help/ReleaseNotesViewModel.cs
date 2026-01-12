@@ -29,9 +29,12 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
-                    Description = "Overnight Shift Fixes & Team Management Polish",
+                    Description = "Developer Tools, Printing & Team Management Polish",
                     Changes = new ObservableCollection<string>
                     {
+                        "NEW: Developer Tools - Added restricted 'Developer' menu (Broadcasts, API Simulations).",
+                        "NEW: Toast Notification System - Real-time alerts for user connections and system broadcasts.",
+                        "NEW: 'Download for Print' - Generate grayscale PDFs for Orders directly from the creation view.",
                         "NEW: Session Timeout & Auto-Logout - Adds security by logging out inactive users (5m).",
                         "NEW: Pre-Login Auto-Update - App updates now install cleanly via Splash Screen before login.",
                         "NEW: 'Leave Early' Reason Dialog - Prompts for a reason/notes when clocking out >15 mins early.",

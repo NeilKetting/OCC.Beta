@@ -75,11 +75,11 @@
                 </DataGrid.ContextMenu>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="SKU / Code" Binding="{Binding Sku}" Width="1.5*" />
-                    <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="2*" />
-                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="1.2*" />
-                    <DataGridTextColumn Header="Supplier" Binding="{Binding Supplier}" Width="1.5*" />
-                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="*" />
+                    <DataGridTextColumn Header="SKU / Code" Binding="{Binding Sku}" Width="Auto" />
+                    <DataGridTextColumn Header="Product Name" Binding="{Binding ProductName}" Width="Auto" />
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="Auto" />
+                    <DataGridTextColumn Header="Supplier" Binding="{Binding Supplier}" Width="Auto" />
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="Auto" />
                     <DataGridTextColumn Header="UOM" Binding="{Binding UnitOfMeasure}" Width="Auto" MinWidth="60" />
                     <DataGridTextColumn Header="In Stock" Binding="{Binding QuantityOnHand}" Width="Auto" MinWidth="80" />
                 </DataGrid.Columns>

@@ -11,6 +11,7 @@ namespace OCC.Shared.Models
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime? ExpectedDeliveryDate { get; set; }
         public OrderType OrderType { get; set; } = OrderType.PurchaseOrder;
+        public Branch Branch { get; set; } = Branch.JHB;
         
         // --- Entities Linkage ---
         
@@ -35,8 +36,9 @@ namespace OCC.Shared.Models
 
         // --- Financials ---
         public decimal TaxRate { get; set; } = 0.15m; // 15% VAT default
-        public OrderStatus Status { get; set; } = OrderStatus.Draft;
+        public OrderStatus Status { get; set; } = OrderStatus.Ordered;
         public string Notes { get; set; } = string.Empty;
+        public string DeliveryInstructions { get; set; } = string.Empty;
 
         // --- Content ---
         public System.Collections.ObjectModel.ObservableCollection<OrderLine> Lines { get; set; } = new();
@@ -69,7 +71,6 @@ namespace OCC.Shared.Models
 
     public enum OrderStatus
     {
-        Draft,
         Ordered,
         PartialDelivery,
         Completed,

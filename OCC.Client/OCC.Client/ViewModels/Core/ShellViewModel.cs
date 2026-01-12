@@ -34,7 +34,8 @@ namespace OCC.Client.ViewModels.Core
     public partial class ShellViewModel : ViewModelBase, 
         IRecipient<OpenNotificationsMessage>,
         IRecipient<OpenManageUsersMessage>,
-        IRecipient<TestBirthdayMessage>
+        IRecipient<TestBirthdayMessage>,
+        IRecipient<ToastNotificationMessage>
     {
 
         #region Private Members
@@ -44,6 +45,7 @@ namespace OCC.Client.ViewModels.Core
         private readonly SignalRNotificationService _signalRService;
         private readonly IAuthService _authService;
         private readonly IDialogService _dialogService;
+        private readonly IToastService _toastService;
 
         #endregion
 
@@ -73,6 +75,8 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private string _userActivityStatus = "Active";
 
+        public System.Collections.ObjectModel.ObservableCollection<Models.ToastMessage> Toasts { get; } = new();
+
         #endregion
 
         #region Constructors
@@ -88,6 +92,7 @@ namespace OCC.Client.ViewModels.Core
             _notificationVM = null!;
             _authService = null!;
             _dialogService = null!;
+            _toastService = null!;
         }
 
         public ShellViewModel(
@@ -98,6 +103,7 @@ namespace OCC.Client.ViewModels.Core
             SignalRNotificationService signalRService,
             UserActivityService userActivityService,
             IDialogService dialogService,
+            IToastService toastService,
             IAuthService authService)
         {
             _serviceProvider = serviceProvider;
@@ -105,8 +111,13 @@ namespace OCC.Client.ViewModels.Core
             _signalRService = signalRService;
             _authService = authService;
             _dialogService = dialogService;
+            _toastService = toastService;
             
             _signalRService.OnUserListReceived += OnUserUiUpdate;
+            _signalRService.OnBroadcastReceived += (sender, message) => 
+            {
+                _toastService.ShowInfo($"Broadcast from {sender}", message);
+            };
             
             // User Activity
             UserActivityStatus = userActivityService.StatusText;
@@ -417,6 +428,9 @@ namespace OCC.Client.ViewModels.Core
                 case "BugList":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
                     break;
+                case "Developer":
+                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
+                    break;
                  default:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
                     break;
@@ -444,6 +458,24 @@ namespace OCC.Client.ViewModels.Core
             await TestBirthday();
         }
 
+        public void Receive(ToastNotificationMessage message)
+        {
+            var toast = message.Value;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                Toasts.Add(toast);
+                
+                // Auto-fade and remove after 10 seconds
+                Task.Run(async () => {
+                    await Task.Delay(8000); // Wait 8s then fade
+                    for(int i=0; i<20; i++) {
+                        await Task.Delay(100);
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => toast.Opacity -= 0.05);
+                    }
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => Toasts.Remove(toast));
+                });
+            });
+        }
+
         [RelayCommand]
         public void CloseNotifications()
         {
@@ -454,9 +486,28 @@ namespace OCC.Client.ViewModels.Core
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                // Check for new connections or disconnections to show toasts
+                var currentNames = ConnectedUsers.Select(u => u.Name).ToList();
+                var newNames = users.DistinctBy(u => u.UserName).Select(u => u.UserName).ToList();
+
+                // New users
+                var joined = newNames.Where(n => !currentNames.Contains(n)).ToList();
+                foreach(var name in joined)
+                {
+                    if (name != _authService.CurrentUser?.Email) // Don't toast for self
+                        _toastService.ShowInfo("User Online", $"{name} has connected.");
+                }
+
+                // Disconnected users
+                var left = currentNames.Where(n => !newNames.Contains(n)).ToList();
+                foreach(var name in left)
+                {
+                    _toastService.ShowWarning("User Offline", $"{name} has disconnected.");
+                }
+
                 ConnectedUsers.Clear();
                 // Filter distinct users by UserName to avoid duplicates from multiple connections
-                var distinctUsers = users.DistinctBy(u => u.UserName).ToList();
+                var distinctUsers = users.DistinctBy(u => u.UserName).OrderBy(u => u.UserName).ToList();
                 
                 foreach (var u in distinctUsers) 
                 {

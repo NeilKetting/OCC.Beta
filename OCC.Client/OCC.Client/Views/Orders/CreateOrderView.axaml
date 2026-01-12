@@ -13,6 +13,7 @@
 
 	<UserControl.Resources>
 		<conv:MathConverter x:Key="MathConverter" />
+        <conv:BoolToTextConverter x:Key="BoolToTextConverter" />
 	</UserControl.Resources>
 
 	<Design.DataContext>
@@ -65,12 +66,11 @@
 
 	<Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000"
 			Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
-			VerticalAlignment="Center" HorizontalAlignment="Stretch"
-			Height="800">
+			VerticalAlignment="Center" HorizontalAlignment="Stretch">
 		<Grid RowDefinitions="Auto, *, Auto">
 
 			<!-- Header Bar -->
-			<Border Grid.Row="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,10">
+			<Border Grid.Row="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,5">
 				<Grid ColumnDefinitions="*, Auto">
 					<!-- Debug Validation -->
 					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
@@ -96,18 +96,25 @@
 			<Grid Grid.Row="1" Margin="20, 10, 20, 0" IsEnabled="{Binding !IsReadOnly}">
 				<StackPanel Spacing="5">
 
-					<!-- Order Type Selection (Radio / Toggle) -->
-					<StackPanel Orientation="Horizontal" Spacing="20">
-						<RadioButton GroupName="Type" Content="Purchase Order"
-									 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
-									 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
-						<RadioButton GroupName="Type" Content="Sales Order"
-									 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
-									 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
-						<RadioButton GroupName="Type" Content="Inventory Return"
-									 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
-									 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
-					</StackPanel>
+					<!-- Order Meta Info -->
+					<Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+						<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+							<RadioButton GroupName="Type" Content="Purchase Order"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
+										 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
+							<RadioButton GroupName="Type" Content="Sales Order"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
+										 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
+							<RadioButton GroupName="Type" Content="Inventory Return"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
+										 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
+						</StackPanel>
+
+						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+							<TextBlock Text="Branch:" VerticalAlignment="Center" Classes="Label" Margin="0,0,5,0"/>
+							<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding NewOrder.Branch}" Width="100"/>
+						</StackPanel>
+					</Grid>
 
 					<!-- Entity Details -->
 					<Grid ColumnDefinitions="*, 30, *, 30,*">
@@ -153,8 +160,14 @@
 
 							<!-- Attention Field -->
 							<StackPanel Spacing="5">
-								<TextBlock Text="Attention (ATT:)" Classes="Label"/>
+								<TextBlock Text="Attention:" Classes="Label"/>
 								<TextBox Text="{Binding NewOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
+							</StackPanel>
+
+							<!-- Delivery Instructions Field -->
+							<StackPanel Spacing="5">
+								<TextBlock Text="Delivery Instructions:" Classes="Label"/>
+								<TextBox Text="{Binding NewOrder.DeliveryInstructions}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
 							</StackPanel>
 						</StackPanel>
 						<!-- Middle Column -->
@@ -222,11 +235,20 @@
 									<!-- Inventory Select / SKU -->
 									<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
 										<!-- SKU Input -->
-										<TextBox Grid.Column="0" Text="{Binding NewLine.ItemCode}" Watermark="SKU" Classes="FormInput" VerticalAlignment="Stretch"/>
+										<ComboBox Grid.Column="0" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
+												  PlaceholderText="SKU" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+												  IsTextSearchEnabled="True">
+											<ComboBox.ItemTemplate>
+												<DataTemplate>
+													<TextBlock Text="{Binding Sku}"/>
+												</DataTemplate>
+											</ComboBox.ItemTemplate>
+										</ComboBox>
 
 										<!-- Product Select -->
 										<ComboBox Grid.Column="2" ItemsSource="{Binding InventoryItems}" SelectedItem="{Binding SelectedInventoryItem}"
-												  PlaceholderText="Select Product..." HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+												  PlaceholderText="Select Product..." HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+												  IsTextSearchEnabled="True">
 											<ComboBox.ItemTemplate>
 												<DataTemplate>
 													<StackPanel Orientation="Horizontal" Spacing="5">
@@ -258,7 +280,7 @@
 									<TextBox Grid.Column="8" Text="{Binding NewLine.UnitPrice}" Watermark="Rate" Classes="FormInput"/>
 
 									<!-- Add Btn -->
-									<Button Grid.Column="12" Command="{Binding AddLineCommand}" Content="+ Add Item" Classes="Primary" Height="30"/>
+									<Button Grid.Column="12" Command="{Binding AddLineCommand}" Content="+ Add Item" Classes="Primary"/>
 								</Grid>
 							</Border>
 
@@ -328,23 +350,33 @@
 			</Grid>
 
 			<!-- Footer Actions -->
-			<Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,10">
+			<Border Grid.Row="2" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,5">
 				<Grid ColumnDefinitions="*, Auto">
-					<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" IsEnabled="{Binding !IsReadOnly}">
+					<!-- Write Mode: Checkboxes -->
+					<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" IsVisible="{Binding !IsReadOnly}">
 						<CheckBox IsChecked="{Binding ShouldPrintOrder}" Content="Print Order"/>
 						<CheckBox IsChecked="{Binding ShouldEmailOrder}" Content="Email Order"/>
-						<!-- Prieview Print Button -->
-						<Button Grid.Column="2" Command="{Binding PreviewOrderCommand}" Classes="Ghost" Margin="15,0,0,0" ToolTip.Tip="Preview PDF">
-							<StackPanel Spacing="10">
-								<PathIcon Data="{StaticResource IconPrintPreview}" Classes="IconStyle" Width="24" Height="24"/>
-								<TextBlock Text="Preview" FontSize="12" VerticalAlignment="Center"/>
+					</StackPanel>
+
+					<!-- Read Mode: Action Buttons -->
+					<StackPanel Orientation="Horizontal" Spacing="15" VerticalAlignment="Center" IsVisible="{Binding IsReadOnly}">
+						<Button Command="{Binding DownloadPrintCommand}" Classes="Ghost" ToolTip.Tip="Print Grayscale Details">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconPrint}" Width="16" Height="16"/>
+								<TextBlock Text="Print" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Command="{Binding EmailOrderCommand}" Classes="Ghost" ToolTip.Tip="Open Color PDF for Emailing">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconEmail}" Width="16" Height="16"/>
+								<TextBlock Text="Email" VerticalAlignment="Center"/>
 							</StackPanel>
 						</Button>
 					</StackPanel>
 
 					<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
-						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" FontWeight="Bold" IsEnabled="{Binding !IsReadOnly}"/>
-						<Button Command="{Binding CancelCommand}" Content="Cancel" Classes="Cancel" />
+						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" IsVisible="{Binding !IsReadOnly}" />
+						<Button Command="{Binding CancelCommand}" Content="{Binding IsReadOnly, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Close|Cancel'}" Classes="Cancel" />
 					</StackPanel>
 
 
@@ -410,6 +442,24 @@
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
 							<Button Content="Cancel" Command="{Binding ToggleQuickAddSupplierCommand}" Classes="Secondary"/>
 							<Button Content="Create" Command="{Binding QuickCreateSupplierCommand}" Classes="Primary"/>
+						</StackPanel>
+					</StackPanel>
+				</Border>
+			</Grid>
+
+			<!-- Quick Add Project Address Overlay -->
+			<Grid Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsAddingProjectAddress, FallbackValue=false}">
+				<Border Background="White" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" Width="400" BoxShadow="0 4 20 0 #40000000">
+					<StackPanel Spacing="15">
+						<TextBlock Text="Update Project Address" FontWeight="Bold" FontSize="16"/>
+                        <TextBlock Text="This allows you to set the default delivery location for the selected project." 
+                                   Foreground="{DynamicResource TextSecondaryGray}" TextWrapping="Wrap" FontSize="12"/>
+                        
+						<TextBox Text="{Binding NewProjectAddress}" Watermark="Enter delivery address..." Classes="FormInput" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
+						
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
+							<Button Content="Cancel" Command="{Binding ToggleAddProjectAddressCommand}" Classes="Secondary"/>
+							<Button Content="Save Address" Command="{Binding SaveProjectAddressCommand}" Classes="Primary"/>
 						</StackPanel>
 					</StackPanel>
 				</Border>

@@ -5,6 +5,6 @@ namespace OCC.Client.Services.Interfaces
 {
     public interface IPdfService
     {
-        Task<string> GenerateOrderPdfAsync(Order order);
+        Task<string> GenerateOrderPdfAsync(Order order, bool isPrintVersion = false);
     }
 }

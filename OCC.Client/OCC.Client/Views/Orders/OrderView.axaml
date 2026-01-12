@@ -17,7 +17,7 @@
 	<Grid RowDefinitions="Auto, Auto, *">
 		<!-- Menu Bar -->
 		<client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
-		<Border Grid.Row="1" Classes="TopHeader">
+		<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="*, Auto" Margin="0">
 				<StackPanel Grid.Column="0" Spacing="5">
 					<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
@@ -27,9 +27,9 @@
 			</Grid>
 		</Border>
 		<!-- Content -->
+
+
 		<!-- Content Area -->
-
-
 		<!-- View Content -->
 		<TransitioningContentControl Grid.Row="2" Content="{Binding CurrentView}">
 			<TransitioningContentControl.PageTransition>
@@ -58,19 +58,19 @@
 		</TransitioningContentControl>
 
 		<!-- Popup Overlay -->
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsOrderDetailVisible}">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsOrderDetailVisible, FallbackValue=false}">
 			<Grid Background="Transparent">
 				<views:CreateOrderView DataContext="{Binding OrderDetailVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>
 		</Grid>
 
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsSupplierDetailVisible}">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsSupplierDetailVisible, FallbackValue=false}">
 			<Grid Background="Transparent">
 				<views:SupplierDetailView DataContext="{Binding SupplierDetailVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>
 		</Grid>
 
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsReceiveOrderVisible}">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsReceiveOrderVisible, FallbackValue=false}">
 			<Grid Background="Transparent">
 				<views:ReceiveOrderView DataContext="{Binding ReceiveOrderVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>

@@ -67,6 +67,19 @@
                 <GradientStop Offset="0.90" Color="#ED985F"/>
             </LinearGradientBrush>
 
+            <LinearGradientBrush x:Key="StructuralConcreteGradient" StartPoint="0%,0%" EndPoint="0%,100%">
+                <GradientStop Offset="0.0" Color="#E2E8F0" /> <!-- Top edge light -->
+                <GradientStop Offset="0.4" Color="#DEDFE2" /> <!-- Main body -->
+                <GradientStop Offset="0.5" Color="#CBD5E1" /> <!-- Subtle pour-line shadow -->
+                <GradientStop Offset="0.51" Color="#DEDFE2" /> <!-- Pour-line highlight -->
+                <GradientStop Offset="1.0" Color="#94A3B8" /> <!-- Deep base -->
+            </LinearGradientBrush>
+
+            <LinearGradientBrush x:Key="WeatheredCementGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Offset="0.0" Color="#F1F5F9" />
+                <GradientStop Offset="1.0" Color="#CBD5E1" />
+            </LinearGradientBrush>
+
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">10</x:Double>
             <x:Double x:Key="FontSizeSmall">12</x:Double>

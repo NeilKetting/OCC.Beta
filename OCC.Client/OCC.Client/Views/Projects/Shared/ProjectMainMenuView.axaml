@@ -8,7 +8,7 @@
 			 x:Class="OCC.Client.Views.Projects.Shared.ProjectMainMenuView"
              x:DataType="vm:ProjectMainMenuViewModel">
 
-	<Border Classes="TopBar">
+	<Border Classes="TopBar" Background="{DynamicResource SurfaceLightGray}">
 		<Grid ColumnDefinitions="*,Auto, *, Auto">
 
 			<!-- Menu Buttons Area -->
@@ -16,14 +16,14 @@
 				<StackPanel.Resources>
 					<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 				</StackPanel.Resources>
-				<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="My Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='My Summary'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="My Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='My Summary'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconSummary}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="PROJECTS" VerticalAlignment="Center"/>
 					</StackPanel>
 				</Button>
 
-				<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Project Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Project Summary'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Project Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Project Summary'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
@@ -32,7 +32,7 @@
 
 				<Separator Background="{DynamicResource BorderGray}" Width="1" Height="24" VerticalAlignment="Center" Margin="5,0"/>
 
-				<Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconList}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="REPORTS" VerticalAlignment="Center"/>

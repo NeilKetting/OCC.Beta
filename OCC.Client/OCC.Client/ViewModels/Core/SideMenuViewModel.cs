@@ -120,6 +120,7 @@ namespace OCC.Client.ViewModels.Core
 
         public bool CanAccessOrders => _permissionService.CanAccess("Orders");
         public bool CanAccessCompanySettings => _permissionService.CanAccess("CompanySettings");
+        public bool IsDeveloper => UserEmail?.Equals("neil@mdk.co.za", StringComparison.OrdinalIgnoreCase) ?? false;
 
         #endregion
 
@@ -210,7 +211,7 @@ namespace OCC.Client.ViewModels.Core
             {
                 if (hasUnread) NotificationIconColor = Avalonia.Media.Brushes.Red;
                 else if (hasPending) NotificationIconColor = Avalonia.Media.Brushes.Orange;
-                else NotificationIconColor = Avalonia.Media.Brushes.Gray; // Default
+                else NotificationIconColor = Avalonia.Media.Brushes.Black; // Default
             });
         }
         

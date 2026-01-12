@@ -159,6 +159,7 @@ namespace OCC.Client
             services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IPdfService, PdfService>();
+            services.AddSingleton<IToastService, ToastService>();
             services.AddSingleton<IProjectManager, ProjectManager>();
 
             // Logging
@@ -239,6 +240,7 @@ namespace OCC.Client
 
             // Settings
             services.AddTransient<CompanySettingsViewModel>();
+            services.AddTransient<ViewModels.Developer.DeveloperViewModel>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

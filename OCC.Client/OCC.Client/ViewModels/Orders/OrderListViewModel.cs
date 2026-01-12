@@ -86,10 +86,20 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private decimal _filteredTotal;
 
+        [ObservableProperty]
+        private string? _selectedBranchFilter = "All"; // Selection string
+
         public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
+        
+        public List<string> BranchFilters { get; } = new List<string> { "All" }.Concat(Enum.GetNames(typeof(Branch))).ToList();
 
         // Helper to convert string back if binding to string
         partial void OnTimeFilterChanged(OrderDateFilter value)
+        {
+            FilterOrders();
+        }
+
+        partial void OnSelectedBranchFilterChanged(string? value)
         {
             FilterOrders();
         }
@@ -141,6 +151,12 @@ namespace OCC.Client.ViewModels.Orders
                 case OrderDateFilter.All:
                 default:
                     break;
+            }
+
+            // 3. Branch Filter
+            if (SelectedBranchFilter != "All" && !string.IsNullOrEmpty(SelectedBranchFilter) && Enum.TryParse<Branch>(SelectedBranchFilter, out var branch))
+            {
+                query = query.Where(o => o.Branch == branch);
             }
 
             var result = query.OrderByDescending(o => o.OrderDate).ToList(); // Sort by newest first

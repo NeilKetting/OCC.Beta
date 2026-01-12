@@ -28,7 +28,7 @@ namespace OCC.Client.Services
              QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public async Task<string> GenerateOrderPdfAsync(Order order)
+        public async Task<string> GenerateOrderPdfAsync(Order order, bool isPrintVersion = false)
         {
             // Fetch company details first (outside background thread to be safe with services)
             var company = await _settingsService.GetCompanyDetailsAsync();
@@ -43,7 +43,7 @@ namespace OCC.Client.Services
                 {
                     if (usePremium)
                     {
-                        ComposePremium(container, order, company);
+                        ComposePremium(container, order, company, isPrintVersion);
                     }
                     else
                     {
@@ -63,22 +63,28 @@ namespace OCC.Client.Services
 
         #region Premium Design
 
-        private void ComposePremium(IDocumentContainer container, Order order, CompanyDetails company)
+        private void ComposePremium(IDocumentContainer container, Order order, CompanyDetails company, bool isPrint)
         {
+            // Effective Colors
+            var effectivePrimary = isPrint ? "#000000" : ColorPrimary;
+            var effectiveLight = isPrint ? "#F5F5F5" : ColorLightOrange;
+
             container.Page(page =>
             {
                 page.Margin(0); // Full bleed for header color
                 page.Size(PageSizes.A4);
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial).FontColor(ColorSecondary));
 
-                page.Header().SkipOnce().Element(c => ComposePremiumHeader(c, order, company));
-                page.Content().PaddingHorizontal(20).PaddingVertical(20).Element(c => ComposePremiumContent(c, order, company));
+                page.Header().SkipOnce().Element(c => ComposePremiumHeader(c, order, company, isPrint));
+                page.Content().PaddingHorizontal(20).PaddingVertical(20).Element(c => ComposePremiumContent(c, order, company, isPrint));
                 page.Footer().PaddingHorizontal(40).PaddingBottom(20).Element(c => ComposePremiumFooter(c, company));
             });
         }
 
-        private void ComposePremiumHeader(IContainer container, Order order, CompanyDetails company)
+        private void ComposePremiumHeader(IContainer container, Order order, CompanyDetails company, bool isPrint)
         {
+            var effectivePrimary = isPrint ? "#000000" : ColorPrimary;
+
             container.PaddingTop(20).PaddingHorizontal(20).Row(row =>
             {
                 // Left: Title and PO Number
@@ -87,7 +93,7 @@ namespace OCC.Client.Services
                    col.Item().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
                        .FontSize(20).ExtraBold().FontColor(Colors.Black); // Smaller font
 
-                   col.Item().Text(order.OrderNumber).FontSize(16).SemiBold().FontColor(ColorPrimary);
+                   col.Item().Text(order.OrderNumber).FontSize(16).SemiBold().FontColor(effectivePrimary);
                 });
 
                 // Right: Logo and Address
@@ -124,7 +130,7 @@ namespace OCC.Client.Services
                      }
                      else
                      {
-                          c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(ColorPrimary);
+                          c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(effectivePrimary);
                      }
                      
                      // Address (Moved from Content)
@@ -140,8 +146,15 @@ namespace OCC.Client.Services
             });
         }
 
-        private void ComposePremiumContent(IContainer container, Order order, CompanyDetails company)
+        private void ComposePremiumContent(IContainer container, Order order, CompanyDetails company, bool isPrint)
         {
+             // Resolve Branch Details once for the entire content
+             var branchDetails = company.Branches.ContainsKey(order.Branch) 
+                 ? company.Branches[order.Branch] 
+                 : company.Branches[Branch.JHB];
+
+             var effectivePrimary = isPrint ? "#000000" : ColorPrimary;
+
              // Master Layout for Page 1 (Includes Header Elements to control spacing)
              container.Column(column =>
              {
@@ -150,15 +163,14 @@ namespace OCC.Client.Services
                      // LEFT COLUMN: Title -> PO -> Supplier -> ShipTo
                      row.ConstantItem(300).Column(col =>
                      {
-                         // 1. Header: Title & PO
-                         // 1. Header: Title (PO Number moved to Meta Row)
+                         // 1. Header: Title
                          col.Item().Text(order.OrderType == OrderType.PurchaseOrder ? "PURCHASE ORDER" : "ORDER")
                             .FontSize(20).ExtraBold().FontColor(Colors.Black);
 
-                         // 2. GAP (Precise control)
+                         // 2. GAP
                          col.Item().Height(15);
 
-                         // 3. Supplier Box (Constrained Width inside this column)
+                         // 3. Supplier Box
                          col.Item().Border(1).BorderColor(Colors.Grey.Lighten2).Column(box =>
                          {
                              box.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text("Supplier").SemiBold();
@@ -166,7 +178,7 @@ namespace OCC.Client.Services
                              {
                                  details.Item().Text(order.SupplierName ?? "Unknown Supplier").SemiBold();
                                  if (!string.IsNullOrEmpty(order.EntityAddress)) details.Item().Text(order.EntityAddress);
-                                 if (!string.IsNullOrEmpty(order.Attention)) details.Item().Text($"Attn: {order.Attention}");
+                                 if (!string.IsNullOrEmpty(order.Attention)) details.Item().Text(t => { t.Span("Attention: ").Bold(); t.Span(order.Attention); });
                                  if (!string.IsNullOrEmpty(order.EntityTel)) details.Item().Text(order.EntityTel);
                              });
                          });
@@ -179,13 +191,17 @@ namespace OCC.Client.Services
                              box.Item().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text("Ship To / Delivery").SemiBold();
                              box.Item().Padding(5).Column(details =>
                              {
-                                 // Hardcoded Address as per requirement
-                                 details.Item().Text("Orange Circle Construction CC").SemiBold();
-                                 details.Item().Text("No.58, Rd 5");
-                                 details.Item().Text("Wydan Business Park");
-                                 details.Item().Text("Brentwood Park");
-                                 details.Item().Text("Benoni");
-                                 details.Item().Text("1510");
+                                 // Resolve Branch Details for Ship To
+                                 var shipBranchDetails = company.Branches.ContainsKey(order.Branch) 
+                                     ? company.Branches[order.Branch] 
+                                     : company.Branches[Branch.JHB];
+
+                                 details.Item().Text(company.CompanyName).SemiBold();
+                                 details.Item().Text(shipBranchDetails.AddressLine1);
+                                 if (!string.IsNullOrEmpty(shipBranchDetails.AddressLine2))
+                                     details.Item().Text(shipBranchDetails.AddressLine2);
+                                 details.Item().Text(shipBranchDetails.City);
+                                 details.Item().Text(shipBranchDetails.PostalCode);
                              });
                          });
                      });
@@ -219,31 +235,41 @@ namespace OCC.Client.Services
                          if (logoBytes != null)
                              c.Item().Height(80).AlignRight().Image(logoBytes).FitArea();
                          else
-                             c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(ColorPrimary);
+                             c.Item().AlignRight().Text(company.CompanyName.ToUpper()).FontSize(20).ExtraBold().FontColor(effectivePrimary);
                          
                          // Address
-                         c.Item().PaddingTop(10).AlignRight().Text(company.CompanyName).Bold();
-                         c.Item().AlignRight().Text(company.FullAddress);
+                         c.Item().PaddingTop(2).AlignRight().Text(company.CompanyName).Bold();
+                         c.Item().AlignRight().Text(branchDetails.AddressLine1);
+                         if (!string.IsNullOrEmpty(branchDetails.AddressLine2))
+                            c.Item().AlignRight().Text(branchDetails.AddressLine2);
+                         c.Item().AlignRight().Text(branchDetails.City);
+                         c.Item().AlignRight().Text(branchDetails.PostalCode);
 
-                         // Reg No moved down. Tel & Email move up.
-                         c.Item().PaddingTop(2).AlignRight().Text($"Tel: {company.Phone}");
-                         c.Item().AlignRight().Text($"Email: {company.Email}");
+                         // Space
+                         c.Item().PaddingTop(8);
+
+                         // Contact Info Group
+                         c.Item().AlignRight().Text(t => { t.Span("Tel: ").SemiBold(); t.Span(branchDetails.Phone); });
+                         if(!string.IsNullOrEmpty(branchDetails.Fax) && branchDetails.Fax != "TBD")
+                             c.Item().AlignRight().Text(t => { t.Span("Fax: ").SemiBold(); t.Span(branchDetails.Fax); });
+                         
+                         // Space
+                         c.Item().PaddingTop(8);
+
+                         foreach(var dept in branchDetails.DepartmentEmails)
+                         {
+                             if (dept.EmailAddress != "TBD")
+                                c.Item().AlignRight().Text(t => { t.Span($"{dept.Department}: ").SemiBold(); t.Span(dept.EmailAddress); });
+                         }
 
                          // Reg No & VAT No Group
-                         c.Item().PaddingTop(20).AlignRight().Column(meta => 
+                         c.Item().PaddingTop(10).AlignRight().Column(meta => 
                          {
                              if(!string.IsNullOrEmpty(company.RegistrationNumber))
                                 meta.Item().AlignRight().Text(t => { t.Span("Reg No: ").SemiBold(); t.Span(company.RegistrationNumber); });
 
                              if(!string.IsNullOrEmpty(company.VatNumber))
                                 meta.Item().AlignRight().Text(t => { t.Span("VAT No: ").SemiBold(); t.Span(company.VatNumber); });
-                         });
-
-                         // Delivery Instructions Block
-                         c.Item().PaddingTop(10).AlignRight().Border(1).BorderColor(Colors.Grey.Lighten2).Width(180).Column(instr =>
-                         {
-                             instr.Item().Background(Colors.Grey.Lighten4).Padding(5).Text("Delivery Instructions").SemiBold().FontSize(9);
-                             instr.Item().Padding(5).Text(order.Notes ?? "Please contact site manager before delivery.").FontSize(9);
                          });
                      });
                  });
@@ -252,32 +278,44 @@ namespace OCC.Client.Services
                  column.Item().PaddingTop(20).Row(row =>
                  {
                      // 1. Project
-                     row.RelativeItem().Text(t => { t.Span("PROJECT: ").SemiBold(); t.Span(order.ProjectName ?? "-"); });
+                     row.RelativeItem(3).Text(t => { t.Span("PROJECT: ").SemiBold(); t.Span(order.ProjectName ?? "-"); });
 
-                     // 2. SOW (Placeholder)
-                     row.RelativeItem().Text(t => { t.Span("SOW: ").SemiBold(); t.Span("Cafe 365"); }); // Temp hardcode to match request style, or use Notes? I'll use text for now.
+                     // 2. SOW
+                     row.RelativeItem(3).Text(t => { t.Span("SOW: ").SemiBold(); t.Span("Cafe 365"); }); 
 
                      // 3. Date
-                     row.RelativeItem().Text(t => { t.Span("DATE: ").SemiBold(); t.Span($"{order.OrderDate:yyyy-MM-dd}"); });
+                     row.RelativeItem(1.5f).Text(t => { t.Span("DATE: ").SemiBold(); t.Span($"{order.OrderDate:yyyy-MM-dd}"); });
 
                      // 4. PO No
-                     row.RelativeItem().AlignRight().Text(t => { t.Span("PO No: ").SemiBold(); t.Span(order.OrderNumber); });
+                     row.RelativeItem(2).AlignRight().Text(t => { t.Span("PO No: ").SemiBold(); t.Span(order.OrderNumber); });
                  });
 
                  // Order Items Table
-                 column.Item().PaddingTop(5).Element(c => ComposePremiumTable(c, order));
+                 column.Item().PaddingTop(5).Element(c => ComposePremiumTable(c, order, isPrint));
 
-                 // Totals
+                 // Bottom Section: Totals and Delivery Instructions
                  column.Item().PaddingTop(20).Row(row => 
                  {
+                     row.ConstantItem(250).Element(c => ComposePremiumDeliveryInstructions(c, order));
                      row.RelativeItem(); // Spacer
-                     row.ConstantItem(250).Element(c => ComposePremiumTotals(c, order));
+                     row.ConstantItem(250).Element(c => ComposePremiumTotals(c, order, isPrint));
                  });
              });
         }
 
-        private void ComposePremiumTable(IContainer container, Order order)
+         private void ComposePremiumDeliveryInstructions(IContainer container, Order order)
+         {
+             container.Border(1).BorderColor(Colors.Grey.Lighten2).Column(instr =>
+             {
+                 instr.Item().Background(Colors.Grey.Lighten4).Padding(5).Text("Delivery Instructions").SemiBold().FontSize(9);
+                 instr.Item().Padding(5).Text(!string.IsNullOrEmpty(order.DeliveryInstructions) ? order.DeliveryInstructions : "Please contact site manager before delivery.").FontSize(9);
+             });
+         }
+
+        private void ComposePremiumTable(IContainer container, Order order, bool isPrint)
         {
+             var effectivePrimary = isPrint ? "#000000" : ColorPrimary;
+
              container.Table(table =>
             {
                 // Define Columns
@@ -295,17 +333,17 @@ namespace OCC.Client.Services
                 // Header
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderStyle).Text("#");
-                    header.Cell().Element(HeaderStyle).Text("Code");
-                    header.Cell().Element(HeaderStyle).Text("Description");
-                    header.Cell().Element(HeaderStyle).AlignRight().Text("Qty");
-                    header.Cell().Element(HeaderStyle).Text("Unit");
-                    header.Cell().Element(HeaderStyle).AlignRight().Text("Rate");
-                    header.Cell().Element(HeaderStyle).AlignRight().Text("Total");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).Text("#");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).Text("Code");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).Text("Description");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).AlignRight().Text("Qty");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).Text("Unit");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).AlignRight().Text("Rate");
+                    header.Cell().Element(c => HeaderStyle(c, effectivePrimary)).AlignRight().Text("Total");
 
-                    static IContainer HeaderStyle(IContainer container)
+                    static IContainer HeaderStyle(IContainer container, string color)
                     {
-                        return container.Background(ColorPrimary).PaddingVertical(8).PaddingHorizontal(5).DefaultTextStyle(x => x.SemiBold().FontColor(Colors.White));
+                        return container.Background(color).PaddingVertical(8).PaddingHorizontal(5).DefaultTextStyle(x => x.SemiBold().FontColor(Colors.White));
                     }
                 });
 
@@ -331,9 +369,12 @@ namespace OCC.Client.Services
             });
         }
 
-        private void ComposePremiumTotals(IContainer container, Order order)
+        private void ComposePremiumTotals(IContainer container, Order order, bool isPrint)
         {
-            container.Background(ColorLightOrange).Padding(15).Column(column =>
+            var effectiveLight = isPrint ? "#F5F5F5" : ColorLightOrange;
+            var effectivePrimary = isPrint ? "#000000" : ColorPrimary;
+
+            container.Background(effectiveLight).Padding(15).Column(column =>
             {
                 column.Item().Row(row =>
                 {
@@ -351,8 +392,8 @@ namespace OCC.Client.Services
 
                 column.Item().Row(row =>
                 {
-                    row.RelativeItem().Text("TOTAL").FontSize(14).ExtraBold().FontColor(ColorPrimary);
-                    row.RelativeItem().AlignRight().Text($"{order.TotalAmount:N2}").FontSize(14).ExtraBold().FontColor(ColorPrimary);
+                    row.RelativeItem().Text("TOTAL").FontSize(14).ExtraBold().FontColor(effectivePrimary);
+                    row.RelativeItem().AlignRight().Text($"{order.TotalAmount:N2}").FontSize(14).ExtraBold().FontColor(effectivePrimary);
                 });
             });
         }

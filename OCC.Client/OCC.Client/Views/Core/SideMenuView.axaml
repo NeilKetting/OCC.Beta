@@ -11,6 +11,7 @@
 			 x:Class="OCC.Client.Views.Core.SideMenuView"
 			 x:DataType="vm:SideMenuViewModel"
 			 Focusable="True"
+			 RenderOptions.BitmapInterpolationMode="HighQuality"
 			 PointerPressed="Sidebar_PointerPressed">
 
 	<!-- Design Time Context -->
@@ -74,11 +75,13 @@
 			</Grid.RowDefinitions>
 
 			<!-- Logo area -->
-			<Grid Grid.Row="0" Background="#000000">
+			<Grid Grid.Row="0">
 				<StackPanel Grid.Row="0" Classes.Collapsed="{Binding IsCollapsed}"
 							DoubleTapped="Sidebar_DoubleTapped"
 							Background="Transparent">
-					<Image Source="/Assets/Images/occ_logo.jpg" Stretch="UniformToFill"/>
+					<Image Source="avares://OCC.Client/Assets/Images/occ_logo.png"
+						   Stretch="Uniform"
+						   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 					<!--<Ellipse Width="40" Height="40" Stroke="{DynamicResource AccentOrange}" StrokeThickness="5"/>
 					<StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsCollapsed}">
 					<TextBlock Text="Orange Circle" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
@@ -101,22 +104,6 @@
 						</StackPanel>
 					</Button>
 
-					<!-- Notifications Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
-						<StackPanel Orientation="Horizontal" Spacing="15">
-							<PathIcon Data="{StaticResource IconNotifications}" Classes="IconStyle" Foreground="{Binding NotificationIconColor}"/>
-							<TextBlock Text="Notifications" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
-							<!-- Red Notification Badge -->
-							<Border Background="Red" CornerRadius="10" MinWidth="20" Height="20"
-									HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,10"
-									IsVisible="{Binding NotificationVM.HasNotifications}">
-
-								<TextBlock Text="{Binding NotificationVM.NotificationCount, FallbackValue=5}" Foreground="White" FontSize="10" FontWeight="Bold"
-										   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,-1"/>
-							</Border>
-						</StackPanel>
-					</Button>
-
 					<!-- Time & Attendance Link -->
 					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Time" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Time'}" HorizontalAlignment="Stretch">
 						<StackPanel Orientation="Horizontal" Spacing="15">
@@ -135,7 +122,7 @@
 					</Button>
 
 					<!-- Projects Link -->
-					<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Portfolio" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Portfolio'}" HorizontalAlignment="Stretch">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Portfolio" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Portfolio'}" HorizontalAlignment="Stretch">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconPortfolio}" Classes="IconStyle"/>
 							<TextBlock Text="Projects" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
@@ -143,17 +130,26 @@
 					</Button>
 
 					<!-- Orders Link -->
-					<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Orders" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Orders'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanAccessOrders}">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Orders" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Orders'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanAccessOrders}">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconDelivery}" Classes="IconStyle"/>
 							<TextBlock Text="Orders" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 
-					<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="HealthSafety" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='HealthSafety'}" HorizontalAlignment="Stretch">
+					<!-- Health & Safety Link -->
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="HealthSafety" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='HealthSafety'}" HorizontalAlignment="Stretch">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconHealthSafety}" Classes="IconStyle"/>
 							<TextBlock Text="Health &amp; Safety" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+
+					<!-- Developer Link -->
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Developer" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Developer'}" HorizontalAlignment="Stretch" IsVisible="{Binding IsDeveloper}">
+						<StackPanel Orientation="Horizontal" Spacing="15">
+							<PathIcon Data="{StaticResource IconCode}" Classes="IconStyle" Foreground="{DynamicResource AccentOrange}"/>
+							<TextBlock Text="Developer" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
 						</StackPanel>
 					</Button>
 				</StackPanel>
@@ -161,10 +157,24 @@
 
 			<!-- Bottom Action Section (New, Help, Settings, Profile) -->
 			<StackPanel Grid.Row="3" Margin="0,10">
+				<!-- Notifications Link -->
+				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
+					<StackPanel Orientation="Horizontal" Spacing="15">
+						<PathIcon Data="{StaticResource IconNotifications}" Classes="IconStyle" Foreground="{Binding NotificationIconColor}"/>
+						<TextBlock Text="Notifications" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+						<!-- Red Notification Badge -->
+						<Border Background="Red" CornerRadius="10" MinWidth="20" Height="20"
+								HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,10"
+								IsVisible="{Binding NotificationVM.HasNotifications}">
 
+							<TextBlock Text="{Binding NotificationVM.NotificationCount, FallbackValue=5}" Foreground="White" FontSize="10" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,-1"/>
+						</Border>
+					</StackPanel>
+				</Button>
 				<!-- 'New' Quick Actions Button with Popup -->
 				<Grid>
-					<Button x:Name="ActionsButton" Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding ToggleQuickActionsCommand}">
+					<Button x:Name="ActionsButton" Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding ToggleQuickActionsCommand}">
 						<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 							<PathIcon Data="{StaticResource IconNew}" Classes="IconStyle"/>
 							<TextBlock Text="New" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
@@ -176,7 +186,7 @@
 				</Grid>
 
 				<!-- Help Button -->
-				<Button Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
+				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
 					<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 						<PathIcon Data="{StaticResource IconHelp}" Classes="IconStyle"/>
 						<TextBlock Text="Help" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
@@ -185,7 +195,7 @@
 
 				<!-- Settings Navigation Button -->
 				<Grid>
-					<Button x:Name="SettingsNavButton" Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding ToggleSettingsCommand}" HorizontalAlignment="Stretch">
+					<Button x:Name="SettingsNavButton" Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding ToggleSettingsCommand}" HorizontalAlignment="Stretch">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconGear}" Classes="IconStyle"/>
 							<TextBlock Text="Settings" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
@@ -199,7 +209,7 @@
 				<!-- User Profile Button with Settings Popup -->
 				<!-- User Profile Button with Preferences Popup -->
 				<Grid>
-					<Button x:Name="ProfileButton" Classes="SidebarButton" Classes.Collapsed="{Binding IsCollapsed}" HorizontalAlignment="Stretch" Command="{Binding TogglePreferencesCommand}">
+					<Button x:Name="ProfileButton" Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" HorizontalAlignment="Stretch" Command="{Binding TogglePreferencesCommand}">
 						<Grid ColumnDefinitions="Auto, *">
 							<Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource PrimaryTeal}">
 								<TextBlock Text="{Binding UserInitials}" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>

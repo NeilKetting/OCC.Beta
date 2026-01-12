@@ -10,6 +10,7 @@ namespace OCC.Client.Services.Infrastructure
         private HubConnection _hubConnection = null!;
 
         public event Action<string>? OnNotificationReceived;
+        public event Action<string, string>? OnBroadcastReceived;
 
         private readonly IServiceProvider _serviceProvider;
         private readonly Services.Interfaces.IAuthService _authService;
@@ -40,6 +41,11 @@ namespace OCC.Client.Services.Infrastructure
             _hubConnection.On<string>("ReceiveNotification", (message) =>
             {
                 OnNotificationReceived?.Invoke(message);
+            });
+
+            _hubConnection.On<string, string>("ReceiveBroadcast", (sender, message) =>
+            {
+                OnBroadcastReceived?.Invoke(sender, message);
             });
 
             _hubConnection.On<string, string, Guid>("EntityUpdate", (entityType, action, id) =>
@@ -100,6 +106,14 @@ namespace OCC.Client.Services.Infrastructure
             if (_hubConnection.State == HubConnectionState.Connected)
             {
                 await _hubConnection.InvokeAsync("UpdateStatus", status);
+            }
+        }
+
+        public async Task SendBroadcastMessageAsync(string sender, string message)
+        {
+            if (_hubConnection.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.InvokeAsync("SendBroadcast", sender, message);
             }
         }
 

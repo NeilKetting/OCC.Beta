@@ -39,7 +39,10 @@
 
 				<Rectangle Grid.Column="2" Fill="{DynamicResource AccentOrange}" />
 				<!-- logo -->
-                <Image Source="avares://OCC.Client/Assets/Images/occ_logo.png" Width="300"/>
+                <Image Source="avares://OCC.Client/Assets/Images/occ_logo.png" 
+					   Width="300" 
+					   Stretch="Uniform"
+					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 
 				<!--<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Top" Margin="20">
 					<Border Classes="LogoContainer">

@@ -17,7 +17,7 @@
 					<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 				</StackPanel.Resources>
 
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
@@ -28,7 +28,7 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="All Orders" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
@@ -39,7 +39,7 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="Inventory" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
@@ -50,7 +50,7 @@
 					</StackPanel>
 				</Button>
 				
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="ItemList" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
@@ -61,7 +61,7 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="Suppliers" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
@@ -72,7 +72,7 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="TabButton"
+				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="New Order" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},

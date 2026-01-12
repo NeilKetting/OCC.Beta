@@ -57,15 +57,14 @@
             </DataGrid.Styles>
             
             <DataGrid.Columns>
-                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="2*" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="*" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="*" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="VAT NO" Binding="{Binding VatNumber}" Width="*" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="CITY" Binding="{Binding City}" Width="*" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="VAT NO" Binding="{Binding VatNumber}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="CITY" Binding="{Binding City}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 
                 <!-- Actions -->
-                <!-- Actions -->
-                <DataGridTemplateColumn Width="Auto">
+                <DataGridTemplateColumn Header="ACTIONS" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Classes="IconButton" Margin="0,0,20,0">

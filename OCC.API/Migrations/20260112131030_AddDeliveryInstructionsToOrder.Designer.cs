@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OCC.API.Data;
 
@@ -11,9 +12,11 @@ using OCC.API.Data;
 namespace OCC.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260112131030_AddDeliveryInstructionsToOrder")]
+    partial class AddDeliveryInstructionsToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -444,9 +447,6 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Branch")
-                        .HasColumnType("int");
-
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
@@ -801,79 +801,79 @@ namespace OCC.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1a788cd3-48f7-4ff7-adae-3128a5f29048"),
+                            Id = new Guid("230f941b-da63-4f63-b407-bb96f788d16a"),
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "New Year's Day"
                         },
                         new
                         {
-                            Id = new Guid("190dd184-2386-4dd1-8bda-e3a365fb8966"),
+                            Id = new Guid("72eb0d4b-da4d-4021-a106-87e270666a7c"),
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Human Rights Day"
                         },
                         new
                         {
-                            Id = new Guid("046f40ba-d525-4695-a240-d4df56e9a490"),
+                            Id = new Guid("f8b6f5e0-6870-455a-bba2-502d2c6b8f89"),
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Good Friday"
                         },
                         new
                         {
-                            Id = new Guid("dd68766f-f24b-4aa0-b019-89a42db0361b"),
+                            Id = new Guid("9d63d7b2-2222-4ffb-81c0-39055a86806d"),
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Family Day"
                         },
                         new
                         {
-                            Id = new Guid("ea57dfb8-99b4-4d5c-acc3-b16e008261e4"),
+                            Id = new Guid("ffb0835c-4c2a-4668-ac76-d60f6182bf5e"),
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Freedom Day"
                         },
                         new
                         {
-                            Id = new Guid("00d57aaa-0972-4f80-a53d-66d89b969cd7"),
+                            Id = new Guid("dc225787-5249-4457-833f-ecf327eccaae"),
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Workers' Day"
                         },
                         new
                         {
-                            Id = new Guid("27df65ec-0dd3-450c-940d-953e91fa754d"),
+                            Id = new Guid("81b7e200-f5bd-4d90-83f0-a4a3f0a5290d"),
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Youth Day"
                         },
                         new
                         {
-                            Id = new Guid("cef15b79-5b2f-4e5c-a227-0ed76229bcaf"),
+                            Id = new Guid("55443b2f-bedb-484f-a67c-a3eb3671db72"),
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "National Women's Day"
                         },
                         new
                         {
-                            Id = new Guid("1a7937b8-eee9-46ba-8b7f-aab2d249e5da"),
+                            Id = new Guid("467320e1-891f-438e-b4dd-e746c5fe6010"),
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Public Holiday"
                         },
                         new
                         {
-                            Id = new Guid("fa281597-89e2-4681-9595-5fa9e2e5b7e2"),
+                            Id = new Guid("e9335403-69a5-44bc-9dc0-cf9ddfe554f2"),
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Heritage Day"
                         },
                         new
                         {
-                            Id = new Guid("9839d0cd-c209-4226-af73-743f556b85d5"),
+                            Id = new Guid("b634f6e0-fc8e-432b-8e0a-6fdc39209e24"),
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Reconciliation"
                         },
                         new
                         {
-                            Id = new Guid("04676fc9-2dd8-4c5d-989c-6338a16a6129"),
+                            Id = new Guid("49b14b26-235e-4869-ba0d-76f9c06c2ed3"),
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Christmas Day"
                         },
                         new
                         {
-                            Id = new Guid("4d8ea53d-c8a2-4e1e-b006-2cc600f2d494"),
+                            Id = new Guid("3497b999-1314-4427-bddd-8146c6443830"),
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Goodwill"
                         });

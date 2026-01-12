@@ -38,7 +38,6 @@ namespace OCC.Client.Converters
                  // Assuming usage in Border Background mainly
                  return orderStatus switch
                  {
-                     OrderStatus.Draft => Brushes.LightGray,
                      OrderStatus.Ordered => Brushes.Orange,
                      OrderStatus.PartialDelivery => Brushes.LightBlue,
                      OrderStatus.Completed => Brushes.LightGreen,

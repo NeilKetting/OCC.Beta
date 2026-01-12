@@ -40,16 +40,17 @@
 
 	<Grid>
 		<!-- Main Layout -->
-		<Grid RowDefinitions="60, Auto, *" Background="{DynamicResource AppBackgroundSlate}">
+		<Grid RowDefinitions="40, Auto, *">
+			
 			<!-- Top Bar -->
 			<homeShared:HomeMenuView Grid.Row="0" DataContext="{Binding HomeMenu}"/>
 
 			<!-- Greeting Area -->
-			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource SurfaceLightGray}" Margin="0">
-				<StackPanel Spacing="5" Margin="20,20">
+			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="0">
+				<StackPanel Spacing="5" Margin="0">
 					<TextBlock Text="{Binding Greeting, FallbackValue='Good day, User'}"
 							   FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-					<TextBlock Text="{Binding CurrentDate, FallbackValue='1st Jan 2026'}" 
+					<TextBlock Text="{Binding CurrentDate, FallbackValue='1st Jan 2026'}"
 							   Foreground="{DynamicResource TextPrimaryDark}" FontSize="14"/>
 				</StackPanel>
 			</Border>
@@ -63,7 +64,7 @@
 		</Grid>
 
 		<!-- Overlay Layers -->
-		
+
 		<!-- Task Detail Overlay -->
 		<Grid
 		IsVisible="{Binding IsTaskDetailVisible}"
@@ -72,8 +73,8 @@
 		Name="OverlayGrid"
 		PointerPressed="OnOverlayPointerPressed">
 			<viewWidgets:TaskDetailView x:Name="TaskDetailView" DataContext="{Binding CurrentTaskDetail}"
-									  Width="1000"
-									  HorizontalAlignment="Right"/>
+										Width="1000"
+										HorizontalAlignment="Right"/>
 		</Grid>
 
 		<!-- Create Project Overlay -->
@@ -84,14 +85,14 @@
 											HorizontalAlignment="Center"
 											VerticalAlignment="Center"/>
 		</Grid>
-		
+
 		<!-- New Task Popup Overlay -->
 		<Grid
 		IsVisible="{Binding IsNewTaskPopupVisible}"
 		Background="#40000000">
 			<viewWidgets:NewTaskPopupView DataContext="{Binding NewTaskPopup}"
-										HorizontalAlignment="Center"
-										VerticalAlignment="Center"/>
+										  HorizontalAlignment="Center"
+										  VerticalAlignment="Center"/>
 		</Grid>
 
 	</Grid>

@@ -101,5 +101,47 @@
                 </Grid>
             </Border>
         </Grid>
+
+        <!-- Toast Notifications Overlay (Bottom Right) -->
+        <ItemsControl Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" 
+                      Margin="0,0,20,50" ItemsSource="{Binding Toasts}" ZIndex="200">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="10"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="White" CornerRadius="8" Padding="15,10" 
+                            BoxShadow="0 4 15 0 #20000000" Width="300"
+                            Opacity="{Binding Opacity}"
+                            BorderThickness="4,0,0,0"
+                            Classes.Info="{Binding IsInfo}"
+                            Classes.Success="{Binding IsSuccess}"
+                            Classes.Warning="{Binding IsWarning}"
+                            Classes.Error="{Binding IsError}">
+                        <Border.Styles>
+                            <Style Selector="Border.Info"> <Setter Property="BorderBrush" Value="#3B82F6"/> </Style>
+                            <Style Selector="Border.Success"> <Setter Property="BorderBrush" Value="#10B981"/> </Style>
+                            <Style Selector="Border.Warning"> <Setter Property="BorderBrush" Value="#F59E0B"/> </Style>
+                            <Style Selector="Border.Error"> <Setter Property="BorderBrush" Value="#EF4444"/> </Style>
+                        </Border.Styles>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <PathIcon Grid.Column="0" Width="20" Height="20" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <PathIcon.Styles>
+                                    <!-- Simple manual mapping since I don't want to create a converter for this quick task -->
+                                    <!-- I'll use a converter for the Data if possible or just default to Info -->
+                                    <Style Selector="PathIcon"> <Setter Property="Data" Value="{StaticResource IconInfo}"/> <Setter Property="Foreground" Value="#3B82F6"/> </Style>
+                                </PathIcon.Styles>
+                            </PathIcon>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13"/>
+                                <TextBlock Text="{Binding Message}" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 	</Grid>
 </UserControl>

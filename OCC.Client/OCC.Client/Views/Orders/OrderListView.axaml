@@ -34,6 +34,10 @@
                         <Border Width="1" Height="20" Background="{DynamicResource ThemeBorderLow}"/>
                     </StackPanel>
 
+                    <ComboBox ItemsSource="{Binding BranchFilters}" 
+                              SelectedItem="{Binding SelectedBranchFilter}"
+                              Width="100" Classes="FormInput"/>
+
                     <ComboBox ItemsSource="{Binding TimeFilters}" 
                               SelectedIndex="{Binding TimeFilter, Mode=TwoWay, Converter={StaticResource EnumToIntConverter}}"
                               Width="140" Classes="FormInput"/>
@@ -60,14 +64,14 @@
             </Interaction.Behaviors>
             
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="*" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="TYPE" Binding="{Binding OrderType}" Width="0.8*" Foreground="{DynamicResource TextSecondaryDark}"/>
-                <DataGridTextColumn Header="ENTITY" Binding="{Binding SupplierName}" Width="1.5*" Foreground="{DynamicResource TextPrimaryDark}"/>
-                <DataGridTextColumn Header="DATE" Binding="{Binding OrderDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="*" Foreground="{DynamicResource TextSecondaryDark}"/>
-                <DataGridTextColumn Header="DESTINATION" Binding="{Binding DestinationDisplay}" Width="1.2*" Foreground="{DynamicResource TextSecondaryDark}"/>
-                <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" Width="*" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                
-                <DataGridTemplateColumn Header="STATUS" Width="*">
+                <DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="BRANCH" Binding="{Binding Branch}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+                <DataGridTextColumn Header="TYPE" Binding="{Binding OrderType}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+                <DataGridTextColumn Header="Supplier" Binding="{Binding SupplierName}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTextColumn Header="DATE" Binding="{Binding OrderDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+                <DataGridTextColumn Header="DESTINATION" Binding="{Binding DestinationDisplay}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+                <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                <DataGridTemplateColumn Header="STATUS" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                              <Border CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -79,12 +83,12 @@
                 </DataGridTemplateColumn>
 
                 <!-- Actions -->
-                <DataGridTemplateColumn Width="Auto">
+                <DataGridTemplateColumn Header="ACTIONS" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <Button Classes="IconButton" ToolTip.Tip="Edit/View">
-                                    <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
+                                    <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
                                 </Button>
                                 <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:OrderListViewModel)DataContext).RequestReceiveOrderCommand}" CommandParameter="{Binding .}" ToolTip.Tip="Receive Items">
                                      <PathIcon Data="{StaticResource IconCart}" Width="16" Height="16" Foreground="{DynamicResource PrimaryTeal}"/>
