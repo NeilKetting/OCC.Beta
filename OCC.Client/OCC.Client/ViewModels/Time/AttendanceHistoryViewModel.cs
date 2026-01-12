@@ -56,7 +56,7 @@ namespace OCC.Client.ViewModels.Time
         private double _totalHours;
 
         [ObservableProperty]
-        private bool _isLoading;
+        private bool _isBusy;
 
         [ObservableProperty]
         private string _searchText = string.Empty;
@@ -283,8 +283,8 @@ namespace OCC.Client.ViewModels.Time
 
         private async Task LoadData()
         {
-            if (IsLoading) return;
-            IsLoading = true;
+            if (IsBusy) return;
+            IsBusy = true;
             try
             {
                 var s = StartDate.DateTime;
@@ -326,7 +326,7 @@ namespace OCC.Client.ViewModels.Time
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
     }

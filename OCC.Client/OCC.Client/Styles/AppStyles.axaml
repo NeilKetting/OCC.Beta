@@ -210,6 +210,22 @@
 		<Setter Property="Foreground" Value="#EF4444"/>
 	</Style>
 
+	<!-- Success Button -->
+	<Style Selector="Button.SuccessButton">
+		<Setter Property="Padding" Value="10,5"/>
+		<Setter Property="FontSize" Value="12"/>		
+		<Setter Property="Background" Value="#5cb85c"/>
+		<Setter Property="Foreground" Value="White"/>
+	</Style>
+
+	<!-- Danger Button -->
+	<Style Selector="Button.DangerButton">
+		<Setter Property="Padding" Value="10,5"/>
+		<Setter Property="FontSize" Value="12"/>		
+		<Setter Property="Background" Value="#ff0e0e"/>
+		<Setter Property="Foreground" Value="White"/>
+	</Style>
+
 	<!-- Social Button (Auth) -->
 	<Style Selector="Button.Social">
 		<Setter Property="Background" Value="{DynamicResource AppBackgroundSlate}" />

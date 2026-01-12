@@ -84,6 +84,12 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             NewTaskRequested?.Invoke(this, EventArgs.Empty);
         }
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         #endregion
 
         #region Methods
@@ -92,6 +98,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
             try 
             {
+                BusyText = "Loading tasks...";
+                IsBusy = true;
                 var tasks = await _taskRepository.GetAllAsync();
                 
                 // 1. Group by Project
@@ -138,6 +146,10 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading task list tree");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

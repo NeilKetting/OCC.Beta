@@ -135,6 +135,15 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
 
+        [ObservableProperty]
+        private bool _isShowingAllSubtasks;
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         #endregion
 
         #region Properties
@@ -363,6 +372,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 try 
                 {
+                    BusyText = "Saving employee details...";
+                    IsBusy = true; // Added IsBusy
                     if (_existingStaffId.HasValue)
                     {
                         await _staffRepository.UpdateAsync(staff);
@@ -376,6 +387,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 {
                     await _dialogService.ShowAlertAsync("Error", $"Failed to save employee: {ex.Message}");
                     return;
+                }
+                finally
+                {
+                    IsBusy = false; // Added IsBusy
                 }
             }
             

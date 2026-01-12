@@ -27,7 +27,7 @@
 
     <Grid RowDefinitions="Auto, *">
         <!-- Header / Toolbar -->
-        <Border Grid.Row="0" Padding="20" Background="White" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Padding="20" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*, Auto">
                 <StackPanel Spacing="5">
                     <TextBlock Text="Product Catalog" Classes="H1"/>
@@ -35,6 +35,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                    <Button Classes="Primary" Content="Add Item" Command="{Binding AddItemCommand}"/>
                     <TextBox Width="200" Watermark="Search items..." Text="{Binding SearchQuery}" Classes="FormInput"/>
                     <Button Command="{Binding RefreshCommand}" Classes="Secondary" ToolTip.Tip="Refresh List">
                         <PathIcon Data="{StaticResource IconHistory}" />
@@ -87,8 +88,8 @@
             
             <!-- Loading -->
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
-                <ProgressBar IsIndeterminate="True" Width="200"/>
-                <TextBlock Text="Loading Items..." HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+                <TextBlock Text="Loading Items..." HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
             </StackPanel>
             
             <!-- Empty State -->
@@ -99,8 +100,8 @@
         </Grid>
 
         <!-- Edit Overlay -->
-        <Grid Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBackground}" IsVisible="{Binding IsDetailVisible}">
-            <views:InventoryDetailView DataContext="{Binding DetailViewModel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Grid Grid.Row="0" Grid.RowSpan="2" Background="{StaticResource OverlayBackground}" IsVisible="{Binding IsDetailVisible, FallbackValue=false}">
+            <views:ItemDetailView DataContext="{Binding DetailViewModel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>
 </UserControl>

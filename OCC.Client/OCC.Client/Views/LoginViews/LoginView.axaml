@@ -33,13 +33,13 @@
 			<Grid ColumnDefinitions = "*,*,*">
 				<Rectangle Grid.Column="0" Fill="{DynamicResource LoginBackgroundDark}" />
 				<Image Grid.Column="1" Source="/Assets/Images/occ_bgi.jpg"
-					   Stretch="UniformToFill" />
+					   RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="UniformToFill" />
 				<!-- Dark Overlay -->
 				<Rectangle Grid.Column="1" Fill="{DynamicResource LoginBackgroundDark}" Opacity="0.40" />
 
 				<Rectangle Grid.Column="2" Fill="{DynamicResource AccentOrange}" />
 				<!-- logo -->
-                <Image Source="avares://OCC.Client/Assets/Images/occ_logo.png" 
+                <Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png" 
 					   Width="300" 
 					   Stretch="Uniform"
 					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
@@ -81,11 +81,13 @@
 										   Foreground="{DynamicResource LoginTextDark}"/>
 
 								<StackPanel Spacing="10">
-									<TextBox Text="{Binding Email}"
+									<TextBox x:Name="EmailInput"
+											 Text="{Binding Email}"
 											 VerticalContentAlignment="Center"
 											 Watermark="Email address"/>
 
-									<TextBox Text="{Binding Password}"
+									<TextBox x:Name="PasswordInput"
+											 Text="{Binding Password}"
 											 Watermark="Password"
 											 VerticalContentAlignment="Center"
 											 PasswordChar="*"/>

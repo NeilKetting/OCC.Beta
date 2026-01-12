@@ -148,12 +148,18 @@
 			</ScrollViewer>
 
 			<!-- Footer -->
-			<Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="15">
+			<Border Grid.Row="2" Background="#F8FAFC" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="10">
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
-					<Button Command="{Binding CancelCommand}" Content="Cancel" Classes="Secondary"/>
+					<Button Command="{Binding CancelCommand}" Content="Cancel" Classes="Cancel"/>
 					<Button Command="{Binding SaveCommand}" Content="Save Supplier" Classes="Primary" />
 				</StackPanel>
 			</Border>
+
+            <!-- Loading -->
+            <StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+                <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+            </StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

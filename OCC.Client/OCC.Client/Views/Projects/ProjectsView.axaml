@@ -12,7 +12,7 @@
 
 	<Grid>
 		<!-- Main Layout -->
-		<Grid RowDefinitions="60, Auto, *" Background="{DynamicResource AppBackgroundSlate}">
+		<Grid RowDefinitions="Auto, Auto, *" Background="{DynamicResource AppBackgroundSlate}">
 			<!-- Top Bar -->
 			<projectShared:ProjectMainMenuView Grid.Row="0" DataContext="{Binding ProjectMainMenu}"/>
 			

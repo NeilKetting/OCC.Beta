@@ -20,7 +20,7 @@ namespace OCC.Client.Views.Orders
 
         private void SkuBox_LostFocus(object? sender, RoutedEventArgs e)
         {
-            if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
+            if (DataContext is CreateOrderViewModel vm && sender is ComboBox box)
             {
                 // Only validate if text is present and NO item is selected
                 if (!string.IsNullOrWhiteSpace(box.Text) && vm.SelectedInventoryItem == null)
@@ -35,7 +35,7 @@ namespace OCC.Client.Views.Orders
             if (e.Key == Key.Enter || e.Key == Key.Return)
             {
                  // Force validation on Enter
-                 if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
+                 if (DataContext is CreateOrderViewModel vm && sender is ComboBox box)
                  {
                      if (!string.IsNullOrWhiteSpace(box.Text))
                      {
@@ -47,7 +47,7 @@ namespace OCC.Client.Views.Orders
 
         private void ProductBox_LostFocus(object? sender, RoutedEventArgs e)
         {
-            if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
+            if (DataContext is CreateOrderViewModel vm && sender is ComboBox box)
             {
                 if (!string.IsNullOrWhiteSpace(box.Text) && vm.SelectedInventoryItem == null)
                 {
@@ -60,7 +60,7 @@ namespace OCC.Client.Views.Orders
         {
             if (e.Key == Key.Enter || e.Key == Key.Return)
             {
-                 if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
+                 if (DataContext is CreateOrderViewModel vm && sender is ComboBox box)
                  {
                      if (!string.IsNullOrWhiteSpace(box.Text))
                      {

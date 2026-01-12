@@ -26,7 +26,7 @@ namespace OCC.API.Hubs
                 _connectedUsers.TryAdd(id, info);
                 await BroadcastUserList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log?
             }
@@ -66,6 +66,11 @@ namespace OCC.API.Hubs
         public async Task SendNotification(string message)
         {
             await Clients.All.SendAsync("ReceiveNotification", message);
+        }
+
+        public async Task SendBroadcast(string sender, string message)
+        {
+            await Clients.All.SendAsync("ReceiveBroadcast", sender, message);
         }
 
         public async Task UpdateStatus(string status)

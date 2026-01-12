@@ -17,9 +17,10 @@ namespace OCC.Shared.Models
         
         public string Sku { get; set; } = string.Empty;
         public decimal AverageCost { get; set; }
+        public bool TrackLowStock { get; set; } = true;
 
         // Status
-        public InventoryStatus Status => QuantityOnHand <= ReorderPoint ? InventoryStatus.Low : InventoryStatus.OK;
+        public InventoryStatus Status => TrackLowStock && QuantityOnHand <= ReorderPoint ? InventoryStatus.Low : InventoryStatus.OK;
         
         // Alias for View Binding compatibility
         public InventoryStatus InventoryStatus => Status;

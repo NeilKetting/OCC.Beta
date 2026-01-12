@@ -332,12 +332,18 @@
 			<Grid Grid.Row="2" Height="2" Background="{DynamicResource PrimaryTeal}">
 			</Grid>
 			<!-- Action Buttons -->
-			<StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Left">
-				<Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="Primary"
-						ToolTip.Tip="Save employee details to database"/>
+			<StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Right">
 				<Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"
 						ToolTip.Tip="Discard changes and close"/>
+				<Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="Primary"
+						ToolTip.Tip="Save employee details to database"/>
 			</StackPanel>
+
+            <!-- Loading -->
+            <StackPanel Grid.RowSpan="4" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+                <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+            </StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

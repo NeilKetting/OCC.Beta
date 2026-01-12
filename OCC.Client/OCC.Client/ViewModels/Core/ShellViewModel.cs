@@ -320,6 +320,10 @@ namespace OCC.Client.ViewModels.Core
                     else if (orderVM.IsSupplierDetailVisible) viewName = "SupplierDetailView";
                     else if (orderVM.CurrentView != null) viewName = orderVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
                 }
+                else if (CurrentPage is ViewModels.Orders.ItemListViewModel itemListVM && itemListVM.IsDetailVisible)
+                {
+                    viewName = "ItemDetailView";
+                }
                 else if (CurrentPage is ViewModels.Home.Calendar.CalendarViewModel calVM && calVM.IsCreatePopupVisible)
                 {
                     viewName = "CreateTaskPopupView";
@@ -471,7 +475,7 @@ namespace OCC.Client.ViewModels.Core
                 // Let's try to simulate navigating to "Orders/Inventory" but forcing the detail view?
                 
                 // Better approach: Open InventoryDetailViewModel as the CurrentPage.
-                var vm = _serviceProvider.GetRequiredService<ViewModels.Orders.InventoryDetailViewModel>();
+                var vm = _serviceProvider.GetRequiredService<ViewModels.Orders.ItemDetailViewModel>();
                 
                 // Setup for creation with pre-filled SKU/Name
                 if (payload is string searchTerm)

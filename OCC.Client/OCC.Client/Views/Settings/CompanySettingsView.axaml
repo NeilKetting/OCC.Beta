@@ -27,7 +27,7 @@
                         <TextBlock Text="Company Profile" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
                         <TextBlock Text="Manage company details and settings." FontSize="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     </StackPanel>
-                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="IconButton" VerticalAlignment="Top" ToolTip.Tip="Close">
+                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="IconButtonClose" VerticalAlignment="Top" ToolTip.Tip="Close">
                         <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
                     </Button>
                 </Grid>
@@ -60,10 +60,7 @@
                                 <TextBox Text="{Binding CompanyDetails.VatNumber}" Classes="FormInput" Watermark="e.g. 4123456789"/>
                             </StackPanel>
 
-                             <StackPanel>
-                                <TextBlock Text="Phone Number" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.Phone}" Classes="FormInput" Watermark="e.g. +27 11 123 4567"/>
-                            </StackPanel>
+
 
                             <StackPanel>
                                 <TextBlock Text="Email Address" Classes="FormLabel"/>
@@ -113,6 +110,17 @@
                             <!-- Helper Text -->
                             <TextBlock Text="{Binding SelectedBranch, StringFormat='Editing details for {0} Branch'}" 
                                        FontSize="12" Foreground="{DynamicResource PrimaryTeal}" FontStyle="Italic"/>
+
+                            <Grid ColumnDefinitions="*, 10, *">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Branch Phone" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding CurrentBranchDetails.Phone}" Classes="FormInput" Watermark="Phone Number"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Branch Fax" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding CurrentBranchDetails.Fax}" Classes="FormInput" Watermark="Fax Number"/>
+                                </StackPanel>
+                            </Grid>
 
                             <StackPanel>
                                 <TextBlock Text="Address Line 1" Classes="FormLabel"/>
@@ -210,8 +218,8 @@
             <Grid Grid.Row="2" Height="2" Background="{DynamicResource PrimaryTeal}"/>
 
             <!-- Action Buttons -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Left">
-                <Button Content="Close" Command="{Binding CloseCommand}" Classes="Secondary" ToolTip.Tip="Close Settings"/>
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Right">
+                <Button Content="Close" Command="{Binding CloseCommand}" Classes="Cancel" ToolTip.Tip="Close Settings"/>
                 <Button Content="Save Changes" Command="{Binding SaveCommand}" Classes="Primary" ToolTip.Tip="Save company details"/>
             </StackPanel>
         </Grid>

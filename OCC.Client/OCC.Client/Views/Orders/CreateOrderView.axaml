@@ -13,7 +13,7 @@
 
 	<UserControl.Resources>
 		<conv:MathConverter x:Key="MathConverter" />
-        <conv:BoolToTextConverter x:Key="BoolToTextConverter" />
+		<conv:BoolToTextConverter x:Key="BoolToTextConverter" />
 	</UserControl.Resources>
 
 	<Design.DataContext>
@@ -26,14 +26,14 @@
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.FormInput">
-			<Setter Property="Height" Value="22"/>
-			<Setter Property="Padding" Value="8,3"/>
+			<Setter Property="Height" Value="32"/>
+			<Setter Property="Padding" Value="8,5"/>
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
 		<Style Selector="ComboBox">
-			<Setter Property="Height" Value="22"/>
-			<Setter Property="Padding" Value="8,3"/>
+			<Setter Property="Height" Value="32"/>
+			<Setter Property="Padding" Value="8,5"/>
 			<Setter Property="FontSize" Value="12"/>
 			<Setter Property="VerticalContentAlignment" Value="Center"/>
 		</Style>
@@ -230,35 +230,36 @@
 
 							<!-- Entry Row -->
 							<Border Background="#F1F5F9" Padding="10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
-								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">									
-									<!-- Inventory Select / SKU -->
-									<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
-										<!-- SKU Input -->
-										<AutoCompleteBox Grid.Column="0" ItemsSource="{Binding InventoryItems}" 
-														 SelectedItem="{Binding SelectedInventoryItem}"
-														 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
-														 Width="80"
-														 Watermark="SKU"
-														 FilterMode="StartsWith"
-														 LostFocus="SkuBox_LostFocus"
-														 KeyUp="SkuBox_KeyUp"
-                                                         x:Name="SkuBox"/>
+								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
+								<!-- Inventory Select / SKU -->
+								<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
+									<ComboBox Grid.Column="0" ItemsSource="{Binding FilteredInventoryItemsBySku}"
+											  SelectedItem="{Binding SelectedInventoryItem}"
+											  Text="{Binding SkuSearchText}"
+											  Width="80"
+											  PlaceholderText="SKU"
+											  IsEditable="True"
+											  DisplayMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+											  LostFocus="SkuBox_LostFocus"
+											  KeyUp="SkuBox_KeyUp"
+											  x:Name="SkuBox"/>
 
-										<!-- Product Select -->
-										<AutoCompleteBox Grid.Column="2" ItemsSource="{Binding InventoryItems}" 
-														 SelectedItem="{Binding SelectedInventoryItem}"
-														 ValueMemberBinding="{Binding ProductName, DataType=models:InventoryItem}"
-														 Watermark="Select Product..."
-														 FilterMode="Contains"
-														 LostFocus="ProductBox_LostFocus"
-														 KeyUp="ProductBox_KeyUp"
-                                                         x:Name="ProductBox"/>
+									<!-- Product Select -->
+									<ComboBox Grid.Column="2" ItemsSource="{Binding FilteredInventoryItemsByName}"
+											  SelectedItem="{Binding SelectedInventoryItem}"
+											  Text="{Binding ProductSearchText}"
+											  PlaceholderText="Select Product..."
+											  IsEditable="True"
+											  DisplayMemberBinding="{Binding ProductName, DataType=models:InventoryItem}"
+											  LostFocus="ProductBox_LostFocus"
+											  KeyUp="ProductBox_KeyUp"
+											  x:Name="ProductBox"/>
 
-										<!-- Quick Add -->
-										<Button Grid.Column="3" Content="+" FontWeight="Bold" Width="30" Height="30"
-												HorizontalContentAlignment="Center"
-												Command="{Binding ToggleQuickAddProductCommand}" Classes="Secondary" Margin="5,0,0,0" ToolTip.Tip="Quick Add Product"/>
-									</Grid>
+									<!-- Quick Add -->
+									<Button Grid.Column="3" Content="+" FontWeight="Bold" Width="30" Height="30"
+											HorizontalContentAlignment="Center"
+											Command="{Binding ToggleQuickAddProductCommand}" Classes="Secondary" Margin="5,0,0,0" ToolTip.Tip="Quick Add Product"/>
+								</Grid>
 
 									<!-- Description (Override) -->
 									<TextBox Grid.Column="2" Text="{Binding NewLine.Description}" Watermark="Description" Classes="FormInput"/>
@@ -304,10 +305,10 @@
 													<TextBlock Grid.Column="8" Text="{Binding UnitPrice, StringFormat='{}{0:C}'}" VerticalAlignment="Center"/>
 													<TextBlock Grid.Column="10" Text="{Binding LineTotal, StringFormat='{}{0:C}'}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold"/>
 
-													<Button Grid.Column="12" Content="-" FontSize="18" Height="24" VerticalContentAlignment="Center" HorizontalAlignment="Center"
-															Background="#FEE2E2" Foreground="#EF4444" BorderBrush="#FECACA" BorderThickness="1"
+													<Button Grid.Column="12" Content="-" FontSize="14" Height="24" VerticalContentAlignment="Center" HorizontalAlignment="Center"
+															Background="Transparent" Foreground="Red" FontWeight="Bold"
 															Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).RemoveLineCommand}"
-															CommandParameter="{Binding .}"/>
+															CommandParameter="{Binding .}" ToolTip.Tip="Remove Item"/>
 												</Grid>
 											</Border>
 										</DataTemplate>
@@ -446,11 +447,11 @@
 				<Border Background="White" CornerRadius="8" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" Width="400" BoxShadow="0 4 20 0 #40000000">
 					<StackPanel Spacing="15">
 						<TextBlock Text="Update Project Address" FontWeight="Bold" FontSize="16"/>
-                        <TextBlock Text="This allows you to set the default delivery location for the selected project." 
-                                   Foreground="{DynamicResource TextSecondaryGray}" TextWrapping="Wrap" FontSize="12"/>
-                        
+						<TextBlock Text="This allows you to set the default delivery location for the selected project."
+								   Foreground="{DynamicResource TextSecondaryGray}" TextWrapping="Wrap" FontSize="12"/>
+
 						<TextBox Text="{Binding NewProjectAddress}" Watermark="Enter delivery address..." Classes="FormInput" Height="80" AcceptsReturn="True" TextWrapping="Wrap"/>
-						
+
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
 							<Button Content="Cancel" Command="{Binding ToggleAddProjectAddressCommand}" Classes="Secondary"/>
 							<Button Content="Save Address" Command="{Binding SaveProjectAddressCommand}" Classes="Primary"/>
@@ -459,6 +460,11 @@
 				</Border>
 			</Grid>
 
+        <!-- Saving -->
+        <StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+            <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+        </StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

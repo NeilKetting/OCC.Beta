@@ -37,7 +37,7 @@ namespace OCC.API.Services
             _logger = logger;
         }
 
-        public async Task<(bool Success, string Token, User User, string Error)> LoginAsync(LoginRequest request)
+        public async Task<(bool Success, string Token, User? User, string Error)> LoginAsync(LoginRequest request)
         {
             _logger.LogInformation("Login attempt for email: {Email}", request?.Email);
             if (request == null || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -115,7 +115,7 @@ namespace OCC.API.Services
             return (true, tokenString, user, string.Empty);
         }
 
-        public async Task<(bool Success, User User, string Error)> RegisterAsync(User user)
+        public async Task<(bool Success, User? User, string Error)> RegisterAsync(User user)
         {
             _logger.LogInformation("Registration attempt for email: {Email}", user?.Email);
             if (user == null)

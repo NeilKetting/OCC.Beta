@@ -101,6 +101,12 @@
 				<Button Content="Save Changes" Command="{Binding SaveCommand}" Classes="Primary"/>
 				<Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"/>
 			</StackPanel>
+
+            <!-- Loading -->
+            <StackPanel Grid.RowSpan="4" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+                <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+            </StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

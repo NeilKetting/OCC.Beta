@@ -188,6 +188,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             try
             {
+                BusyText = $"Deleting {employee.FirstName}...";
+                IsBusy = true;
                 await _employeeRepository.DeleteAsync(employee.Id);
                 LoadData();
             }
@@ -208,6 +210,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 ErrorMessage = "An unexpected error occurred.";
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] General Error: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -264,13 +270,17 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Methods
 
         [ObservableProperty]
-        private bool _isLoading;
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
 
         public async void LoadData()
         {
             try 
             {
-                IsLoading = true;
+                BusyText = "Loading employees...";
+                IsBusy = true;
                 // Capture current selection ID
                 var selectedId = SelectedEmployee?.Id;
 
@@ -292,7 +302,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 

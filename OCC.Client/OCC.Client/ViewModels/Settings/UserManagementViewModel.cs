@@ -119,10 +119,24 @@ namespace OCC.Client.ViewModels.Settings
         public async Task DeleteUser(User user)
         {
             if (user == null) return;
+
             try
             {
-                await _userRepository.DeleteAsync(user.Id);
-                LoadData();
+                var result = await _dialogService.ShowConfirmationAsync("Delete User", $"Are you sure you want to delete {user.FirstName} {user.LastName}?");
+                if (result)
+                {
+                    try
+                    {
+                        BusyText = "Deleting user...";
+                        IsBusy = true;
+                        await _userRepository.DeleteAsync(user.Id);
+                        LoadData();
+                    }
+                    finally
+                    {
+                        IsBusy = false;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -137,6 +151,8 @@ namespace OCC.Client.ViewModels.Settings
             if (user == null) return;
             try
             {
+                BusyText = "Approving user...";
+                IsBusy = true;
                 user.IsApproved = true;
                 await _userRepository.UpdateAsync(user);
                 LoadData(); // Refresh counts
@@ -145,6 +161,10 @@ namespace OCC.Client.ViewModels.Settings
             {
                  System.Diagnostics.Debug.WriteLine($"[UserManagementViewModel] Error approving user: {ex.Message}");
                  if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to approve user: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -159,6 +179,12 @@ namespace OCC.Client.ViewModels.Settings
 
         #region Methods
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         public void OpenUser(Guid userId)
         {
             var user = _allUsers.FirstOrDefault(u => u.Id == userId);
@@ -172,6 +198,8 @@ namespace OCC.Client.ViewModels.Settings
         {
             try
             {
+                BusyText = "Loading users...";
+                IsBusy = true;
                 var users = await _userRepository.GetAllAsync();
                 // Sort by Name
                 _allUsers = users.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToList();
@@ -188,6 +216,10 @@ namespace OCC.Client.ViewModels.Settings
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading users: {ex}");
                 if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Critical Error loading users: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

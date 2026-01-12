@@ -79,7 +79,7 @@
 				<StackPanel Grid.Row="0" Classes.Collapsed="{Binding IsCollapsed}"
 							DoubleTapped="Sidebar_DoubleTapped"
 							Background="Transparent">
-					<Image Source="avares://OCC.Client/Assets/Images/occ_logo.jpg"
+					<Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png"
 						   Stretch="Uniform"/>
 					<!--<Ellipse Width="40" Height="40" Stroke="{DynamicResource AccentOrange}" StrokeThickness="5"/>
 					<StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsCollapsed}">

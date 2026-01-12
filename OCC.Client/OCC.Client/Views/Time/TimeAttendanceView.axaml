@@ -39,7 +39,7 @@
 		</DataTemplate>
 	</UserControl.DataTemplates>
 
-	<Grid RowDefinitions="60, Auto, *" Background="{DynamicResource AppBackgroundSlate}">
+	<Grid RowDefinitions="Auto, Auto, *" Background="{DynamicResource AppBackgroundSlate}">
 		<!-- Top Bar -->
 		<viewTime:TimeMenuView Grid.Row="0" DataContext="{Binding TimeMenu}"/>	
 

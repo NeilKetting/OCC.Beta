@@ -14,53 +14,166 @@ using System.Collections.Generic;
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for managing and displaying a list of orders with advanced filtering capabilities by date, branch, and text search.
+    /// Supports real-time updates through message subscription.
+    /// </summary>
     public partial class OrderListViewModel : ViewModelBase, IRecipient<Messages.EntityUpdatedMessage>
     {
-        private readonly IOrderService _orderService;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
         private List<Order> _allOrders = new();
 
+        #endregion
+
+        #region Observables
+
+        /// <summary>
+        /// Gets the collection of orders that match the current filter criteria.
+        /// </summary>
         public ObservableCollection<Order> Orders { get; } = new();
-        
-        public event EventHandler<Order>? ReceiveOrderRequested;
 
-        [ObservableProperty]
-        private string _searchQuery = "";
-
+        /// <summary>
+        /// Gets or sets a value indicating whether an operation is currently in progress.
+        /// </summary>
         [ObservableProperty]
         private bool _isBusy;
-        
+
+        /// <summary>
+        /// Gets or sets the text to display during busy operations.
+        /// </summary>
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
+        /// <summary>
+        /// Gets or sets the search query used to filter orders by number or supplier name.
+        /// </summary>
+        [ObservableProperty]
+        private string _searchQuery = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the currently selected order in the list.
+        /// </summary>
         [ObservableProperty]
         private Order? _selectedOrder;
 
-        public OrderListViewModel(IOrderService orderService, IDialogService dialogService)
+        /// <summary>
+        /// Gets or sets the date-based filter for the order list.
+        /// </summary>
+        [ObservableProperty]
+        private OrderDateFilter _timeFilter = OrderDateFilter.All;
+
+        /// <summary>
+        /// Gets or sets the total amount of all orders currently visible in the filtered list.
+        /// </summary>
+        [ObservableProperty]
+        private decimal _filteredTotal;
+
+        /// <summary>
+        /// Gets or sets the selected branch filter.
+        /// </summary>
+        [ObservableProperty]
+        private string? _selectedBranchFilter = "All";
+
+        /// <summary>
+        /// Gets the available options for time-based filtering.
+        /// </summary>
+        public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
+        
+        /// <summary>
+        /// Gets the available options for branch-based filtering.
+        /// </summary>
+        public List<string> BranchFilters { get; } = new List<string> { "All" }.Concat(Enum.GetNames(typeof(Branch))).ToList();
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderListViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Central manager for order operations.</param>
+        /// <param name="dialogService">Service for displaying user notifications and confirmations.</param>
+        public OrderListViewModel(IOrderManager orderManager, IDialogService dialogService)
         {
-            _orderService = orderService;
+            _orderManager = orderManager;
             _dialogService = dialogService;
             
-            // Register for Real-time Updates
+            // Register for Real-time Updates to ensure the list remains synchronized with server changes
             WeakReferenceMessenger.Default.Register(this);
             
             LoadOrders();
         }
 
-        public void Receive(Messages.EntityUpdatedMessage message)
+        #endregion
+
+        #region Commands
+
+        /// <summary>
+        /// Command to permanently delete an order from the system.
+        /// </summary>
+        /// <param name="order">The order to be deleted.</param>
+        [RelayCommand]
+        public async Task DeleteOrder(Order order)
         {
-            if (message.Value.EntityType == "Order")
+            if (order == null) return;
+
+            try 
             {
-                // Refresh list if Orders change (e.g. Status update from Receive)
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadOrders);
+                BusyText = $"Deleting order {order.OrderNumber}...";
+                IsBusy = true;
+                await _orderManager.DeleteOrderAsync(order.Id);
+                Orders.Remove(order);
+                _allOrders.Remove(order);
+            }
+            catch(Exception ex)
+            {
+                 System.Diagnostics.Debug.WriteLine($"Error deleting order: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
+        
+        /// <summary>
+        /// Command to trigger the receiving workflow for a specific order.
+        /// </summary>
+        /// <param name="order">The order to receive items for.</param>
+        [RelayCommand]
+        public void RequestReceiveOrder(Order order)
+        {
+            if (order == null) return;
+            ReceiveOrderRequested?.Invoke(this, order);
+        }
 
-        // public OrderListViewModel() { } // Design-time
+        /// <summary>
+        /// Command to request viewing detailed information for an order.
+        /// </summary>
+        /// <param name="order">The order to view.</param>
+        [RelayCommand]
+        public void ViewOrder(Order order)
+        {
+            if (order == null) return;
+            ViewOrderRequested?.Invoke(this, order);
+        }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Asynchronously loads all orders from the Order Manager and applies the current filters.
+        /// </summary>
         public async void LoadOrders()
         {
             try
             {
+                BusyText = "Loading orders...";
                 IsBusy = true;
-                _allOrders = await _orderService.GetOrdersAsync();
+                _allOrders = (await _orderManager.GetOrdersAsync()).ToList();
                 FilterOrders();
             }
             catch(Exception ex)
@@ -75,49 +188,23 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        partial void OnSearchQueryChanged(string value)
-        {
-            FilterOrders();
-        }
-
-        [ObservableProperty]
-        private OrderDateFilter _timeFilter = OrderDateFilter.All;
-
-        [ObservableProperty]
-        private decimal _filteredTotal;
-
-        [ObservableProperty]
-        private string? _selectedBranchFilter = "All"; // Selection string
-
-        public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
-        
-        public List<string> BranchFilters { get; } = new List<string> { "All" }.Concat(Enum.GetNames(typeof(Branch))).ToList();
-
-        // Helper to convert string back if binding to string
-        partial void OnTimeFilterChanged(OrderDateFilter value)
-        {
-            FilterOrders();
-        }
-
-        partial void OnSelectedBranchFilterChanged(string? value)
-        {
-            FilterOrders();
-        }
-
+        /// <summary>
+        /// Applies text search, date, and branch filters to the full order collection.
+        /// </summary>
         private void FilterOrders()
         {
             Orders.Clear();
             
             var query = _allOrders.AsEnumerable();
 
-            // 1. Text Search
+            // 1. Text Search Filter
             if (!string.IsNullOrWhiteSpace(SearchQuery))
             {
                 query = query.Where(o => o.OrderNumber.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) 
                                       || (o.SupplierName?.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ?? false));
             }
 
-            // 2. Date Filter
+            // 2. Date/Time Range Filter
             var now = DateTime.Now.Date;
             switch (TimeFilter)
             {
@@ -128,7 +215,6 @@ namespace OCC.Client.ViewModels.Orders
                     query = query.Where(o => o.OrderDate.Date == now.AddDays(-1));
                     break;
                 case OrderDateFilter.This_Week:
-                    // Fix for Sunday (0) to map to 7 for Monday-based week
                     int dayDiff = (int)now.DayOfWeek == 0 ? 6 : (int)now.DayOfWeek - 1; 
                     var startOfWeek = now.AddDays(-dayDiff);
                     var endOfWeek = startOfWeek.AddDays(7);
@@ -153,13 +239,14 @@ namespace OCC.Client.ViewModels.Orders
                     break;
             }
 
-            // 3. Branch Filter
+            // 3. Branch Organization Filter
             if (SelectedBranchFilter != "All" && !string.IsNullOrEmpty(SelectedBranchFilter) && Enum.TryParse<Branch>(SelectedBranchFilter, out var branch))
             {
                 query = query.Where(o => o.Branch == branch);
             }
 
-            var result = query.OrderByDescending(o => o.OrderDate).ToList(); // Sort by newest first
+            // Sort results by newest first for better visibility
+            var result = query.OrderByDescending(o => o.OrderDate).ToList(); 
 
             foreach (var order in result)
             {
@@ -169,40 +256,53 @@ namespace OCC.Client.ViewModels.Orders
             FilteredTotal = result.Sum(o => o.TotalAmount);
         }
 
-        [RelayCommand]
-        public async Task DeleteOrder(Order order)
+        /// <summary>
+        /// Responds to entity update messages to refresh the order list.
+        /// </summary>
+        /// <param name="message">The notification message indicating an entity has changed.</param>
+        public void Receive(Messages.EntityUpdatedMessage message)
         {
-            if (order == null) return;
-
-            try 
+            if (message.Value.EntityType == "Order")
             {
-                await _orderService.DeleteOrderAsync(order.Id);
-                Orders.Remove(order);
-                _allOrders.Remove(order);
-            }
-            catch(Exception ex)
-            {
-                 System.Diagnostics.Debug.WriteLine($"Error deleting order: {ex.Message}");
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadOrders);
             }
         }
-        
-        [RelayCommand]
-        public void RequestReceiveOrder(Order order)
-        {
-            if (order == null) return;
-            ReceiveOrderRequested?.Invoke(this, order);
-        }
 
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Event raised when a request to receive items for an order is made.
+        /// </summary>
+        public event EventHandler<Order>? ReceiveOrderRequested;
+
+        /// <summary>
+        /// Event raised when a request to view detailed information about an order is made.
+        /// </summary>
         public event EventHandler<Order>? ViewOrderRequested;
 
-        [RelayCommand]
-        public void ViewOrder(Order order)
-        {
-            if (order == null) return;
-            ViewOrderRequested?.Invoke(this, order);
-        }
+        /// <summary>
+        /// Handles changes to the search query by reapplying filters.
+        /// </summary>
+        partial void OnSearchQueryChanged(string value) => FilterOrders();
+
+        /// <summary>
+        /// Responds to changes in the time filter by reapplying filters.
+        /// </summary>
+        partial void OnTimeFilterChanged(OrderDateFilter value) => FilterOrders();
+
+        /// <summary>
+        /// Responds to changes in the branch filter by reapplying filters.
+        /// </summary>
+        partial void OnSelectedBranchFilterChanged(string? value) => FilterOrders();
+
+        #endregion
     }
 
+    /// <summary>
+    /// Defines date range filters for the order list views.
+    /// </summary>
     public enum OrderDateFilter
     {
         All,

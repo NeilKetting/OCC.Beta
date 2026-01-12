@@ -116,6 +116,12 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         [ObservableProperty]
         private bool _isShowingAllSubtasks;
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         #endregion
 
         #region Properties
@@ -227,6 +233,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             await _updateLock.WaitAsync();
             try
             {
+                BusyText = "Updating assignments...";
+                IsBusy = true;
                 var assignment = new TaskAssignment
                 {
                      ProjectTaskId = _currentTaskId,
@@ -240,6 +248,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             }
             finally
             {
+                IsBusy = false;
                 _updateLock.Release();
             }
         }
@@ -256,11 +265,14 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             await _updateLock.WaitAsync();
             try
             {
+                BusyText = "Updating assignments...";
+                IsBusy = true;
                 await _assignmentRepository.DeleteAsync(assignment.Id);
                 Assignments.Remove(assignment);
             }
             finally
             {
+                IsBusy = false;
                 _updateLock.Release();
             }
         }
@@ -293,10 +305,14 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// Adds a new comment to the task and saves it to the repository.
         /// </summary>
         [RelayCommand]
-        private void AddComment()
+        private async Task AddComment()
         {
             if (!string.IsNullOrWhiteSpace(NewCommentContent))
             {
+                try
+                {
+                    BusyText = "Posting comment...";
+                    IsBusy = true;
                 var newComment = new TaskComment
                 {
                     AuthorName = "Current User", // In real app, get from AuthService
@@ -310,7 +326,12 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 OnPropertyChanged(nameof(CommentsCount));
 
                 // Save to Task
-                SaveCommentToTask(newComment);
+                await SaveCommentToTask(newComment);
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
             }
         }
 
@@ -380,6 +401,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
             try 
             {
+                BusyText = "Loading task details...";
+                IsBusy = true;
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task: {taskId}...");
                 _currentTaskId = taskId;
                 var task = await _projectTaskRepository.GetByIdAsync(taskId);
@@ -396,6 +419,10 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 {
                     await _dialogService.ShowAlertAsync("Error", $"Critical Error loading task details: {ex.Message}");
                 }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -503,6 +530,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             await _updateLock.WaitAsync();
             try
             {
+                BusyText = "Saving task changes...";
+                IsBusy = true;
                 // Sync Wrapper back to Model
                 Task.CommitToModel();
 
@@ -515,6 +544,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             }
             finally
             {
+                IsBusy = false;
                 _updateLock.Release();
             }
         }
@@ -523,7 +553,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// Saves a new comment to the repository.
         /// </summary>
         /// <param name="comment">The TaskComment to save.</param>
-        private async void SaveCommentToTask(TaskComment comment)
+        private async Task SaveCommentToTask(TaskComment comment)
         {
             if (_currentTaskId == Guid.Empty) return;
 

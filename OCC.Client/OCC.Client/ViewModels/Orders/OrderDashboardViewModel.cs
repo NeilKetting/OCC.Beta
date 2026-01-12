@@ -15,74 +15,146 @@ using OCC.Client.ViewModels.Messages;
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for the Order Dashboard, providing a high-level overview of order activities,
+    /// pending deliveries, and inventory alerts.
+    /// </summary>
     public partial class OrderDashboardViewModel : ViewModelBase, IRecipient<EntityUpdatedMessage>
     {
-        private readonly IOrderService _orderService;
-        private readonly IInventoryService _inventoryService;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly ILogger<OrderDashboardViewModel> _logger;
 
+        #endregion
+
+        #region Observables
+
+        /// <summary>
+        /// Gets or sets the total number of orders placed in the current month.
+        /// </summary>
         [ObservableProperty]
         private int _ordersThisMonth;
         
+        /// <summary>
+        /// Gets or sets the count of pending deliveries.
+        /// </summary>
         [ObservableProperty]
         private int _pendingDeliveries;
         
+        /// <summary>
+        /// Gets or sets the count of items currently below their reorder point.
+        /// </summary>
         [ObservableProperty]
         private int _lowStockItemsCount;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the dashboard is currently loading data.
+        /// </summary>
         [ObservableProperty]
         private bool _isBusy;
 
+        /// <summary>
+        /// Gets or sets the growth description text (e.g., "+5% from last month").
+        /// </summary>
+        [ObservableProperty]
+        private string _monthGrowthText = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the color for the growth text based on positive or negative change.
+        /// </summary>
+        [ObservableProperty]
+        private string _monthGrowthColor = "Green";
+
+        /// <summary>
+        /// Gets or sets the descriptive text for the next pending delivery.
+        /// </summary>
+        [ObservableProperty]
+        private string _pendingDeliveryText = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the color for the pending delivery status.
+        /// </summary>
+        [ObservableProperty]
+        private string _pendingDeliveryColor = "Orange";
+
+        /// <summary>
+        /// Gets the collection of recently placed orders.
+        /// </summary>
         public ObservableCollection<Order> RecentOrders { get; } = new();
+
+        /// <summary>
+        /// Gets the collection of low stock items requiring attention.
+        /// </summary>
         public ObservableCollection<InventoryItem> LowStockItems { get; } = new();
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderDashboardViewModel"/> class for design-time support.
+        /// </summary>
         public OrderDashboardViewModel()
         {
-            // Parameterless constructor for design-time support
-            _orderService = null!;
-            _inventoryService = null!;
+            _orderManager = null!;
             _logger = null!;
         }
 
-        public OrderDashboardViewModel(IOrderService orderService, IInventoryService inventoryService, ILogger<OrderDashboardViewModel> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderDashboardViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Manager providing centralized order and inventory operations.</param>
+        /// <param name="logger">Logger for capturing diagnostic information.</param>
+        public OrderDashboardViewModel(IOrderManager orderManager, ILogger<OrderDashboardViewModel> logger)
         {
-            _orderService = orderService;
-            _inventoryService = inventoryService;
+            _orderManager = orderManager;
             _logger = logger;
             
-            // Register for Real-time Updates
+            // Register for Real-time Updates to keep dashboard current
             WeakReferenceMessenger.Default.Register(this);
 
             _ = LoadData(); 
         }
 
-        public void Receive(EntityUpdatedMessage message)
-        {
-            if (message.Value.EntityType == "Order" || message.Value.EntityType == "Inventory")
-            {
-                // Refresh dashboard if Orders or Inventory changes
-                // Fire and forget on UI thread
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () => await LoadData());
-            }
-        }
+        #endregion
 
+        #region Commands
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Asynchronously loads dashboard statistics and alerts from the Order Manager.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task LoadData()
         {
             try
             {
                 IsBusy = true;
                 
-                // Parallel Fetch
-                var ordersTask = _orderService.GetOrdersAsync();
-                var inventoryTask = _inventoryService.GetInventoryAsync();
+                // Fetch pre-calculated stats from the Manager
+                var stats = await _orderManager.GetDashboardStatsAsync();
 
-                await Task.WhenAll(ordersTask, inventoryTask);
+                // Update Properties
+                OrdersThisMonth = stats.OrdersThisMonth;
+                MonthGrowthText = stats.MonthGrowthText;
+                MonthGrowthColor = stats.MonthGrowthColor;
+                
+                PendingDeliveries = stats.PendingDeliveriesCount;
+                PendingDeliveryText = stats.PendingDeliveriesText;
+                PendingDeliveryColor = stats.PendingDeliveriesColor;
 
-                var orders = await ordersTask;
-                var inventory = await inventoryTask;
+                LowStockItemsCount = stats.LowStockCount;
 
-                ProcessOrders(orders);
-                ProcessInventory(inventory);
+                // Update Collections
+                RecentOrders.Clear();
+                foreach (var o in stats.RecentOrders) RecentOrders.Add(o);
+
+                LowStockItems.Clear();
+                foreach (var i in stats.LowStockItems) LowStockItems.Add(i);
             }
             catch(Exception ex)
             {
@@ -94,32 +166,23 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        private void ProcessOrders(List<Order> orders)
+        /// <summary>
+        /// Handles real-time updates for orders and inventory items to refresh the dashboard.
+        /// </summary>
+        /// <param name="message">The update message containing entity information.</param>
+        public void Receive(EntityUpdatedMessage message)
         {
-            // Stats
-            var now = DateTime.Now;
-            var startOfMonth = new DateTime(now.Year, now.Month, 1);
-            
-            OrdersThisMonth = orders.Count(o => o.OrderDate >= startOfMonth);
-            PendingDeliveries = orders.Count(o => o.Status == OrderStatus.Ordered || o.Status == OrderStatus.PartialDelivery);
-
-            // Recent Orders (Top 5)
-            RecentOrders.Clear();
-            var recent = orders.OrderByDescending(o => o.OrderDate).Take(5);
-            foreach(var o in recent) RecentOrders.Add(o);
-        }
-
-        private void ProcessInventory(List<InventoryItem> inventory)
-        {
-            LowStockItems.Clear();
-            var lowStock = inventory.Where(i => i.QuantityOnHand <= i.ReorderPoint).ToList();
-            
-            LowStockItemsCount = lowStock.Count;
-            
-            foreach(var item in lowStock.Take(5)) // Show top 5 alerts
+            if (message.Value.EntityType == "Order" || message.Value.EntityType == "Inventory")
             {
-                LowStockItems.Add(item);
+                // Refresh dashboard if Orders or Inventory changes
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () => await LoadData());
             }
         }
+
+        #endregion
+
+        #region Helper Methods
+
+        #endregion
     }
 }

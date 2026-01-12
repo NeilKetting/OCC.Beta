@@ -18,12 +18,15 @@
 
     <Grid RowDefinitions="Auto, *">
         <!-- Header / Tools -->
-        <Border Grid.Row="0" Classes="TopHeader">
+        <Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
-                    <TextBlock Text="ORDERS" Classes="HeaderTitle" VerticalAlignment="Center"/>
+                     <StackPanel Spacing="5">
+                    <TextBlock Text="Order List" Classes="H1"/>
+                    <TextBlock Text="Master list of all Orders. Double-click to edit." Classes="LabelSmall"/>
+                </StackPanel>
                     <!-- Search -->
-                    <TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search Order # or Entity..." Classes="SearchBox"/>
+                    <TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search Order #" Classes="SearchBox"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20">
@@ -102,5 +105,17 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Loading -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+            <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+        </StackPanel>
+
+        <!-- Empty State -->
+         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                     IsVisible="{Binding !Orders.Count}">
+             <TextBlock Text="No orders found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
+         </StackPanel>
     </Grid>
 </UserControl>

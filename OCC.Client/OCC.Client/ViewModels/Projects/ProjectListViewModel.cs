@@ -25,6 +25,12 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private ProjectDashboardItemViewModel? _selectedProject;
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService)
         {
             _projectManager = projectManager;
@@ -55,6 +61,8 @@ namespace OCC.Client.ViewModels.Projects
         {
             if (_projectManager == null) return;
 
+            BusyText = "Loading projects...";
+            IsBusy = true;
             try 
             {
                 System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Projects...");
@@ -84,6 +92,10 @@ namespace OCC.Client.ViewModels.Projects
                 {
                     await _dialogService.ShowAlertAsync("Error", $"Critical Error loading projects: {ex.Message}");
                 }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

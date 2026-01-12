@@ -37,6 +37,16 @@
             </DataGrid.Columns>
         </DataGrid>
         
-        <ProgressBar Grid.Row="1" IsIndeterminate="True" IsVisible="{Binding IsLoading}" VerticalAlignment="Top"/>
+        <!-- Loading -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+            <TextBlock Text="Loading Bug Reports..." HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+        </StackPanel>
+
+        <!-- Empty State -->
+         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                     IsVisible="{Binding !Bugs.Count}">
+             <TextBlock Text="No bug reports found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
+         </StackPanel>
     </Grid>
 </UserControl>

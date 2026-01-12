@@ -40,6 +40,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private Employee? _selectedEmployeeToAdd;
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         public event EventHandler? CloseRequested;
         public event EventHandler? TeamSaved;
 
@@ -152,6 +158,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             try
             {
+                BusyText = "Saving team details...";
+                IsBusy = true;
                 Team team = new Team();
                 if (_existingTeamId.HasValue)
                 {
@@ -202,6 +210,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"[TeamDetailViewModel] Save FAILED: {ex.Message} \n {ex.StackTrace}");
                 // In a real app we might want to show a dialog here
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
         

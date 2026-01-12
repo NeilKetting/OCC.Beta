@@ -3,13 +3,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:OCC.Client.ViewModels.Bugs;assembly=OCC.Client"
-        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+        mc:Ignorable="d"
         x:Class="OCC.Client.Views.Bugs.BugReportDialog"
         x:DataType="vm:BugReportDialogViewModel"
         Title="Report a Bug"
-        Width="500" Height="400"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
+        Width="500"
+        Height="450"
         SystemDecorations="None"
         Background="Transparent">
 
@@ -49,8 +50,8 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="#F8FAFC" Padding="15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"/>
                     <Button Content="Submit Report" Command="{Binding SubmitCommand}" Classes="Primary" IsEnabled="{Binding !IsSubmitting}"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"/>
                 </StackPanel>
             </Border>
 

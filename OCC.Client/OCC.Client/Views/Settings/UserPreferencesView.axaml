@@ -30,9 +30,16 @@
         <Border Background="White" Margin="40" CornerRadius="8" BoxShadow="0 4 10 0 #10000000" Padding="30">
             <Grid RowDefinitions="Auto, *">
                 <StackPanel Grid.Row="0">
-                    <TextBlock Text="User Preferences" Classes="Header"/>
-                    <TextBlock Text="Manage your local application settings." Foreground="{DynamicResource TextSecondaryGray}" Margin="0,-15,0,20"/>
-                    <Separator Background="{DynamicResource ThemeBorderLow}" Margin="0,0,0,20"/>
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel>
+                            <TextBlock Text="User Preferences" Classes="Header"/>
+                            <TextBlock Text="Manage your local application settings." Foreground="{DynamicResource TextSecondaryGray}" Margin="0,-15,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Command="{Binding BackCommand}" Classes="IconButtonClose" VerticalAlignment="Top" ToolTip.Tip="Close">
+                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+                        </Button>
+                    </Grid>
+                    <Separator Background="{DynamicResource ThemeBorderLow}" Margin="0,20,0,20"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Spacing="20">

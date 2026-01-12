@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace OCC.Client.Views.Orders
 {
-    public partial class InventoryDetailView : UserControl
+    public partial class ItemDetailView : UserControl
     {
-        public InventoryDetailView()
+        public ItemDetailView()
         {
             InitializeComponent();
         }

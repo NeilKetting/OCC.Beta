@@ -23,7 +23,7 @@
 					<StackPanel Spacing="8">
 							<TextBlock Text="ORDERS THIS MONTH" Classes="Label" />
 						<TextBlock Text="{Binding OrdersThisMonth}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource ThemeForeground}" />
-						<TextBlock Text="+12% from last month" FontSize="12" Foreground="Green" />
+						<TextBlock Text="{Binding MonthGrowthText}" FontSize="12" Foreground="{Binding MonthGrowthColor}" />
 					</StackPanel>
 				</Border>
 
@@ -32,7 +32,7 @@
 					<StackPanel Spacing="10">
 							<TextBlock Text="PENDING DELIVERIES" Classes="Label" />
 						<TextBlock Text="{Binding PendingDeliveries}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource ThemeForeground}" />
-						<TextBlock Text="2 Arriving Today" FontSize="12" Foreground="Orange" />
+						<TextBlock Text="{Binding PendingDeliveryText}" FontSize="12" Foreground="{Binding PendingDeliveryColor}" />
 					</StackPanel>
 				</Border>
 

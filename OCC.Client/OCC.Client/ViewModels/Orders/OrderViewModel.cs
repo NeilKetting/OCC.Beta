@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
@@ -11,201 +12,258 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Orders
 {
-    public partial class OrderViewModel : ViewModelBase
+    /// <summary>
+    /// Root ViewModel for the Orders module, orchestrating navigation between the dashboard, order list,
+    /// inventory management, and supplier directories. Manages complex view states and popup visibility.
+    /// </summary>
+    public partial class OrderViewModel : ViewModelBase, IRecipient<OCC.Client.Messages.NavigationRequestMessage>
     {
         #region Private Members
 
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
-        private readonly IOrderService _orderService;
+        private readonly Microsoft.Extensions.Logging.ILogger<OrderViewModel> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly Services.Infrastructure.OrderStateService _orderStateService;
 
         #endregion
 
         #region Observables
 
-        // Child ViewModels
+        /// <summary>
+        /// Gets the ViewModel for the high-level dashboard view.
+        /// </summary>
+        public OrderDashboardViewModel DashboardVM { get; }
+        
+        /// <summary>
+        /// Gets the ViewModel for the master list of all orders.
+        /// </summary>
+        public OrderListViewModel OrderListVM { get; }
+        
+        /// <summary>
+        /// Gets the ViewModel for creating or viewing detailed purchase orders.
+        /// </summary>
+        public CreateOrderViewModel CreateOrderVM { get; }
 
-        [ObservableProperty]
-        private OrderMenuViewModel _orderMenu;
+        /// <summary>
+        /// Alias for CreateOrderVM for view binding compatibility.
+        /// </summary>
+        public CreateOrderViewModel OrderDetailVM => CreateOrderVM;
+        
+        /// <summary>
+        /// Gets the ViewModel for the module's sub-navigation menu.
+        /// </summary>
+        public OrderMenuViewModel OrderMenu { get; }
+        
+        /// <summary>
+        /// Gets the ViewModel for the master inventory list.
+        /// </summary>
+        public ItemListViewModel ItemListVM { get; }
+        
+        /// <summary>
+        /// Gets the ViewModel for managing the supplier directory.
+        /// </summary>
+        public SupplierListViewModel SupplierListVM { get; }
 
+        /// <summary>
+        /// Gets or sets the currently displayed sub-view ViewModel.
+        /// </summary>
         [ObservableProperty]
-        private OrderDashboardViewModel _dashboardVM;
-        
-        [ObservableProperty]
-        private OrderListViewModel _orderListVM;
-        
-        [ObservableProperty]
-        private SupplierListViewModel _supplierListVM;
-        
-        [ObservableProperty]
-        private InventoryViewModel _inventoryListVM;
-        
-        [ObservableProperty]
-        private ItemListViewModel _itemListVM; // Different from InventoryListVM (Stock)
+        private ViewModelBase? _currentView;
 
+        /// <summary>
+        /// Gets or sets the visibility state of the supplier detail editing popup.
+        /// </summary>
         [ObservableProperty]
-        private CreateOrderViewModel _orderDetailVM;
-        
-        [ObservableProperty]
-        private ReceiveOrderViewModel _receiveOrderVM;
-        
-        [ObservableProperty]
-        private SupplierDetailViewModel _supplierDetailVM;
+        private bool _isSupplierDetailVisible;
 
-        [ObservableProperty]
-        private ViewModelBase _currentView;
-
-        [ObservableProperty]
-        private string _activeTab = "Dashboard"; // Dashboard, Orders, Sales, Returns, Suppliers, Inventory
-
-        // Popups
-        [ObservableProperty]
-        private bool _isOrderDetailVisible;
-        
+        /// <summary>
+        /// Gets or sets the visibility state of the order receiving popup.
+        /// </summary>
         [ObservableProperty]
         private bool _isReceiveOrderVisible;
 
+        /// <summary>
+        /// Gets or sets the visibility state of the order detail popup (using CreateOrderVM).
+        /// </summary>
         [ObservableProperty]
-        private bool _isSupplierDetailVisible;
+        private bool _isOrderDetailVisible;
+
+        /// <summary>
+        /// Gets the ViewModel for editing supplier details.
+        /// </summary>
+        [ObservableProperty]
+        private SupplierDetailViewModel _supplierDetailVM;
+
+        /// <summary>
+        /// Gets the ViewModel for processing order arrivals.
+        /// </summary>
+        [ObservableProperty]
+        private ReceiveOrderViewModel _receiveOrderVM;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrderViewModel"/> class with all required dependencies.
+        /// Orchestrates the initialization of all child ViewModels within the module.
+        /// </summary>
         public OrderViewModel(
-            OrderMenuViewModel orderMenuVM,
-            OrderDashboardViewModel dashboardVM,
-            OrderListViewModel listVM,
-            CreateOrderViewModel createOrderVM,
-            ReceiveOrderViewModel receiveOrderVM,
-            InventoryViewModel inventoryVM,
-            ItemListViewModel itemListVM,
-            SupplierListViewModel supplierListVM,
-            SupplierDetailViewModel supplierDetailVM,
-            IDialogService dialogService,
-            IOrderService orderService)
+            IOrderManager orderManager, 
+            IDialogService dialogService, 
+            Microsoft.Extensions.Logging.ILogger<OrderViewModel> logger,
+            IServiceProvider serviceProvider,
+            Services.Infrastructure.OrderStateService orderStateService)
         {
-            OrderMenu = orderMenuVM;
-            DashboardVM = dashboardVM;
-            OrderListVM = listVM;
-            OrderDetailVM = createOrderVM;
-            ReceiveOrderVM = receiveOrderVM;
-            InventoryListVM = inventoryVM;
-            ItemListVM = itemListVM;
-            SupplierListVM = supplierListVM;
-            SupplierDetailVM = supplierDetailVM;
+            _orderManager = orderManager;
             _dialogService = dialogService;
-            _orderService = orderService;
+            _logger = logger;
+            _serviceProvider = serviceProvider;
+            _orderStateService = orderStateService;
 
-            _currentView = DashboardVM;
+            // Initialize all child ViewModels using the DI container for consistency
+            DashboardVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderDashboardViewModel>(_serviceProvider);
+            OrderListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderListViewModel>(_serviceProvider);
+            CreateOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<CreateOrderViewModel>(_serviceProvider);
+            ItemListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemListViewModel>(_serviceProvider);
+            SupplierListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SupplierListViewModel>(_serviceProvider);
+            OrderMenu = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderMenuViewModel>(_serviceProvider);
+            
+            // Initialize overlay ViewModels
+            _supplierDetailVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SupplierDetailViewModel>(_serviceProvider);
+            _receiveOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ReceiveOrderViewModel>(_serviceProvider);
 
-            // Wire up popup events
-            OrderDetailVM.CloseRequested += (s, e) => IsOrderDetailVisible = false;
-            ReceiveOrderVM.CloseRequested += (s, e) => IsReceiveOrderVisible = false;
+            // Set the initial startup view
+            CurrentView = DashboardVM;
 
-            OrderListVM.ReceiveOrderRequested += (s, order) => NavigateToReceiveOrder(order);
+            // Wire up navigation and interaction events across the module
+            SetupEventWiring();
 
-            // Wire up Menu Navigation
-            OrderMenu.TabSelected += (s, tabName) => SetActiveTab(tabName);
-
-            SupplierListVM.AddSupplierRequested += (s, e) =>
-            {
-                SupplierDetailVM.Load(null); // Add Mode
-                IsSupplierDetailVisible = true;
-            };
-
-            SupplierListVM.EditSupplierRequested += (s, supplier) =>
-            {
-                SupplierDetailVM.Load(supplier); // Edit Mode
-                IsSupplierDetailVisible = true;
-            };
-
-            OrderListVM.ViewOrderRequested += (s, order) => OpenViewOrder(order);
-
-            SupplierDetailVM.CloseRequested += (s, e) => IsSupplierDetailVisible = false;
-            SupplierDetailVM.Saved += async (s, e) => await SupplierListVM.LoadData();
+            // Register for global navigation requests affecting the Orders module
+            CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Register<OCC.Client.Messages.NavigationRequestMessage>(this);
         }
 
         #endregion
 
         #region Commands
 
+        /// <summary>
+        /// Command to switch the active tab in the Orders module.
+        /// </summary>
+        /// <param name="tabName">The identifier of the tab to switch to.</param>
         [RelayCommand]
-        public void NavigateToDashboard() => SetActiveTab("Dashboard");
-
-        [RelayCommand]
-        public void NavigateToAllOrders() => SetActiveTab("Orders");
-
-        [RelayCommand]
-        public void NavigateToInventory() => SetActiveTab("Inventory");
-
-        [RelayCommand]
-        public void NavigateToCreateOrder() => OpenNewOrder();
-
-        [RelayCommand]
-        public void SetActiveTab(string tabName)
+        public void SetTab(string tabName)
         {
-            if (tabName == "New Order")
-            {
-                // Reset Active Tab back to previous if it was just a button click, 
-                // OR keep it highlighted if we want. Usually "New Order" is an action, not a tab.
-                // For now, launch the popup.
-                OpenNewOrder();
-                // Optionally reset menu tab visually if desired, but user might want to see 'New Order' selected while popup is open.
-                return;
-            }
-
-            ActiveTab = tabName;
             switch (tabName)
             {
-                case "Dashboard":
-                    CurrentView = DashboardVM;
+                case "Dashboard": 
+                    CurrentView = DashboardVM; 
                     _ = DashboardVM.LoadData();
                     break;
-                case "All Orders": 
-                    // Reset filters?
-                    CurrentView = OrderListVM;
+                case "OrderList": 
+                    CurrentView = OrderListVM; 
+                    OrderListVM.LoadOrders(); 
                     break;
-                case "Suppliers":
-                    CurrentView = SupplierListVM;
-                    _ = SupplierListVM.LoadData();
+                case "CreateOrder": 
+                    // This creates a new order via the detail popup
+                    CreateOrderVM.Reset();
+                    CreateOrderVM.IsReadOnly = false;
+                    CreateOrderVM.LoadData(); 
+                    IsOrderDetailVisible = true;
                     break;
-                case "Inventory":
-                    CurrentView = InventoryListVM;
-                    // _ = InventoryListVM.LoadData(); // If needed
+                case "Inventory": 
+                    CurrentView = ItemListVM; 
+                    _ = ItemListVM.LoadItemsAsync(); 
                     break;
-                case "ItemList": // New
-                    CurrentView = ItemListVM;
-                    _ = ItemListVM.Refresh();
-                    break;
-                default:
-                    CurrentView = DashboardVM;
+                case "Suppliers": 
+                    CurrentView = SupplierListVM; 
+                    _ = SupplierListVM.LoadData(); 
                     break;
             }
         }
 
+        /// <summary>
+        /// Opens the order detail popup for a new order.
+        /// </summary>
         [RelayCommand]
         public void OpenNewOrder()
         {
-            OrderDetailVM.Reset(); // Reset to fresh state
-            OrderDetailVM.IsReadOnly = false;
-            OrderDetailVM.LoadData(); 
+            CreateOrderVM.Reset();
+            CreateOrderVM.IsReadOnly = false;
+            CreateOrderVM.LoadData(); 
             IsOrderDetailVisible = true;
         }
 
-        public void OpenViewOrder(Order order)
-        {
-            OrderDetailVM.LoadData(); // Ensure lists are loaded for mapping
-            OrderDetailVM.LoadExistingOrder(order);
-            OrderDetailVM.IsReadOnly = true;
-            IsOrderDetailVisible = true;
-        }
-
+        /// <summary>
+        /// Opens the order receiving popup for the specified order.
+        /// </summary>
+        /// <param name="order">The order to receive.</param>
         [RelayCommand]
         public void NavigateToReceiveOrder(Order order)
         {
-            ReceiveOrderVM.Initialize(order);
+            ReceiveOrderVM.LoadOrder(order);
             IsReceiveOrderVisible = true;
         } 
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Opens the order detail popup for an existing order in read-only mode.
+        /// </summary>
+        /// <param name="order">The order to view.</param>
+        public void OpenViewOrder(Order order)
+        {
+            CreateOrderVM.LoadData(); 
+            CreateOrderVM.LoadExistingOrder(order);
+            CreateOrderVM.IsReadOnly = true;
+            IsOrderDetailVisible = true;
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Establishes event links between ViewModels to handle complex interactions like opening popups from lists.
+        /// </summary>
+        private void SetupEventWiring()
+        {
+            // Supplier List Interactions
+            SupplierListVM.AddSupplierRequested += (s, e) => { SupplierDetailVM.Load(null); IsSupplierDetailVisible = true; };
+            SupplierListVM.EditSupplierRequested += (s, o) => { SupplierDetailVM.Load(o); IsSupplierDetailVisible = true; };
+            SupplierDetailVM.CloseRequested += (s, e) => IsSupplierDetailVisible = false;
+            SupplierDetailVM.Saved += async (s, e) => { await SupplierListVM.LoadData(); IsSupplierDetailVisible = false; };
+
+            // Order List Interactions: Using CreateOrderVM for detailed view
+            OrderListVM.ReceiveOrderRequested += (s, o) => { ReceiveOrderVM.LoadOrder(o); IsReceiveOrderVisible = true; };
+            OrderListVM.ViewOrderRequested += (s, o) => 
+            { 
+                 CreateOrderVM.LoadData();
+                 CreateOrderVM.LoadExistingOrder(o);
+                 CreateOrderVM.IsReadOnly = true;
+                 IsOrderDetailVisible = true; 
+            };
+            
+            // Order Receipt Interactions
+            ReceiveOrderVM.CloseRequested += (s, e) => IsReceiveOrderVisible = false;
+            ReceiveOrderVM.OrderReceived += (s, e) => { IsReceiveOrderVisible = false; OrderListVM.LoadOrders(); };
+            
+            // Create Order Logic: Handle successful creation by returning to the list
+            CreateOrderVM.OrderCreated += (s, e) => { IsOrderDetailVisible = false; SetTab("OrderList"); };
+            CreateOrderVM.CloseRequested += (s, e) => IsOrderDetailVisible = false;
+        }
+
+        /// <summary>
+        /// Handles global navigation requests for the Orders module.
+        /// </summary>
+        public void Receive(OCC.Client.Messages.NavigationRequestMessage message)
+        {
+            if (message.Value == "CreateOrder") SetTab("CreateOrder");
+            if (message.Value == "OrderList") SetTab("OrderList");
+        }
 
         #endregion
     }

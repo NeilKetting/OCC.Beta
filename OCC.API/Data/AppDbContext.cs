@@ -176,6 +176,28 @@ namespace OCC.API.Data
                 new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 12, 25), Name = "Christmas Day" },
                 new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 12, 26), Name = "Day of Goodwill" }
             );
+
+            modelBuilder.Entity<OrderLine>(entity =>
+            {
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.VatAmount).HasPrecision(18, 2);
+                entity.Property(e => e.LineTotal).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.Property(e => e.TaxRate).HasPrecision(18, 4);
+            });
+
+            modelBuilder.Entity<InventoryItem>(entity =>
+            {
+                entity.Property(e => e.AverageCost).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<AttendanceRecord>(entity =>
+            {
+                entity.Property(e => e.CachedHourlyRate).HasPrecision(18, 2);
+            });
         }
     }
 

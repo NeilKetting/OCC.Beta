@@ -13,37 +13,68 @@ using Microsoft.Extensions.Logging;
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for managing the process of receiving items from a placed order.
+    /// Handles quantity validation and updates stock levels via the Order Manager.
+    /// </summary>
     public partial class ReceiveOrderViewModel : ViewModelBase
     {
-        private readonly IOrderService _orderService;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
         private readonly ILogger<ReceiveOrderViewModel> _logger;
 
-        [ObservableProperty]
-        private Order _order = new();
+        #endregion
 
+        #region Observables
+
+        /// <summary>
+        /// Gets or sets the order being received.
+        /// </summary>
+        [ObservableProperty]
+        private Order? _order;
+
+        /// <summary>
+        /// Gets the collection of line items from the order that can be received.
+        /// </summary>
+        public ObservableCollection<ReceiveLineItem> OrderItems { get; } = new();
+
+        /// <summary>
+        /// Gets or sets a value indicating whether an asynchronous operation is in progress.
+        /// </summary>
         [ObservableProperty]
         private bool _isBusy;
 
-        public ObservableCollection<ReceiveLineItem> AvailableLines { get; } = new();
+        /// <summary>
+        /// Gets or sets the text to be displayed when <see cref="IsBusy"/> is true.
+        /// </summary>
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
 
-        public event EventHandler? CloseRequested;
-        public event EventHandler? ReceiptProccessed;
+        #endregion
 
-        public ReceiveOrderViewModel(
-            IOrderService orderService, 
-            IDialogService dialogService,
-            ILogger<ReceiveOrderViewModel> logger)
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReceiveOrderViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Central manager for receiving operations.</param>
+        /// <param name="dialogService">Service for user notifications.</param>
+        /// <param name="logger">Logger for diagnostic information.</param>
+        public ReceiveOrderViewModel(IOrderManager orderManager, IDialogService dialogService, ILogger<ReceiveOrderViewModel> logger)
         {
-            _orderService = orderService;
+            _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
         }
 
+        /// <summary>
+        /// Design-time constructor.
+        /// </summary>
         public ReceiveOrderViewModel()
         {
-            // Design time
-            _orderService = null!;
+            _orderManager = null!;
             _dialogService = null!;
             _logger = null!;
             _order = new Order 
@@ -54,58 +85,56 @@ namespace OCC.Client.ViewModels.Orders
             };
         }
 
-        public void Initialize(Order order)
-        {
-            Order = order;
-            AvailableLines.Clear();
-            foreach(var line in order.Lines)
-            {
-                // Only add lines that aren't fully received yet (optional, or show all for correction?)
-                // Lets show all so they can see history, but disable if complete?
-                // For now, show all.
-                AvailableLines.Add(new ReceiveLineItem(line));
-            }
-        }
+        #endregion
 
+        #region Commands
+
+        /// <summary>
+        /// Command to finalize the receiving process by submitting the quantities to the Order Manager.
+        /// </summary>
         [RelayCommand]
-        public async Task SubmitReceipt()
+        public async Task SubmitReceiving()
         {
-            try
-            {
-                var linesToProcess = AvailableLines.Where(l => l.ReceiveNow > 0).ToList();
+            if (Order == null) return;
 
-                if (!linesToProcess.Any())
+            var receiveList = OrderItems.Where(i => i.ReceiveNow > 0).ToList();
+            if (!receiveList.Any())
+            {
+                await _dialogService.ShowAlertAsync("Validation", "No items have been marked as received.");
+                return;
+            }
+
+            foreach (var item in receiveList)
+            {
+                if (item.ReceiveNow > item.Remaining)
                 {
-                    await _dialogService.ShowAlertAsync("Validation", "Please enter a quantity to receive for at least one item.");
+                    await _dialogService.ShowAlertAsync("Over-Receiving", $"Cannot receive {item.ReceiveNow} of '{item.Description}'. Only {item.Remaining} remain.");
                     return;
                 }
+            }
 
-                // Check over-receiving?
-                // Warn if receiving more than ordered?
-                // For now allow it (over-delivery happens).
-
+            try
+            {
+                BusyText = $"Processing delivery for Order {Order.OrderNumber}...";
                 IsBusy = true;
 
-                // Prepare Payload
-                var updatedLines = linesToProcess.Select(wrapper => 
+                var updatedLines = receiveList.Select(i => 
                 {
-                    var copy = new OrderLine 
-                    {
-                        Id = wrapper.Line.Id,
-                        QuantityReceived = wrapper.Line.QuantityReceived + wrapper.ReceiveNow
-                    };
-                    return copy;
+                    var line = i.SourceLine;
+                    line.QuantityReceived = i.NewTotalReceived;
+                    return line;
                 }).ToList();
 
-                await _orderService.ReceiveOrderAsync(Order, updatedLines);                
-                
-                ReceiptProccessed?.Invoke(this, EventArgs.Empty);
-                CloseRequested?.Invoke(this, EventArgs.Empty);
+                await _orderManager.ReceiveOrderAsync(Order, updatedLines);
+
+                await _dialogService.ShowAlertAsync("Success", "Successfully processed delivery.");
+                OrderReceived?.Invoke(this, EventArgs.Empty);
+                Cancel();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing receipt for order {OrderNumber}", Order?.OrderNumber);
-                await _dialogService.ShowAlertAsync("Error", $"Failed to process receipt: {ex.Message}");
+                _logger.LogError(ex, "Error processing receiving for order {OrderId}", Order.Id);
+                await _dialogService.ShowAlertAsync("Error", $"An error occurred during receiving: {ex.Message}");
             }
             finally
             {
@@ -113,27 +142,73 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
+        /// <summary>
+        /// Automatically populates all line items with their remaining quantity to be received.
+        /// </summary>
+        [RelayCommand]
+        public void ReceiveAll()
+        {
+            foreach (var item in OrderItems)
+            {
+                item.ReceiveNow = item.Remaining;
+            }
+        }
+
+        /// <summary>
+        /// Command to cancel the receiving process and close the view.
+        /// </summary>
         [RelayCommand]
         public void Cancel()
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
-        
-        [RelayCommand]
-        public void ReceiveAll()
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Loads the specified order and its items into the receiving view.
+        /// </summary>
+        /// <param name="order">The order to receive.</param>
+        public void LoadOrder(Order order)
         {
-            foreach(var line in AvailableLines)
+            Order = order;
+            OrderItems.Clear();
+            
+            if (order.Lines != null)
             {
-                if (line.Remaining > 0)
-                    line.ReceiveNow = line.Remaining;
+                foreach (var line in order.Lines)
+                {
+                    OrderItems.Add(new ReceiveLineItem(line));
+                }
             }
         }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Event raised when the user requests to close the receiving view.
+        /// </summary>
+        public event EventHandler? CloseRequested;
+
+        /// <summary>
+        /// Event raised after the order has been successfully processed for receiving.
+        /// </summary>
+        public event EventHandler? OrderReceived;
+
+        #endregion
     }
 
+    /// <summary>
+    /// Helper class for tracking receive state of individual line items.
+    /// </summary>
     public partial class ReceiveLineItem : ObservableObject
     {
-        public OrderLine Line { get; }
-        
+        private readonly OrderLine _line;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(NewTotalReceived))]
         [NotifyPropertyChangedFor(nameof(NewRemaining))]
@@ -141,12 +216,16 @@ namespace OCC.Client.ViewModels.Orders
 
         public ReceiveLineItem(OrderLine line)
         {
-            Line = line;
+            _line = line;
         }
 
-        public double Remaining => Math.Max(0, Line.QuantityOrdered - Line.QuantityReceived);
-        
-        public double NewTotalReceived => Line.QuantityReceived + ReceiveNow;
-        public double NewRemaining => Math.Max(0, Line.QuantityOrdered - NewTotalReceived);
+        public OrderLine SourceLine => _line;
+        public string Description => _line.Description;
+        public string ItemCode => _line.ItemCode;
+        public double QuantityOrdered => _line.QuantityOrdered;
+        public double QuantityReceivedSoFar => _line.QuantityReceived;
+        public double Remaining => Math.Max(0, _line.QuantityOrdered - _line.QuantityReceived);
+        public double NewTotalReceived => _line.QuantityReceived + ReceiveNow;
+        public double NewRemaining => Math.Max(0, _line.QuantityOrdered - NewTotalReceived);
     }
 }

@@ -14,54 +14,164 @@ using Microsoft.Extensions.Logging;
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for managing and viewing inventory stock levels.
+    /// Provides filtering and detail view navigation for inventory items.
+    /// </summary>
+    /// <summary>
+    /// ViewModel for managing and viewing inventory stock levels.
+    /// Provides filtering and detail view navigation for inventory items.
+    /// </summary>
     public partial class InventoryViewModel : ViewModelBase
     {
-        private readonly IInventoryService _inventoryService;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
-        private readonly ISupplierService _supplierService;
-        private readonly Microsoft.Extensions.Logging.ILogger<InventoryViewModel> _logger;
+        private readonly ILogger<InventoryViewModel> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private List<InventoryItem> _allItems = new();
 
+        #endregion
+
+        #region Observables
+
+        /// <summary>
+        /// Gets the collection of inventory items matching the current filter.
+        /// </summary>
         public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
 
+        /// <summary>
+        /// Gets or sets the search query to filter inventory items by name.
+        /// </summary>
         [ObservableProperty]
         private string _searchQuery = "";
 
+        /// <summary>
+        /// Gets or sets a value indicating whether an asynchronous operation is in progress.
+        /// </summary>
         [ObservableProperty]
         private bool _isBusy;
 
-        private readonly IServiceProvider _serviceProvider;
+        /// <summary>
+        /// Gets or sets the text to be displayed when <see cref="IsBusy"/> is true.
+        /// </summary>
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the item details popup is visible.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isDetailVisible;
+
+        /// <summary>
+        /// Gets or sets the inventory item currently selected for viewing or editing.
+        /// </summary>
+        [ObservableProperty]
+        private InventoryItem? _selectedInventoryItem;
+
+        /// <summary>
+        /// Gets or sets the ViewModel for the inventory item detail view.
+        /// </summary>
+        [ObservableProperty]
+        private ItemDetailViewModel? _detailViewModel;
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InventoryViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Manager providing centralized order and inventory operations.</param>
+        /// <param name="dialogService">Service for displaying user notifications.</param>
+        /// <param name="logger">Logger for capturing diagnostic information.</param>
+        /// <param name="serviceProvider">Service provider for resolving child ViewModels via DI.</param>
         public InventoryViewModel(
-            IInventoryService inventoryService, 
-            ISupplierService supplierService, 
+            IOrderManager orderManager, 
             IDialogService dialogService, 
-            Microsoft.Extensions.Logging.ILogger<InventoryViewModel> logger,
+            ILogger<InventoryViewModel> logger,
             IServiceProvider serviceProvider)
         {
-            _inventoryService = inventoryService;
-            _supplierService = supplierService;
+            _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
             _serviceProvider = serviceProvider;
-            // Fire and forget initialization
+            
             _ = LoadInventoryAsync();
         }
 
-        // ...
+        #endregion
 
+        #region Commands
+
+        /// <summary>
+        /// Command to manually refresh the inventory list.
+        /// </summary>
+        [RelayCommand]
+        public async Task RefreshInventory()
+        {
+            await LoadInventoryAsync();
+        }
+
+        /// <summary>
+        /// Command to open the detail view for a specific inventory item in edit mode.
+        /// </summary>
+        /// <param name="item">The inventory item to edit.</param>
+        [RelayCommand]
+        public void EditInventoryItem(InventoryItem item)
+        {
+            if (item == null) return;
+            
+            var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
+
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemDetailViewModel>(_serviceProvider);
+            DetailViewModel.Load(item, categories);
+            
+            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
+            DetailViewModel.ItemSaved += (s, e) => 
+            {
+                IsDetailVisible = false;
+                _ = LoadInventoryAsync();
+            };
+            
+            IsDetailVisible = true;
+        }
+
+        /// <summary>
+        /// Command to permanently delete an inventory item.
+        /// </summary>
+        /// <param name="item">The item to be deleted.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        [RelayCommand]
+        public async Task DeleteInventoryItem(InventoryItem item)
+        {
+             if (item == null) return;
+             await _dialogService.ShowAlertAsync("Locked", "Inventory item deletion is currently disabled to maintain historical stock integrity.");
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Asynchronously loads all inventory items from the Order Manager and applies the current search filter.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task LoadInventoryAsync()
         {
             try
             {
+                BusyText = "Loading inventory...";
                 IsBusy = true;
-                _allItems = await _inventoryService.GetInventoryAsync();
+                _allItems = (await _orderManager.GetInventoryAsync()).ToList();
                 FilterItems();
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error loading inventory");
-                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", "Failed to load inventory items.");
+                _logger?.LogError(ex, "Error loading inventory list");
+                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", "Failed to retrieve inventory items. Please try again later.");
             }
              finally
             {
@@ -69,11 +179,9 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        partial void OnSearchQueryChanged(string value)
-        {
-            FilterItems();
-        }
-
+        /// <summary>
+        /// Filters the full collection of items based on the current search query.
+        /// </summary>
         private void FilterItems()
         {
             InventoryItems.Clear();
@@ -87,64 +195,15 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        [RelayCommand]
-        public async Task RefreshInventory()
-        {
-            await LoadInventoryAsync();
-        }
-        [ObservableProperty]
-        private bool _isDetailVisible;
+        #endregion
 
-        [ObservableProperty]
-        private InventoryItem? _selectedInventoryItem;
+        #region Helper Methods
 
-        [ObservableProperty]
-        private InventoryDetailViewModel? _detailViewModel;
+        /// <summary>
+        /// Responds to changes in the search query by reapplying the filter to the inventory list.
+        /// </summary>
+        partial void OnSearchQueryChanged(string value) => FilterItems();
 
-        // Factory/Service Locator needed? Or direct instantiation?
-        // Direct instantiation is easier for now, assuming DI for dependencies.
-        // But we need IDialogService and IInventoryService to pass.
-        // We have them in constructor!
-        
-        [RelayCommand]
-        public void AddInventoryItem()
-        {
-            var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
-
-            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryDetailViewModel>(_serviceProvider);
-            DetailViewModel.Load(null, categories); // Add Mode with Categories
-            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
-            DetailViewModel.ItemSaved += (s, e) => 
-            {
-                IsDetailVisible = false;
-                _ = LoadInventoryAsync();
-            };
-            IsDetailVisible = true;
-        }
-
-        [RelayCommand]
-        public void EditInventoryItem(InventoryItem item)
-        {
-            if (item == null) return;
-            var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
-
-            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryDetailViewModel>(_serviceProvider);
-            DetailViewModel.Load(item, categories); // Edit Mode with Categories
-            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
-            DetailViewModel.ItemSaved += (s, e) => 
-            {
-                IsDetailVisible = false;
-                _ = LoadInventoryAsync();
-            };
-            IsDetailVisible = true;
-        }
-
-        [RelayCommand]
-        public async Task DeleteInventoryItem(InventoryItem item)
-        {
-             if (item == null) return;
-             // Stub for Delete logic
-             await _dialogService.ShowAlertAsync("Coming Soon", "Delete Inventory feature is under construction.");
-        }
+        #endregion
     }
 }

@@ -1,0 +1,311 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.Messaging; // NEW
+
+namespace OCC.Client.ViewModels.Orders
+{
+    /// <summary>
+    /// ViewModel for adding or editing individual inventory items.
+    /// Manages item properties such as SKU, category, supplier, and stock levels.
+    /// </summary>
+    /// <summary>
+    /// ViewModel for adding or editing individual inventory items.
+    /// Manages item properties such as SKU, category, supplier, and stock levels.
+    /// </summary>
+    public partial class ItemDetailViewModel : ViewModelBase
+    {
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
+        private readonly IDialogService _dialogService;
+        private readonly Services.Infrastructure.OrderStateService _orderStateService;
+        private bool _isEditMode;
+        private Guid _editingId;
+
+        #endregion
+
+        #region Observables
+
+        /// <summary>
+        /// Gets or sets the title displayed in the detail view header.
+        /// </summary>
+        [ObservableProperty]
+        private string _title = "Add New Item";
+
+        /// <summary>
+        /// Gets or sets the Stock Keeping Unit (SKU) for the item.
+        /// </summary>
+        [ObservableProperty]
+        private string _sku = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the name of the product.
+        /// </summary>
+        [ObservableProperty]
+        private string _productName = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the category the item belongs to.
+        /// </summary>
+        [ObservableProperty]
+        private string _category = "General";
+        
+        /// <summary>
+        /// Gets or sets the name of the supplier associated with this item.
+        /// </summary>
+        [ObservableProperty]
+        private string _supplierName = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the physical storage location of the item.
+        /// </summary>
+        [ObservableProperty]
+        private string _location = "Warehouse";
+
+        /// <summary>
+        /// Gets or sets the unit of measure (e.g., "ea", "kg", "m").
+        /// </summary>
+        [ObservableProperty]
+        private string _unitOfMeasure = "ea";
+
+        /// <summary>
+        /// Gets or sets the current quantity of items in stock.
+        /// </summary>
+        [ObservableProperty]
+        private double _quantityOnHand;
+
+        /// <summary>
+        /// Gets or sets the stock level at which a reorder should be triggered.
+        /// </summary>
+        [ObservableProperty]
+        private double _reorderPoint;
+        
+        /// <summary>
+        /// Gets or sets the average cost per unit of the item.
+        /// </summary>
+        [ObservableProperty]
+        private decimal _averageCost;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to track low stock for this item.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isTrackingLowStock = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether an asynchronous operation is in progress.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isBusy;
+
+        /// <summary>
+        /// Gets or sets the text to be displayed when <see cref="IsBusy"/> is true.
+        /// </summary>
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
+        /// <summary>
+        /// Gets the collection of available product categories for selection.
+        /// </summary>
+        public System.Collections.ObjectModel.ObservableCollection<string> AvailableCategories { get; } = new();
+
+        /// <summary>
+        /// Gets the collection of available suppliers for assignment.
+        /// </summary>
+        public System.Collections.ObjectModel.ObservableCollection<Supplier> AvailableSuppliers { get; } = new();
+
+        /// <summary>
+        /// Gets the list of standard units of measure.
+        /// </summary>
+        public System.Collections.Generic.List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ItemDetailViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Central manager for inventory and supplier operations.</param>
+        /// <param name="dialogService">Service for user notifications.</param>
+        /// <param name="orderStateService">Service for maintaining order state during navigation.</param>
+        public ItemDetailViewModel(
+            IOrderManager orderManager, 
+            IDialogService dialogService, 
+            Services.Infrastructure.OrderStateService orderStateService)
+        {
+            _orderManager = orderManager;
+            _dialogService = dialogService;
+            _orderStateService = orderStateService;
+        }
+
+        #endregion
+
+        #region Commands
+
+        /// <summary>
+        /// Command to save the inventory item details via the Order Manager.
+        /// Validates input and triggers navigation callback if necessary.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        [RelayCommand]
+        public async Task Save()
+        {
+            if (string.IsNullOrWhiteSpace(ProductName))
+            {
+                await _dialogService.ShowAlertAsync("Validation", "Product Name is required to save the item.");
+                return;
+            }
+
+            try
+            {
+                BusyText = "Saving inventory item...";
+                IsBusy = true;
+
+                InventoryItem item = new InventoryItem
+                {
+                    Id = _isEditMode ? _editingId : Guid.NewGuid(),
+                    Sku = Sku,
+                    ProductName = ProductName,
+                    Category = Category,
+                    Supplier = SupplierName ?? string.Empty,
+                    Location = Location,
+                    UnitOfMeasure = UnitOfMeasure,
+                    QuantityOnHand = QuantityOnHand,
+                    ReorderPoint = ReorderPoint,
+                    AverageCost = AverageCost,
+                    TrackLowStock = IsTrackingLowStock
+                };
+
+                if (_isEditMode)
+                {
+                    await _orderManager.UpdateItemAsync(item);
+                }
+                else
+                {
+                    await _orderManager.CreateItemAsync(item);
+                }
+                
+                ItemSaved?.Invoke(this, EventArgs.Empty);
+                CloseRequested?.Invoke(this, EventArgs.Empty);
+                
+                if (_orderStateService.HasSavedState)
+                {
+                     WeakReferenceMessenger.Default.Send(new OCC.Client.Messages.NavigationRequestMessage("CreateOrder"));
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"An error occurred while saving: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Command to cancel the current operation and close the view without saving.
+        /// </summary>
+        [RelayCommand]
+        public void Cancel()
+        {
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Initializes the ViewModel for adding or editing an inventory item.
+        /// </summary>
+        /// <param name="item">The item to edit, or null to create a new item.</param>
+        /// <param name="categories">Optional list of existing categories to populate the dropdown.</param>
+        public void Load(InventoryItem? item, System.Collections.Generic.List<string>? categories = null)
+        {
+            AvailableCategories.Clear();
+            if (categories != null)
+            {
+                foreach (var c in categories) AvailableCategories.Add(c);
+            }
+            
+            _ = LoadSuppliersAsync();
+
+            if (item == null)
+            {
+                _isEditMode = false;
+                Title = "Add New Item";
+                Sku = "";
+                ProductName = "";
+                Category = "General";
+                SupplierName = "";
+                Location = "Warehouse";
+                UnitOfMeasure = "ea";
+                QuantityOnHand = 0;
+                ReorderPoint = 10;
+                IsTrackingLowStock = true;
+            }
+            else
+            {
+                _isEditMode = true;
+                _editingId = item.Id;
+                Title = $"Edit {item.ProductName}";
+                Sku = item.Sku;
+                ProductName = item.ProductName;
+                Category = item.Category;
+                SupplierName = item.Supplier;
+                Location = item.Location;
+                UnitOfMeasure = item.UnitOfMeasure;
+                QuantityOnHand = item.QuantityOnHand;
+                ReorderPoint = item.ReorderPoint;
+                AverageCost = item.AverageCost;
+                IsTrackingLowStock = item.TrackLowStock;
+            }
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Event raised when the user requests to close the detail view.
+        /// </summary>
+        public event EventHandler? CloseRequested;
+
+        /// <summary>
+        /// Event raised after an item has been successfully saved.
+        /// </summary>
+        public event EventHandler? ItemSaved;
+
+        /// <summary>
+        /// Asynchronously retrieves all registered suppliers to populate the selection dropdown.
+        /// </summary>
+        private async Task LoadSuppliersAsync()
+        {
+             try
+             {
+                 var suppliers = await _orderManager.GetSuppliersAsync();
+                 AvailableSuppliers.Clear();
+                 foreach (var s in suppliers.OrderBy(x => x.Name))
+                 {
+                     AvailableSuppliers.Add(s);
+                 }
+             }
+             catch (Exception ex)
+             {
+                 System.Diagnostics.Debug.WriteLine($"Error loading suppliers for item detail: {ex.Message}");
+             }
+        }
+
+        #endregion
+    }
+}

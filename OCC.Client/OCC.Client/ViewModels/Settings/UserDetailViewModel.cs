@@ -58,10 +58,16 @@ namespace OCC.Client.ViewModels.Settings
         private bool _isEmailVerified;
 
         [ObservableProperty]
-        private string _title = "Add User";
+        private string _title = "Create User";
 
         [ObservableProperty]
-        private string _saveButtonText = "Add User";
+        private string _saveButtonText = "Create User";
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
 
         #endregion
 
@@ -95,6 +101,8 @@ namespace OCC.Client.ViewModels.Settings
         {
             try
             {
+                BusyText = "Saving user...";
+                IsBusy = true;
                 if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Email))
                     return;
 
@@ -152,6 +160,10 @@ namespace OCC.Client.ViewModels.Settings
                 // Since this VM uses 'IViewModelBase'? No it inherits ViewModelBase.
                 // It has _userRepository injection only. 
                 // I should ideally check if I can show an alert, but at least preventing crash is step 1.
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

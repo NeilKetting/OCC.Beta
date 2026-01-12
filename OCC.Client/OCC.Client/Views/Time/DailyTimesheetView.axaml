@@ -68,12 +68,12 @@
                                                 <Button Content="Present" 
                                                         Command="{Binding #Root.DataContext.MarkPresentCommand}" 
                                                         CommandParameter="{Binding}"
-                                                        Classes="SuccessButton" Padding="10,5" FontSize="12"/>
+                                                        Classes="SuccessButton"/>
                                                 
                                                 <Button Content="Absent" 
                                                         Command="{Binding #Root.DataContext.MarkAbsentCommand}" 
                                                         CommandParameter="{Binding}"
-                                                        Classes="DangerButton" Padding="10,5" FontSize="12"/>
+                                                        Classes="DangerButton"/>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

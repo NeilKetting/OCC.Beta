@@ -127,18 +127,16 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Loading Overlay -->
-        <Border Grid.Row="2" Background="#80FFFFFF" IsVisible="{Binding IsLoading}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
-                <ProgressBar IsIndeterminate="True" 
-                             Width="200" 
-                             Height="4" 
-                             Foreground="{DynamicResource AccentOrange}"/>
-                <TextBlock Text="Loading employees..." 
-                           HorizontalAlignment="Center" 
-                           Classes="StatLabel" 
-                           FontSize="14"/>
-            </StackPanel>
-        </Border>
+        <!-- Loading -->
+        <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+            <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+        </StackPanel>
+
+        <!-- Empty State -->
+         <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                     IsVisible="{Binding !Employees.Count}">
+             <TextBlock Text="No employees found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
+         </StackPanel>
     </Grid>
 </UserControl>

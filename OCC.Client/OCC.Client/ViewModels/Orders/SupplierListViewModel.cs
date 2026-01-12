@@ -14,41 +14,157 @@ using Microsoft.Extensions.Logging;
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for managing a list of suppliers, including searching, editing, and dependency-checked deletion.
+    /// </summary>
+    /// <summary>
+    /// ViewModel for managing a list of suppliers, including searching, editing, and dependency-checked deletion.
+    /// </summary>
     public partial class SupplierListViewModel : ViewModelBase
     {
-        private readonly ISupplierService _supplierService;
-        private readonly IOrderService _orderService;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
+        private readonly ILogger<SupplierListViewModel> _logger;
         private List<Supplier> _allSuppliers = new();
 
+        #endregion
+
+        #region Observables
+
+        /// <summary>
+        /// Gets the collection of suppliers currently displayed in the list.
+        /// </summary>
         public ObservableCollection<Supplier> Suppliers { get; } = new();
 
-        [ObservableProperty]
-        private string _searchQuery = "";
-
+        /// <summary>
+        /// Gets or sets a value indicating whether the ViewModel is busy with an asynchronous operation.
+        /// </summary>
         [ObservableProperty]
         private bool _isBusy;
-        
+
+        /// <summary>
+        /// Gets or sets the text to be displayed during a busy operation.
+        /// </summary>
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
+        /// <summary>
+        /// Gets or sets the search query used to filter the supplier list by name or email.
+        /// </summary>
+        [ObservableProperty]
+        private string _searchQuery = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the currently selected supplier in the list.
+        /// </summary>
         [ObservableProperty]
         private Supplier? _selectedSupplier;
 
-        private readonly ILogger<SupplierListViewModel> _logger;
+        #endregion
 
-        public SupplierListViewModel(ISupplierService supplierService, IOrderService orderService, IDialogService dialogService, ILogger<SupplierListViewModel> logger)
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SupplierListViewModel"/> class with required dependencies.
+        /// </summary>
+        /// <param name="orderManager">Central manager for supplier and order operations.</param>
+        /// <param name="dialogService">Service for displaying user dialogs and confirmations.</param>
+        /// <param name="logger">Logger for diagnostic information.</param>
+        public SupplierListViewModel(IOrderManager orderManager, IDialogService dialogService, ILogger<SupplierListViewModel> logger)
         {
-            _supplierService = supplierService;
-            _orderService = orderService;
+            _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
-            // LoadSuppliers(); // Called by Host or explicit init
         }
 
+        #endregion
+
+        #region Commands
+
+        /// <summary>
+        /// Command to initiate the process of adding a new supplier.
+        /// </summary>
+        [RelayCommand]
+        public void AddSupplier()
+        {
+            AddSupplierRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Command to initiate editing for a specific supplier.
+        /// </summary>
+        /// <param name="supplier">The supplier to be edited.</param>
+        [RelayCommand]
+        private void EditSupplier(Supplier supplier)
+        {
+             if (supplier == null) return;
+             EditSupplierRequested?.Invoke(this, supplier);
+        }
+
+        /// <summary>
+        /// Command to permanently delete a supplier after performing a dependency check to ensure no orders are associated with them.
+        /// </summary>
+        /// <param name="supplier">The supplier to be deleted.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        [RelayCommand]
+        private async Task DeleteSupplier(Supplier supplier)
+        {
+             if (supplier == null) return;
+
+             try 
+             {
+                 var allOrders = await _orderManager.GetOrdersAsync();
+                 if (allOrders.Any(o => o.SupplierId == supplier.Id))
+                 {
+                     await _dialogService.ShowAlertAsync("Restricted", $"Cannot delete supplier '{supplier.Name}' because they have associated orders.");
+                     return;
+                 }
+             }
+             catch(Exception ex)
+             {
+                  _logger.LogError(ex, "Failed to check orders during supplier delete for {SupplierName}", supplier.Name);
+                  await _dialogService.ShowAlertAsync("Error", "Could not verify dependencies. Delete operation aborted for safety.");
+                  return;
+             }
+
+             var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Are you sure you want to delete supplier '{supplier.Name}'? This action cannot be undone.");
+              if (confirm)
+              {
+                  try
+                  {
+                      BusyText = $"Deleting {supplier.Name}...";
+                      IsBusy = true;
+                      await _orderManager.DeleteSupplierAsync(supplier.Id);
+                      await LoadData();
+                  }
+                  catch(Exception ex)
+                  {
+                      await _dialogService.ShowAlertAsync("Error", $"Failed to delete supplier: {ex.Message}");
+                  }
+                  finally
+                  {
+                      IsBusy = false;
+                  }
+              }
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Asynchronously loads all suppliers from the Order Manager and applies the current search filter.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task LoadData()
         {
             try
             {
+                BusyText = "Loading suppliers...";
                 IsBusy = true;
-                _allSuppliers = await _supplierService.GetSuppliersAsync();
+                _allSuppliers = (await _orderManager.GetSuppliersAsync()).ToList();
                 FilterSuppliers();
             }
             catch(Exception ex)
@@ -62,20 +178,9 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        public event EventHandler? AddSupplierRequested;
-        public event EventHandler<Supplier>? EditSupplierRequested;
-
-        [RelayCommand]
-        public void AddSupplier()
-        {
-            AddSupplierRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        partial void OnSearchQueryChanged(string value)
-        {
-            FilterSuppliers();
-        }
-
+        /// <summary>
+        /// Filters the full collection of suppliers based on the current search query.
+        /// </summary>
         private void FilterSuppliers()
         {
             Suppliers.Clear();
@@ -89,50 +194,26 @@ namespace OCC.Client.ViewModels.Orders
                 Suppliers.Add(s);
             }
         }
-        
-        [RelayCommand]
-        private void EditSupplier(Supplier supplier)
-        {
-             if (supplier == null) return;
-             EditSupplierRequested?.Invoke(this, supplier);
-        }
 
-        [RelayCommand]
-        private async Task DeleteSupplier(Supplier supplier)
-        {
-             if (supplier == null) return;
+        #endregion
 
-             // Dependency Check
-             try 
-             {
-                 var allOrders = await _orderService.GetOrdersAsync();
-                 if (allOrders.Any(o => o.SupplierId == supplier.Id))
-                 {
-                     await _dialogService.ShowAlertAsync("Restricted", $"Cannot delete supplier '{supplier.Name}' because they have associated orders.");
-                     return;
-                 }
-             }
-             catch(Exception ex)
-             {
-                  _logger.LogError(ex, "Failed to check orders during supplier delete");
-                  // Fallthrough or stop? Let's safeguard.
-                  await _dialogService.ShowAlertAsync("Error", "Could not verify dependencies. Delete aborted.");
-                  return;
-             }
+        #region Helper Methods
 
-             var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Delete supplier '{supplier.Name}'?");
-              if (confirm)
-              {
-                  try
-                  {
-                      await _supplierService.DeleteSupplierAsync(supplier.Id);
-                      await LoadData();
-                  }
-                  catch(Exception ex)
-                  {
-                      await _dialogService.ShowAlertAsync("Error", $"Failed to delete supplier: {ex.Message}");
-                  }
-              }
-        }
+        /// <summary>
+        /// Event raised when the user requests to add a new supplier.
+        /// </summary>
+        public event EventHandler? AddSupplierRequested;
+
+        /// <summary>
+        /// Event raised when the user requests to edit an existing supplier.
+        /// </summary>
+        public event EventHandler<Supplier>? EditSupplierRequested;
+
+        /// <summary>
+        /// Handles changes to the search query by reapplying the supplier filter.
+        /// </summary>
+        partial void OnSearchQueryChanged(string value) => FilterSuppliers();
+
+        #endregion
     }
 }

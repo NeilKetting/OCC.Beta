@@ -20,7 +20,7 @@ namespace OCC.Client.ViewModels.Bugs
         private ObservableCollection<BugReport> _bugs = new();
 
         [ObservableProperty]
-        private bool _isLoading;
+        private bool _isBusy;
 
         [ObservableProperty]
         private BugReport? _selectedBug;
@@ -34,7 +34,7 @@ namespace OCC.Client.ViewModels.Bugs
         [RelayCommand]
         private async Task LoadBugs()
         {
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 var list = await _bugService.GetBugReportsAsync();
@@ -46,7 +46,7 @@ namespace OCC.Client.ViewModels.Bugs
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
     }

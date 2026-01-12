@@ -30,6 +30,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private bool _isBusy;
 
         [ObservableProperty]
+        private string _busyText = "Please wait...";
+
+        [ObservableProperty]
         private string? _errorMessage;
 
         public event EventHandler<Team>? EditTeamRequested;
@@ -46,6 +49,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         private async void LoadData()
         {
+            BusyText = "Loading teams...";
             IsBusy = true;
             ErrorMessage = null;
             try 
@@ -94,6 +98,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
              
              try
              {
+                 BusyText = $"Deleting team '{team.Name}'...";
+                 IsBusy = true;
                  await _teamRepository.DeleteAsync(team.Id);
              }
              catch (System.Net.Http.HttpRequestException ex)
@@ -120,6 +126,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                  System.Diagnostics.Debug.WriteLine($"[TeamManagementViewModel] General Error: {ex.Message}");
                  if (_dialogService != null) 
                       await _dialogService.ShowAlertAsync("Error", $"Unexpected error deleting team: {ex.Message}");
+             }
+             finally
+             {
+                 IsBusy = false;
              }
              // SignalR will trigger reload on success
         }

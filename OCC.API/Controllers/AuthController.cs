@@ -59,10 +59,13 @@ namespace OCC.API.Controllers
                 return Conflict(error);
             }
 
-            // Notify Admins (broadcasting to all for now, client filters)
-            await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New User Registration: {createdUser.Email}");
-            // Also generic entity update
-            await _hubContext.Clients.All.SendAsync("EntityUpdate", "User", "Create", createdUser.Id);
+            if (createdUser != null)
+            {
+                // Notify Admins (broadcasting to all for now, client filters)
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"New User Registration: {createdUser.Email}");
+                // Also generic entity update
+                await _hubContext.Clients.All.SendAsync("EntityUpdate", "User", "Create", createdUser.Id);
+            }
 
             return Ok(createdUser);
         }

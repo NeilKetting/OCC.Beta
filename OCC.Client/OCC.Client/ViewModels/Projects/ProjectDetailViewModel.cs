@@ -81,6 +81,12 @@ namespace OCC.Client.ViewModels.Projects
             }
         }
 
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
+
         #endregion
 
         #region Properties
@@ -139,7 +145,16 @@ namespace OCC.Client.ViewModels.Projects
         {
             if (CurrentProjectId == Guid.Empty || manager == null) return;
 
-            await _projectManager.AssignSiteManagerAsync(CurrentProjectId, manager.Id);
+            try
+            {
+                BusyText = "Assigning site manager...";
+                IsBusy = true;
+                await _projectManager.AssignSiteManagerAsync(CurrentProjectId, manager.Id);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
             
             // UI Update
             await Dispatcher.UIThread.InvokeAsync(() =>
@@ -168,6 +183,8 @@ namespace OCC.Client.ViewModels.Projects
             await _loadLock.WaitAsync();
             try
             {
+                BusyText = "Loading project data...";
+                IsBusy = true;
                 CurrentProjectId = projectId;
                 
                 var project = await _projectManager.GetProjectByIdAsync(projectId);
@@ -209,6 +226,7 @@ namespace OCC.Client.ViewModels.Projects
             }
             finally
             {
+                IsBusy = false;
                 _loadLock.Release();
             }
         }

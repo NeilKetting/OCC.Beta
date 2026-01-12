@@ -17,18 +17,30 @@ using CommunityToolkit.Mvvm.Messaging; // NEW
 
 namespace OCC.Client.ViewModels.Orders
 {
+    /// <summary>
+    /// ViewModel for creating, editing, and viewing purchase orders, sales orders, and returns.
+    /// Manages complex order states, line item calculations, and coordinates with inventory and supplier services via the Order Manager.
+    /// </summary>
     public partial class CreateOrderViewModel : ViewModelBase
     {
-        private readonly IOrderService _orderService;
-        private readonly IInventoryService _inventoryService;
-        private readonly ISupplierService _supplierService;
-        private readonly IRepository<Customer> _customerRepository;
-        private readonly IRepository<Project> _projectRepository;
+        #region Private Members
+
+        private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
         private readonly OrderStateService _orderStateService;
-
         private readonly ILogger<CreateOrderViewModel> _logger;
         private readonly IPdfService _pdfService;
+        private bool _isUpdatingSearchText;
+
+        #endregion
+
+        #region Observables
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyText = "Please wait...";
 
         [ObservableProperty]
         private Order _newOrder = new();
@@ -36,30 +48,67 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private bool _isReadOnly;
 
-        // Proxy Properties for Order Totals (Model doesn't implement INPC)
+        /// <summary>
+        /// Gets the current order subtotal from the model.
+        /// </summary>
         public decimal OrderSubTotal => NewOrder?.SubTotal ?? 0;
+        
+        /// <summary>
+        /// Gets the current order VAT total from the model.
+        /// </summary>
         public decimal OrderVat => NewOrder?.VatTotal ?? 0;
+        
+        /// <summary>
+        /// Gets the current order total amount from the model.
+        /// </summary>
         public decimal OrderTotal => NewOrder?.TotalAmount ?? 0;
 
         [ObservableProperty]
         private OrderLine _newLine = new();
         
-        // Selections
         [ObservableProperty]
         private ObservableCollection<Supplier> _suppliers = new();
+        
         [ObservableProperty]
         private ObservableCollection<Customer> _customers = new();
+        
         [ObservableProperty]
         private ObservableCollection<Project> _projects = new();
         
         [ObservableProperty]
         private ObservableCollection<InventoryItem> _inventoryItems = new();
+
+        /// <summary>
+        /// Gets the inventory items filtered by SKU for lookup.
+        /// </summary>
+        public ObservableCollection<InventoryItem> FilteredInventoryItemsBySku { get; } = new();
         
+        /// <summary>
+        /// Gets the inventory items filtered by name for lookup.
+        /// </summary>
+        public ObservableCollection<InventoryItem> FilteredInventoryItemsByName { get; } = new();
+
+        [ObservableProperty]
+        private string _skuSearchText = string.Empty;
+
+        [ObservableProperty]
+        private string _productSearchText = string.Empty;
+        
+        /// <summary>
+        /// Gets the list of available units of measure.
+        /// </summary>
         public List<string> AvailableUOMs { get; } = new() { "ea", "m", "kg", "L", "m2", "m3", "box", "roll", "pack" };
+        
+        /// <summary>
+        /// Gets the list of available branches.
+        /// </summary>
         public List<Branch> Branches { get; } = Enum.GetValues<Branch>().Cast<Branch>().ToList();
+        
+        /// <summary>
+        /// Gets the list of product categories derived from inventory.
+        /// </summary>
         public ObservableCollection<string> ProductCategories { get; } = new();
         
-        // Selected Items
         [ObservableProperty]
         [property: CustomValidation(typeof(CreateOrderViewModel), nameof(ValidateSupplierSelection))]
         private Supplier? _selectedSupplier;
@@ -70,7 +119,6 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private InventoryItem? _selectedInventoryItem;
 
-        // UI Helpers
         [ObservableProperty]
         private bool _isPurchaseOrder;
         
@@ -79,10 +127,6 @@ namespace OCC.Client.ViewModels.Orders
         
         [ObservableProperty]
         private bool _isReturnOrder;
-
-        // Validation Test Proxy
-
-
 
         [ObservableProperty]
         private bool _isAddingNewProduct;
@@ -104,11 +148,9 @@ namespace OCC.Client.ViewModels.Orders
         
         [ObservableProperty]
         private string _newSupplierName = string.Empty;
-
-        // --- Logic ---
         
         [ObservableProperty]
-        private bool _isOfficeDelivery = true; // Default
+        private bool _isOfficeDelivery = true;
         
         [ObservableProperty]
         private bool _isSiteDelivery;
@@ -117,45 +159,33 @@ namespace OCC.Client.ViewModels.Orders
         [property: CustomValidation(typeof(CreateOrderViewModel), nameof(ValidateProjectSelection))]
         private Project? _selectedProject;
 
-        // Validation Logic
-        public static ValidationResult? ValidateSupplierSelection(Supplier? supplier, ValidationContext context)
-        {
-            var vm = (CreateOrderViewModel)context.ObjectInstance;
-            if (vm.IsPurchaseOrder && supplier == null)
-            {
-                return new ValidationResult("Supplier is required for Purchase Orders.");
-            }
-            return ValidationResult.Success;
-        }
+        [ObservableProperty]
+        private bool _shouldPrintOrder;
 
-        public static ValidationResult? ValidateProjectSelection(Project? project, ValidationContext context)
-        {
-            var vm = (CreateOrderViewModel)context.ObjectInstance;
-            if (vm.IsSalesOrder && project == null)
-            {
-                return new ValidationResult("Project is required for Sales Orders.");
-            }
-            return ValidationResult.Success;
-        }
+        [ObservableProperty]
+        private bool _shouldEmailOrder;
 
-        public event EventHandler? CloseRequested;
+        [ObservableProperty]
+        private bool _isAddingProjectAddress;
+        
+        [ObservableProperty]
+        private string _newProjectAddress = string.Empty;
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreateOrderViewModel"/> class with required dependencies.
+        /// </summary>
         public CreateOrderViewModel(
-            IOrderService orderService, 
-            IInventoryService inventoryService,
-            ISupplierService supplierService,
-            IRepository<Customer> customerRepository,
-            IRepository<Project> projectRepository, 
+            IOrderManager orderManager,
             IDialogService dialogService,
             ILogger<CreateOrderViewModel> logger,
             IPdfService pdfService,
             OrderStateService orderStateService)
         {
-            _orderService = orderService;
-            _inventoryService = inventoryService;
-            _supplierService = supplierService;
-            _customerRepository = customerRepository;
-            _projectRepository = projectRepository;
+            _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
             _pdfService = pdfService;
@@ -164,278 +194,47 @@ namespace OCC.Client.ViewModels.Orders
             Reset();
         }
 
+        /// <summary>
+        /// Design-time constructor.
+        /// </summary>
         public CreateOrderViewModel() 
         {
-            _orderService = null!;
-            _inventoryService = null!;
-            _supplierService = null!;
-            _customerRepository = null!;
-            _projectRepository = null!;
+            _orderManager = null!;
             _dialogService = null!;
-            _logger = null!;
             _logger = null!;
             _pdfService = null!;
             _orderStateService = null!;
             NewOrder.OrderNumber = "DEMO-0000";
-        } // Design-time support
-
-        public async void LoadData()
-        {
-            try
-            {
-                // Parallel load
-                var t1 = LoadSuppliers();
-                var t2 = LoadCustomers();
-                var t3 = LoadProjects();
-                var t4 = LoadInventory();
-                
-                await Task.WhenAll(t1, t2, t3, t4);
-
-                // Restore State if Available
-                if (_orderStateService.IsReturningFromItemCreation)
-                {
-                    RestoreState();
-                }
-            }
-            catch(Exception ex)
-            {
-                 _logger.LogError(ex, "Error loading order data");
-                 await _dialogService.ShowAlertAsync("Error", "Failed to load order data. Please try again.");
-            }
         }
 
-        public void Reset()
-        {
-            NewOrder = new Order
-            {
-                OrderDate = DateTime.Now,
-                OrderNumber = $"PO-{DateTime.Now:yyMM}-{new Random().Next(1000, 9999)}",
-                OrderType = OrderType.PurchaseOrder, // Default
-                TaxRate = 0.15m,
-                DestinationType = OrderDestinationType.Stock
-            };
-            IsOfficeDelivery = true;
-            NewOrder.Attention = string.Empty; // Reset string
-            UpdateOrderTypeFlags();
-        }
+        #endregion
 
-        public void LoadExistingOrder(Order order)
-        {
-            // Set the order
-            NewOrder = order;
-            
-            // Map Selections
-            if (Suppliers.Any()) 
-                SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == order.SupplierId);
-                
-            if (Customers.Any())
-                SelectedCustomer = Customers.FirstOrDefault(c => c.Id == order.CustomerId);
-                
-            if (Projects.Any())
-                SelectedProject = Projects.FirstOrDefault(p => p.Id == order.ProjectId);
-                
-            // Update Flags
-            UpdateOrderTypeFlags();
-            
-            // Delivery Flags
-            if (order.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
-            else IsOfficeDelivery = true;
-            
-            OnPropertyChanged(nameof(NewOrder));
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
-        }
+        #region Commands
 
-        partial void OnNewOrderChanged(Order value)
-        {
-            UpdateOrderTypeFlags();
-        }
-        
-        // Watch for OrderType changes (needs a way to trigger, usually implicit via UI binding to property)
-        // Since Order is a nested object, we might need a wrapper or manual trigger.
-        // Assuming UI binds to NewOrder.OrderType directly.
-        
+        /// <summary>
+        /// Changes the order type and updates the number prefix accordingly.
+        /// </summary>
         [RelayCommand]
         public void ChangeOrderType(OrderType type)
         {
              NewOrder.OrderType = type;
-             
-             // Update Number Prefix
-             string prefix = type == OrderType.PurchaseOrder ? "PO" : type == OrderType.SalesOrder ? "SO" : "RET";
-             NewOrder.OrderNumber = $"{prefix}-{DateTime.Now:yyMM}-{new Random().Next(1000, 9999)}";
-             
+             var temp = _orderManager.CreateNewOrderTemplate(type);
+             NewOrder.OrderType = temp.OrderType;
+             NewOrder.OrderNumber = temp.OrderNumber;
              UpdateOrderTypeFlags();
              OnPropertyChanged(nameof(NewOrder));
         }
 
-        private void UpdateOrderTypeFlags()
-        {
-            IsPurchaseOrder = NewOrder.OrderType == OrderType.PurchaseOrder;
-            IsSalesOrder = NewOrder.OrderType == OrderType.SalesOrder;
-            IsReturnOrder = NewOrder.OrderType == OrderType.ReturnToInventory;
-        }
-
-        partial void OnIsOfficeDeliveryChanged(bool value)
-        {
-            if (value)
-            {
-                NewOrder.DestinationType = OrderDestinationType.Stock;
-                IsSiteDelivery = false;
-                // Maybe reset address to default office address here if needed
-                // NewOrder.EntityAddress = "Office Address...";
-            }
-        }
-
-        partial void OnIsSiteDeliveryChanged(bool value)
-        {
-            if (value)
-            {
-                NewOrder.DestinationType = OrderDestinationType.Site;
-                IsOfficeDelivery = false;
-                // If Project already selected, update address
-                if (SelectedProject != null)
-                {
-                    NewOrder.EntityAddress = SelectedProject.Location;
-                }
-            }
-        }
-        
-        partial void OnSelectedProjectChanged(Project? value)
-        {
-             if (value != null)
-             {
-                 NewOrder.ProjectId = value.Id;
-                 NewOrder.ProjectName = value.Name;
-
-                 // If Sales Order, this is the "Customer"
-                 if (IsSalesOrder)
-                 {
-                     NewOrder.CustomerId = value.Id; // Using Project ID as Customer ID for tracking
-                     NewOrder.EntityAddress = value.Location;
-                 }
-                 // If Purchase Order AND Site Delivery, this is destination
-                 else if (IsPurchaseOrder && IsSiteDelivery)
-                 {
-                     NewOrder.EntityAddress = value.Location;
-                 }
-                 // If Return Order, this is source
-                 else if (IsReturnOrder)
-                 {
-                     // Typically source address logic would go here
-                 }
-                 OnPropertyChanged(nameof(NewOrder)); // Notify NewOrder changes (Address etc)
-             }
-        }
-
-        private async Task LoadSuppliers()
-        {
-             var list = await _supplierService.GetSuppliersAsync();
-             Suppliers.Clear();
-             foreach(var i in list) Suppliers.Add(i);
-        }
-        
-        private async Task LoadCustomers()
-        {
-             var list = await _customerRepository.GetAllAsync();
-             Customers.Clear();
-             foreach(var i in list) Customers.Add(i);
-        }
-        
-        private async Task LoadProjects()
-        {
-             var list = await _projectRepository.GetAllAsync();
-             Projects.Clear();
-             foreach(var i in list) Projects.Add(i);
-        }
-        
-        private async Task LoadInventory()
-        {
-             var list = await _inventoryService.GetInventoryAsync();
-             InventoryItems.Clear();
-             foreach(var i in list) InventoryItems.Add(i);
-
-             // Extract Categories
-             var cats = list.Select(x => x.Category)
-                            .Where(c => !string.IsNullOrWhiteSpace(c))
-                            .Distinct()
-                            .OrderBy(c => c);
-             
-             ProductCategories.Clear();
-             foreach(var c in cats) ProductCategories.Add(c);
-             if (!ProductCategories.Contains("General")) ProductCategories.Add("General");
-        }
-
-        [ObservableProperty]
-        private bool _shouldPrintOrder;
-
-        [ObservableProperty]
-        private bool _shouldEmailOrder;
-
-        partial void OnSelectedSupplierChanged(Supplier? value)
-        {
-            if (value != null)
-            {
-
-                NewOrder.SupplierId = value.Id;
-                NewOrder.SupplierName = value.Name;
-                NewOrder.EntityAddress = value.Address;
-                NewOrder.EntityTel = value.Phone;
-                NewOrder.EntityVatNo = value.VatNumber;
-                NewOrder.Attention = value.ContactPerson; 
-                OnPropertyChanged(nameof(NewOrder)); // Notify NewOrder changes
-            }
-        }
-
-        partial void OnSelectedCustomerChanged(Customer? value)
-        {
-            if (value != null)
-            {
-                NewOrder.CustomerId = value.Id;
-                NewOrder.EntityAddress = value.Address;
-                NewOrder.EntityTel = value.Phone;
-                OnPropertyChanged(nameof(NewOrder)); // Notify NewOrder changes
-            }
-        }
-        
-        partial void OnSelectedInventoryItemChanged(InventoryItem? value)
-        {
-            if (value != null)
-            {
-                // Create a NEW instance to ensure UI updates all properties (like UOM)
-                NewLine = new OrderLine
-                {
-                    InventoryItemId = value.Id,
-                    Description = value.ProductName,
-                    ItemCode = value.Sku, // Do not fallback to ProductName
-                    UnitOfMeasure = value.UnitOfMeasure,
-                    UnitPrice = value.AverageCost // Prefill with Avg Cost
-                };
-                OnPropertyChanged(nameof(NewLine));
-
-                // Auto-select Supplier if not already set
-                if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
-                {
-                    var match = Suppliers.FirstOrDefault(s => s.Name.Equals(value.Supplier, StringComparison.OrdinalIgnoreCase));
-                    if (match != null)
-                    {
-                        SelectedSupplier = match;
-                    }
-                }
-            }
-        }
-
+        /// <summary>
+        /// Adds a new line item to the order based on the current selection.
+        /// </summary>
         [RelayCommand]
         public async Task AddLine()
         {
             if (string.IsNullOrWhiteSpace(NewLine.Description) && SelectedInventoryItem == null) return;
 
-            // Calculate Checks
             NewLine.CalculateTotal(NewOrder.TaxRate);
             
-            // Debugging: Log what we are trying to add
-            System.Diagnostics.Debug.WriteLine($"AddLine: Qty={NewLine.QuantityOrdered}, Price={NewLine.UnitPrice}, Total={NewLine.LineTotal}");
-
             var line = new OrderLine
             {
                 InventoryItemId = NewLine.InventoryItemId,
@@ -449,13 +248,11 @@ namespace OCC.Client.ViewModels.Orders
                 LineTotal = NewLine.LineTotal
             };
             
-            // Double check total - if R0 but we have qty/price, force logic
             if (line.LineTotal == 0 && line.QuantityOrdered > 0 && line.UnitPrice > 0)
             {
                  line.CalculateTotal(NewOrder.TaxRate);
             }
 
-            // Price Check
             if (SelectedInventoryItem != null && SelectedInventoryItem.AverageCost > 0)
             {
                 decimal threshold = SelectedInventoryItem.AverageCost * 1.10m;
@@ -464,54 +261,44 @@ namespace OCC.Client.ViewModels.Orders
                     decimal pctIncrease = ((line.UnitPrice - SelectedInventoryItem.AverageCost) / SelectedInventoryItem.AverageCost) * 100m;
                     bool confirm = await _dialogService.ShowConfirmationAsync(
                         "Price Increase Warning", 
-                        $"The price of R{line.UnitPrice:F2} is {pctIncrease:F0}% higher than the average cost (R{SelectedInventoryItem.AverageCost:F2}).\n\nDo you want to accept this price and update the average cost?");
+                        $"The price of R{line.UnitPrice:F2} is {pctIncrease:F0}% higher than average.\n\nAccept and update average cost?");
                     
                     if (confirm)
                     {
-                        // Update Avg Cost immediately to suppress future warnings for this price
                         SelectedInventoryItem.AverageCost = line.UnitPrice;
-                        try 
-                        {
-                            await _inventoryService.UpdateItemAsync(SelectedInventoryItem);
-                        }
-                        catch(Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to update avg cost");
-                        }
+                        try { await _orderManager.UpdateInventoryItemAsync(SelectedInventoryItem); }
+                        catch(Exception ex) { _logger.LogError(ex, "Failed to update avg cost"); }
                     }
                 }
             }
 
             NewOrder.Lines.Add(line);
-            
-            // Trigger property change for Totals on Order
             OnPropertyChanged(nameof(NewOrder));
-            
-            // Notify Totals
             OnPropertyChanged(nameof(OrderSubTotal));
             OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderTotal));
 
-            // Reset Line
             NewLine = new OrderLine();
             SelectedInventoryItem = null;
         }
         
+        /// <summary>
+        /// Removes a line item from the order.
+        /// </summary>
         [RelayCommand]
         public void RemoveLine(OrderLine line)
         {
             if (line == null) return;
             NewOrder.Lines.Remove(line);
             OnPropertyChanged(nameof(NewOrder));
-            
-            // Notify Totals
             OnPropertyChanged(nameof(OrderSubTotal));
             OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderTotal));
         }
         
-        // --- Quick Add Commands ---
-        
+        /// <summary>
+        /// Toggles the quick add product overlay.
+        /// </summary>
         [RelayCommand]
         public void ToggleQuickAddProduct()
         {
@@ -525,30 +312,29 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
+        /// <summary>
+        /// Toggles between selecting an existing category or entering a new one.
+        /// </summary>
         [RelayCommand]
         public void ToggleNewCategoryMode()
         {
             IsInputtingNewCategory = !IsInputtingNewCategory;
-            if (IsInputtingNewCategory)
-            {
-                NewProductCategory = ""; // Clear for input
-            }
-            else
-            {
-                NewProductCategory = "General"; // Reset to default
-            }
+            NewProductCategory = IsInputtingNewCategory ? "" : "General";
         }
         
+        /// <summary>
+        /// Toggles the quick add supplier overlay.
+        /// </summary>
         [RelayCommand]
         public void ToggleQuickAddSupplier()
         {
             IsAddingNewSupplier = !IsAddingNewSupplier;
-            if (IsAddingNewSupplier)
-            {
-                NewSupplierName = "";
-            }
+            if (IsAddingNewSupplier) NewSupplierName = "";
         }
 
+        /// <summary>
+        /// Creates a new product directly from the order entry view.
+        /// </summary>
         [RelayCommand]
         public async Task QuickCreateProduct()
         {
@@ -556,24 +342,9 @@ namespace OCC.Client.ViewModels.Orders
             
             try
             {
-                var item = new InventoryItem 
-                { 
-                    ProductName = NewProductName, 
-                    UnitOfMeasure = NewProductUOM,
-                    Category = string.IsNullOrWhiteSpace(NewProductCategory) ? "General" : NewProductCategory,
-                    Supplier = SelectedSupplier?.Name ?? string.Empty
-                };
-                
-                var created = await _inventoryService.CreateItemAsync(item);
-                
+                var created = await _orderManager.QuickCreateProductAsync(NewProductName, NewProductUOM, NewProductCategory, SelectedSupplier?.Name ?? string.Empty);
                 InventoryItems.Add(created);
-                
-                // Update Categories if new
-                if (!ProductCategories.Contains(created.Category))
-                {
-                    ProductCategories.Add(created.Category);
-                }
-
+                if (!ProductCategories.Contains(created.Category)) ProductCategories.Add(created.Category);
                 SelectedInventoryItem = created;
                 IsAddingNewProduct = false;
             }
@@ -584,6 +355,9 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
         
+        /// <summary>
+        /// Creates a new supplier directly from the order entry view.
+        /// </summary>
         [RelayCommand]
         public async Task QuickCreateSupplier()
         {
@@ -591,12 +365,7 @@ namespace OCC.Client.ViewModels.Orders
             
             try
             {
-                 var supplier = new Supplier { Name = NewSupplierName };
-                 var created = await _supplierService.CreateSupplierAsync(supplier);
-                 
-                 // If the service returns the object (which it should, checking interface return type)
-                 // NOTE: Interface says Task<Supplier>, so yes.
-                 
+                 var created = await _orderManager.QuickCreateSupplierAsync(NewSupplierName);
                  Suppliers.Add(created);
                  SelectedSupplier = created;
                  IsAddingNewSupplier = false;
@@ -608,29 +377,21 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
+        /// <summary>
+        /// Generates and opens a PDF preview of the current order.
+        /// </summary>
         [RelayCommand]
         public async Task PreviewOrder()
         {
              try
              {
-                 // Validate basic info
                  if (SelectedSupplier == null && IsPurchaseOrder)
                  {
                       await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
                       return;
                  }
- 
-                 // Generate PDF to temp path
                  var path = await _pdfService.GenerateOrderPdfAsync(NewOrder);
-                 
-                 // Open PDF
-                 new System.Diagnostics.Process
-                 {
-                     StartInfo = new System.Diagnostics.ProcessStartInfo(path)
-                     {
-                         UseShellExecute = true
-                     }
-                 }.Start();
+                 new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
              }
              catch(Exception ex)
              {
@@ -639,49 +400,55 @@ namespace OCC.Client.ViewModels.Orders
              }
         }
 
-        [RelayCommand]
-        public async Task PreviewPreview() // Renaming existing for clarity if I wanted, but I'll stick to new one
-        {
-             await PreviewOrder();
-        }
-
-        [RelayCommand]
-        public async Task EmailOrder()
-        {
-             await PreviewOrder(); // Reuse logic
-        }
-
+        /// <summary>
+        /// Command to generate a grayscale print version of the order.
+        /// </summary>
         [RelayCommand]
         public async Task DownloadPrint()
         {
              try
              {
-                 // Validate basic info
                  if (SelectedSupplier == null && IsPurchaseOrder)
                  {
                       await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
                       return;
                  }
- 
-                 // Generate PDF to temp path with PRINT VERSION = TRUE
                  var path = await _pdfService.GenerateOrderPdfAsync(NewOrder, isPrintVersion: true);
-                 
-                 // Open PDF
-                 new System.Diagnostics.Process
-                 {
-                     StartInfo = new System.Diagnostics.ProcessStartInfo(path)
-                     {
-                         UseShellExecute = true
-                     }
-                 }.Start();
+                 new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
              }
              catch(Exception ex)
              {
                  _logger.LogError(ex, "Failed to generate print version");
-                 await _dialogService.ShowAlertAsync("Error", "Failed to generate grayscale print version.");
+                  await _dialogService.ShowAlertAsync("Error", "Failed to generate grayscale version.");
+             }
+        }
+        
+        /// <summary>
+        /// Command to generate a color version of the order for emailing.
+        /// </summary>
+        [RelayCommand]
+        public async Task EmailOrder()
+        {
+             try
+             {
+                 if (SelectedSupplier == null && IsPurchaseOrder)
+                 {
+                      await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
+                      return;
+                 }
+                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder, isPrintVersion: false);
+                 new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
+             }
+             catch(Exception ex)
+             {
+                 _logger.LogError(ex, "Failed to generate email version");
+                 await _dialogService.ShowAlertAsync("Error", "Failed to generate color version.");
              }
         }
 
+        /// <summary>
+        /// Finalizes the order entry and persists it to the database.
+        /// </summary>
         [RelayCommand]
         public async Task SubmitOrder()
         {
@@ -693,33 +460,16 @@ namespace OCC.Client.ViewModels.Orders
                      return;
                 }
 
-                // Site Delivery Validation
                 if (IsSiteDelivery && string.IsNullOrWhiteSpace(NewOrder.EntityAddress))
                 {
-                     bool add = await _dialogService.ShowConfirmationAsync("Missing Address", "The selected project has no delivery address.\n\nWould you like to add one now?");
-                     if (add)
-                     {
-                         IsAddingProjectAddress = true;
-                         NewProjectAddress = "";
-                         return;
-                     }
-                     else
-                     {
-                         return;
-                     }
+                     bool add = await _dialogService.ShowConfirmationAsync("Missing Address", "The selected project has no delivery address.\n\nAdd one now?");
+                     if (add) { IsAddingProjectAddress = true; NewProjectAddress = ""; }
+                     return;
                 }
 
-                // Force validation on key selection properties
                 ValidateProperty(SelectedSupplier, nameof(SelectedSupplier));
                 ValidateProperty(SelectedProject, nameof(SelectedProject));
-
                 ValidateAllProperties();
-
-                if (HasErrors)
-                {
-                    await _dialogService.ShowAlertAsync("Validation", "Please correct the errors before submitting.");
-                    return;
-                }
 
                 if (NewOrder.Lines.Count == 0) 
                 {
@@ -727,111 +477,75 @@ namespace OCC.Client.ViewModels.Orders
                     return;
                 }
 
-                var createdOrder = await _orderService.CreateOrderAsync(NewOrder);
+                if (HasErrors)
+                {
+                    await _dialogService.ShowAlertAsync("Validation", "Please correct the errors before submitting.");
+                    return;
+                }
+
+                BusyText = "Committing order...";
+                IsBusy = true;
                 
+                var createdOrder = await _orderManager.CreateOrderAsync(NewOrder);
+                
+                OrderCreated?.Invoke(this, EventArgs.Empty);
+
                 if (ShouldPrintOrder)
                 {
                     try
                     {
                         var path = await _pdfService.GenerateOrderPdfAsync(createdOrder, isPrintVersion: true);
-                        
-                        // Open Print Dialog (via system default)
-                        new System.Diagnostics.Process
-                        {
-                            StartInfo = new System.Diagnostics.ProcessStartInfo(path)
-                            {
-                                Verb = "print",
-                                UseShellExecute = true,
-                                CreateNoWindow = true
-                            }
-                        }.Start();
+                        new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { Verb = "print", UseShellExecute = true, CreateNoWindow = true } }.Start();
                     }
-                    catch(Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to print order");
-                        await _dialogService.ShowAlertAsync("Warning", "Order created, but failed to generate PDF.");
-                    }
+                    catch(Exception ex) { _logger.LogError(ex, "Failed to print order"); }
                 }
 
                 CloseRequested?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error submitting order: {ex.Message}");
-                // Show detailed error
+                _logger.LogError(ex, "Error submitting order");
                 await _dialogService.ShowAlertAsync("Error", $"Failed to submit order: {ex.Message}");
             }
+            finally { IsBusy = false; }
         }
-        
+
+        /// <summary>
+        /// Cancels the current operation and closes the view.
+        /// </summary>
         [RelayCommand]
-        public void Cancel()
-        {
-            CloseRequested?.Invoke(this, EventArgs.Empty);
-        }
+        public void Cancel() => CloseRequested?.Invoke(this, EventArgs.Empty);
 
-        private void RestoreState()
-        {
-            var (savedOrder, pendingLine, searchTerm) = _orderStateService.RetrieveState();
-            
-            if (savedOrder != null)
-            {
-                LoadExistingOrder(savedOrder);
-                
-                if (pendingLine != null)
-                {
-                    NewLine = pendingLine;
-                }
-                
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                   var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
-                   
-                   if (match != null)
-                   {
-                       SelectedInventoryItem = match;
-                   }
-                }
-            }
-            
-            _orderStateService.ClearState();
-        }
-
+        /// <summary>
+        /// Validates if the search text matches an existing item, and offers to create it if not.
+        /// </summary>
         [RelayCommand]
         public async Task ValidateItemSearch(string searchText)
         {
              if (string.IsNullOrWhiteSpace(searchText)) return;
              
-             // Check if it exists in current list
-             var exists = InventoryItems.Any(i => 
-                 i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || 
-                 i.ProductName.Equals(searchText, StringComparison.OrdinalIgnoreCase));
-                 
+             var exists = InventoryItems.Any(i => i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+                  
              if (!exists && SelectedInventoryItem == null)
              {
-                 bool create = await _dialogService.ShowConfirmationAsync(
-                     "Item Not Found", 
-                     $"'{searchText}' was not found in inventory.\n\nWould you like to create it now?");
-                     
+                 bool create = await _dialogService.ShowConfirmationAsync("Item Not Found", $"'{searchText}' not found.\n\nCreate it now?");
                  if (create)
                  {
                      _orderStateService.SaveState(NewOrder, NewLine, searchText);
-                     CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.Messages.NavigationRequestMessage("InventoryDetail_Create", searchText));
+                     WeakReferenceMessenger.Default.Send(new OCC.Client.Messages.NavigationRequestMessage("InventoryDetail_Create", searchText));
                  }
              }
         }
 
-        [ObservableProperty]
-        private bool _isAddingProjectAddress;
-        
-        [ObservableProperty]
-        private string _newProjectAddress = string.Empty;
-
+        /// <summary>
+        /// Toggles the add project address overlay.
+        /// </summary>
         [RelayCommand]
-        public void ToggleAddProjectAddress()
-        {
-            IsAddingProjectAddress = !IsAddingProjectAddress;
-        }
+        public void ToggleAddProjectAddress() => IsAddingProjectAddress = !IsAddingProjectAddress;
 
+        /// <summary>
+        /// Saves a new delivery address to the selected project.
+        /// </summary>
         [RelayCommand]
         public async Task SaveProjectAddress()
         {
@@ -839,22 +553,14 @@ namespace OCC.Client.ViewModels.Orders
              
              try
              {
-                 // 1. Update Real Project
-                 var project = await _projectRepository.GetByIdAsync(SelectedProject.Id);
+                 var project = await _orderManager.GetProjectByIdAsync(SelectedProject.Id);
                  if (project != null)
                  {
                      project.Location = NewProjectAddress;
-                     await _projectRepository.UpdateAsync(project);
-                     
-                     // 2. Update Local Wrapper
+                     await _orderManager.UpdateProjectAsync(project);
                      SelectedProject.Location = NewProjectAddress;
-                     
-                     // 3. Update Order Address
                      NewOrder.EntityAddress = NewProjectAddress;
-                     
-                     OnPropertyChanged(nameof(NewOrder)); // Refresh
-                     
-                     // 4. Close Overlay
+                     OnPropertyChanged(nameof(NewOrder));
                      IsAddingProjectAddress = false;
                  }
              }
@@ -864,6 +570,215 @@ namespace OCC.Client.ViewModels.Orders
                  await _dialogService.ShowAlertAsync("Error", "Failed to save project address.");
              }
         }
-    }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Asynchronously loads necessary lookup data from the Order Manager.
+        /// </summary>
+        public async Task LoadData()
+        {
+            try
+            {
+                BusyText = "Loading order entry data...";
+                IsBusy = true;
+                var data = await _orderManager.GetOrderEntryDataAsync();
+
+                Suppliers.Clear();
+                foreach(var i in data.Suppliers) Suppliers.Add(i);
+
+                Customers.Clear();
+                foreach(var i in data.Customers) Customers.Add(i);
+
+                Projects.Clear();
+                foreach(var i in data.Projects) Projects.Add(i);
+
+                InventoryItems.Clear();
+                FilteredInventoryItemsBySku.Clear();
+                FilteredInventoryItemsByName.Clear();
+                foreach(var i in data.Inventory) 
+                {
+                    InventoryItems.Add(i);
+                    FilteredInventoryItemsBySku.Add(i);
+                    FilteredInventoryItemsByName.Add(i);
+                }
+
+                var cats = data.Inventory.Select(x => x.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c);
+                ProductCategories.Clear();
+                foreach(var c in cats) ProductCategories.Add(c);
+                if (!ProductCategories.Contains("General")) ProductCategories.Add("General");
+
+                if (_orderStateService.IsReturningFromItemCreation) RestoreState();
+            }
+            catch(Exception ex)
+            {
+                  _logger.LogError(ex, "Failed to load order entry data");
+                  await _dialogService.ShowAlertAsync("Error", "Check connection and try again.");
+            }
+            finally { IsBusy = false; }
+        }
+
+        /// <summary>
+        /// Resets the ViewModel to a fresh state for a new order.
+        /// </summary>
+        public void Reset()
+        {
+            NewOrder = _orderManager.CreateNewOrderTemplate();
+            IsOfficeDelivery = true;
+            NewOrder.Attention = string.Empty;
+            UpdateOrderTypeFlags();
+        }
+
+        /// <summary>
+        /// Loads an existing order into the ViewModel for viewing or editing.
+        /// </summary>
+        public void LoadExistingOrder(Order order)
+        {
+            NewOrder = order;
+            if (Suppliers.Any()) SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == order.SupplierId);
+            if (Customers.Any()) SelectedCustomer = Customers.FirstOrDefault(c => c.Id == order.CustomerId);
+            if (Projects.Any()) SelectedProject = Projects.FirstOrDefault(p => p.Id == order.ProjectId);
+            UpdateOrderTypeFlags();
+            if (order.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
+            else IsOfficeDelivery = true;
+            OnPropertyChanged(nameof(NewOrder));
+            OnPropertyChanged(nameof(OrderSubTotal));
+            OnPropertyChanged(nameof(OrderVat));
+            OnPropertyChanged(nameof(OrderTotal));
+        }
+
+        /// <summary>
+        /// Restores previous state when returning from a nested view.
+        /// </summary>
+        private void RestoreState()
+        {
+            var (savedOrder, pendingLine, searchTerm) = _orderStateService.RetrieveState();
+            if (savedOrder != null)
+            {
+                LoadExistingOrder(savedOrder);
+                if (pendingLine != null) NewLine = pendingLine;
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                   var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
+                   if (match != null) SelectedInventoryItem = match;
+                }
+            }
+            _orderStateService.ClearState();
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Coordinates order type flags for UI visibility logic.
+        /// </summary>
+        private void UpdateOrderTypeFlags()
+        {
+            IsPurchaseOrder = NewOrder.OrderType == OrderType.PurchaseOrder;
+            IsSalesOrder = NewOrder.OrderType == OrderType.SalesOrder;
+            IsReturnOrder = NewOrder.OrderType == OrderType.ReturnToInventory;
+        }
+
+        /// <summary>
+        /// Event raised after an order has been successfully created.
+        /// </summary>
+        public event EventHandler? OrderCreated;
+
+        /// <summary>
+        /// Event raised when the view requests to close itself.
+        /// </summary>
+        public event EventHandler? CloseRequested;
+
+        /// <summary>
+        /// Static validator for supplier selection.
+        /// </summary>
+        public static ValidationResult? ValidateSupplierSelection(Supplier? supplier, ValidationContext context)
+        {
+            var vm = (CreateOrderViewModel)context.ObjectInstance;
+            return (vm.IsPurchaseOrder && supplier == null) ? new ValidationResult("Supplier is required.") : ValidationResult.Success;
+        }
+
+        /// <summary>
+        /// Static validator for project selection.
+        /// </summary>
+        public static ValidationResult? ValidateProjectSelection(Project? project, ValidationContext context)
+        {
+            var vm = (CreateOrderViewModel)context.ObjectInstance;
+            return (vm.IsSalesOrder && project == null) ? new ValidationResult("Project is required.") : ValidationResult.Success;
+        }
+
+        partial void OnNewOrderChanged(Order value) => UpdateOrderTypeFlags();
+        partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
+        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) NewOrder.EntityAddress = SelectedProject.Location; } }
+        partial void OnSelectedProjectChanged(Project? value)
+        {
+             if (value != null)
+             {
+                 NewOrder.ProjectId = value.Id;
+                 NewOrder.ProjectName = value.Name;
+                 if (IsSalesOrder) { NewOrder.CustomerId = value.Id; NewOrder.EntityAddress = value.Location; }
+                 else if (IsPurchaseOrder && IsSiteDelivery) NewOrder.EntityAddress = value.Location;
+                 OnPropertyChanged(nameof(NewOrder));
+             }
+        }
+        partial void OnSkuSearchTextChanged(string value)
+        {
+            if (_isUpdatingSearchText) return;
+            FilteredInventoryItemsBySku.Clear();
+            var matches = string.IsNullOrWhiteSpace(value) ? InventoryItems : InventoryItems.Where(i => i.Sku != null && i.Sku.Contains(value, StringComparison.OrdinalIgnoreCase));
+            foreach(var m in matches) FilteredInventoryItemsBySku.Add(m);
+        }
+        partial void OnProductSearchTextChanged(string value)
+        {
+            if (_isUpdatingSearchText) return;
+            FilteredInventoryItemsByName.Clear();
+            var matches = string.IsNullOrWhiteSpace(value) ? InventoryItems : InventoryItems.Where(i => i.ProductName != null && i.ProductName.Contains(value, StringComparison.OrdinalIgnoreCase));
+            foreach(var m in matches) FilteredInventoryItemsByName.Add(m);
+        }
+        partial void OnSelectedInventoryItemChanged(InventoryItem? value)
+        {
+            if (value != null)
+            {
+                _isUpdatingSearchText = true;
+                SkuSearchText = value.Sku ?? "";
+                ProductSearchText = value.ProductName ?? "";
+                _isUpdatingSearchText = false;
+                NewLine = new OrderLine { InventoryItemId = value.Id, Description = value.ProductName, ItemCode = value.Sku, UnitOfMeasure = value.UnitOfMeasure, UnitPrice = value.AverageCost };
+                OnPropertyChanged(nameof(NewLine));
+                if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
+                {
+                    var match = Suppliers.FirstOrDefault(s => s.Name.Equals(value.Supplier, StringComparison.OrdinalIgnoreCase));
+                    if (match != null) SelectedSupplier = match;
+                }
+            }
+        }
+        partial void OnSelectedSupplierChanged(Supplier? value)
+        {
+            if (value != null)
+            {
+                NewOrder.SupplierId = value.Id;
+                NewOrder.SupplierName = value.Name;
+                NewOrder.EntityAddress = value.Address;
+                NewOrder.EntityTel = value.Phone;
+                NewOrder.EntityVatNo = value.VatNumber;
+                NewOrder.Attention = value.ContactPerson; 
+                OnPropertyChanged(nameof(NewOrder));
+            }
+        }
+        partial void OnSelectedCustomerChanged(Customer? value)
+        {
+            if (value != null)
+            {
+                NewOrder.CustomerId = value.Id;
+                NewOrder.EntityAddress = value.Address;
+                NewOrder.EntityTel = value.Phone;
+                OnPropertyChanged(nameof(NewOrder));
+            }
+        }
+
+        #endregion
+    }
 }

@@ -4,8 +4,9 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:OCC.Client.ViewModels.Orders"
 			 mc:Ignorable="d"
-			 x:Class="OCC.Client.Views.Orders.InventoryDetailView"
-			 x:DataType="vm:InventoryDetailViewModel">
+			 x:Class="OCC.Client.Views.Orders.ItemDetailView"
+			 x:DataType="vm:ItemDetailViewModel"
+			 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.FormInput">
@@ -35,14 +36,15 @@
 			CornerRadius="0"
 			BoxShadow="0 2 15 5 #292828"
 			VerticalAlignment="Center"
-			HorizontalAlignment="Center">
-		<Grid RowDefinitions="Auto, Auto, Auto, Auto">
+			HorizontalAlignment="Center"
+            Height="580"
+            Width="930">
+		<Grid RowDefinitions="Auto, *, Auto, Auto">
 
 			<!-- Header -->
 			<Border Grid.Row="0"
-					Background="White"
 					BorderThickness="0,0,0,2"
-					BorderBrush="{DynamicResource PrimaryTeal}"
+					Background="{DynamicResource WeatheredCementGradient}"
 					Padding="20,0">
 				<Grid Grid.Row="0"
 					  ColumnDefinitions="*, Auto"
@@ -59,7 +61,7 @@
 
 			<!-- Content -->
 			<ScrollViewer Grid.Row="1" Padding="30">
-				<Grid ColumnDefinitions="*,*">
+				<Grid ColumnDefinitions="*, 30, *">
 					<!-- Left Column -->
 					<StackPanel Grid.Column="0" Spacing="10">
 
@@ -86,6 +88,7 @@
 										  IsTextSearchEnabled="True"
 										  Classes="FormInput"
 										  HorizontalAlignment="Stretch"
+										  VerticalContentAlignment="Center"
 										  PlaceholderText="Select or Type New..."/>
 							</StackPanel>
 
@@ -96,6 +99,7 @@
 										  SelectedItem="{Binding UnitOfMeasure}"
 										  Classes="FormInput"
 										  HorizontalAlignment="Stretch"
+										  VerticalContentAlignment="Center"
 										  PlaceholderText="Select Unit"/>
 							</StackPanel>
 						</Grid>
@@ -108,6 +112,7 @@
 									  DisplayMemberBinding="{Binding Name}"
 									  Classes="FormInput"
 									  HorizontalAlignment="Stretch"
+									  VerticalContentAlignment="Center"
 									  PlaceholderText="Select Supplier"/>
 						</StackPanel>
 
@@ -116,14 +121,18 @@
 							<TextBox Text="{Binding Location}" Classes="FormInput" Watermark="e.g. Aisle 4, Shelf B"/>
 						</StackPanel>
 
-						<Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
 
 						
 					</StackPanel>
 					<!-- Right Column -->
-					<StackPanel Grid.Column="1" Spacing="10">
+					<StackPanel Grid.Column="2" Spacing="10">
 						<!-- Inventory Levels -->
 						<TextBlock Text="Inventory Levels" Classes="SectionHeader" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource PrimaryTeal}"/>
+                        
+						<ToggleSwitch Content="Track Low Stock" 
+                                      IsChecked="{Binding IsTrackingLowStock}"
+                                      OnContent="Yes" OffContent="No"
+                                      Theme="{DynamicResource MaterialToggleSwitch}"/>
 
 						<Grid ColumnDefinitions="*, 20, *">
 							<StackPanel Grid.Column="0" Spacing="10">
@@ -131,8 +140,8 @@
 								<!-- Read Only to prevent manual edits bypassing Receive/Adjust flow -->
 								<TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0" IsReadOnly="True" Background="#F8FAFC"/>
 							</StackPanel>
-
-							<StackPanel Grid.Column="2" Spacing="10">
+                            
+							<StackPanel Grid.Column="2" Spacing="10" IsVisible="{Binding IsTrackingLowStock}">
 								<TextBlock Text="Reorder Point" Classes="FormLabel"/>
 								<TextBox Text="{Binding ReorderPoint}" Classes="FormInput" Watermark="10" ToolTip.Tip="Alert when stock falls below this level"/>
 							</StackPanel>
@@ -157,10 +166,11 @@
 				<Button Content="Save Item" Command="{Binding SaveCommand}" Classes="Primary"/>
 			</StackPanel>
 
-			<!-- Loading Overlay -->
-			<Grid Grid.RowSpan="4" Background="#80FFFFFF" IsVisible="{Binding IsBusy}">
-				<TextBlock Text="Saving..." VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold"/>
-			</Grid>
+			<!-- Loading -->
+			<StackPanel Grid.RowSpan="4" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+				<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+			</StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

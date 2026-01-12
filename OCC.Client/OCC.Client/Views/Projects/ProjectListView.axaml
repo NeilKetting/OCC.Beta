@@ -172,5 +172,17 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Loading -->
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+            <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+        </StackPanel>
+
+        <!-- Empty State -->
+         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                     IsVisible="{Binding !Projects.Count}">
+             <TextBlock Text="No projects found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
+         </StackPanel>
     </Grid>
 </UserControl>

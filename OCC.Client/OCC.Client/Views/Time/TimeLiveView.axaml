@@ -17,7 +17,7 @@
 		<!-- Just Last Updated and potentially a refresh or roll call button if needed still? User said "no need for the navigation buttons". -->
 		<!-- Keeping Roll Call button as it's the only way to input attendance manually for now if not purely automated -->
 
-		<Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,20" Background="{DynamicResource SurfaceLightGray}">
+		<Grid Grid.Row="0" ColumnDefinitions="*, Auto, Auto" Margin="0,0,0,20" Background="{DynamicResource WeatheredCementGradient}">
 			<StackPanel Spacing="5" VerticalAlignment="Center">
 				<PathIcon Data="{StaticResource IconLive}" Width="28" Height="28" Foreground="{DynamicResource PrimaryTeal}"/>
 				<TextBlock Text="Live Attendance" FontSize="20" HorizontalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
