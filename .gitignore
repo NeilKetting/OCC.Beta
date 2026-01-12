@@ -453,4 +453,6 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 /HSEQ Perfomance monitoring tool.xlsx
-/HSEQ_Performance_Monitoring_Tool.xlsx
+
+# Secret configuration file
+appsettings.secrets.json
