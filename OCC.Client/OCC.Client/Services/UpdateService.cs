@@ -70,7 +70,20 @@ namespace OCC.Client.Services
 
             try
             {
-                return await _mgr.CheckForUpdatesAsync();
+                var updateInfo = await _mgr.CheckForUpdatesAsync();
+                
+                // SAFETY CHECK: Prevent update loops
+                // Ensure the target version is actually newer than what we are running.
+                if (updateInfo != null && _mgr.CurrentVersion != null)
+                {
+                    if (updateInfo.TargetFullRelease.Version <= _mgr.CurrentVersion)
+                    {
+                        // We are already on this version (or newer). Do not trigger update.
+                        return null;
+                    }
+                }
+
+                return updateInfo;
             }
             catch
             {
