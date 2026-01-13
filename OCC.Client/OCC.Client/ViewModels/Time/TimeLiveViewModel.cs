@@ -191,8 +191,9 @@ namespace OCC.Client.ViewModels.Time
 
                     // 1. Determine multipliers
                     double multiplier = 1.0;
-                    if (dow == DayOfWeek.Sunday || isHoliday) multiplier = 2.0;
-                    else multiplier = 1.5;
+            if (dow == DayOfWeek.Sunday || isHoliday) multiplier = 2.0;
+                    else if (dow == DayOfWeek.Saturday) multiplier = 1.5;
+                    else multiplier = 1.0;
 
                     // 2. Define standard window (Employee specific or Branch default)
                     TimeSpan shiftStart = employee.ShiftStartTime ?? new TimeSpan(7, 0, 0);
