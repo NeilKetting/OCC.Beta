@@ -72,6 +72,7 @@
                 <DataGridTextColumn Header="TYPE" Binding="{Binding OrderType}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTextColumn Header="DATE" Binding="{Binding OrderDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+                <DataGridTextColumn Header="ETA" Binding="{Binding ExpectedDeliveryDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="DESTINATION" Binding="{Binding DestinationDisplay}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
                 <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
                 <DataGridTemplateColumn Header="STATUS" Width="Auto">

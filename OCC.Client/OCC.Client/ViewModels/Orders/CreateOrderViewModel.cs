@@ -824,12 +824,36 @@ namespace OCC.Client.ViewModels.Orders
             if (Suppliers.Any()) SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == order.SupplierId);
             if (Customers.Any()) SelectedCustomer = Customers.FirstOrDefault(c => c.Id == order.CustomerId);
             if (Projects.Any()) SelectedProject = Projects.FirstOrDefault(p => p.Id == order.ProjectId);
+            
             UpdateOrderTypeFlags();
+            
             if (order.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
             else IsOfficeDelivery = true;
+
+            // CHECK: Allow editing as long as the order is NOT Completed or Cancelled.
+            // User confirmed: "If the order says completed then we lock. Orders partial delivers we leave it unlocked."
+            IsReadOnly = NewOrder.Status == OrderStatus.Completed || NewOrder.Status == OrderStatus.Cancelled;
+            
+
+            // If it is editable, we should add the empty "spreadsheet rows" so user can add more items easily
+            if (!IsReadOnly)
+            {
+                SetupLineListeners(); // Ensure existing lines are hooked up
+                
+                // Add padding rows
+                int currentCount = NewOrder.Lines?.Count ?? 0;
+                // Pad to 20 rows
+                if (currentCount < 20)
+                {
+                    for (int i = 0; i < (20 - currentCount); i++)
+                    {
+                        NewOrder.Lines.Add(new OrderLine { UnitOfMeasure = "" });
+                    }
+                }
+            }
+
             OnPropertyChanged(nameof(NewOrder));
             OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderTotal));
         }

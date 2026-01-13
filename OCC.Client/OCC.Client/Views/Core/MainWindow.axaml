@@ -6,7 +6,7 @@
         xmlns:views="using:OCC.Client.Views.Core"
         mc:Ignorable="d" MinWidth="1024" MinHeight="720"
         x:Class="OCC.Client.Views.Core.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Images/occ_logo2.png"
         WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"

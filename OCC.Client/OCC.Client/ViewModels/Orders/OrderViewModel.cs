@@ -230,7 +230,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             await CreateOrderVM.LoadData(); 
             CreateOrderVM.LoadExistingOrder(order);
-            CreateOrderVM.IsReadOnly = true;
+// CreateOrderVM.IsReadOnly = true; // Handled by LoadExistingOrder based on Status
             IsOrderDetailVisible = true;
         }
 
@@ -255,7 +255,7 @@ namespace OCC.Client.ViewModels.Orders
             { 
                  await CreateOrderVM.LoadData();
                  CreateOrderVM.LoadExistingOrder(o);
-                 CreateOrderVM.IsReadOnly = true;
+                 // CreateOrderVM.IsReadOnly = true; // Handled by LoadExistingOrder based on Status
                  IsOrderDetailVisible = true; 
             };
             
