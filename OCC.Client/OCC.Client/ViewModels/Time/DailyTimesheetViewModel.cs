@@ -339,15 +339,17 @@ namespace OCC.Client.ViewModels.Time
                     Status = AttendanceStatus.Absent,
                     CheckInTime = null,
                     ClockInTime = null,
-                    CheckOutTime = null
+                    CheckOutTime = Date // Closed immediately so it doesn't show as "Live"
                 };
 
                 await _timeService.SaveAttendanceRecordAsync(record);
                 
                 item.Id = record.Id;
                 item.Status = AttendanceStatus.Absent;
+                item.Id = record.Id;
+                item.Status = AttendanceStatus.Absent;
                 item.ClockInTime = null;
-                item.ClockOutTime = null;
+                item.ClockOutTime = Date.TimeOfDay; // Or just ensure it has a value so it's not "active"
 
                 MoveToLogged(item);
                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Absent"));

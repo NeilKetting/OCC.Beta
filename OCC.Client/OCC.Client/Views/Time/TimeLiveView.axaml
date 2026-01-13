@@ -101,7 +101,7 @@
 		<!-- Roll Call Overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="2" Background="#80000000" IsVisible="{Binding IsTimesheetVisible}">
 			<views:DailyTimesheetView DataContext="{Binding CurrentTimesheet}"
-								HorizontalAlignment="Center" VerticalAlignment="Center"/>
+								Margin="40"/>
 		</Grid>
 
 	</Grid>
