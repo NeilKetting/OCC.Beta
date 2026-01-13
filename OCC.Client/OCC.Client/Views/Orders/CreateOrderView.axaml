@@ -293,16 +293,29 @@
                                 <Setter Property="IsVisible" Value="True"/>
                             </Style>
 
-                            <!-- UOM ComboBox Arrow: Hidden by default, Visible when Row Selected -->
+                            <!-- UOM ComboBox Arrow: Always Hidden as per user request -->
                             <!-- Note: ToggleButton inside ComboBox template -->
-                            <Style Selector="DataGridRow ComboBox /template/ ToggleButton">
-                                <Setter Property="IsVisible" Value="False"/>
+                            <!-- UOM ComboBox Arrow: Hidden by default, Visible on Row Active/Hover -->
+                            <Style Selector="ComboBox.HideDropdown /template/ ToggleButton">
+                                <Setter Property="Opacity" Value="0"/>
                             </Style>
-                            <Style Selector="DataGridRow:selected ComboBox /template/ ToggleButton">
-                                <Setter Property="IsVisible" Value="True"/>
+                            <Style Selector="DataGridRow:pointerover ComboBox.HideDropdown /template/ ToggleButton">
+                                <Setter Property="Opacity" Value="1"/>
                             </Style>
-                            <Style Selector="DataGridRow:pointerover ComboBox /template/ ToggleButton">
-                                <Setter Property="IsVisible" Value="True"/>
+                            <Style Selector="DataGridRow:selected ComboBox.HideDropdown /template/ ToggleButton">
+                                <Setter Property="Opacity" Value="1"/>
+                            </Style>
+
+                            <!-- Delete Button: Hidden by default, Visible on Row Active/Hover -->
+                            <!-- Delete Button: Hidden by default, Visible on Row Active/Hover -->
+                            <Style Selector="Button.DeleteRowBtn">
+                                <Setter Property="Opacity" Value="0"/>
+                            </Style>
+                            <Style Selector="DataGridRow:selected Button.DeleteRowBtn">
+                                <Setter Property="Opacity" Value="1"/>
+                            </Style>
+                            <Style Selector="DataGridRow:focus-within Button.DeleteRowBtn">
+                                <Setter Property="Opacity" Value="1"/>
                             </Style>
 						</DataGrid.Styles>
 						<DataGrid.Columns>
@@ -317,6 +330,7 @@
                                                              ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
 															 Watermark=""
 															 FilterMode="None"
+                                                             MinimumPrefixLength="0"
 															 HorizontalAlignment="Stretch"
 															 KeyUp="ProductBox_KeyUp"
                                                              SelectionChanged="GridProductBox_SelectionChanged"
@@ -349,7 +363,7 @@
 													BorderThickness="0"
 													Padding="0"
 													Margin="0"
-                                                    Width="14"
+                                                    Width="20"
                                                     Height="30"
 													VerticalAlignment="Stretch"
 													HorizontalAlignment="Center"
@@ -374,7 +388,7 @@
 							</DataGridTemplateColumn>
 
 							<!-- Quantity -->
-							<DataGridTemplateColumn Header="QUANTITY" Width="60">
+							<DataGridTemplateColumn Header="QUANTITY" Width="Auto">
 								<DataGridTemplateColumn.CellTemplate>
 									<DataTemplate>
 										<TextBox Text="{Binding QuantityOrdered, Converter={StaticResource ZeroToEmptyStringConverter}}" 
@@ -386,19 +400,45 @@
 							</DataGridTemplateColumn>
 
 							<!-- Unit -->
-							<DataGridTemplateColumn Header="UNIT" Width="60">
-								<DataGridTemplateColumn.CellTemplate>
+							<DataGridTemplateColumn Header="UNIT" Width="Auto">
 									<DataTemplate>
-										<ComboBox ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).AvailableUOMs}" 
-												  SelectedItem="{Binding UnitOfMeasure}" HorizontalAlignment="Stretch"
-                                                  Background="Transparent" BorderThickness="0" CornerRadius="0"
-                                                  Padding="2,0" Margin="0" VerticalAlignment="Stretch" FontSize="11" VerticalContentAlignment="Center"/>
+                                        <!-- Button acts as display + dropdown trigger -->
+                                        <Button Content="{Binding UnitOfMeasure}"
+                                                Background="Transparent" 
+                                                BorderThickness="0" 
+                                                CornerRadius="0"
+                                                Padding="5,0" 
+                                                Margin="0" 
+                                                HorizontalAlignment="Stretch" 
+                                                VerticalAlignment="Stretch" 
+                                                HorizontalContentAlignment="Left"
+                                                FontSize="11"
+                                                Cursor="Hand">
+                                            <Button.Flyout>
+                                                <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient">
+                                                    <ListBox ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).AvailableUOMs}"
+                                                             SelectedItem="{Binding UnitOfMeasure, Mode=TwoWay}"
+                                                             SelectionChanged="UOM_SelectionChanged"
+                                                             Background="White"
+                                                             BorderThickness="0"
+                                                             Padding="0"
+                                                             Margin="0"
+                                                             MaxHeight="200">
+                                                        <ListBox.Styles>
+                                                             <Style Selector="ListBoxItem">
+                                                                 <Setter Property="Padding" Value="10,5"/>
+                                                                 <Setter Property="FontSize" Value="12"/>
+                                                             </Style>
+                                                        </ListBox.Styles>
+                                                    </ListBox>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
 									</DataTemplate>
-								</DataGridTemplateColumn.CellTemplate>
 							</DataGridTemplateColumn>
 
 							<!-- Price -->
-							<DataGridTemplateColumn Header="UNIT PRICE" Width="80">
+							<DataGridTemplateColumn Header="UNIT PRICE" Width="Auto">
 								<DataGridTemplateColumn.CellTemplate>
 									<DataTemplate>
 										<TextBox Text="{Binding UnitPrice, Converter={StaticResource ZeroToEmptyStringConverter}, ConverterParameter='0.00'}" 
@@ -410,7 +450,23 @@
 							</DataGridTemplateColumn>
 
 							<!-- Amount (Calculated) -->
-							<DataGridTextColumn Header="AMOUNT" Binding="{Binding LineTotal, Mode=OneWay, Converter={StaticResource ZeroToEmptyStringConverter}, ConverterParameter='C'}" Width="100" IsReadOnly="True" FontWeight="Bold"/>
+							<DataGridTextColumn Header="AMOUNT" Binding="{Binding LineTotal, Mode=OneWay, Converter={StaticResource ZeroToEmptyStringConverter}, ConverterParameter='C'}" 
+						   Width="Auto" IsReadOnly="True" FontWeight="Bold"/>
+
+                            <!-- Remove Action -->
+                            <DataGridTemplateColumn Header="" Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="Ghost DeleteRowBtn" 
+                                                Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).RemoveLineCommand}" 
+                                                CommandParameter="{Binding .}"
+                                                ToolTip.Tip="Remove Line"
+                                                Padding="4" Margin="0" Height="26" Width="26" HorizontalAlignment="Center">
+                                            <PathIcon Data="{StaticResource IconDelete}" Foreground="#EF4444" Width="12" Height="12"/>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
 						</DataGrid.Columns>
 					</DataGrid>
 
@@ -444,6 +500,12 @@
 				<Grid ColumnDefinitions="*, Auto">
 					<!-- Write Mode: Checkboxes -->
 					<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" IsVisible="{Binding !IsReadOnly}">
+						<Button Command="{Binding PreviewOrderCommand}" Classes="Ghost" ToolTip.Tip="Preview Order PDF">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconPrint}" Width="16" Height="16"/>
+								<TextBlock Text="Preview" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
 						<CheckBox IsChecked="{Binding ShouldPrintOrder}" Content="Print Order"/>
 						<CheckBox IsChecked="{Binding ShouldEmailOrder}" Content="Email Order"/>
 					</StackPanel>

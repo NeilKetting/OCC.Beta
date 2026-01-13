@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using OCC.Client.ViewModels.Orders;
+using Avalonia.VisualTree;
 
 namespace OCC.Client.Views.Orders
 {
@@ -82,28 +83,57 @@ namespace OCC.Client.Views.Orders
 
         public void ToggleProductDropdown(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is OCC.Shared.Models.OrderLine)
+            if (sender is Button btn && btn.DataContext is OCC.Shared.Models.OrderLine /*line*/)
             {
-                // Navigate up visual tree to find sibling AutoCompleteBox (or find by name if in same template context)
-                // Since Button and ACBox are in same Grid in DataTemplate, we can try to find the ACBox.
-                
-                // Simpler: The button is in the visual tree. 
-                // We need to set IsDropDownOpen on the ACBox.
-                // The ACBox is likely obtainable via the parent grid's children.
-                
                 if (btn.Parent is Grid grid)
                 {
                     foreach(var child in grid.Children)
                     {
                         if (child is AutoCompleteBox acBox)
                         {
+                            // 1. Focus the box first
+                            acBox.Focus();
+
+                            // 2. Ensure VM knows about the text (or lack thereof) so it resets the filter to show all items
+                            if (this.DataContext is CreateOrderViewModel vm)
+                            {
+                                // If the box text is different from VM (e.g. we moved from another row), sync it.
+                                // If box is empty, this ensures VM clears the filter and shows all items.
+                                var text = acBox.Text ?? string.Empty;
+                                if (vm.ProductSearchText != text)
+                                {
+                                    vm.ProductSearchText = text;
+                                }
+                            }
+
+                            // 3. Open the dropdown
+                            // Note: If FilterMode is None and ItemSource is populated, this should work.
                             acBox.IsDropDownOpen = !acBox.IsDropDownOpen;
-                            if (acBox.IsDropDownOpen) acBox.Focus();
                             break;
                         }
                     }
                 }
             }
+        }
+        public void UOM_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+             // Close the flyout when an item is selected
+             if (sender is ListBox listBox && listBox.IsVisible)
+             {
+                 // Find the parent FlyoutPresenter to close the Popup
+                 // Or simpler: Just unselect if needed, but we want to close the popup.
+                 // In Avalonia, the Flyout doesn't have a direct "Close" on the content.
+                 // But we can find the popup?
+                 // Actually, standard behavior for ListBox in Flyout doesn't auto-close.
+                 // We can use the attached property or search visual tree.
+                 
+                 // Robust way: Find the Popup and close it.
+                 var popup = listBox.FindAncestorOfType<Avalonia.Controls.Primitives.Popup>();
+                 if (popup != null)
+                 {
+                     popup.IsOpen = false;
+                 }
+             }
         }
     }
 }

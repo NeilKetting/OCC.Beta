@@ -211,5 +211,88 @@ namespace OCC.API.Controllers
                 return StatusCode(500, "An error occurred while deleting the order.");
             }
         }
+        [HttpPost("{id}/receive")]
+        public async Task<IActionResult> ReceiveOrder(Guid id, [FromBody] List<OrderLine> receivedLines)
+        {
+            if (receivedLines == null || !receivedLines.Any())
+                return BadRequest("No lines to receive.");
+
+            try
+            {
+                var order = await _context.Orders
+                    .Include(o => o.Lines)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (order == null) return NotFound("Order not found.");
+
+                // Check if this is an inbound order type
+                bool isInbound = order.OrderType == OrderType.PurchaseOrder || order.OrderType == OrderType.ReturnToInventory;
+
+                foreach (var receivedLine in receivedLines)
+                {
+                    var originalLine = order.Lines.FirstOrDefault(l => l.Id == receivedLine.Id);
+                    if (originalLine == null) continue;
+
+                    // Calculate delta (New Total - Old Total)
+                    // The client sends the NEW 'QuantityReceived' total, not just the increment.
+                    double delta = receivedLine.QuantityReceived - originalLine.QuantityReceived;
+                    
+                    if (delta == 0) continue;
+
+                    // Update Order Line
+                    originalLine.QuantityReceived = receivedLine.QuantityReceived;
+
+                    // Update Inventory (if Inbound)
+                    if (isInbound && originalLine.InventoryItemId.HasValue)
+                    {
+                        var inventoryItem = await _context.InventoryItems.FindAsync(originalLine.InventoryItemId.Value);
+                        if (inventoryItem != null)
+                        {
+                            // Adjust Average Cost (Weighted Average)
+                            // Only valid if adding stock (delta > 0)
+                            if (delta > 0)
+                            {
+                                decimal currentTotalValue = (decimal)(inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) * inventoryItem.AverageCost;
+                                decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
+                                double newTotalQty = (inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) + delta;
+
+                                if (newTotalQty > 0)
+                                {
+                                    inventoryItem.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
+                                }
+                                else if (inventoryItem.QuantityOnHand <= 0) 
+                                {
+                                     // Initial stock
+                                     inventoryItem.AverageCost = originalLine.UnitPrice;
+                                }
+                            }
+                            
+                            // Update Stock Quantity
+                            inventoryItem.QuantityOnHand += delta;
+                        }
+                    }
+                }
+
+                // Update Order Status
+                bool allComplete = order.Lines.All(l => l.QuantityReceived >= l.QuantityOrdered);
+                bool anyReceived = order.Lines.Any(l => l.QuantityReceived > 0);
+
+                if (allComplete) order.Status = OrderStatus.Completed;
+                else if (anyReceived) order.Status = OrderStatus.PartialDelivery;
+
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation("Order {OrderNumber} received/updated by {User}", order.OrderNumber, User.FindFirst(ClaimTypes.Name)?.Value);
+                await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate", order);
+                if (isInbound) await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "StockReceived");
+
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing receiving for order {OrderId}", id);
+                return StatusCode(500, "An error occurred while receiving the order.");
+            }
+        }
     }
 }

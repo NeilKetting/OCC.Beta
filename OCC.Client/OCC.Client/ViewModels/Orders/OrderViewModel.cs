@@ -59,6 +59,11 @@ namespace OCC.Client.ViewModels.Orders
         /// Gets the ViewModel for the master inventory list.
         /// </summary>
         public ItemListViewModel ItemListVM { get; }
+
+        /// <summary>
+        /// Gets the ViewModel for the live inventory stock view.
+        /// </summary>
+        public InventoryViewModel InventoryVM { get; }
         
         /// <summary>
         /// Gets the ViewModel for managing the supplier directory.
@@ -127,6 +132,7 @@ namespace OCC.Client.ViewModels.Orders
             OrderListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderListViewModel>(_serviceProvider);
             CreateOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<CreateOrderViewModel>(_serviceProvider);
             ItemListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemListViewModel>(_serviceProvider);
+            InventoryVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryViewModel>(_serviceProvider);
             SupplierListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SupplierListViewModel>(_serviceProvider);
             OrderMenu = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderMenuViewModel>(_serviceProvider);
             
@@ -175,6 +181,9 @@ namespace OCC.Client.ViewModels.Orders
                     IsOrderDetailVisible = true;
                     break;
                 case "Inventory": 
+                    CurrentView = InventoryVM;
+                    _ = InventoryVM.LoadInventoryAsync();
+                    break;
                 case "ItemList":
                     CurrentView = ItemListVM; 
                     _ = ItemListVM.LoadItemsAsync(); 
@@ -252,7 +261,13 @@ namespace OCC.Client.ViewModels.Orders
             
             // Order Receipt Interactions
             ReceiveOrderVM.CloseRequested += (s, e) => IsReceiveOrderVisible = false;
-            ReceiveOrderVM.OrderReceived += (s, e) => { IsReceiveOrderVisible = false; OrderListVM.LoadOrders(); };
+            ReceiveOrderVM.OrderReceived += (s, e) => 
+            { 
+                IsReceiveOrderVisible = false; 
+                OrderListVM.LoadOrders(); 
+                _ = InventoryVM.LoadInventoryAsync();
+                _ = ItemListVM.LoadItemsAsync();
+            };
             
             // Create Order Logic: Handle successful creation by returning to the list
             CreateOrderVM.OrderCreated += (s, e) => { IsOrderDetailVisible = false; SetTab("OrderList"); };

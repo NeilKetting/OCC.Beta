@@ -4,9 +4,15 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:OCC.Client.ViewModels.Orders"
+             xmlns:conv="using:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
 			 x:Class="OCC.Client.Views.Orders.OrderDashboardView"
 			 x:DataType="vm:OrderDashboardViewModel">
+
+    <UserControl.Resources>
+        <conv:OrderStatusToColorConverter x:Key="OrderStatusToColorConverter"/>
+        <conv:DueDateToDisplayConverter x:Key="DueDateToDisplayConverter"/>
+    </UserControl.Resources>
 
 	<Design.DataContext>
 		<vm:OrderDashboardViewModel/>
@@ -55,38 +61,53 @@
 				<!-- Recent Orders List -->
 				<StackPanel Grid.Column="0" Spacing="15">
 					<TextBlock Text="Recent Orders" FontSize="18" FontWeight="SemiBold" />
-					<Border Classes="CardMedium" Padding="0">
-						<ItemsControl ItemsSource="{Binding RecentOrders}">
-							<ItemsControl.ItemTemplate>
-								<DataTemplate>
-									<Border BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="15,10">
-										<Grid ColumnDefinitions="Auto, *, Auto, Auto">
-											<!-- Icon -->
-											<Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" Background="#103B82F6" Margin="0,0,15,0">
-												<PathIcon Data="{StaticResource IconCart}" Width="16" Foreground="{DynamicResource ThemeAccent}" />
-											</Border>
+					<ItemsControl ItemsSource="{Binding RecentOrders}">
+                        <ItemsControl.Styles>
+                            <Style Selector="ItemsControl > ContentPresenter">
+                                <Setter Property="Margin" Value="0,0,0,15"/>
+                            </Style>
+                        </ItemsControl.Styles>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<Border Classes="Card" Padding="15" CornerRadius="8" BoxShadow="0 4 6 0 #15000000">
+									<Grid ColumnDefinitions="Auto, *, Auto, Auto">
+										<!-- Icon -->
+										<Border Grid.Column="0" Width="42" Height="42" CornerRadius="12" Background="#F1F5F9" Margin="0,0,15,0" BorderBrush="#E2E8F0" BorderThickness="1">
+											<PathIcon Data="{StaticResource IconCart}" Width="18" Foreground="#64748B" />
+										</Border>
 
-											<!-- Info -->
-											<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-												<TextBlock Text="{Binding SupplierName}" FontWeight="Bold" />
-												<TextBlock Text="{Binding OrderNumber}" FontSize="12" Foreground="{DynamicResource ThemeForegroundLow}" />
-											</StackPanel>
+										<!-- Info -->
+										<StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+											<TextBlock Text="{Binding SupplierName}" FontWeight="Bold" FontSize="14" Foreground="#1E293B" />
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+											    <TextBlock Text="{Binding OrderNumber}" FontSize="12" Foreground="#64748B" />
+                                                <TextBlock Text="|" Foreground="#E2E8F0"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <PathIcon Data="{StaticResource IconCalendar}" Width="10" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ExpectedDeliveryDate, Converter={StaticResource DueDateToDisplayConverter}}" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </StackPanel>
+										</StackPanel>
 
-											<!-- Destination -->
-											<Border Grid.Column="2" Background="#1064748B" CornerRadius="4" Padding="8,4" VerticalAlignment="Center" Margin="0,0,20,0">
-												<TextBlock Text="{Binding DestinationDisplay}" FontSize="12" Foreground="{DynamicResource ThemeForegroundLow}" />
-											</Border>
+										<!-- Destination -->
+										<Border Grid.Column="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Margin="0,0,15,0">
+											<TextBlock Text="{Binding DestinationDisplay}" FontSize="11" FontWeight="Medium" Foreground="#475569" />
+										</Border>
 
-											<!-- Status -->
-											<Border Grid.Column="3" Background="#1022C55E" CornerRadius="12" Padding="12,4" VerticalAlignment="Center">
-												<TextBlock Text="{Binding Status}" FontSize="12" FontWeight="SemiBold" Foreground="#22C55E" />
-											</Border>
-										</Grid>
-									</Border>
-								</DataTemplate>
-							</ItemsControl.ItemTemplate>
-						</ItemsControl>
-					</Border>
+										<!-- Status -->
+										<Border Grid.Column="3" 
+                                                Background="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}, ConverterParameter=Background}" 
+                                                CornerRadius="6" Padding="10,4" VerticalAlignment="Center"
+                                                BorderThickness="1"
+                                                BorderBrush="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}}">
+											<TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold" 
+                                                       Foreground="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}}" />
+										</Border>
+									</Grid>
+								</Border>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
 				</StackPanel>
 
 				<!-- Low Stock Sidebar -->

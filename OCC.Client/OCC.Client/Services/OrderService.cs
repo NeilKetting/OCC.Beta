@@ -62,73 +62,22 @@ namespace OCC.Client.Services
 
         public async Task ReceiveOrderAsync(Order order, List<OrderLine> updatedLines)
         {
-            // 1. Process Inventory Updates
-            // Only for Inbound orders (PO, Returns)
-            bool isInbound = order.OrderType == OrderType.PurchaseOrder || order.OrderType == OrderType.ReturnToInventory;
+             EnsureAuthorization();
+             var response = await _httpClient.PostAsJsonAsync($"api/Orders/{order.Id}/receive", updatedLines);
+             response.EnsureSuccessStatusCode();
 
-            foreach (var updatedLine in updatedLines)
-            {
-                var originalLine = order.Lines.FirstOrDefault(l => l.Id == updatedLine.Id);
-                if (originalLine == null) continue;
-
-                double delta = updatedLine.QuantityReceived - originalLine.QuantityReceived;
-
-                // Update the Order Line in memory object (so it's ready for save)
-                originalLine.QuantityReceived = updatedLine.QuantityReceived;
-
-                if (isInbound && delta > 0 && originalLine.InventoryItemId.HasValue)
-                {
-                    try 
-                    {
-                        var item = await _inventoryService.GetInventoryItemAsync(originalLine.InventoryItemId.Value);
-                        if (item != null)
-                        {
-                            // Weighted Average Cost Calculation
-                            // NewAvg = ((OldQty * OldAvg) + (ReceivedQty * BuyPrice)) / (OldQty + ReceivedQty)
-                            // Note: BuyPrice should be from the OrderLine.
-                            // We should handle the case where OldQty is negative (though unlikely if controlled) - treat as 0 for cost logic?
-                            // Standard practice: if Qty < 0, just reset to new price? Or simple addition? Let's assume > 0 base.
-
-                            decimal currentTotalValue = (decimal)(item.QuantityOnHand > 0 ? item.QuantityOnHand : 0) * item.AverageCost;
-                            decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
-                            double newTotalQty = (item.QuantityOnHand > 0 ? item.QuantityOnHand : 0) + delta;
-
-                            if (newTotalQty > 0)
-                            {
-                                item.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
-                            }
-                            else
-                            {
-                                // Should not happen for inbound, but if it does (e.g. net 0), keep old cost or update?
-                                // If 0 qty, cost is technically irrelevant or keeps last known.
-                                // Let's keep last known if newQty is 0. 
-                                // But if this was the *first* stock, newTotalQty would be delta.
-                                if (delta > 0 && item.QuantityOnHand <= 0) item.AverageCost = originalLine.UnitPrice;
-                            }
-
-                            item.QuantityOnHand += delta;
-                            await _inventoryService.UpdateItemAsync(item);
-                        }
-                    }
-                    catch(Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Failed to update inventory for {originalLine.ItemCode}: {ex.Message}");
-                        // Continue? Or throw? For now log and continue to prioritize saving the Order state.
-                    }
-                }
-            }
-
-            // 2. Update Status
-            // Check if all lines are fully received
-            bool allComplete = order.Lines.All(l => l.QuantityReceived >= l.QuantityOrdered);
-            bool anyReceived = order.Lines.Any(l => l.QuantityReceived > 0);
-
-            if (allComplete) order.Status = OrderStatus.Completed;
-            else if (anyReceived) order.Status = OrderStatus.PartialDelivery;
-            // Else remains as is (Ordered/Draft)
-
-            // 3. Save Order
-            await UpdateOrderAsync(order);
+             // Update local order object with response if needed, but the caller usually reloads
+             var updatedOrder = await response.Content.ReadFromJsonAsync<Order>();
+             if (updatedOrder != null) 
+             {
+                 order.Status = updatedOrder.Status;
+                 // Sync lines? Usually List ViewModel reloads, but good to keep local object fresh
+                 foreach(var line in updatedOrder.Lines)
+                 {
+                     var local = order.Lines.FirstOrDefault(l => l.Id == line.Id);
+                     if (local != null) local.QuantityReceived = line.QuantityReceived;
+                 }
+             }
         }
 
         public async Task DeleteOrderAsync(Guid id)

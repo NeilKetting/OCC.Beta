@@ -41,7 +41,7 @@
                     <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="4" Padding="15">
                         <Grid ColumnDefinitions="Auto, *">
                              <PathIcon Grid.Column="0" Data="{StaticResource IconInfo}" Foreground="#EA580C" Width="20" VerticalAlignment="Center"/>
-                             <TextBlock Grid.Column="1" Text="Enter the quantity received for each item. This will update inventory levels immediately." VerticalAlignment="Center" Foreground="#9A3412" TextWrapping="Wrap" Margin="10,0,0,0"/>
+                             <TextBlock Grid.Column="1" Text="Enter the quantity received for each item. This will update inventory levels immediately." VerticalAlignment="Center" Foreground="#9A3412" TextWrapping="Wrap" MaxWidth="450" Margin="10,0,0,0"/>
                         </Grid>
                     </Border>
                     

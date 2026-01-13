@@ -474,7 +474,8 @@ namespace OCC.Client.ViewModels.Orders
                       await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
                       return;
                  }
-                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder);
+                 var orderToPrint = GetSanitizedOrder();
+                 var path = await _pdfService.GenerateOrderPdfAsync(orderToPrint);
                  new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
              }
              catch(Exception ex)
@@ -497,7 +498,8 @@ namespace OCC.Client.ViewModels.Orders
                       await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
                       return;
                  }
-                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder, isPrintVersion: true);
+                 var orderToPrint = GetSanitizedOrder();
+                 var path = await _pdfService.GenerateOrderPdfAsync(orderToPrint, isPrintVersion: true);
                  new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
              }
              catch(Exception ex)
@@ -520,7 +522,8 @@ namespace OCC.Client.ViewModels.Orders
                       await _dialogService.ShowAlertAsync("Validation", "Please select a supplier first.");
                       return;
                  }
-                 var path = await _pdfService.GenerateOrderPdfAsync(NewOrder, isPrintVersion: false);
+                 var orderToPrint = GetSanitizedOrder();
+                 var path = await _pdfService.GenerateOrderPdfAsync(orderToPrint, isPrintVersion: false);
                  new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
              }
              catch(Exception ex)
@@ -528,6 +531,46 @@ namespace OCC.Client.ViewModels.Orders
                  _logger.LogError(ex, "Failed to generate email version");
                  await _dialogService.ShowAlertAsync("Error", "Failed to generate color version.");
              }
+        }
+
+        private Order GetSanitizedOrder()
+        {
+            // Create a shallow copy to avoid modifying the UI bound object
+            var cleanOrder = new Order
+            {
+                Id = NewOrder.Id,
+                OrderNumber = NewOrder.OrderNumber,
+                OrderType = NewOrder.OrderType,
+                Status = NewOrder.Status,
+                OrderDate = NewOrder.OrderDate,
+                ExpectedDeliveryDate = NewOrder.ExpectedDeliveryDate,
+                SupplierId = NewOrder.SupplierId,
+                SupplierName = NewOrder.SupplierName,
+                CustomerId = NewOrder.CustomerId,
+                // CustomerName = NewOrder.CustomerName, // Not on model
+                ProjectId = NewOrder.ProjectId,
+                ProjectName = NewOrder.ProjectName,
+                EntityAddress = NewOrder.EntityAddress,
+                EntityTel = NewOrder.EntityTel,
+                EntityVatNo = NewOrder.EntityVatNo,
+                Attention = NewOrder.Attention,
+                DestinationType = NewOrder.DestinationType,
+                TaxRate = NewOrder.TaxRate,
+                Lines = new ObservableCollection<OrderLine>()
+            };
+
+            // Filter lines that have content
+            var validLines = NewOrder.Lines
+                .Where(l => !string.IsNullOrWhiteSpace(l.ItemCode) || !string.IsNullOrWhiteSpace(l.Description) || l.QuantityOrdered > 0 || l.UnitPrice > 0)
+                .Where(l => l.QuantityOrdered > 0) // Typically we only want lines with qty
+                .ToList();
+
+            foreach(var line in validLines)
+            {
+                cleanOrder.Lines.Add(line);
+            }
+
+            return cleanOrder;
         }
 
         /// <summary>

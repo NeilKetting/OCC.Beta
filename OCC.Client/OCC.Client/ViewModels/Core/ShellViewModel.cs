@@ -300,8 +300,13 @@ namespace OCC.Client.ViewModels.Core
             }
 
             // 2. Fallback to CurrentPage if no popup found or viewName is still default
-            if (viewName == "Unknown")
+            // 2. Fallback to CurrentPage if no popup found or viewName is still default
+            if (viewName == "Unknown" && CurrentPage != null)
             {
+                // Default to the Page name itself
+                viewName = CurrentPage.GetType().Name.Replace("ViewModel", "View");
+
+                // Refine based on specific ViewModels
                 if (CurrentPage is ViewModels.Projects.ProjectsViewModel projectsVM && projectsVM.CurrentView != null)
                 {
                     viewName = projectsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
@@ -336,19 +341,14 @@ namespace OCC.Client.ViewModels.Core
                     {
                         viewName = timeVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
                     }
-                    else
-                    {
-                        viewName = "TimeAttendanceView";
-                    }
                 }
                 else if (CurrentPage is ViewModels.Time.TimeLiveViewModel timeLiveVM && timeLiveVM.IsTimesheetVisible)
                 {
                     viewName = "DailyTimesheetView";
                 }
-                else
+                else if (CurrentPage is ViewModels.Home.HomeViewModel)
                 {
-                    viewName = CurrentPage?.GetType().Name.Replace("ViewModel", "View") ?? "ShellView";
-                    if (CurrentPage is ViewModels.Home.HomeViewModel) viewName = "Dashboard";
+                     viewName = "Dashboard";
                 }
             }
             

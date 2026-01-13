@@ -227,7 +227,7 @@ namespace OCC.Client.Services.Managers
             }
 
             var recentOrders = allOrders.OrderByDescending(o => o.OrderDate).Take(5).ToList();
-            var lowStockItems = inventory.Where(i => i.QuantityOnHand <= i.ReorderPoint).ToList();
+            var lowStockItems = inventory.Where(i => i.TrackLowStock && i.QuantityOnHand <= i.ReorderPoint).ToList();
 
             return new OrderDashboardStats(
                 ordersThisMonthCount,

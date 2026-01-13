@@ -1,154 +1,157 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:OCC.Client.ViewModels.Time"
-             xmlns:models="clr-namespace:OCC.Shared.Models;assembly=OCC.Shared"
-             xmlns:conv="clr-namespace:OCC.Client.Converters"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-             x:Class="OCC.Client.Views.Time.DailyTimesheetView"
-             x:DataType="vm:DailyTimesheetViewModel"
-             x:Name="Root">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:OCC.Client.ViewModels.Time"
+			 xmlns:models="clr-namespace:OCC.Shared.Models;assembly=OCC.Shared"
+			 xmlns:conv="clr-namespace:OCC.Client.Converters"
+			 mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+			 x:Class="OCC.Client.Views.Time.DailyTimesheetView"
+			 x:DataType="vm:DailyTimesheetViewModel"
+			 x:Name="Root">
 
-    <Grid RowDefinitions="Auto, *">
-        <!-- Header -->
-        <Border Grid.Row="0" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="20">
-            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Daily Timesheet" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
-                    <TextBlock Text="{Binding Date, StringFormat='{}{0:D}'}" Foreground="{DynamicResource TextSecondary}" FontSize="14"/>
-                </StackPanel>
+	<Grid RowDefinitions="Auto, *">
+		<!-- Header -->
+		<Border Grid.Row="0" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="20">
+			<Grid ColumnDefinitions="Auto, *, Auto, Auto">
+				<StackPanel Grid.Column="0">
+					<TextBlock Text="Daily Timesheet" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
+					<TextBlock Text="{Binding Date, StringFormat='{}{0:D}'}" Foreground="{DynamicResource TextSecondary}" FontSize="14"/>
+				</StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" Margin="40,0,0,0" VerticalAlignment="Center">
-                    <ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}" Width="200" Classes="FormInput"/>
-                    <TextBox Text="{Binding SearchText}" Watermark="Search..." Width="250" Classes="FormInput"/>
-                </StackPanel>
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" Margin="40,0,0,0" VerticalAlignment="Center">
+					<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}" Width="200" Classes="FormInput"/>
+					<TextBox Text="{Binding SearchText}" Watermark="Search..." Width="250" Classes="FormInput"/>
+				</StackPanel>
 
-                <Button Grid.Column="3" Content="Close" Command="{Binding CloseCommand}" Classes="SecondaryButton"/>
-            </Grid>
-        </Border>
+				<Button Grid.Column="3" Classes="IconButtonClose" Command="{Binding CloseCommand}" VerticalAlignment="Top"
+						ToolTip.Tip="Close details without saving">
+					<PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+				</Button>
+			</Grid>
+		</Border>
 
-        <!-- Content -->
-        <Grid Grid.Row="1" ColumnDefinitions="*, 15, *" Background="#F9FAFB">
-            
-            <!-- LEFT: PENDING -->
-            <Border Grid.Column="0" Background="White" CornerRadius="8" BoxShadow="0 1 3 0 #10000000">
-                <Grid RowDefinitions="Auto, *">
-                    <Border Grid.Row="0" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="15">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="Pending Action" FontWeight="SemiBold" FontSize="16"/>
-                            <Border Background="{DynamicResource PrimaryTealLight}" CornerRadius="12" Padding="8,2">
-                                <TextBlock Text="{Binding PendingStaff.Count, StringFormat='{}{0} Staff'}" 
-                                           Foreground="{DynamicResource PrimaryTeal}" FontWeight="Bold" FontSize="12"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-                    
-                    <ScrollViewer Grid.Row="1" Padding="0,10">
-                        <ItemsControl ItemsSource="{Binding PendingStaff}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Margin="15,5" Padding="10" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" CornerRadius="4">
-                                        <Grid ColumnDefinitions="*, Auto">
-                                            <!-- Info -->
-                                            <StackPanel Spacing="4">
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Medium"/>
-                                                    <!-- Leave Badge -->
-                                                    <Border IsVisible="{Binding IsOnLeave}" Background="#FFF3E0" CornerRadius="4" Padding="6,2">
-                                                        <TextBlock Text="{Binding LeaveType}" Foreground="#E65100" FontSize="10" FontWeight="Bold"/>
-                                                    </Border>
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Role}" FontSize="12" Foreground="{DynamicResource TextSecondary}"/>
-                                                <TextBlock Text="{Binding Branch}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
-                                            </StackPanel>
-                                            
-                                            <!-- Actions -->
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                                <Button Content="Present" 
-                                                        Command="{Binding #Root.DataContext.MarkPresentCommand}" 
-                                                        CommandParameter="{Binding}"
-                                                        Classes="SuccessButton"/>
-                                                
-                                                <Button Content="Absent" 
-                                                        Command="{Binding #Root.DataContext.MarkAbsentCommand}" 
-                                                        CommandParameter="{Binding}"
-                                                        Classes="DangerButton"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
+		<!-- Content -->
+		<Grid Grid.Row="1" ColumnDefinitions="*, 15, *" Background="#F9FAFB">
 
-            <!-- RIGHT: LOGGED -->
-            <Border Grid.Column="2" Background="White" CornerRadius="8" BoxShadow="0 1 3 0 #10000000">
-                <Grid RowDefinitions="Auto, *">
-                    <Border Grid.Row="0" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="15">
-                        <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="Actioned" FontWeight="SemiBold" FontSize="16"/>
-                            <Border Background="{DynamicResource PrimaryTealLight}" CornerRadius="12" Padding="8,2">
-                                <TextBlock Text="{Binding LoggedStaff.Count, StringFormat='{}{0} Logged'}" 
-                                           Foreground="{DynamicResource PrimaryTeal}" FontWeight="Bold" FontSize="12"/>
-                            </Border>
-                        </Grid>
-                    </Border>
+			<!-- LEFT: PENDING -->
+			<Border Grid.Column="0" Background="White" CornerRadius="8" BoxShadow="0 1 3 0 #10000000">
+				<Grid RowDefinitions="Auto, *">
+					<Border Grid.Row="0" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="15">
+						<Grid ColumnDefinitions="*, Auto">
+							<TextBlock Text="Pending Action" FontWeight="SemiBold" FontSize="16"/>
+							<Border Background="{DynamicResource PrimaryTealLight}" CornerRadius="12" Padding="8,2">
+								<TextBlock Text="{Binding PendingStaff.Count, StringFormat='{}{0} Staff'}"
+										   Foreground="{DynamicResource PrimaryTeal}" FontWeight="Bold" FontSize="12"/>
+							</Border>
+						</Grid>
+					</Border>
 
-                    <ScrollViewer Grid.Row="1" Padding="0,10,0,50">
-                        <ItemsControl ItemsSource="{Binding LoggedStaff}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Margin="15,5" Padding="10" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" CornerRadius="4">
-                                        <Grid ColumnDefinitions="*, Auto, Auto">
-                                            <!-- Info -->
-                                            <StackPanel Spacing="4" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontWeight="Medium"/>
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                    <!-- Status Badge (Text Only, Removed Background "Circle") -->
-                                                    <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" 
-                                                               Foreground="{Binding Status, Converter={x:Static conv:AttendanceStatusToBrushConverter.Instance}}"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                            
-                                            <!-- Times -->
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center" Margin="20,0">
-                                                <StackPanel>
-                                                    <TextBlock Text="IN" FontSize="9" Foreground="Gray"/>
-                                                    <TextBlock Text="{Binding ClockInTime, StringFormat='{}{0:hh\\:mm}', TargetNullValue=--:--}" FontWeight="Medium"/>
-                                                </StackPanel>
-                                                <StackPanel>
-                                                    <TextBlock Text="OUT" FontSize="9" Foreground="Gray"/>
-                                                    <TextBlock Text="{Binding ClockOutTime, StringFormat='{}{0:hh\\:mm}', TargetNullValue=--:--}" FontWeight="Medium"/>
-                                                </StackPanel>
-                                            </StackPanel>
+					<ScrollViewer Grid.Row="1" Padding="0,10">
+						<ItemsControl ItemsSource="{Binding PendingStaff}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Border Margin="15,5" Padding="10" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" CornerRadius="4">
+										<Grid ColumnDefinitions="*, Auto">
+											<!-- Info -->
+											<StackPanel Spacing="4">
+												<StackPanel Orientation="Horizontal" Spacing="8">
+													<TextBlock Text="{Binding Name}" FontWeight="Medium"/>
+													<!-- Leave Badge -->
+													<Border IsVisible="{Binding IsOnLeave}" Background="#FFF3E0" CornerRadius="4" Padding="6,2">
+														<TextBlock Text="{Binding LeaveType}" Foreground="#E65100" FontSize="10" FontWeight="Bold"/>
+													</Border>
+												</StackPanel>
+												<TextBlock Text="{Binding Role}" FontSize="12" Foreground="{DynamicResource TextSecondary}"/>
+												<TextBlock Text="{Binding Branch}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
+											</StackPanel>
 
-                                            <!-- Actions -->
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                                <Button Command="{Binding #Root.DataContext.EditEntryCommand}"
-                                                        CommandParameter="{Binding}"
-                                                        Classes="IconOnlyButton" Padding="6" Background="Transparent" BorderThickness="0"
-                                                        ToolTip.Tip="Edit Time">
-                                                    <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14" Foreground="{DynamicResource TextSecondary}"/>
-                                                </Button>
+											<!-- Actions -->
+											<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+												<Button Content="Present"
+														Command="{Binding #Root.DataContext.MarkPresentCommand}"
+														CommandParameter="{Binding}"
+														Classes="SuccessButton"/>
 
-                                                <Button Content="Clock Out" 
-                                                        Command="{Binding #Root.DataContext.ClockOutCommand}" 
-                                                        CommandParameter="{Binding}"
-                                                        Classes="SecondaryButton" FontSize="12" Padding="10,5"
-                                                        IsVisible="{Binding ClockOutTime, Converter={x:Static ObjectConverters.IsNull}}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </Border>
+												<Button Content="Absent"
+														Command="{Binding #Root.DataContext.MarkAbsentCommand}"
+														CommandParameter="{Binding}"
+														Classes="DangerButton"/>
+											</StackPanel>
+										</Grid>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</ScrollViewer>
+				</Grid>
+			</Border>
 
-        </Grid>
-    </Grid>
+			<!-- RIGHT: LOGGED -->
+			<Border Grid.Column="2" Background="White" CornerRadius="8" BoxShadow="0 1 3 0 #10000000">
+				<Grid RowDefinitions="Auto, *">
+					<Border Grid.Row="0" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="15">
+						<Grid ColumnDefinitions="*, Auto">
+							<TextBlock Text="Actioned" FontWeight="SemiBold" FontSize="16"/>
+							<Border Background="{DynamicResource PrimaryTealLight}" CornerRadius="12" Padding="8,2">
+								<TextBlock Text="{Binding LoggedStaff.Count, StringFormat='{}{0} Logged'}"
+										   Foreground="{DynamicResource PrimaryTeal}" FontWeight="Bold" FontSize="12"/>
+							</Border>
+						</Grid>
+					</Border>
+
+					<ScrollViewer Grid.Row="1" Padding="0,10,0,50">
+						<ItemsControl ItemsSource="{Binding LoggedStaff}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate>
+									<Border Margin="15,5" Padding="10" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" CornerRadius="4">
+										<Grid ColumnDefinitions="*, Auto, Auto">
+											<!-- Info -->
+											<StackPanel Spacing="4" VerticalAlignment="Center">
+												<TextBlock Text="{Binding Name}" FontWeight="Medium"/>
+												<StackPanel Orientation="Horizontal" Spacing="8">
+													<!-- Status Badge (Text Only, Removed Background "Circle") -->
+													<TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold"
+															   Foreground="{Binding Status, Converter={x:Static conv:AttendanceStatusToBrushConverter.Instance}}"/>
+												</StackPanel>
+											</StackPanel>
+
+											<!-- Times -->
+											<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center" Margin="20,0">
+												<StackPanel>
+													<TextBlock Text="IN" FontSize="9" Foreground="Gray"/>
+													<TextBlock Text="{Binding ClockInTime, StringFormat='{}{0:hh\\:mm}', TargetNullValue=--:--}" FontWeight="Medium"/>
+												</StackPanel>
+												<StackPanel>
+													<TextBlock Text="OUT" FontSize="9" Foreground="Gray"/>
+													<TextBlock Text="{Binding ClockOutTime, StringFormat='{}{0:hh\\:mm}', TargetNullValue=--:--}" FontWeight="Medium"/>
+												</StackPanel>
+											</StackPanel>
+
+											<!-- Actions -->
+											<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+												<Button Command="{Binding #Root.DataContext.EditEntryCommand}"
+														CommandParameter="{Binding}"
+														Classes="IconOnlyButton" Padding="6" Background="Transparent" BorderThickness="0"
+														ToolTip.Tip="Edit Time">
+													<PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14" Foreground="{DynamicResource TextSecondary}"/>
+												</Button>
+
+												<Button Content="Clock Out"
+														Command="{Binding #Root.DataContext.ClockOutCommand}"
+														CommandParameter="{Binding}"
+														Classes="SecondaryButton" FontSize="12" Padding="10,5"
+														IsVisible="{Binding ClockOutTime, Converter={x:Static ObjectConverters.IsNull}}"/>
+											</StackPanel>
+										</Grid>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</ScrollViewer>
+				</Grid>
+			</Border>
+
+		</Grid>
+	</Grid>
 </UserControl>
