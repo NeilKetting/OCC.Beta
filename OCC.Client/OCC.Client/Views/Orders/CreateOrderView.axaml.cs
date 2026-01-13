@@ -19,8 +19,6 @@ namespace OCC.Client.Views.Orders
             AvaloniaXamlLoader.Load(this);
         }
 
-
-
         private void SkuBox_KeyUp(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter || e.Key == Key.Return)
@@ -62,7 +60,7 @@ namespace OCC.Client.Views.Orders
         public void GridProductBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (sender is AutoCompleteBox box && 
-                box.DataContext is OCC.Shared.Models.OrderLine line && 
+                box.DataContext is OCC.Client.ModelWrappers.OrderLineWrapper line && 
                 box.SelectedItem is OCC.Shared.Models.InventoryItem item &&
                 this.DataContext is CreateOrderViewModel vm)
             {
@@ -74,7 +72,7 @@ namespace OCC.Client.Views.Orders
         public void GridProductBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             if (sender is AutoCompleteBox box && 
-                box.DataContext is OCC.Shared.Models.OrderLine line && 
+                box.DataContext is OCC.Client.ModelWrappers.OrderLineWrapper line && 
                 this.DataContext is CreateOrderViewModel vm)
             {
                 vm.TryCommitAutoSelection(line);
@@ -83,7 +81,7 @@ namespace OCC.Client.Views.Orders
 
         public void ToggleProductDropdown(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is OCC.Shared.Models.OrderLine /*line*/)
+            if (sender is Button btn && btn.DataContext is OCC.Client.ModelWrappers.OrderLineWrapper /*line*/)
             {
                 if (btn.Parent is Grid grid)
                 {

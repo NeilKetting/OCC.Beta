@@ -144,18 +144,18 @@
 						</StackPanel>
 					</Button>
 
-					<!-- Developer Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Developer" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Developer'}" HorizontalAlignment="Stretch" IsVisible="{Binding IsDeveloper}">
-						<StackPanel Orientation="Horizontal" Spacing="15">
-							<PathIcon Data="{StaticResource IconCode}" Classes="IconStyle" Foreground="{DynamicResource AccentOrange}"/>
-							<TextBlock Text="Developer" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
-						</StackPanel>
-					</Button>
 				</StackPanel>
 			</ScrollViewer>
 
 			<!-- Bottom Action Section (New, Help, Settings, Profile) -->
 			<StackPanel Grid.Row="3" Margin="0,10">
+				<!-- Developer Link -->
+				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Developer" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Developer'}" HorizontalAlignment="Stretch" IsVisible="{Binding IsDeveloper}">
+					<StackPanel Orientation="Horizontal" Spacing="15">
+						<PathIcon Data="{StaticResource IconCode}" Classes="IconStyle" Foreground="{DynamicResource AccentOrange}"/>
+						<TextBlock Text="Developer" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
+					</StackPanel>
+				</Button>
 				<!-- Notifications Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
 					<StackPanel Orientation="Horizontal" Spacing="15">
@@ -224,7 +224,7 @@
 				</Grid>
 
 				<!-- Separator -->
-				<Border Classes="Separator" IsVisible="{Binding !IsCollapsed}"/>
+				<Border Classes="Separator" IsVisible="{Binding !IsCollapsed}" Margin="8,10,8,0"/>
 
 
 				<TextBlock Text="{Binding LastActionMessage}"
@@ -243,11 +243,11 @@
 					<TextBlock FontSize="10"
 							   FontWeight="SemiBold"
 							   HorizontalAlignment="Center"
-							   Text="POWERED BY ORIGIZE 63" Foreground="{DynamicResource TextSecondaryGray}"/>
+							   Text="POWERED BY ORIGIZE 63" Foreground="{DynamicResource StructuralConcreteGradient}"/>
 					<TextBlock Text="{Binding AppVersion}"
-							   FontSize="9"
+							   FontSize="12"
 							   HorizontalAlignment="Center"
-							   Foreground="{DynamicResource TextTertiarySlate}"
+							   Foreground="{DynamicResource TextSecondaryDark}"
 							   Opacity="0.5"/>
 					<Button Content="Check Updates"
 							Command="{Binding CheckForUpdatesCommand}"

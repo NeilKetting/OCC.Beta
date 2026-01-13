@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OCC.Client.ViewModels.Orders"
+             xmlns:models="using:OCC.Client.Models"
+             xmlns:client="using:OCC.Client"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="OCC.Client.Views.Orders.RestockReviewView"
+             x:DataType="vm:RestockReviewViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#F9FAFB">
+        <Grid RowDefinitions="Auto, Auto, *">
+            
+            <!-- Shared Menu -->
+            <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
+
+            <!-- Header -->
+            <Border Grid.Row="1"  Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel>
+                        <TextBlock Text="Restock Review" FontSize="20" FontWeight="Bold"/>
+                        <TextBlock Text="Review low stock items and creates purchase orders." Classes="Caption" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="Ghost">
+                        <PathIcon Data="{StaticResource IconClose}"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <ScrollViewer Grid.Row="2" Padding="20">
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SupplierRestockGroup">
+                            <Border Background="White" CornerRadius="8" Margin="0,0,0,20" Padding="15" BoxShadow="0 1 3 0 #20000000">
+                                <StackPanel>
+                                    <!-- Supplier Header -->
+                                    <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,15">
+                                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                            <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource ThemeAccentBrush}" VerticalAlignment="Center">
+                                                <PathIcon Data="{StaticResource IconSupplier}" Foreground="White" Width="20" Height="20"/>
+                                            </Border>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding SupplierName}" FontWeight="Bold" FontSize="16"/>
+                                                <TextBlock Text="{Binding Count, StringFormat='{}{0} Items Low'}" Classes="Caption"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Create Order" Classes="Primary"
+                                                Command="{Binding $parent[UserControl].((vm:RestockReviewViewModel)DataContext).CreateOrderCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                    </Grid>
+
+                                    <Separator Background="{DynamicResource ThemeBorderLow}" Height="1" Margin="0,0,0,10"/>
+
+                                    <!-- Items List -->
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="models:RestockCandidate">
+                                                <Grid ColumnDefinitions="*, 200, 100" Margin="0,8">
+                                                    
+                                                    <!-- Item Info -->
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding Item.ProductName}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Item.Sku}" Classes="Caption"/>
+                                                    </StackPanel>
+
+                                                    <!-- Visual Bar -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <!-- Label -->
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,2" Spacing="4">
+                                                             <TextBlock Text="{Binding Item.QuantityOnHand}" Foreground="Red" FontWeight="Bold" FontSize="11"/>
+                                                             <TextBlock Text="+" FontSize="11"/>
+                                                             <TextBlock Text="{Binding QuantityOnOrder}" Foreground="Blue" FontWeight="Bold" FontSize="11"/>
+                                                             <TextBlock Text="/" FontSize="11"/>
+                                                             <TextBlock Text="{Binding Item.ReorderPoint, StringFormat='{}{0} (Min)'}" Foreground="Gray" FontSize="11"/>
+                                                        </StackPanel>
+
+                                                        <!-- Bar Container -->
+                                                        <Border Height="8" CornerRadius="4" Background="#E5E7EB" ClipToBounds="True">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="{Binding Item.QuantityOnHand, StringFormat='{}{0}*'}"/>
+                                                                    <ColumnDefinition Width="{Binding QuantityOnOrder, StringFormat='{}{0}*'}"/>
+                                                                    <ColumnDefinition Width="{Binding Gap, StringFormat='{}{0}*'}"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                
+                                                                <!-- Hand Stock (Red) -->
+                                                                <Rectangle Grid.Column="0" Fill="#EF4444" IsVisible="{Binding Item.QuantityOnHand, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                                
+                                                                <!-- On Order (Blue) -->
+                                                                <Rectangle Grid.Column="1" Fill="#3B82F6" IsVisible="{Binding QuantityOnOrder, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                                                
+                                                                <!-- Gap (Empty/Background visible) -->
+                                                                <Rectangle Grid.Column="2" Fill="Transparent"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            
+            <StackPanel Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+                <ProgressBar IsIndeterminate="True"/>
+                <TextBlock Text="Comparing Inventory..." Margin="0,10,0,0"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

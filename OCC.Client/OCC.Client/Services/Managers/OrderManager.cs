@@ -241,6 +241,145 @@ namespace OCC.Client.Services.Managers
                 lowStockItems.Count);
         }
 
+        /// <inheritdoc/>
+        public async Task<Order> GetRestockOrderTemplateAsync()
+        {
+            var inventory = await _inventoryService.GetInventoryAsync();
+            var lowStockItems = inventory.Where(i => i.TrackLowStock && i.QuantityOnHand <= i.ReorderPoint).ToList();
+
+            if (!lowStockItems.Any()) return CreateNewOrderTemplate(OrderType.PurchaseOrder);
+
+            // Group by Supplier and pick the one with most items for now (Single PO constraint)
+            var supplierGroups = lowStockItems.GroupBy(i => i.Supplier).OrderByDescending(g => g.Count());
+            var topSupplierGroup = supplierGroups.First();
+            var supplierName = topSupplierGroup.Key;
+
+            var itemsToOrder = topSupplierGroup.ToList();
+
+            var order = CreateNewOrderTemplate(OrderType.PurchaseOrder);
+            order.ExpectedDeliveryDate = DateTime.Today.AddDays(7);
+            order.Notes = $"Auto-generated restock order for {supplierName}.";
+            
+            // Try to find supplier details to pre-fill
+            var supplier = (await _supplierService.GetSuppliersAsync()).FirstOrDefault(s => s.Name == supplierName);
+            if (supplier != null)
+            {
+                order.SupplierId = supplier.Id;
+                order.SupplierName = supplier.Name;
+                // Pre-fill email, address etc if Order model supports it directly or via Id
+            }
+
+            // Fetch all orders to determine last purchase price
+            var allOrders = await _orderService.GetOrdersAsync();
+            var lastPrices = new Dictionary<Guid, decimal>();
+
+            // Helper to get last price
+            foreach(var item in itemsToOrder)
+            {
+                var lastLine = allOrders
+                    .Where(o => o.OrderType == OrderType.PurchaseOrder && o.Status != OrderStatus.Cancelled)
+                    .OrderByDescending(o => o.OrderDate)
+                    .SelectMany(o => o.Lines)
+                    .FirstOrDefault(l => l.InventoryItemId == item.Id);
+
+                if (lastLine != null && lastLine.UnitPrice > 0)
+                {
+                    lastPrices[item.Id] = lastLine.UnitPrice;
+                }
+                else
+                {
+                    lastPrices[item.Id] = item.AverageCost;
+                }
+            }
+
+            foreach (var item in itemsToOrder)
+            {
+                // Calculate restock quantity: e.g. bring up to 2x ReorderPoint or just 1.5x.
+                // For now, let's just order enough to double the ReorderPoint as a safe buffer, minus what we have.
+                // Target = ReorderPoint * 2. 
+                // QtyToOrder = Target - QtyOnHand.
+                // Min Qty = 1.
+                
+                double target = item.ReorderPoint * 2; 
+                double needed = target - item.QuantityOnHand;
+                if (needed < 1) needed = 1;
+
+                decimal unitPrice = lastPrices[item.Id];
+
+                order.Lines.Add(new OrderLine
+                {
+                    OrderId = order.Id,
+                    InventoryItemId = item.Id,
+                    ItemCode = item.Sku,
+                    Description = item.ProductName,
+                    Category = item.Category,
+                    UnitOfMeasure = item.UnitOfMeasure,
+                    UnitPrice = unitPrice,
+                    QuantityOrdered = needed,
+                    LineTotal = (decimal)needed * unitPrice,
+                    VatAmount = ((decimal)needed * unitPrice) * 0.15m // Approx
+                });
+            }
+
+            return order;
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync()
+        {
+            var inventory = await _inventoryService.GetInventoryAsync();
+            var orders = await _orderService.GetOrdersAsync();
+
+            // Filter for active POs
+            var activePOs = orders.Where(o => o.OrderType == OrderType.PurchaseOrder && 
+                                              (o.Status == OrderStatus.Ordered || o.Status == OrderStatus.PartialDelivery));
+
+            // Flatten lines to map: InventoryId -> QuantityRemaining
+            // Note: OrderLine has RemainingQuantity property but it is calculated.
+            // We need to match by InventoryItemId.
+            var pendingQuantities = new Dictionary<Guid, double>();
+            
+            foreach (var order in activePOs)
+            {
+                foreach (var line in order.Lines)
+                {
+                    if (line.InventoryItemId.HasValue)
+                    {
+                        if (!pendingQuantities.ContainsKey(line.InventoryItemId.Value))
+                            pendingQuantities[line.InventoryItemId.Value] = 0;
+                        
+                        pendingQuantities[line.InventoryItemId.Value] += line.RemainingQuantity;
+                    }
+                }
+            }
+
+            var candidates = new List<OCC.Client.Models.RestockCandidate>();
+            
+            foreach (var item in inventory)
+            {
+                if (!item.TrackLowStock) continue;
+
+                double onOrder = 0;
+                if (pendingQuantities.ContainsKey(item.Id))
+                {
+                    onOrder = pendingQuantities[item.Id];
+                }
+
+                // Rule: Show if Physical Stock is Low.
+                // We display the 'On Order' part visually so the user knows if it's covered.
+                // If we filtered by (Hand + Order) >= Reorder, we would never show the "Blue Bar" case the user described.
+                if (item.QuantityOnHand >= item.ReorderPoint) continue;
+
+                candidates.Add(new OCC.Client.Models.RestockCandidate
+                {
+                    Item = item,
+                    QuantityOnOrder = onOrder
+                });
+            }
+
+            return candidates;
+        }
+
         #endregion
 
         #endregion

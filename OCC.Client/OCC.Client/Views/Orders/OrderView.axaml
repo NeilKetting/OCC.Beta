@@ -16,16 +16,7 @@
 
 	<Grid RowDefinitions="Auto, Auto, *">
 		<!-- Menu Bar -->
-		<client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
-		<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
-			<Grid ColumnDefinitions="*, Auto" Margin="0">
-				<StackPanel Grid.Column="0" Spacing="5">
-					<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
-					<TextBlock Text="Track purchases, deliveries, and site inventory." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />
-				</StackPanel>
-				<PathIcon Grid.Column="1" Data="{StaticResource IconCart}" Width="48" Height="48" Foreground="#000000" Margin="20,0"/>
-			</Grid>
-		</Border>
+		<client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>		
 		<!-- Content -->
 
 

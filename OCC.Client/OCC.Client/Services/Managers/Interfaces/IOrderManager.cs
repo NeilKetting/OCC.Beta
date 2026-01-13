@@ -181,6 +181,17 @@ namespace OCC.Client.Services.Managers.Interfaces
         /// </summary>
         /// <returns>A <see cref="OrderDashboardStats"/> object containing processed metrics.</returns>
         Task<OrderDashboardStats> GetDashboardStatsAsync();
+
+        /// <summary>
+        /// Creates a new order template populated with all inventory items that are currently low on stock.
+        /// </summary>
+        /// <returns>A new <see cref="Order"/> object containing lines for low stock items.</returns>
+        Task<Order> GetRestockOrderTemplateAsync();
+
+        /// <summary>
+        /// Retrieves list of low stock items grouped by supplier with on-order calculations.
+        /// </summary>
+        Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync();
     }
 
     /// <summary>

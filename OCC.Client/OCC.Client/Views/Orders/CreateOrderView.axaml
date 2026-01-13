@@ -4,6 +4,8 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:OCC.Client.ViewModels.Orders"
 			 xmlns:models="using:OCC.Shared.Models"
+			 xmlns:wrappers="using:OCC.Client.ModelWrappers"
+             xmlns:client="using:OCC.Client"
 			 mc:Ignorable="d"
 			 d:DesignWidth="1200" d:DesignHeight="800"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
@@ -68,14 +70,15 @@
 	<Border Background="White" CornerRadius="0"
 			Margin="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0"
 			VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-		<Grid RowDefinitions="Auto, *, Auto">
-
+		<Grid RowDefinitions="Auto, Auto, *, Auto">
+			<!-- Shared Menu -->
+			<client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
 			<!-- Header Bar -->
-			<Border Grid.Row="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,5">
+			<Border Grid.Row="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,5">
 				<Grid ColumnDefinitions="*, Auto">
 					<!-- Debug Validation -->
 					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-						<TextBlock Text="{Binding NewOrder.OrderNumber}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
+						<TextBlock Text="{Binding CurrentOrder.OrderNumber}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
 						<Border Background="#5A9CB5" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" IsVisible="{Binding IsPurchaseOrder}">
 							<TextBlock Text="PURCHASE ORDER" Foreground="White" FontSize="11" FontWeight="Bold"/>
 						</Border>
@@ -95,7 +98,7 @@
 			</Border>
 
 			<!-- Form -->
-			<Grid Grid.Row="1" Margin="20, 10, 20, 0" IsEnabled="{Binding !IsReadOnly}">
+			<Grid Grid.Row="2" Margin="20, 10, 20, 0" IsEnabled="{Binding !IsReadOnly}">
 				<Grid RowDefinitions="Auto, *, Auto">
                     <!-- Top Section: Inputs & Headers -->
                     <StackPanel Grid.Row="0" Spacing="5">
@@ -116,7 +119,7 @@
 
 						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
 							<TextBlock Text="Branch:" VerticalAlignment="Center" Classes="Label" Margin="0,0,5,0"/>
-							<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding NewOrder.Branch}" Width="100"/>
+							<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding CurrentOrder.Branch}" Width="100"/>
 						</StackPanel>
 					</Grid>
 
@@ -159,19 +162,19 @@
 							<!-- Return Project (Return Only) -->
 							<StackPanel Spacing="5" IsVisible="{Binding IsReturnOrder}">
 								<TextBlock Text="Returning From Project" Classes="Label"/>
-								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding NewOrder.ProjectName}" HorizontalAlignment="Stretch" PlaceholderText="Select Project"/>
+								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding CurrentOrder.ProjectName}" HorizontalAlignment="Stretch" PlaceholderText="Select Project"/>
 							</StackPanel>
 
 							<!-- Attention Field -->
 							<StackPanel Spacing="5">
 								<TextBlock Text="Attention:" Classes="Label"/>
-								<TextBox Text="{Binding NewOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
+								<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
 							</StackPanel>
 
 							<!-- Delivery Instructions Field -->
 							<StackPanel Spacing="5">
 								<TextBlock Text="Delivery Instructions:" Classes="Label"/>
-								<TextBox Text="{Binding NewOrder.DeliveryInstructions}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
+								<TextBox Text="{Binding CurrentOrder.Notes}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
 							</StackPanel>
 						</StackPanel>
 						<!-- Middle Column -->
@@ -179,11 +182,11 @@
 							<Grid ColumnDefinitions="*, 15, *">
 								<StackPanel Grid.Column="0" Spacing="5">
 									<TextBlock Text="Order Date" Classes="Label"/>
-									<CalendarDatePicker SelectedDate="{Binding NewOrder.OrderDate}" HorizontalAlignment="Stretch"/>
+									<CalendarDatePicker SelectedDate="{Binding CurrentOrder.OrderDate}" HorizontalAlignment="Stretch"/>
 								</StackPanel>
 								<StackPanel Grid.Column="2" Spacing="5">
 									<TextBlock Text="Expected Delivery" Classes="Label"/>
-									<CalendarDatePicker SelectedDate="{Binding NewOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+									<CalendarDatePicker SelectedDate="{Binding CurrentOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
 								</StackPanel>
 							</Grid>
 
@@ -207,11 +210,11 @@
 								<!-- Address Verification -->
 								<StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" IsVisible="{Binding SelectedProject, Converter={x:Static ObjectConverters.IsNotNull}}">
 									<PathIcon Data="{StaticResource IconLocation}" Width="14" Height="14" Foreground="{DynamicResource ThemeForegroundLow}"/>
-									<TextBlock Text="{Binding NewOrder.EntityAddress, TargetNullValue='No address on file'}"
-											   IsVisible="{Binding NewOrder.EntityAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+									<TextBlock Text="{Binding CurrentOrder.EntityAddress, TargetNullValue='No address on file'}"
+											   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 											   Classes="Caption" Foreground="{DynamicResource ThemeForegroundLow}" TextWrapping="Wrap" MaxWidth="300"/>
 									<TextBlock Text="No address on file for this project."
-											   IsVisible="{Binding NewOrder.EntityAddress, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+											   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNullOrEmpty}}"
 											   Classes="Caption" Foreground="Red" FontStyle="Italic"/>
 								</StackPanel>
 							</StackPanel>
@@ -227,7 +230,7 @@
                     </StackPanel>
 
 					<!-- Invoice DataGrid (New Implementation) -->
-					<DataGrid Grid.Row="1" ItemsSource="{Binding NewOrder.Lines}" Margin="0,10,0,0"
+					<DataGrid Grid.Row="1" ItemsSource="{Binding CurrentOrder.Lines}" Margin="0,10,0,0"
 							  CanUserResizeColumns="True"
 							  CanUserSortColumns="False"
 							  GridLinesVisibility="All"
@@ -323,7 +326,7 @@
 							<!-- Item Code (Editable ComboBox - Single Click Edit) -->
 							<DataGridTemplateColumn Header="ITEM" Width="2*" MinWidth="150">
 								<DataGridTemplateColumn.CellTemplate>
-									<DataTemplate x:DataType="models:OrderLine">
+									<DataTemplate x:DataType="wrappers:OrderLineWrapper">
 										<Grid ColumnDefinitions="*, Auto">
 											<AutoCompleteBox Grid.Column="0"
 															 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
@@ -479,16 +482,16 @@
 						<StackPanel Grid.Column="1" Spacing="10">
 							<Grid ColumnDefinitions="Auto, *">
 								<TextBlock Text="Sub Total:" Foreground="{DynamicResource ThemeForegroundLow}"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding OrderSubTotal, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
+								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.SubTotal, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
 							</Grid>
 							<Grid ColumnDefinitions="*, Auto">
 								<TextBlock Text="VAT (15%):" Foreground="{DynamicResource ThemeForegroundLow}"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding OrderVat, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
+								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.VatTotal, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
 							</Grid>
 							<Separator Height="1" Background="{DynamicResource ThemeBorderLow}"/>
 							<Grid ColumnDefinitions="*, Auto">
 								<TextBlock Text="TOTAL:" FontSize="16" FontWeight="Bold"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding OrderTotal, StringFormat='{}{0:C}'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.TotalAmount, StringFormat='{}{0:C}'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
 							</Grid>
 						</StackPanel>
 					</Grid>
@@ -497,7 +500,7 @@
 
 
 			<!-- Footer Actions -->
-			<Border Grid.Row="2" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,5">
+			<Border Grid.Row="3" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,5">
 				<Grid ColumnDefinitions="*, Auto">
 					<!-- Write Mode: Checkboxes -->
 					<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center" IsVisible="{Binding !IsReadOnly}">
@@ -528,8 +531,8 @@
 					</StackPanel>
 
 					<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
-						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" IsVisible="{Binding !IsReadOnly}" />
 						<Button Command="{Binding CancelCommand}" Content="{Binding IsReadOnly, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Close|Cancel'}" Classes="Cancel" />
+						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" IsVisible="{Binding !IsReadOnly}" />
 					</StackPanel>
 
 

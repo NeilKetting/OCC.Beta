@@ -442,7 +442,7 @@
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
 		<Setter Property="Padding" Value="20" />
 		<Setter Property="CornerRadius" Value="8" />
-		<Setter Property="BoxShadow" Value="0 10 30 5 #20000000" />
+		<Setter Property="BoxShadow" Value="3 5 20 1 #200000" />
 	</Style>
 
 	<Style Selector="Border.WidgetCard">

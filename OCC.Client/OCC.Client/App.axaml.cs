@@ -239,6 +239,7 @@ namespace OCC.Client
             services.AddTransient<SupplierDetailViewModel>();
             services.AddTransient<ReceiveOrderViewModel>();
             services.AddTransient<OrderDashboardViewModel>();
+            services.AddTransient<RestockReviewViewModel>();
             services.AddTransient<ViewModels.Bugs.BugListViewModel>();
 
             // Settings

@@ -11,7 +11,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Input;
 using OCC.Client.ViewModels.Messages;
+using OCC.Client.Messages;
+using OCC.Client.Models;
+using OCC.Client.Services.Infrastructure;
 
 namespace OCC.Client.ViewModels.Orders
 {
@@ -24,6 +28,7 @@ namespace OCC.Client.ViewModels.Orders
         #region Private Members
 
         private readonly IOrderManager _orderManager;
+        private readonly OrderStateService _orderStateService;
         private readonly ILogger<OrderDashboardViewModel> _logger;
 
         #endregion
@@ -106,9 +111,10 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         /// <param name="orderManager">Manager providing centralized order and inventory operations.</param>
         /// <param name="logger">Logger for capturing diagnostic information.</param>
-        public OrderDashboardViewModel(IOrderManager orderManager, ILogger<OrderDashboardViewModel> logger)
+        public OrderDashboardViewModel(IOrderManager orderManager, OrderStateService orderStateService, ILogger<OrderDashboardViewModel> logger)
         {
             _orderManager = orderManager;
+            _orderStateService = orderStateService;
             _logger = logger;
             
             // Register for Real-time Updates to keep dashboard current
@@ -120,6 +126,31 @@ namespace OCC.Client.ViewModels.Orders
         #endregion
 
         #region Commands
+
+        [RelayCommand]
+        private void RestockNow()
+        {
+             // New Flow: Review page -> Create Order
+             WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("RestockReview"));
+        }
+
+        [RelayCommand]
+        private void OpenOrder(Order order)
+        {
+            if (order == null) return;
+            
+            // 1. Save state so CreateOrderViewModel picks it up
+            _orderStateService.SaveState(order, null);
+
+            // 2. Navigate to CreateOrder
+            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("CreateOrder"));
+        }
+
+        [RelayCommand]
+        private void NavigateToOrderList()
+        {
+             WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("OrderList"));
+        }
 
         #endregion
 

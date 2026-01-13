@@ -17,7 +17,7 @@
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 					<StackPanel Spacing="5">
 						<TextBlock Text="Supplier List" Classes="H1"/>
-						<TextBlock Text="Master list of all suppliers. Double-click to edit." Classes="LabelSmall"/>
+						<TextBlock Text="Master list of all suppliers. Double-click to edit." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}"/>
 					</StackPanel>
 				</StackPanel>
 

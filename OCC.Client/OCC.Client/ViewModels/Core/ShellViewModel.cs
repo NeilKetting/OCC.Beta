@@ -434,8 +434,25 @@ namespace OCC.Client.ViewModels.Core
                 case "Orders":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
                     break;
+                case "OrderList":
+                case "Inventory":
+                case "ItemList":
+                case "Suppliers":
+                    var orderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
+                    orderVM.SetTab(section);
+                    CurrentPage = orderVM;
+                    break;
                 case "CreateOrder":
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.CreateOrderViewModel>();
+                    var createOrderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.CreateOrderViewModel>();
+                    createOrderVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
+                    // Explicitly trigger load
+                    _ = createOrderVM.LoadData();
+                    CurrentPage = createOrderVM;
+                    break;
+                case "RestockReview":
+                    var restockVM = _serviceProvider.GetRequiredService<ViewModels.Orders.RestockReviewViewModel>();
+                    _ = restockVM.LoadData();
+                    CurrentPage = restockVM;
                     break;
                 case "Help":
                      var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();

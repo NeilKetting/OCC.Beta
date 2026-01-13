@@ -11,12 +11,23 @@
              x:DataType="vm:EmployeeManagementViewModel">
     
     <Grid RowDefinitions="Auto, Auto, *">
+        <!-- Tool Bar -->
         <!-- Stats Bar -->
-        <Border Grid.Row="0" Classes="TopHeader">
-            <Grid ColumnDefinitions="Auto, *, Auto">
+        <Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+
+                <StackPanel Grid.Column="0">
+                    <Grid ColumnDefinitions="*, Auto" Margin="0">
+				<StackPanel Grid.Column="0" Spacing="5">
+					<TextBlock Text="Employee Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
+					<TextBlock Text="Create employees, set up teams" Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />
+				</StackPanel>
+			</Grid>
+
+                </StackPanel>
 
                 <!-- Stats -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <StackPanel Classes="Stat">
                         <TextBlock Text="TOTAL EMPLOYEES" Classes="StatLabel"/>
                         <TextBlock Text="{Binding TotalCount}" Classes="StatValue" HorizontalAlignment="Center"/>
@@ -51,17 +62,17 @@
 
                     <!-- Search -->
                     <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                        <TextBox Width="200" Watermark="Search employees..." VerticalContentAlignment="Center" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Background="White" BorderBrush="{DynamicResource BorderGray}" Padding="30,5,10,5"/>
+                        <TextBox Width="170" Watermark="Search employees..." VerticalContentAlignment="Center" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Background="White" BorderBrush="{DynamicResource BorderGray}" Padding="15,0,0,0"/>
                         <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     </StackPanel>
 
-                    <ComboBox SelectedIndex="{Binding SelectedFilterIndex}" Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
+                    <ComboBox SelectedIndex="{Binding SelectedFilterIndex}" Width="130" Background="White" BorderBrush="{DynamicResource BorderGray}">
                         <ComboBoxItem>Everyone</ComboBoxItem>
                         <ComboBoxItem>Permanent</ComboBoxItem>
                         <ComboBoxItem>Contract</ComboBoxItem>
                     </ComboBox>
 
-                    <ComboBox SelectedIndex="{Binding SelectedBranchFilterIndex}" Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
+                    <ComboBox SelectedIndex="{Binding SelectedBranchFilterIndex}" Width="130" Background="White" BorderBrush="{DynamicResource BorderGray}">
                         <ComboBoxItem>All Branches</ComboBoxItem>
                         <ComboBoxItem>Johannesburg</ComboBoxItem>
                         <ComboBoxItem>Cape Town</ComboBoxItem>

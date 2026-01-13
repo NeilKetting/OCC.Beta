@@ -7,6 +7,7 @@
              xmlns:conv="using:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
 			 x:Class="OCC.Client.Views.Orders.OrderDashboardView"
+             Name="Root"
 			 x:DataType="vm:OrderDashboardViewModel">
 
     <UserControl.Resources>
@@ -14,18 +15,57 @@
         <conv:DueDateToDisplayConverter x:Key="DueDateToDisplayConverter"/>
     </UserControl.Resources>
 
-	<Design.DataContext>
-		<vm:OrderDashboardViewModel/>
-	</Design.DataContext>
+    <UserControl.Styles>
+        <Style Selector="PathIcon.Ring">
+            <Setter Property="RenderTransform">
+                <RotateTransform />
+            </Setter>
+            <Style.Animations>
+                <Animation Duration="0:0:20" IterationCount="Infinite"> 
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="0.5%">
+                        <Setter Property="RotateTransform.Angle" Value="15"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="1%">
+                        <Setter Property="RotateTransform.Angle" Value="-15"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="1.5%">
+                        <Setter Property="RotateTransform.Angle" Value="15"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="2%">
+                        <Setter Property="RotateTransform.Angle" Value="-15"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="2.5%">
+                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                    </KeyFrame>
+                    <!-- Pause for the rest (2.5% to 100%) -->
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
 
 	<ScrollViewer>
 		<StackPanel Spacing="20" Margin="20">
-
-
+			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+			<Grid ColumnDefinitions="*, Auto" Margin="0">
+				<StackPanel Grid.Column="0" Spacing="5">
+					<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
+					<TextBlock Text="Track purchases, deliveries, and site inventory." Foreground="#94A3B8" FontSize="{StaticResource FontSizeMedium}" />
+				</StackPanel>
+				<PathIcon Grid.Column="1" Data="{StaticResource IconCart}" Width="48" Height="48" Foreground="#000000" Margin="20,0"/>
+			</Grid>
+		</Border>
 			<!-- Stats Grid -->
 			<Grid ColumnDefinitions="*, 20, *, 20, *">
 				<!-- Stat 1 -->
 				<Border Grid.Column="0" Classes="CardMedium">
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="DoubleTapped">
+                            <InvokeCommandAction Command="{Binding NavigateToOrderListCommand}"/>
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
 					<StackPanel Spacing="8">
 							<TextBlock Text="ORDERS THIS MONTH" Classes="Label" />
 						<TextBlock Text="{Binding OrdersThisMonth}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource ThemeForeground}" />
@@ -43,11 +83,11 @@
 				</Border>
 
 				<!-- Stat 3 -->
-				<Border Grid.Column="4" Classes="CardMedium" Background="#20EF4444" BorderBrush="#EF4444" BorderThickness="1">
+				<Border Grid.Column="4" Classes="CardMedium" Background="#20EF4444">
 					<StackPanel Spacing="10">
 						<Grid ColumnDefinitions="*, Auto">
 							<TextBlock Text="LOW STOCK ALERTS" Classes="Label" Foreground="#EF4444" />
-							<PathIcon Data="{StaticResource IconAlert}" Width="16" HorizontalAlignment="Right" Foreground="#EF4444" />
+							<PathIcon Classes="Ring" Data="{StaticResource IconAlert}" Width="16" HorizontalAlignment="Right" Foreground="#EF4444" RenderTransformOrigin="50%,0%" />
 						</Grid>
 						<TextBlock Text="{Binding LowStockItems.Count}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="#EF4444" />
 						<TextBlock Text="Requires Action" FontSize="12" Foreground="#EF4444" />
@@ -68,8 +108,13 @@
                             </Style>
                         </ItemsControl.Styles>
 						<ItemsControl.ItemTemplate>
-							<DataTemplate>
-								<Border Classes="Card" Padding="15" CornerRadius="8" BoxShadow="0 4 6 0 #15000000">
+							<DataTemplate>														
+								<Border Padding="15" BorderBrush="Gray" BorderThickness="0,0,0,2">
+                                    <Interaction.Behaviors>
+                                        <EventTriggerBehavior EventName="DoubleTapped">
+                                            <InvokeCommandAction Command="{Binding #Root.((vm:OrderDashboardViewModel)DataContext).OpenOrderCommand}" CommandParameter="{Binding .}"/>
+                                        </EventTriggerBehavior>
+                                    </Interaction.Behaviors>
 									<Grid ColumnDefinitions="Auto, *, Auto, Auto">
 										<!-- Icon -->
 										<Border Grid.Column="0" Width="42" Height="42" CornerRadius="12" Background="#F1F5F9" Margin="0,0,15,0" BorderBrush="#E2E8F0" BorderThickness="1">
@@ -112,11 +157,19 @@
 
 				<!-- Low Stock Sidebar -->
 				<StackPanel Grid.Column="2" Spacing="15">
-					<TextBlock Text="Low Stock" FontSize="18" FontWeight="SemiBold" />
+					<Grid ColumnDefinitions="*, Auto">
+						<TextBlock Text="Low Stock" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+						<Button Grid.Column="1" Command="{Binding RestockNowCommand}" Classes="Cancel">
+							<StackPanel Orientation="Horizontal" Spacing="5">
+								<PathIcon Data="{StaticResource IconCart}" Width="12"/>
+								<TextBlock Text="Re-stock Now" Foreground="White"/>
+							</StackPanel>
+						</Button>
+					</Grid>
 					<ItemsControl ItemsSource="{Binding LowStockItems}">
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
-								<Border Classes="Card" Margin="0,0,0,10" Padding="15">
+								<Border Margin="0,0,0,10" Padding="15" BorderBrush="Gray" BorderThickness="0,0,0,0">
 									<StackPanel Spacing="5">
 										<StackPanel Spacing="5">
 											<TextBlock Text="{Binding ProductName}" FontWeight="Bold" />

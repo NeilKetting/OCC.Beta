@@ -32,7 +32,11 @@ namespace OCC.Client.Services.Infrastructure
 
         public (Order? Order, OrderLine? Line, string? Term) RetrieveState()
         {
-            return (SavedOrder, PendingLine, PendingSearchTerm);
+            var s = SavedOrder;
+            var p = PendingLine;
+            var t = PendingSearchTerm;
+            ClearState();
+            return (s, p, t);
         }
     }
 }

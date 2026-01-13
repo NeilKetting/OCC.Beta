@@ -13,7 +13,11 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Infrastructure;
-using CommunityToolkit.Mvvm.Messaging; // NEW
+using CommunityToolkit.Mvvm.Messaging;
+using OCC.Client.ViewModels.Messages;
+using OCC.Client.Models;
+using OCC.Client.Messages;
+using OCC.Client.ModelWrappers; // NEW
 using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Orders
@@ -29,6 +33,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
         private readonly OrderStateService _orderStateService;
+        private readonly Guid _instanceId = Guid.NewGuid();
         private readonly ILogger<CreateOrderViewModel> _logger;
         private readonly IPdfService _pdfService;
         private bool _isUpdatingSearchText;
@@ -44,7 +49,7 @@ namespace OCC.Client.ViewModels.Orders
         private string _busyText = "Please wait...";
 
         [ObservableProperty]
-        private Order _newOrder = new();
+        private OrderWrapper _currentOrder; // Renamed from NewOrder
 
         [ObservableProperty]
         private bool _isReadOnly;
@@ -52,20 +57,20 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Gets the current order subtotal from the model.
         /// </summary>
-        public decimal OrderSubTotal => NewOrder?.SubTotal ?? 0;
+        // public decimal OrderSubTotal => NewOrder?.SubTotal ?? 0; // Removed, now binding to CurrentOrder.SubTotal
         
         /// <summary>
         /// Gets the current order VAT total from the model.
         /// </summary>
-        public decimal OrderVat => NewOrder?.VatTotal ?? 0;
+        // public decimal OrderVat => NewOrder?.VatTotal ?? 0; // Removed
         
         /// <summary>
         /// Gets the current order total amount from the model.
         /// </summary>
-        public decimal OrderTotal => NewOrder?.TotalAmount ?? 0;
+        // public decimal OrderTotal => NewOrder?.TotalAmount ?? 0; // Removed
 
         [ObservableProperty]
-        private OrderLine _newLine = new();
+        private OrderLineWrapper _newLine = new(new OrderLine());
         
         [ObservableProperty]
         private ObservableCollection<Supplier> _suppliers = new();
@@ -180,6 +185,8 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private bool _isProductDropDownOpen;
 
+        public OrderMenuViewModel OrderMenu { get; }
+
         #endregion
 
         #region Constructors
@@ -192,13 +199,16 @@ namespace OCC.Client.ViewModels.Orders
             IDialogService dialogService,
             ILogger<CreateOrderViewModel> logger,
             IPdfService pdfService,
-            OrderStateService orderStateService)
+            OrderStateService orderStateService,
+            OrderMenuViewModel orderMenu)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
             _pdfService = pdfService;
             _orderStateService = orderStateService;
+            OrderMenu = orderMenu;
+            OrderMenu.TabSelected += OnMenuTabSelected;
             
             Reset();
         }
@@ -213,15 +223,16 @@ namespace OCC.Client.ViewModels.Orders
             _logger = null!;
             _pdfService = null!;
             _orderStateService = null!;
-            NewOrder.OrderNumber = "DEMO-0000";
+            OrderMenu = null!;
+            CurrentOrder = new OrderWrapper(new Order { OrderNumber = "DEMO-0000" });
         }
 
         private void RecalculateTotals()
         {
             // Model properties are computed (read-only), so we just notify the view to re-read them.
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
+            OnPropertyChanged(nameof(CurrentOrder.SubTotal));
+            OnPropertyChanged(nameof(CurrentOrder.VatTotal));
+            OnPropertyChanged(nameof(CurrentOrder.TotalAmount));
         }
 
         private void OnLineChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -235,10 +246,10 @@ namespace OCC.Client.ViewModels.Orders
         private void SetupLineListeners()
         {
              // Remove old if any (naive approach, assume fresh start or handle in logic)
-             NewOrder.Lines.CollectionChanged -= Lines_CollectionChanged;
-             NewOrder.Lines.CollectionChanged += Lines_CollectionChanged;
+             CurrentOrder.Lines.CollectionChanged -= Lines_CollectionChanged;
+             CurrentOrder.Lines.CollectionChanged += Lines_CollectionChanged;
 
-             foreach(var line in NewOrder.Lines)
+             foreach(var line in CurrentOrder.Lines)
              {
                  line.PropertyChanged -= OnLineChanged;
                  line.PropertyChanged += OnLineChanged;
@@ -248,10 +259,10 @@ namespace OCC.Client.ViewModels.Orders
         private void Lines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null)
-                foreach(OrderLine item in e.NewItems) item.PropertyChanged += OnLineChanged;
+                foreach(OrderLineWrapper item in e.NewItems) item.PropertyChanged += OnLineChanged;
 
             if (e.OldItems != null)
-                foreach(OrderLine item in e.OldItems) item.PropertyChanged -= OnLineChanged;
+                foreach(OrderLineWrapper item in e.OldItems) item.PropertyChanged -= OnLineChanged;
 
             RecalculateTotals();
         }
@@ -266,12 +277,12 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public void ChangeOrderType(OrderType type)
         {
-             NewOrder.OrderType = type;
+             CurrentOrder.OrderType = type;
              var temp = _orderManager.CreateNewOrderTemplate(type);
-             NewOrder.OrderType = temp.OrderType;
-             NewOrder.OrderNumber = temp.OrderNumber;
+             CurrentOrder.OrderType = temp.OrderType;
+             CurrentOrder.OrderNumber = temp.OrderNumber;
              UpdateOrderTypeFlags();
-             OnPropertyChanged(nameof(NewOrder));
+             OnPropertyChanged(nameof(CurrentOrder));
         }
 
         /// <summary>
@@ -282,67 +293,44 @@ namespace OCC.Client.ViewModels.Orders
         {
             if (string.IsNullOrWhiteSpace(NewLine.Description) && SelectedInventoryItem == null) return;
 
-            NewLine.CalculateTotal(NewOrder.TaxRate);
+            NewLine.CalculateTotal(CurrentOrder.TaxRate);
             
-            var line = new OrderLine
-            {
-                InventoryItemId = NewLine.InventoryItemId,
-                ItemCode = NewLine.ItemCode,
-                Description = NewLine.Description,
-                QuantityOrdered = NewLine.QuantityOrdered,
-                QuantityReceived = NewLine.QuantityReceived,
-                UnitOfMeasure = NewLine.UnitOfMeasure,
-                UnitPrice = NewLine.UnitPrice,
-                VatAmount = NewLine.VatAmount,
-                LineTotal = NewLine.LineTotal
-            };
-            
-            if (line.LineTotal == 0 && line.QuantityOrdered > 0 && line.UnitPrice > 0)
-            {
-                 line.CalculateTotal(NewOrder.TaxRate);
-            }
-
             if (SelectedInventoryItem != null && SelectedInventoryItem.AverageCost > 0)
             {
                 decimal threshold = SelectedInventoryItem.AverageCost * 1.10m;
-                if (line.UnitPrice > threshold)
+                if (NewLine.UnitPrice > threshold)
                 {
-                    decimal pctIncrease = ((line.UnitPrice - SelectedInventoryItem.AverageCost) / SelectedInventoryItem.AverageCost) * 100m;
+                    decimal pctIncrease = ((NewLine.UnitPrice - SelectedInventoryItem.AverageCost) / SelectedInventoryItem.AverageCost) * 100m;
                     bool confirm = await _dialogService.ShowConfirmationAsync(
                         "Price Increase Warning", 
-                        $"The price of R{line.UnitPrice:F2} is {pctIncrease:F0}% higher than average.\n\nAccept and update average cost?");
+                        $"The price of R{NewLine.UnitPrice:F2} is {pctIncrease:F0}% higher than average.\n\nAccept and update average cost?");
                     
                     if (confirm)
                     {
-                        SelectedInventoryItem.AverageCost = line.UnitPrice;
+                        SelectedInventoryItem.AverageCost = NewLine.UnitPrice;
                         try { await _orderManager.UpdateInventoryItemAsync(SelectedInventoryItem); }
                         catch(Exception ex) { _logger.LogError(ex, "Failed to update avg cost"); }
                     }
                 }
             }
 
-            NewOrder.Lines.Add(line);
-            OnPropertyChanged(nameof(NewOrder));
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
-
-            NewLine = new OrderLine();
-            SelectedInventoryItem = null;
+            NewLine.CommitToModel(); // Sync specific fields if needed, though wrapper does it.
+            CurrentOrder.Lines.Add(NewLine);
+            // Reset New Line
+            NewLine = new OrderLineWrapper(new OrderLine { QuantityOrdered = 1 });
         }
         
         /// <summary>
         /// Removes a line item from the order.
         /// </summary>
         [RelayCommand]
-        public void RemoveLine(OrderLine line)
+        public void RemoveLine(object item)
         {
-            if (line == null) return;
-            NewOrder.Lines.Remove(line);
-            OnPropertyChanged(nameof(NewOrder));
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
+            if (item is OrderLineWrapper line)
+            {
+                CurrentOrder.Lines.Remove(line);
+            }
+            OnPropertyChanged(nameof(CurrentOrder.TotalAmount));
         }
 
         /// <summary>
@@ -351,13 +339,13 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public void AddEmptyLine()
         {
-            NewOrder.Lines.Add(new OrderLine { QuantityOrdered = 1, UnitOfMeasure = "ea" });
+            CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { QuantityOrdered = 1, UnitOfMeasure = "ea" }));
         }
 
         /// <summary>
         /// Updates a specific order line with details from a selected inventory item.
         /// </summary>
-        public void UpdateLineFromSelection(OrderLine line, InventoryItem item)
+        public void UpdateLineFromSelection(OrderLineWrapper line, InventoryItem item)
         {
             if (line == null || item == null) return;
 
@@ -371,13 +359,13 @@ namespace OCC.Client.ViewModels.Orders
             // Auto-set quantity to 1 if empty/zero to populate the row
             if (line.QuantityOrdered <= 0) line.QuantityOrdered = 1;
 
-            line.CalculateTotal(NewOrder.TaxRate);
+            line.CalculateTotal(CurrentOrder.TaxRate);
 
             // Collection refresh not needed as OrderLine now implements INotifyPropertyChanged
             
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
+            OnPropertyChanged(nameof(CurrentOrder.SubTotal));
+            OnPropertyChanged(nameof(CurrentOrder.VatTotal));
+            OnPropertyChanged(nameof(CurrentOrder.TotalAmount));
         }
         
         /// <summary>
@@ -538,36 +526,36 @@ namespace OCC.Client.ViewModels.Orders
             // Create a shallow copy to avoid modifying the UI bound object
             var cleanOrder = new Order
             {
-                Id = NewOrder.Id,
-                OrderNumber = NewOrder.OrderNumber,
-                OrderType = NewOrder.OrderType,
-                Status = NewOrder.Status,
-                OrderDate = NewOrder.OrderDate,
-                ExpectedDeliveryDate = NewOrder.ExpectedDeliveryDate,
-                SupplierId = NewOrder.SupplierId,
-                SupplierName = NewOrder.SupplierName,
-                CustomerId = NewOrder.CustomerId,
+                Id = CurrentOrder.Id,
+                OrderNumber = CurrentOrder.OrderNumber,
+                OrderType = CurrentOrder.OrderType,
+                Status = CurrentOrder.Status,
+                OrderDate = CurrentOrder.OrderDate,
+                ExpectedDeliveryDate = CurrentOrder.ExpectedDeliveryDate,
+                SupplierId = CurrentOrder.SupplierId,
+                SupplierName = CurrentOrder.SupplierName,
+                CustomerId = CurrentOrder.CustomerId,
                 // CustomerName = NewOrder.CustomerName, // Not on model
-                ProjectId = NewOrder.ProjectId,
-                ProjectName = NewOrder.ProjectName,
-                EntityAddress = NewOrder.EntityAddress,
-                EntityTel = NewOrder.EntityTel,
-                EntityVatNo = NewOrder.EntityVatNo,
-                Attention = NewOrder.Attention,
-                DestinationType = NewOrder.DestinationType,
-                TaxRate = NewOrder.TaxRate,
+                ProjectId = CurrentOrder.ProjectId,
+                ProjectName = CurrentOrder.ProjectName,
+                EntityAddress = CurrentOrder.EntityAddress,
+                EntityTel = CurrentOrder.EntityTel,
+                EntityVatNo = CurrentOrder.EntityVatNo,
+                Attention = CurrentOrder.Attention,
+                DestinationType = CurrentOrder.DestinationType,
+                TaxRate = CurrentOrder.TaxRate,
                 Lines = new ObservableCollection<OrderLine>()
             };
 
             // Filter lines that have content
-            var validLines = NewOrder.Lines
+            var validLines = CurrentOrder.Lines
                 .Where(l => !string.IsNullOrWhiteSpace(l.ItemCode) || !string.IsNullOrWhiteSpace(l.Description) || l.QuantityOrdered > 0 || l.UnitPrice > 0)
                 .Where(l => l.QuantityOrdered > 0) // Typically we only want lines with qty
                 .ToList();
 
-            foreach(var line in validLines)
+            foreach(var lineWrapper in validLines)
             {
-                cleanOrder.Lines.Add(line);
+                cleanOrder.Lines.Add(lineWrapper.Model);
             }
 
             return cleanOrder;
@@ -582,26 +570,26 @@ namespace OCC.Client.ViewModels.Orders
             if (IsBusy) return;
 
             // 1. Validate Basic Info
-            if (NewOrder.OrderType == OrderType.PurchaseOrder && SelectedSupplier == null)
+            if (CurrentOrder.OrderType == OrderType.PurchaseOrder && SelectedSupplier == null)
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please select a supplier.");
                 return;
             }
 
             // Date Validation
-            if (NewOrder.ExpectedDeliveryDate == null)
+            if (CurrentOrder.ExpectedDeliveryDate == null)
             {
                  await _dialogService.ShowAlertAsync("Validation Error", "Please select an Expected Delivery Date.");
                  return;
             }
 
-            if (NewOrder.ExpectedDeliveryDate.Value.Date < DateTime.Today)
+            if (CurrentOrder.ExpectedDeliveryDate.Value.Date < DateTime.Today)
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Expected delivery date cannot be in the past.");
                 return;
             }
 
-            if (NewOrder.OrderType == OrderType.SalesOrder && SelectedCustomer == null)
+            if (CurrentOrder.OrderType == OrderType.SalesOrder && SelectedCustomer == null)
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please select a customer.");
                 return;
@@ -615,42 +603,40 @@ namespace OCC.Client.ViewModels.Orders
 
 
             // 2. Filter Empty Rows
-            var validLines = NewOrder.Lines
-                .Where(l => !string.IsNullOrWhiteSpace(l.ItemCode) || !string.IsNullOrWhiteSpace(l.Description))
-                .ToList();
-
-            if (!validLines.Any())
+            // With Wrapper, lines are added explicitly, so NewOrder.Lines usually implies added lines.
+            // If you allow editing in the grid that creates blank lines, this logic might need adjustment.
+            // Assuming Lines collection in wrapper is the source of truth.
+            if (!CurrentOrder.Lines.Any())
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please add at least one line item.");
                 return;
             }
-
-            // Temporarily swap lines for saving
-            var originalLines = NewOrder.Lines.ToList();
-            NewOrder.Lines.Clear();
-            foreach(var line in validLines) NewOrder.Lines.Add(line);
 
             try
             {
                 IsBusy = true;
                 BusyText = "Submitting Order...";
 
-                // Map Selections
-                if (SelectedSupplier != null) NewOrder.SupplierId = SelectedSupplier.Id;
-                if (SelectedCustomer != null) NewOrder.CustomerId = SelectedCustomer.Id;
-                if (SelectedProject != null) NewOrder.ProjectId = SelectedProject.Id;
+                // Commit Wrapper to Model
+                CurrentOrder.CommitToModel();
+                var orderToSubmit = CurrentOrder.Model;
+
+                // Map Selections (redundant if bound directly, but keeping for safety if UI doesn't bind these properties to wrapper directly yet)
+                if (SelectedSupplier != null) orderToSubmit.SupplierId = SelectedSupplier.Id;
+                if (SelectedCustomer != null) orderToSubmit.CustomerId = SelectedCustomer.Id;
+                if (SelectedProject != null) orderToSubmit.ProjectId = SelectedProject.Id;
                 
-                NewOrder.DestinationType = IsSiteDelivery ? OrderDestinationType.Site : OrderDestinationType.Stock;
+                orderToSubmit.DestinationType = IsSiteDelivery ? OrderDestinationType.Site : OrderDestinationType.Stock;
                 
                 Order createdOrder;
-                if (NewOrder.Id == Guid.Empty)
+                if (orderToSubmit.Id == Guid.Empty)
                 {
-                    createdOrder = await _orderManager.CreateOrderAsync(NewOrder);
+                    createdOrder = await _orderManager.CreateOrderAsync(orderToSubmit);
                 }
                 else
                 {
-                    await _orderManager.UpdateOrderAsync(NewOrder);
-                    createdOrder = NewOrder;
+                    await _orderManager.UpdateOrderAsync(orderToSubmit);
+                    createdOrder = orderToSubmit;
                 }
                 
                 OrderCreated?.Invoke(this, EventArgs.Empty);
@@ -679,10 +665,6 @@ namespace OCC.Client.ViewModels.Orders
             {
                 _logger.LogError(ex, "Error submitting order");
                 await _dialogService.ShowAlertAsync("Error", $"Failed to submit order: {ex.Message}");
-                
-                // Restore lines if failed, so user doesn't lose empty rows if they want to keep editing
-                NewOrder.Lines.Clear();
-                foreach(var line in originalLines) NewOrder.Lines.Add(line);
             }
             finally { IsBusy = false; }
         }
@@ -708,7 +690,7 @@ namespace OCC.Client.ViewModels.Orders
                  bool create = await _dialogService.ShowConfirmationAsync("Item Not Found", $"'{searchText}' not found.\n\nCreate it now?");
                  if (create)
                  {
-                     _orderStateService.SaveState(NewOrder, NewLine, searchText);
+                     _orderStateService.SaveState(CurrentOrder.Model, NewLine.Model, searchText);
                      WeakReferenceMessenger.Default.Send(new OCC.Client.Messages.NavigationRequestMessage("InventoryDetail_Create", searchText));
                  }
              }
@@ -736,8 +718,8 @@ namespace OCC.Client.ViewModels.Orders
                      project.Location = NewProjectAddress;
                      await _orderManager.UpdateProjectAsync(project);
                      SelectedProject.Location = NewProjectAddress;
-                     NewOrder.EntityAddress = NewProjectAddress;
-                     OnPropertyChanged(nameof(NewOrder));
+                     CurrentOrder.EntityAddress = NewProjectAddress;
+                     OnPropertyChanged(nameof(CurrentOrder));
                      IsAddingProjectAddress = false;
                  }
              }
@@ -787,7 +769,17 @@ namespace OCC.Client.ViewModels.Orders
                 foreach(var c in cats) ProductCategories.Add(c);
                 if (!ProductCategories.Contains("General")) ProductCategories.Add("General");
 
-                if (_orderStateService.IsReturningFromItemCreation) await RestoreState();
+                if (_orderStateService.HasSavedState) 
+                {
+                    // Debug Toast
+                    // Toast removed
+                    await RestoreState();
+                }
+                else
+                {
+                     // Debug Toast
+                     // Toast removed
+                }
             }
             catch(Exception ex)
             {
@@ -802,15 +794,15 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public void Reset()
         {
-            NewOrder = _orderManager.CreateNewOrderTemplate();
+            CurrentOrder = new OrderWrapper(_orderManager.CreateNewOrderTemplate());
             IsOfficeDelivery = true;
-            NewOrder.Attention = string.Empty;
+            CurrentOrder.Attention = string.Empty;
             UpdateOrderTypeFlags();
 
             // Pre-fill with empty rows for spreadsheet-style entry
             for (int i = 0; i < 20; i++)
             {
-                NewOrder.Lines.Add(new OrderLine { UnitOfMeasure = "" }); 
+                CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "" })); 
             }
             SetupLineListeners();
         }
@@ -820,19 +812,29 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public void LoadExistingOrder(Order order)
         {
-            NewOrder = order;
-            if (Suppliers.Any()) SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == order.SupplierId);
-            if (Customers.Any()) SelectedCustomer = Customers.FirstOrDefault(c => c.Id == order.CustomerId);
-            if (Projects.Any()) SelectedProject = Projects.FirstOrDefault(p => p.Id == order.ProjectId);
+            CurrentOrder = new OrderWrapper(order);
+            if (CurrentOrder.SupplierId.HasValue)
+                SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == CurrentOrder.SupplierId.Value);
+
+            if (CurrentOrder.CustomerId.HasValue)
+                SelectedCustomer = Customers.FirstOrDefault(c => c.Id == CurrentOrder.CustomerId.Value);
+
+            if (CurrentOrder.ProjectId.HasValue)
+                SelectedProject = Projects.FirstOrDefault(p => p.Id == CurrentOrder.ProjectId.Value);
+
+            IsSiteDelivery = CurrentOrder.DestinationType == OrderDestinationType.Site;
+            IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
+            
+            SetupLineListeners();
             
             UpdateOrderTypeFlags();
             
-            if (order.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
+            if (CurrentOrder.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
             else IsOfficeDelivery = true;
 
             // CHECK: Allow editing as long as the order is NOT Completed or Cancelled.
             // User confirmed: "If the order says completed then we lock. Orders partial delivers we leave it unlocked."
-            IsReadOnly = NewOrder.Status == OrderStatus.Completed || NewOrder.Status == OrderStatus.Cancelled;
+            IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
             
 
             // If it is editable, we should add the empty "spreadsheet rows" so user can add more items easily
@@ -841,21 +843,18 @@ namespace OCC.Client.ViewModels.Orders
                 SetupLineListeners(); // Ensure existing lines are hooked up
                 
                 // Add padding rows
-                int currentCount = NewOrder.Lines?.Count ?? 0;
+                int currentCount = CurrentOrder.Lines?.Count ?? 0;
                 // Pad to 20 rows
                 if (currentCount < 20)
                 {
                     for (int i = 0; i < (20 - currentCount); i++)
                     {
-                        NewOrder.Lines.Add(new OrderLine { UnitOfMeasure = "" });
+                        CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "" }));
                     }
                 }
             }
 
-            OnPropertyChanged(nameof(NewOrder));
-            OnPropertyChanged(nameof(OrderSubTotal));
-            OnPropertyChanged(nameof(OrderVat));
-            OnPropertyChanged(nameof(OrderTotal));
+            OnPropertyChanged(nameof(CurrentOrder));
         }
 
         /// <summary>
@@ -866,8 +865,9 @@ namespace OCC.Client.ViewModels.Orders
             var (savedOrder, pendingLine, searchTerm) = _orderStateService.RetrieveState();
             if (savedOrder != null)
             {
+                 // Toast removed
                 LoadExistingOrder(savedOrder);
-                if (pendingLine != null) NewLine = pendingLine;
+                if (pendingLine != null) NewLine = new OrderLineWrapper(pendingLine);
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                    // Try finding by exact match first (case-insensitive)
@@ -899,9 +899,9 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         private void UpdateOrderTypeFlags()
         {
-            IsPurchaseOrder = NewOrder.OrderType == OrderType.PurchaseOrder;
-            IsSalesOrder = NewOrder.OrderType == OrderType.SalesOrder;
-            IsReturnOrder = NewOrder.OrderType == OrderType.ReturnToInventory;
+            IsPurchaseOrder = CurrentOrder.OrderType == OrderType.PurchaseOrder;
+            IsSalesOrder = CurrentOrder.OrderType == OrderType.SalesOrder;
+            IsReturnOrder = CurrentOrder.OrderType == OrderType.ReturnToInventory;
         }
 
         /// <summary>
@@ -934,25 +934,25 @@ namespace OCC.Client.ViewModels.Orders
 
 
 
-        partial void OnNewOrderChanged(Order value) => UpdateOrderTypeFlags();
-        partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
-        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) NewOrder.EntityAddress = SelectedProject.Location; } }
+        partial void OnCurrentOrderChanged(OrderWrapper value) => UpdateOrderTypeFlags();
+        partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
+        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.Location; } }
         partial void OnSelectedProjectChanged(Project? value)
         {
              if (value != null)
              {
-                 NewOrder.ProjectId = value.Id;
-                 NewOrder.ProjectName = value.Name;
-                 if (IsSalesOrder) { NewOrder.CustomerId = value.Id; NewOrder.EntityAddress = value.Location; }
-                 else if (IsPurchaseOrder && IsSiteDelivery) NewOrder.EntityAddress = value.Location;
-                 OnPropertyChanged(nameof(NewOrder));
+                 CurrentOrder.ProjectId = value.Id;
+                 CurrentOrder.ProjectName = value.Name;
+                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.Location; }
+                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.Location;
+                 OnPropertyChanged(nameof(CurrentOrder));
              }
         }
         /// <summary>
         /// Attempts to automatically select the best match from the filtered list 
         /// if the user Tabs out or leaves the field without explicit selection.
         /// </summary>
-        public void TryCommitAutoSelection(OrderLine line)
+        public void TryCommitAutoSelection(OrderLineWrapper line)
         {
             // If we already have a selection, or no search text, or no line, ignore.
             if (SelectedInventoryItem != null || line == null || string.IsNullOrWhiteSpace(ProductSearchText)) return;
@@ -1012,7 +1012,7 @@ namespace OCC.Client.ViewModels.Orders
                 IsSkuDropDownOpen = true;
             });
         }
-        partial void OnProductSearchTextChanged(string? value)
+        partial void OnProductSearchTextChanged(string value)
         {
             if (_isUpdatingSearchText) return;
             Dispatcher.UIThread.Post(() => 
@@ -1030,7 +1030,7 @@ namespace OCC.Client.ViewModels.Orders
                 IsSkuDropDownOpen = false;
                 IsProductDropDownOpen = false;
                 _isUpdatingSearchText = false;
-                NewLine = new OrderLine { InventoryItemId = value.Id, Description = value.ProductName ?? "", ItemCode = value.Sku ?? "", UnitOfMeasure = value.UnitOfMeasure ?? "", UnitPrice = value.AverageCost };
+                NewLine = new OrderLineWrapper(new OrderLine { InventoryItemId = value.Id, Description = value.ProductName ?? "", ItemCode = value.Sku ?? "", UnitOfMeasure = value.UnitOfMeasure ?? "", UnitPrice = value.AverageCost });
                 OnPropertyChanged(nameof(NewLine));
                 if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
                 {
@@ -1043,23 +1043,50 @@ namespace OCC.Client.ViewModels.Orders
         {
             if (value != null)
             {
-                NewOrder.SupplierId = value.Id;
-                NewOrder.SupplierName = value.Name;
-                NewOrder.EntityAddress = value.Address;
-                NewOrder.EntityTel = value.Phone;
-                NewOrder.EntityVatNo = value.VatNumber;
-                NewOrder.Attention = value.ContactPerson; 
-                OnPropertyChanged(nameof(NewOrder));
+                CurrentOrder.SupplierId = value.Id;
+                CurrentOrder.SupplierName = value.Name;
+                CurrentOrder.EntityAddress = value.Address;
+                CurrentOrder.EntityTel = value.Phone;
+                CurrentOrder.EntityVatNo = value.VatNumber;
+                CurrentOrder.Attention = value.ContactPerson; 
+                OnPropertyChanged(nameof(CurrentOrder));
             }
         }
         partial void OnSelectedCustomerChanged(Customer? value)
         {
             if (value != null)
             {
-                NewOrder.CustomerId = value.Id;
-                NewOrder.EntityAddress = value.Address;
-                NewOrder.EntityTel = value.Phone;
-                OnPropertyChanged(nameof(NewOrder));
+                CurrentOrder.CustomerId = value.Id;
+                CurrentOrder.EntityAddress = value.Address;
+                CurrentOrder.EntityTel = value.Phone;
+                OnPropertyChanged(nameof(CurrentOrder));
+            }
+        }
+
+        private void OnMenuTabSelected(object? sender, string tabName)
+        {
+            switch (tabName)
+            {
+                case "Dashboard":
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Orders"));
+                    break;
+                case "All Orders":
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("OrderList"));
+                    break;
+                case "Inventory":
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Inventory"));
+                    break;
+                case "ItemList":
+                     WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("ItemList"));
+                     break;
+                case "Suppliers":
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Suppliers"));
+                    break;
+                case "New Order":
+                    // We are already here, maybe reset?
+                    Reset();
+                    IsReadOnly = false;
+                    break;
             }
         }
 
