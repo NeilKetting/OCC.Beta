@@ -14,6 +14,7 @@
 	<UserControl.Resources>
 		<conv:MathConverter x:Key="MathConverter" />
 		<conv:BoolToTextConverter x:Key="BoolToTextConverter" />
+		<conv:ZeroToEmptyStringConverter x:Key="ZeroToEmptyStringConverter" />
 	</UserControl.Resources>
 
 	<Design.DataContext>
@@ -64,9 +65,9 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000"
-			Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
-			VerticalAlignment="Center" HorizontalAlignment="Stretch">
+	<Border Background="White" CornerRadius="0"
+			Margin="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0"
+			VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 		<Grid RowDefinitions="Auto, *, Auto">
 
 			<!-- Header Bar -->
@@ -94,7 +95,9 @@
 
 			<!-- Form -->
 			<Grid Grid.Row="1" Margin="20, 10, 20, 0" IsEnabled="{Binding !IsReadOnly}">
-				<StackPanel Spacing="5">
+				<Grid RowDefinitions="Auto, *, Auto">
+                    <!-- Top Section: Inputs & Headers -->
+                    <StackPanel Grid.Row="0" Spacing="5">
 
 					<!-- Order Meta Info -->
 					<Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
@@ -179,7 +182,7 @@
 								</StackPanel>
 								<StackPanel Grid.Column="2" Spacing="5">
 									<TextBlock Text="Expected Delivery" Classes="Label"/>
-									<CalendarDatePicker SelectedDate="{Binding NewOrder.ExpectedDeliveryDate}" HorizontalAlignment="Stretch"/>
+									<CalendarDatePicker SelectedDate="{Binding NewOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
 								</StackPanel>
 							</Grid>
 
@@ -220,111 +223,202 @@
 					<Grid ColumnDefinitions="*, Auto">
 						<TextBlock Text="Order Items" FontSize="16" FontWeight="SemiBold"/>
 					</Grid>
+                    </StackPanel>
 
-					<Border BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1" CornerRadius="4">
-						<StackPanel>
-							<!-- Entry Row Header -->
-							<Border Background="#E2E8F0" Padding="15,5,15,5" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
-								<TextBlock Text="Add New Item" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource TextPrimaryDark}"/>
-							</Border>
+					<!-- Invoice DataGrid (New Implementation) -->
+					<DataGrid Grid.Row="1" ItemsSource="{Binding NewOrder.Lines}" Margin="0,10,0,0"
+							  CanUserResizeColumns="True"
+							  CanUserSortColumns="False"
+							  GridLinesVisibility="All"
+                              RowHeight="30"
+							  RowBackground="White"
+							  BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderLow}">
+						<DataGrid.Styles>
+							<Style Selector="DataGridRow:nth-child(2n)">
+								<Setter Property="Background" Value="#E6F7FF"/> 
+							</Style>
+                            <Style Selector="DataGridRow">
+                                <Setter Property="MinHeight" Value="30"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                            </Style>
+							<Style Selector="DataGridColumnHeader">
+								<Setter Property="FontWeight" Value="Bold"/>
+								<Setter Property="FontSize" Value="10"/>
+								<Setter Property="Foreground" Value="{DynamicResource TextSecondaryDark}"/>
+								<Setter Property="Padding" Value="4,1"/>
+                                <Setter Property="MinHeight" Value="30"/>
+							</Style>
+                            <Style Selector="DataGridCell">
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="MinHeight" Value="30"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                            <!-- Aggressive Deflation for Inner Controls -->
+                            <Style Selector="TextBox, AutoCompleteBox, ComboBox, Button">
+                                <Setter Property="MinHeight" Value="0"/>
+                                <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="2,0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="CornerRadius" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                            </Style>
+                            <Style Selector="ComboBoxItem">
+                                <Setter Property="MinHeight" Value="30"/>
+                                <Setter Property="Padding" Value="4,0"/>
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Content" Value="{Binding .}"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                            <!-- Target the internal TextBox of AutoCompleteBox -->
+                            <Style Selector="AutoCompleteBox /template/ TextBox">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="MinHeight" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                            
+                            <!-- Dynamic Visibility for Dropdown Arrows -->
+                            <!-- Item Dropdown: Hidden by default, Visible when Row Selected -->
+                            <Style Selector="DataGridRow Button.ItemDropdownBtn">
+                                <Setter Property="IsVisible" Value="False"/>
+                            </Style>
+                            <Style Selector="DataGridRow:selected Button.ItemDropdownBtn">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </Style>
+                            <Style Selector="DataGridRow:pointerover Button.ItemDropdownBtn">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </Style>
 
-							<!-- Entry Row -->
-							<Border Background="#F1F5F9" Padding="10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
-								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
-								<!-- Inventory Select / SKU -->
-								<Grid Grid.Column="0" ColumnDefinitions="80, 5, *, Auto">
-									<ComboBox Grid.Column="0" ItemsSource="{Binding FilteredInventoryItemsBySku}"
-											  SelectedItem="{Binding SelectedInventoryItem}"
-											  Text="{Binding SkuSearchText}"
-											  Width="80"
-											  PlaceholderText="SKU"
-											  IsEditable="True"
-											  DisplayMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
-											  LostFocus="SkuBox_LostFocus"
-											  KeyUp="SkuBox_KeyUp"
-											  x:Name="SkuBox"/>
+                            <!-- UOM ComboBox Arrow: Hidden by default, Visible when Row Selected -->
+                            <!-- Note: ToggleButton inside ComboBox template -->
+                            <Style Selector="DataGridRow ComboBox /template/ ToggleButton">
+                                <Setter Property="IsVisible" Value="False"/>
+                            </Style>
+                            <Style Selector="DataGridRow:selected ComboBox /template/ ToggleButton">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </Style>
+                            <Style Selector="DataGridRow:pointerover ComboBox /template/ ToggleButton">
+                                <Setter Property="IsVisible" Value="True"/>
+                            </Style>
+						</DataGrid.Styles>
+						<DataGrid.Columns>
+							<!-- Item Code (Editable ComboBox - Single Click Edit) -->
+							<DataGridTemplateColumn Header="ITEM" Width="2*" MinWidth="150">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate x:DataType="models:OrderLine">
+										<Grid ColumnDefinitions="*, Auto">
+											<AutoCompleteBox Grid.Column="0"
+															 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
+															 Text="{Binding ItemCode, Mode=TwoWay}"
+                                                             ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+															 Watermark=""
+															 FilterMode="None"
+															 HorizontalAlignment="Stretch"
+															 KeyUp="ProductBox_KeyUp"
+                                                             SelectionChanged="GridProductBox_SelectionChanged"
+															 Background="Transparent"
+															 CornerRadius="0"
+															 BorderThickness="0"
+                                                             Padding="0"
+                                                             Margin="0"
+                                                             Height="30"
+                                                             VerticalAlignment="Stretch"
+                                                             FontSize="11"
+															 x:Name="GridProductBox">
+												<AutoCompleteBox.ItemTemplate>
+													<DataTemplate x:DataType="models:InventoryItem">
+														<Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
+															<TextBlock Grid.Column="0" Text="{Binding Sku}" FontWeight="Bold" FontSize="11"/>
+															<TextBlock Grid.Column="2" Text="{Binding ProductName}" TextTrimming="CharacterEllipsis" FontSize="11"/>
+															<TextBlock Grid.Column="4" Text="{Binding Category}" FontStyle="Italic" Foreground="Gray" FontSize="11"/>
+														</Grid>
+													</DataTemplate>
+												</AutoCompleteBox.ItemTemplate>
+											</AutoCompleteBox>
+                                            
+                                            <!-- Explicit Dropdown Button -->
+											<Button Grid.Column="1"
+													Content="&#xE70D;"
+													FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" 
+													FontSize="8"
+													Background="Transparent"
+													BorderThickness="0"
+													Padding="0"
+													Margin="0"
+                                                    Width="14"
+                                                    Height="30"
+													VerticalAlignment="Stretch"
+													HorizontalAlignment="Center"
+                                                    IsTabStop="False"
+                                                    Classes="ItemDropdownBtn"
+													Click="ToggleProductDropdown"
+													Cursor="Hand"/>
+										</Grid>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 
-									<!-- Product Select -->
-									<ComboBox Grid.Column="2" ItemsSource="{Binding FilteredInventoryItemsByName}"
-											  SelectedItem="{Binding SelectedInventoryItem}"
-											  Text="{Binding ProductSearchText}"
-											  PlaceholderText="Select Product..."
-											  IsEditable="True"
-											  DisplayMemberBinding="{Binding ProductName, DataType=models:InventoryItem}"
-											  LostFocus="ProductBox_LostFocus"
-											  KeyUp="ProductBox_KeyUp"
-											  x:Name="ProductBox"/>
+							<!-- Description -->
+							<DataGridTemplateColumn Header="DESCRIPTION" Width="3*">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBox Text="{Binding Description}" Classes="FormInput"
+                                                 Background="Transparent" BorderThickness="0" CornerRadius="0"
+                                                 Padding="2,0" Margin="0" VerticalAlignment="Stretch" FontSize="11" VerticalContentAlignment="Center"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 
-									<!-- Quick Add -->
-									<Button Grid.Column="3" Content="+" FontWeight="Bold" Width="30" Height="30"
-											HorizontalContentAlignment="Center"
-											Command="{Binding ToggleQuickAddProductCommand}" Classes="Secondary" Margin="5,0,0,0" ToolTip.Tip="Quick Add Product"/>
-								</Grid>
+							<!-- Quantity -->
+							<DataGridTemplateColumn Header="QUANTITY" Width="60">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBox Text="{Binding QuantityOrdered, Converter={StaticResource ZeroToEmptyStringConverter}}" 
+                                                 Classes="FormInput"
+                                                 Background="Transparent" BorderThickness="0" CornerRadius="0"
+                                                 Padding="2,0" Margin="0" VerticalAlignment="Stretch" FontSize="11" VerticalContentAlignment="Center"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 
-									<!-- Description (Override) -->
-									<TextBox Grid.Column="2" Text="{Binding NewLine.Description}" Watermark="Description" Classes="FormInput"/>
+							<!-- Unit -->
+							<DataGridTemplateColumn Header="UNIT" Width="60">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<ComboBox ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).AvailableUOMs}" 
+												  SelectedItem="{Binding UnitOfMeasure}" HorizontalAlignment="Stretch"
+                                                  Background="Transparent" BorderThickness="0" CornerRadius="0"
+                                                  Padding="2,0" Margin="0" VerticalAlignment="Stretch" FontSize="11" VerticalContentAlignment="Center"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 
-									<!-- Qty -->
-									<TextBox Grid.Column="4" Text="{Binding NewLine.QuantityOrdered}" Watermark="Qty" Classes="FormInput"/>
+							<!-- Price -->
+							<DataGridTemplateColumn Header="UNIT PRICE" Width="80">
+								<DataGridTemplateColumn.CellTemplate>
+									<DataTemplate>
+										<TextBox Text="{Binding UnitPrice, Converter={StaticResource ZeroToEmptyStringConverter}, ConverterParameter='0.00'}" 
+                                                 Classes="FormInput"
+                                                 Background="Transparent" BorderThickness="0" CornerRadius="0"
+                                                 Padding="2,0" Margin="0" VerticalAlignment="Stretch" FontSize="11" VerticalContentAlignment="Center"/>
+									</DataTemplate>
+								</DataGridTemplateColumn.CellTemplate>
+							</DataGridTemplateColumn>
 
-									<!-- UOM -->
-									<ComboBox Grid.Column="6" ItemsSource="{Binding AvailableUOMs}" SelectedItem="{Binding NewLine.UnitOfMeasure}"
-											  PlaceholderText="Unit" HorizontalAlignment="Stretch"/>
+							<!-- Amount (Calculated) -->
+							<DataGridTextColumn Header="AMOUNT" Binding="{Binding LineTotal, Mode=OneWay, Converter={StaticResource ZeroToEmptyStringConverter}, ConverterParameter='C'}" Width="100" IsReadOnly="True" FontWeight="Bold"/>
+						</DataGrid.Columns>
+					</DataGrid>
 
-									<!-- Price -->
-									<TextBox Grid.Column="8" Text="{Binding NewLine.UnitPrice}" Watermark="Rate" Classes="FormInput"/>
+					<!-- Add Row Button Removed (Rows are pre-filled) -->
 
-									<!-- Add Btn -->
-									<Button Grid.Column="12" Command="{Binding AddLineCommand}" Content="+ Add Item" Classes="Primary"/>
-								</Grid>
-							</Border>
-
-							<!-- Table Header -->
-							<Border Background="White" Padding="15,10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
-								<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120">
-									<TextBlock Grid.Column="0" Text="SKU / Code" Classes="Label"/>
-									<TextBlock Grid.Column="2" Text="Description" Classes="Label"/>
-									<TextBlock Grid.Column="4" Text="Qty" Classes="Label"/>
-									<TextBlock Grid.Column="6" Text="Unit" Classes="Label"/>
-									<TextBlock Grid.Column="8" Text="Rate" Classes="Label"/>
-									<TextBlock Grid.Column="10" Text="Total" Classes="Label" HorizontalAlignment="Center"/>
-								</Grid>
-							</Border>
-
-							<!-- List -->
-							<ScrollViewer VerticalScrollBarVisibility="Auto">
-								<ItemsControl ItemsSource="{Binding NewOrder.Lines}">
-									<ItemsControl.ItemTemplate>
-										<DataTemplate>
-											<Border Padding="15,10" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Background="White">
-												<Grid ColumnDefinitions="2*, 15, 3*, 15, 80, 15, 80, 15, 100, 15, 120, 20">
-													<TextBlock Grid.Column="0" Text="{Binding ItemCode}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
-													<TextBlock Grid.Column="2" Text="{Binding Description}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-													<TextBlock Grid.Column="4" Text="{Binding QuantityOrdered}" VerticalAlignment="Center"/>
-													<TextBlock Grid.Column="6" Text="{Binding UnitOfMeasure}" VerticalAlignment="Center" Foreground="{DynamicResource ThemeForegroundLow}"/>
-													<TextBlock Grid.Column="8" Text="{Binding UnitPrice, StringFormat='{}{0:C}'}" VerticalAlignment="Center"/>
-													<TextBlock Grid.Column="10" Text="{Binding LineTotal, StringFormat='{}{0:C}'}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold"/>
-
-													<Button Grid.Column="12" Content="-" FontSize="14" Height="24" VerticalContentAlignment="Center" HorizontalAlignment="Center"
-															Background="Transparent" Foreground="Red" FontWeight="Bold"
-															Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).RemoveLineCommand}"
-															CommandParameter="{Binding .}" ToolTip.Tip="Remove Item"/>
-												</Grid>
-											</Border>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-							</ScrollViewer>
-
-							<!-- Empty State -->
-							<Border Padding="20" IsVisible="{Binding !NewOrder.Lines.Count}" Background="White">
-								<TextBlock Text="No items added yet." HorizontalAlignment="Center" Foreground="{DynamicResource ThemeForegroundLow}" FontStyle="Italic"/>
-							</Border>
-						</StackPanel>
-					</Border>
 
 					<!-- Totals -->
-					<Grid ColumnDefinitions="*, 300">
+					<Grid Grid.Row="2" ColumnDefinitions="*, 300" Margin="0,10,0,0">
 						<StackPanel Grid.Column="1" Spacing="10">
 							<Grid ColumnDefinitions="Auto, *">
 								<TextBlock Text="Sub Total:" Foreground="{DynamicResource ThemeForegroundLow}"/>
@@ -341,8 +435,9 @@
 							</Grid>
 						</StackPanel>
 					</Grid>
-				</StackPanel>
-			</Grid>
+					</Grid>
+				</Grid>
+
 
 			<!-- Footer Actions -->
 			<Border Grid.Row="2" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="20,5">

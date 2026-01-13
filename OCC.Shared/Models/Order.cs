@@ -6,7 +6,7 @@ namespace OCC.Shared.Models
 {
     public class Order
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public string OrderNumber { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime? ExpectedDeliveryDate { get; set; }

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging; // NEW
+using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Orders
 {
@@ -171,6 +172,14 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private string _newProjectAddress = string.Empty;
 
+
+
+        [ObservableProperty]
+        private bool _isSkuDropDownOpen;
+
+        [ObservableProperty]
+        private bool _isProductDropDownOpen;
+
         #endregion
 
         #region Constructors
@@ -205,6 +214,46 @@ namespace OCC.Client.ViewModels.Orders
             _pdfService = null!;
             _orderStateService = null!;
             NewOrder.OrderNumber = "DEMO-0000";
+        }
+
+        private void RecalculateTotals()
+        {
+            // Model properties are computed (read-only), so we just notify the view to re-read them.
+            OnPropertyChanged(nameof(OrderSubTotal));
+            OnPropertyChanged(nameof(OrderVat));
+            OnPropertyChanged(nameof(OrderTotal));
+        }
+
+        private void OnLineChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(OrderLine.LineTotal) || e.PropertyName == nameof(OrderLine.VatAmount))
+            {
+                RecalculateTotals();
+            }
+        }
+
+        private void SetupLineListeners()
+        {
+             // Remove old if any (naive approach, assume fresh start or handle in logic)
+             NewOrder.Lines.CollectionChanged -= Lines_CollectionChanged;
+             NewOrder.Lines.CollectionChanged += Lines_CollectionChanged;
+
+             foreach(var line in NewOrder.Lines)
+             {
+                 line.PropertyChanged -= OnLineChanged;
+                 line.PropertyChanged += OnLineChanged;
+             }
+        }
+
+        private void Lines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+                foreach(OrderLine item in e.NewItems) item.PropertyChanged += OnLineChanged;
+
+            if (e.OldItems != null)
+                foreach(OrderLine item in e.OldItems) item.PropertyChanged -= OnLineChanged;
+
+            RecalculateTotals();
         }
 
         #endregion
@@ -291,6 +340,41 @@ namespace OCC.Client.ViewModels.Orders
             if (line == null) return;
             NewOrder.Lines.Remove(line);
             OnPropertyChanged(nameof(NewOrder));
+            OnPropertyChanged(nameof(OrderSubTotal));
+            OnPropertyChanged(nameof(OrderVat));
+            OnPropertyChanged(nameof(OrderTotal));
+        }
+
+        /// <summary>
+        /// Adds an empty line to the grid for editing.
+        /// </summary>
+        [RelayCommand]
+        public void AddEmptyLine()
+        {
+            NewOrder.Lines.Add(new OrderLine { QuantityOrdered = 1, UnitOfMeasure = "ea" });
+        }
+
+        /// <summary>
+        /// Updates a specific order line with details from a selected inventory item.
+        /// </summary>
+        public void UpdateLineFromSelection(OrderLine line, InventoryItem item)
+        {
+            if (line == null || item == null) return;
+
+            // Update model
+            line.InventoryItemId = item.Id;
+            line.ItemCode = item.Sku;
+            line.Description = item.ProductName;
+            line.UnitOfMeasure = string.IsNullOrEmpty(item.UnitOfMeasure) ? "ea" : item.UnitOfMeasure;
+            line.UnitPrice = item.AverageCost; 
+            
+            // Auto-set quantity to 1 if empty/zero to populate the row
+            if (line.QuantityOrdered <= 0) line.QuantityOrdered = 1;
+
+            line.CalculateTotal(NewOrder.TaxRate);
+
+            // Collection refresh not needed as OrderLine now implements INotifyPropertyChanged
+            
             OnPropertyChanged(nameof(OrderSubTotal));
             OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderTotal));
@@ -452,50 +536,96 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public async Task SubmitOrder()
         {
+            if (IsBusy) return;
+
+            // 1. Validate Basic Info
+            if (NewOrder.OrderType == OrderType.PurchaseOrder && SelectedSupplier == null)
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Please select a supplier.");
+                return;
+            }
+
+            // Date Validation
+            if (NewOrder.ExpectedDeliveryDate == null)
+            {
+                 await _dialogService.ShowAlertAsync("Validation Error", "Please select an Expected Delivery Date.");
+                 return;
+            }
+
+            if (NewOrder.ExpectedDeliveryDate.Value.Date < DateTime.Today)
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Expected delivery date cannot be in the past.");
+                return;
+            }
+
+            if (NewOrder.OrderType == OrderType.SalesOrder && SelectedCustomer == null)
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Please select a customer.");
+                return;
+            }
+            if (IsSiteDelivery && SelectedProject == null)
+            {
+                 await _dialogService.ShowAlertAsync("Validation Error", "Please select a project for site delivery.");
+                 return;
+            }
+
+
+
+            // 2. Filter Empty Rows
+            var validLines = NewOrder.Lines
+                .Where(l => !string.IsNullOrWhiteSpace(l.ItemCode) || !string.IsNullOrWhiteSpace(l.Description))
+                .ToList();
+
+            if (!validLines.Any())
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Please add at least one line item.");
+                return;
+            }
+
+            // Temporarily swap lines for saving
+            var originalLines = NewOrder.Lines.ToList();
+            NewOrder.Lines.Clear();
+            foreach(var line in validLines) NewOrder.Lines.Add(line);
+
             try
             {
-                if (NewOrder.ExpectedDeliveryDate == DateTime.MinValue)
-                {
-                     await _dialogService.ShowAlertAsync("Validation", "Please select an Expected Delivery Date.");
-                     return;
-                }
-
-                if (IsSiteDelivery && string.IsNullOrWhiteSpace(NewOrder.EntityAddress))
-                {
-                     bool add = await _dialogService.ShowConfirmationAsync("Missing Address", "The selected project has no delivery address.\n\nAdd one now?");
-                     if (add) { IsAddingProjectAddress = true; NewProjectAddress = ""; }
-                     return;
-                }
-
-                ValidateProperty(SelectedSupplier, nameof(SelectedSupplier));
-                ValidateProperty(SelectedProject, nameof(SelectedProject));
-                ValidateAllProperties();
-
-                if (NewOrder.Lines.Count == 0) 
-                {
-                    await _dialogService.ShowAlertAsync("Validation", "Please add at least one item.");
-                    return;
-                }
-
-                if (HasErrors)
-                {
-                    await _dialogService.ShowAlertAsync("Validation", "Please correct the errors before submitting.");
-                    return;
-                }
-
-                BusyText = "Committing order...";
                 IsBusy = true;
+                BusyText = "Submitting Order...";
+
+                // Map Selections
+                if (SelectedSupplier != null) NewOrder.SupplierId = SelectedSupplier.Id;
+                if (SelectedCustomer != null) NewOrder.CustomerId = SelectedCustomer.Id;
+                if (SelectedProject != null) NewOrder.ProjectId = SelectedProject.Id;
                 
-                var createdOrder = await _orderManager.CreateOrderAsync(NewOrder);
+                NewOrder.DestinationType = IsSiteDelivery ? OrderDestinationType.Site : OrderDestinationType.Stock;
+                
+                Order createdOrder;
+                if (NewOrder.Id == Guid.Empty)
+                {
+                    createdOrder = await _orderManager.CreateOrderAsync(NewOrder);
+                }
+                else
+                {
+                    await _orderManager.UpdateOrderAsync(NewOrder);
+                    createdOrder = NewOrder;
+                }
                 
                 OrderCreated?.Invoke(this, EventArgs.Empty);
+
+                if (ShouldEmailOrder)
+                {
+                    // Feature not yet implemented in Manager
+                    // try { await _orderManager.EmailOrderAsync(createdOrder.Id); }
+                    // catch(Exception ex) { _logger.LogError(ex, "Failed to email order"); }
+                    await _dialogService.ShowAlertAsync("Info", "Email functionality is coming soon.");
+                }
 
                 if (ShouldPrintOrder)
                 {
                     try
                     {
                         var path = await _pdfService.GenerateOrderPdfAsync(createdOrder, isPrintVersion: true);
-                        new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { Verb = "print", UseShellExecute = true, CreateNoWindow = true } }.Start();
+                        new System.Diagnostics.Process { StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true } }.Start();
                     }
                     catch(Exception ex) { _logger.LogError(ex, "Failed to print order"); }
                 }
@@ -506,6 +636,10 @@ namespace OCC.Client.ViewModels.Orders
             {
                 _logger.LogError(ex, "Error submitting order");
                 await _dialogService.ShowAlertAsync("Error", $"Failed to submit order: {ex.Message}");
+                
+                // Restore lines if failed, so user doesn't lose empty rows if they want to keep editing
+                NewOrder.Lines.Clear();
+                foreach(var line in originalLines) NewOrder.Lines.Add(line);
             }
             finally { IsBusy = false; }
         }
@@ -610,7 +744,7 @@ namespace OCC.Client.ViewModels.Orders
                 foreach(var c in cats) ProductCategories.Add(c);
                 if (!ProductCategories.Contains("General")) ProductCategories.Add("General");
 
-                if (_orderStateService.IsReturningFromItemCreation) RestoreState();
+                if (_orderStateService.IsReturningFromItemCreation) await RestoreState();
             }
             catch(Exception ex)
             {
@@ -629,6 +763,13 @@ namespace OCC.Client.ViewModels.Orders
             IsOfficeDelivery = true;
             NewOrder.Attention = string.Empty;
             UpdateOrderTypeFlags();
+
+            // Pre-fill with empty rows for spreadsheet-style entry
+            for (int i = 0; i < 20; i++)
+            {
+                NewOrder.Lines.Add(new OrderLine { UnitOfMeasure = "" }); 
+            }
+            SetupLineListeners();
         }
 
         /// <summary>
@@ -646,13 +787,14 @@ namespace OCC.Client.ViewModels.Orders
             OnPropertyChanged(nameof(NewOrder));
             OnPropertyChanged(nameof(OrderSubTotal));
             OnPropertyChanged(nameof(OrderVat));
+            OnPropertyChanged(nameof(OrderVat));
             OnPropertyChanged(nameof(OrderTotal));
         }
 
         /// <summary>
         /// Restores previous state when returning from a nested view.
         /// </summary>
-        private void RestoreState()
+        private async Task RestoreState()
         {
             var (savedOrder, pendingLine, searchTerm) = _orderStateService.RetrieveState();
             if (savedOrder != null)
@@ -661,8 +803,21 @@ namespace OCC.Client.ViewModels.Orders
                 if (pendingLine != null) NewLine = pendingLine;
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
+                   // Try finding by exact match first (case-insensitive)
                    var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
-                   if (match != null) SelectedInventoryItem = match;
+                   
+                   // If not found, it might be the NEW item we just created.
+                   // Since we just reloaded InventoryItems in LoadData, it SHOULD be there if it was saved.
+                   
+                   if (match != null) 
+                   {
+                       SelectedInventoryItem = match;
+                       // User requested auto-add
+                       if (SelectedInventoryItem != null)
+                       {
+                           await AddLine();
+                       }
+                   }
                 }
             }
             _orderStateService.ClearState();
@@ -710,6 +865,8 @@ namespace OCC.Client.ViewModels.Orders
             return (vm.IsSalesOrder && project == null) ? new ValidationResult("Project is required.") : ValidationResult.Success;
         }
 
+
+
         partial void OnNewOrderChanged(Order value) => UpdateOrderTypeFlags();
         partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
         partial void OnIsSiteDeliveryChanged(bool value) { if (value) { NewOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) NewOrder.EntityAddress = SelectedProject.Location; } }
@@ -724,19 +881,77 @@ namespace OCC.Client.ViewModels.Orders
                  OnPropertyChanged(nameof(NewOrder));
              }
         }
+        /// <summary>
+        /// Attempts to automatically select the best match from the filtered list 
+        /// if the user Tabs out or leaves the field without explicit selection.
+        /// </summary>
+        public void TryCommitAutoSelection(OrderLine line)
+        {
+            // If we already have a selection, or no search text, or no line, ignore.
+            if (SelectedInventoryItem != null || line == null || string.IsNullOrWhiteSpace(ProductSearchText)) return;
+
+            // Pick the best match (first item because we sorted by relevance in FilterInventory)
+            var bestMatch = FilteredInventoryItemsByName.FirstOrDefault();
+            if (bestMatch != null)
+            {
+                // Apply it
+                SelectedInventoryItem = bestMatch;
+                UpdateLineFromSelection(line, bestMatch);
+                
+                // Reset search for next interaction
+                ProductSearchText = string.Empty;
+                IsProductDropDownOpen = false;
+            }
+        }
+
+        private void FilterInventory()
+        {
+             if (string.IsNullOrWhiteSpace(ProductSearchText))
+             {
+                 FilteredInventoryItemsByName.Clear();
+                 foreach (var item in InventoryItems) FilteredInventoryItemsByName.Add(item);
+                 return;
+             }
+
+             var search = ProductSearchText.Trim();
+             
+             // Weighted Search: Exact Match > StartsWith > Contains
+             var filtered = InventoryItems
+                 .Where(i => (i.ProductName != null && i.ProductName.Contains(search, StringComparison.OrdinalIgnoreCase)) || 
+                             (i.Sku != null && i.Sku.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                 .GroupBy(i => (i.Sku ?? "").ToLower()).Select(g => g.First()) // Deduplicate by SKU (defensive against data dupes)
+                 .OrderByDescending(i => i.Sku != null && i.Sku.Equals(search, StringComparison.OrdinalIgnoreCase)) // 1. Exact SKU
+                 .ThenByDescending(i => i.ProductName != null && i.ProductName.Equals(search, StringComparison.OrdinalIgnoreCase)) // 2. Exact Name
+                 .ThenByDescending(i => i.Sku != null && i.Sku.StartsWith(search, StringComparison.OrdinalIgnoreCase)) // 3. StartsWith SKU (New)
+                 .ThenByDescending(i => i.ProductName != null && i.ProductName.StartsWith(search, StringComparison.OrdinalIgnoreCase)) // 4. StartsWith Name
+                 .ThenBy(i => i.ProductName) // 5. Alphabetical
+                 .ToList();
+
+             FilteredInventoryItemsByName.Clear();
+             foreach (var item in filtered) FilteredInventoryItemsByName.Add(item);
+
+             // Auto-open if we have results and user is typing
+             IsProductDropDownOpen = FilteredInventoryItemsByName.Any();
+        }
+
         partial void OnSkuSearchTextChanged(string value)
         {
             if (_isUpdatingSearchText) return;
-            FilteredInventoryItemsBySku.Clear();
-            var matches = string.IsNullOrWhiteSpace(value) ? InventoryItems : InventoryItems.Where(i => i.Sku != null && i.Sku.Contains(value, StringComparison.OrdinalIgnoreCase));
-            foreach(var m in matches) FilteredInventoryItemsBySku.Add(m);
+            Dispatcher.UIThread.Post(() => 
+            {
+                FilteredInventoryItemsBySku.Clear();
+                var matches = string.IsNullOrWhiteSpace(value) ? InventoryItems : InventoryItems.Where(i => i.Sku != null && i.Sku.Contains(value, StringComparison.OrdinalIgnoreCase));
+                foreach(var m in matches) FilteredInventoryItemsBySku.Add(m);
+                IsSkuDropDownOpen = true;
+            });
         }
-        partial void OnProductSearchTextChanged(string value)
+        partial void OnProductSearchTextChanged(string? value)
         {
             if (_isUpdatingSearchText) return;
-            FilteredInventoryItemsByName.Clear();
-            var matches = string.IsNullOrWhiteSpace(value) ? InventoryItems : InventoryItems.Where(i => i.ProductName != null && i.ProductName.Contains(value, StringComparison.OrdinalIgnoreCase));
-            foreach(var m in matches) FilteredInventoryItemsByName.Add(m);
+            Dispatcher.UIThread.Post(() => 
+            {
+                FilterInventory();
+            });
         }
         partial void OnSelectedInventoryItemChanged(InventoryItem? value)
         {
@@ -745,8 +960,10 @@ namespace OCC.Client.ViewModels.Orders
                 _isUpdatingSearchText = true;
                 SkuSearchText = value.Sku ?? "";
                 ProductSearchText = value.ProductName ?? "";
+                IsSkuDropDownOpen = false;
+                IsProductDropDownOpen = false;
                 _isUpdatingSearchText = false;
-                NewLine = new OrderLine { InventoryItemId = value.Id, Description = value.ProductName, ItemCode = value.Sku, UnitOfMeasure = value.UnitOfMeasure, UnitPrice = value.AverageCost };
+                NewLine = new OrderLine { InventoryItemId = value.Id, Description = value.ProductName ?? "", ItemCode = value.Sku ?? "", UnitOfMeasure = value.UnitOfMeasure ?? "", UnitPrice = value.AverageCost };
                 OnPropertyChanged(nameof(NewLine));
                 if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
                 {
@@ -778,6 +995,8 @@ namespace OCC.Client.ViewModels.Orders
                 OnPropertyChanged(nameof(NewOrder));
             }
         }
+
+
 
         #endregion
     }

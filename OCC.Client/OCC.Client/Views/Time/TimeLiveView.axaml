@@ -56,12 +56,17 @@
                                     <TextBlock Text="{Binding TotalMonthHoursDisplay, StringFormat='{}Month: {0}'}" FontSize="11" Foreground="{DynamicResource TextTertiarySlate}" HorizontalAlignment="Center"/>
                                 </StackPanel>
 
-                                <!-- Overtime Badge -->
-                                <Border Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,5,5,0"
-                                        Background="{Binding OvertimeColor}" CornerRadius="4" Padding="4,2"
-                                        IsVisible="{Binding IsOvertimeActive}">
-                                    <TextBlock Text="{Binding OvertimeText}" FontSize="9" FontWeight="Bold" Foreground="White"/>
-                                </Border>
+                                <!-- Overtime & Late Badges -->
+                                <StackPanel Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,5,5,0" Orientation="Horizontal" Spacing="4">
+                                    <Border Background="#F5222D" CornerRadius="4" Padding="4,2"
+                                            IsVisible="{Binding IsLate}">
+                                        <TextBlock Text="{Binding LateText}" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                    <Border Background="{Binding OvertimeColor}" CornerRadius="4" Padding="4,2"
+                                            IsVisible="{Binding IsOvertimeActive}">
+                                        <TextBlock Text="{Binding OvertimeText}" FontSize="9" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                </StackPanel>
 
 								<!-- Times -->
 								<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="15">

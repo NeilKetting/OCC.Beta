@@ -71,6 +71,34 @@
                                 <TextBlock Text="Website" Classes="FormLabel"/>
                                 <TextBox Text="{Binding CompanyDetails.Website}" Classes="FormInput" Watermark="e.g. www.orangecircle.co.za"/>
                             </StackPanel>
+                                                         <Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
+                             
+                             <!-- NOTE: Banking is currently NOT per branch in CompanyDetails model, but Shared/Company level. 
+                                  If the user wants per-branch banking, the model needs update. 
+                                  For now, I'll keep binding to CompanyDetails for banking to be safe, 
+                                  OR check if BranchDetails has banking fields? Model check: No, BranchDetails does NOT have banking. 
+                                  So Banking stays on CompanyDetails.-->
+                             
+                             <StackPanel>
+                                <TextBlock Text="Bank Name" Classes="FormLabel"/>
+                                <TextBox Text="{Binding CompanyDetails.BankName}" Classes="FormInput" Watermark="e.g. FNB"/>
+                            </StackPanel>
+
+                             <StackPanel>
+                                <TextBlock Text="Account Name" Classes="FormLabel"/>
+                                <TextBox Text="{Binding CompanyDetails.AccountName}" Classes="FormInput" Watermark="Account Holder Name"/>
+                            </StackPanel>
+
+                             <Grid ColumnDefinitions="*, 10, *">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Account Number" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding CompanyDetails.AccountNumber}" Classes="FormInput" Watermark="Account Number"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Branch Code" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding CompanyDetails.BranchCode}" Classes="FormInput" Watermark="Branch Code"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </StackPanel>
 
@@ -140,35 +168,6 @@
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="Postal Code" Classes="FormLabel"/>
                                     <TextBox Text="{Binding CurrentBranchDetails.PostalCode}" Classes="FormInput" Watermark="Code"/>
-                                </StackPanel>
-                            </Grid>
-
-                             <Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
-                             
-                             <!-- NOTE: Banking is currently NOT per branch in CompanyDetails model, but Shared/Company level. 
-                                  If the user wants per-branch banking, the model needs update. 
-                                  For now, I'll keep binding to CompanyDetails for banking to be safe, 
-                                  OR check if BranchDetails has banking fields? Model check: No, BranchDetails does NOT have banking. 
-                                  So Banking stays on CompanyDetails.-->
-                             
-                             <StackPanel>
-                                <TextBlock Text="Bank Name" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.BankName}" Classes="FormInput" Watermark="e.g. FNB"/>
-                            </StackPanel>
-
-                             <StackPanel>
-                                <TextBlock Text="Account Name" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.AccountName}" Classes="FormInput" Watermark="Account Holder Name"/>
-                            </StackPanel>
-
-                             <Grid ColumnDefinitions="*, 10, *">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Account Number" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CompanyDetails.AccountNumber}" Classes="FormInput" Watermark="Account Number"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Branch Code" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CompanyDetails.BranchCode}" Classes="FormInput" Watermark="Branch Code"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>

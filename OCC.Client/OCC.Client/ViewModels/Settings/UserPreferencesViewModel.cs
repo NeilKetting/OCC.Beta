@@ -34,9 +34,7 @@ namespace OCC.Client.ViewModels.Settings
         private void Save()
         {
             _userActivityService.UpdateTimeout(SelectedTimeout);
-            // Show toast or confirmation if needed? 
-            // For now, just close or stay? Typically preferences auto-save or save & close.
-            // Let's assume this is a "page" navigation style based on ShellViewModel.
+            Back(); // Return to previous view
         }
 
         [RelayCommand]

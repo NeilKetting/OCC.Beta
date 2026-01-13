@@ -162,17 +162,20 @@ namespace OCC.Client.ViewModels.Orders
                     _ = DashboardVM.LoadData();
                     break;
                 case "OrderList": 
+                case "All Orders":
                     CurrentView = OrderListVM; 
                     OrderListVM.LoadOrders(); 
                     break;
                 case "CreateOrder": 
+                case "New Order":
                     // This creates a new order via the detail popup
                     CreateOrderVM.Reset();
                     CreateOrderVM.IsReadOnly = false;
-                    CreateOrderVM.LoadData(); 
+                    _ = CreateOrderVM.LoadData(); 
                     IsOrderDetailVisible = true;
                     break;
                 case "Inventory": 
+                case "ItemList":
                     CurrentView = ItemListVM; 
                     _ = ItemListVM.LoadItemsAsync(); 
                     break;
@@ -187,11 +190,11 @@ namespace OCC.Client.ViewModels.Orders
         /// Opens the order detail popup for a new order.
         /// </summary>
         [RelayCommand]
-        public void OpenNewOrder()
+        public async Task OpenNewOrder()
         {
             CreateOrderVM.Reset();
             CreateOrderVM.IsReadOnly = false;
-            CreateOrderVM.LoadData(); 
+            await CreateOrderVM.LoadData(); 
             IsOrderDetailVisible = true;
         }
 
@@ -214,9 +217,9 @@ namespace OCC.Client.ViewModels.Orders
         /// Opens the order detail popup for an existing order in read-only mode.
         /// </summary>
         /// <param name="order">The order to view.</param>
-        public void OpenViewOrder(Order order)
+        public async void OpenViewOrder(Order order)
         {
-            CreateOrderVM.LoadData(); 
+            await CreateOrderVM.LoadData(); 
             CreateOrderVM.LoadExistingOrder(order);
             CreateOrderVM.IsReadOnly = true;
             IsOrderDetailVisible = true;
@@ -239,9 +242,9 @@ namespace OCC.Client.ViewModels.Orders
 
             // Order List Interactions: Using CreateOrderVM for detailed view
             OrderListVM.ReceiveOrderRequested += (s, o) => { ReceiveOrderVM.LoadOrder(o); IsReceiveOrderVisible = true; };
-            OrderListVM.ViewOrderRequested += (s, o) => 
+            OrderListVM.ViewOrderRequested += async (s, o) => 
             { 
-                 CreateOrderVM.LoadData();
+                 await CreateOrderVM.LoadData();
                  CreateOrderVM.LoadExistingOrder(o);
                  CreateOrderVM.IsReadOnly = true;
                  IsOrderDetailVisible = true; 
@@ -254,6 +257,9 @@ namespace OCC.Client.ViewModels.Orders
             // Create Order Logic: Handle successful creation by returning to the list
             CreateOrderVM.OrderCreated += (s, e) => { IsOrderDetailVisible = false; SetTab("OrderList"); };
             CreateOrderVM.CloseRequested += (s, e) => IsOrderDetailVisible = false;
+
+            // Menu Interactions
+            OrderMenu.TabSelected += (s, tab) => SetTab(tab);
         }
 
         /// <summary>

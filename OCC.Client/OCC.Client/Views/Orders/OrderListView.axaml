@@ -30,12 +30,12 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20">
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding FilteredTotal, StringFormat='Total: {0:C}'}" 
-                                   FontWeight="Bold" FontSize="15" Foreground="{DynamicResource TextPrimaryDark}"
-                                   VerticalAlignment="Center"/>
-                        <Border Width="1" Height="20" Background="{DynamicResource ThemeBorderLow}"/>
-                    </StackPanel>
+                    <Border Classes="Card" Padding="15,5" MinWidth="140" Background="#E8F5E9" BorderBrush="#81C784" CornerRadius="6" Margin="0,0,10,0">
+                        <StackPanel>
+                             <TextBlock Text="Total Value" Classes="LabelText" HorizontalAlignment="Center" Foreground="#388E3C" FontSize="11"/>
+                             <TextBlock Text="{Binding FilteredTotal, StringFormat='{}{0:C}'}" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
                     <ComboBox ItemsSource="{Binding BranchFilters}" 
                               SelectedItem="{Binding SelectedBranchFilter}"
@@ -90,7 +90,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Spacing="5">
-                                <Button Classes="IconButton" ToolTip.Tip="Edit/View">
+                                <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:OrderListViewModel)DataContext).ViewOrderCommand}" CommandParameter="{Binding .}" ToolTip.Tip="Edit/View">
                                     <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
                                 </Button>
                                 <Button Classes="IconButton" Command="{Binding $parent[UserControl].((vm:OrderListViewModel)DataContext).RequestReceiveOrderCommand}" CommandParameter="{Binding .}" ToolTip.Tip="Receive Items">

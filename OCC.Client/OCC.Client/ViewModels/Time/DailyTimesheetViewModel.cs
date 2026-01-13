@@ -422,14 +422,21 @@ namespace OCC.Client.ViewModels.Time
             string? leaveNote = null;
 
             // Check if Early
-            // Note: IF "Now" is next day (e.g. night shift or forgot to clock out), this logic might need day awareness.
-            // Assuming "Daily Timesheet" implies we are handling that specific day's shift.
-            // If I clock out at 08:00 AM next day for a 16:00 PM shift, technically I am LATE, not early. 
-            // Simple check: If TimeOfDay < Expected AND Date is same.
-            
             bool isSameDay = now.Date == Date.Date;
-            
-            if (isSameDay && now.TimeOfDay < expectedEndTime)
+            bool isWithinCommittedHours = false;
+
+            // Define Normal Window
+            TimeSpan shiftStart;
+            if (item.Staff != null && item.Staff.ShiftStartTime.HasValue) shiftStart = item.Staff.ShiftStartTime.Value;
+            else shiftStart = new TimeSpan(7, 0, 0);
+
+            // We are 'within' committed hours if Now is between ShiftStart and ExpectedEndTime
+            if (now.TimeOfDay >= shiftStart && now.TimeOfDay < expectedEndTime)
+            {
+                isWithinCommittedHours = true;
+            }
+
+            if (isSameDay && isWithinCommittedHours)
             {
                 var diff = expectedEndTime - now.TimeOfDay;
                 if (diff.TotalMinutes > 15) // 15 min buffer

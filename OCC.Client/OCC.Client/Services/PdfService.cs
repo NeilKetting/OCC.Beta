@@ -17,7 +17,6 @@ namespace OCC.Client.Services
         private static readonly string ColorPrimary = "#EF6C00"; // Orange
         private static readonly string ColorSecondary = "#374151"; // Dark Slate
         private static readonly string ColorLightOrange = "#FFF3E0";
-        private static readonly string ColorGreyBorder = "#E5E7EB";
 
         public PdfService(ISettingsService settingsService)
         {

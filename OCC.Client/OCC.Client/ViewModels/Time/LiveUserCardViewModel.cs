@@ -39,6 +39,12 @@ namespace OCC.Client.ViewModels.Time
         private string _totalMonthHoursDisplay = "0h";
 
         [ObservableProperty]
+        private bool _isLate;
+
+        [ObservableProperty]
+        private string _lateText = string.Empty; // e.g., "LATE"
+
+        [ObservableProperty]
         private bool _isOvertimeActive;
 
         [ObservableProperty]

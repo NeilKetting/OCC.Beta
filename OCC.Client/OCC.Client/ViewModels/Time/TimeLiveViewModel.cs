@@ -179,45 +179,42 @@ namespace OCC.Client.ViewModels.Time
                     vm.TotalMonthHours = totalHours;
                     vm.TotalMonthHoursDisplay = $"{totalHours:F1}h";
 
-                    // === Overtime Logic ===
+                    // === Overtime & Late Logic ===
                     // Requirements:
-                    // Weekdays / Normal: 1.5x (Implied > Normal hours, but simpler for Live view: Is today a special day?)
+                    // Weekdays / Normal: 1.5x (Before Start or After End)
                     // Saturday: 1.5x
                     // Sunday / Public Holiday: 2.0x
                     
                     var dow = today.DayOfWeek;
                     bool isWeekend = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
-                    // TODO: Public Holiday Check (Hardcoded MVP list?)
-                    bool isHoliday = false; // Add list if needed. Assuming user handles manual override if not.
+                    bool isHoliday = false; // Placeholder for Public Holiday check
 
-                    if (dow == DayOfWeek.Sunday || isHoliday)
+                    // 1. Determine multipliers
+                    double multiplier = 1.0;
+                    if (dow == DayOfWeek.Sunday || isHoliday) multiplier = 2.0;
+                    else multiplier = 1.5;
+
+                    // 2. Define standard window (Employee specific or Branch default)
+                    TimeSpan shiftStart = employee.ShiftStartTime ?? new TimeSpan(7, 0, 0);
+                    TimeSpan shiftEnd = employee.ShiftEndTime ?? (employee.Branch?.Contains("Cape") == true ? new TimeSpan(17, 0, 0) : new TimeSpan(16, 0, 0));
+
+                    // 3. Apply Overtime Status
+                    var currentTime = DateTime.Now.TimeOfDay;
+                    bool isOutsideNormalHours = currentTime < shiftStart || currentTime > shiftEnd;
+
+                    if (multiplier > 1.0 || isOutsideNormalHours)
                     {
                         vm.IsOvertimeActive = true;
-                        vm.OvertimeText = "OVERTIME 2.0x";
-                        vm.OvertimeColor = Avalonia.Media.Brushes.Red;
+                        vm.OvertimeText = $"OVERTIME {multiplier:F1}x";
+                        vm.OvertimeColor = multiplier >= 2.0 ? Avalonia.Media.Brushes.Red : Avalonia.Media.SolidColorBrush.Parse("#F97316"); // Orange-500
                     }
-                    else if (dow == DayOfWeek.Saturday)
+
+                    // 4. Apply Late Status
+                    // Requirements: If clock-in > 30 minutes after ShiftStartTime
+                    if (clockIn.HasValue && clockIn.Value > shiftStart.Add(TimeSpan.FromMinutes(30)))
                     {
-                        vm.IsOvertimeActive = true;
-                        vm.OvertimeText = "OVERTIME 1.5x";
-                        vm.OvertimeColor = Avalonia.Media.SolidColorBrush.Parse("#F97316"); // Orange-500
-                    }
-                    // TODO: Weekday Overtime? (e.g. > 17:00)
-                    // "Normal hours from employee start/end time"
-                    // If Now > EndTime, trigger Overtime.
-                    // Need Start/End time on Employee or Branch default.
-                    else 
-                    {
-                        // Check Employee Hours?
-                        // Assuming 17:00 default for now if generic.
-                        // Implied from previous conversation: JHB(16:00), CPT(17:00).
-                        int paramEndHour = (employee.Branch?.Contains("Cape") == true) ? 17 : 16;
-                        if (DateTime.Now.Hour >= paramEndHour)
-                        {
-                             vm.IsOvertimeActive = true;
-                             vm.OvertimeText = "OVERTIME 1.5x";
-                             vm.OvertimeColor = Avalonia.Media.SolidColorBrush.Parse("#F97316"); // Orange
-                        }
+                        vm.IsLate = true;
+                        vm.LateText = "LATE";
                     }
 
                     userViewModels.Add(vm);

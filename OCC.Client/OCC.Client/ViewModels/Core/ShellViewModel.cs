@@ -47,6 +47,8 @@ namespace OCC.Client.ViewModels.Core
         private readonly IAuthService _authService;
         private readonly IDialogService _dialogService;
         private readonly IToastService _toastService;
+        private string _previousSection = Infrastructure.NavigationRoutes.Home;
+        private string _currentSection = Infrastructure.NavigationRoutes.Home;
 
         #endregion
 
@@ -387,6 +389,13 @@ namespace OCC.Client.ViewModels.Core
             // Close notification popup when navigating
             IsNotificationOpen = false;
 
+            // Store previous section if it's not a 'temporary' overlay view
+            if (_currentSection != "UserPreferences" && _currentSection != "Help")
+            {
+                _previousSection = _currentSection;
+            }
+            _currentSection = section;
+
             if (!_permissionService.CanAccess(section))
             {
                 if (section != Infrastructure.NavigationRoutes.Home)
@@ -440,7 +449,9 @@ namespace OCC.Client.ViewModels.Core
                     CurrentPage = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
                     break;
                 case "UserPreferences":
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
+                    var userPrefsVM = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
+                    userPrefsVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
+                    CurrentPage = userPrefsVM;
                     break;
                 case "BugList":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
