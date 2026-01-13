@@ -10,13 +10,13 @@
 			 x:Class="OCC.Client.Views.Orders.SupplierListView"
 			 x:DataType="vm:SupplierListViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, *">
+	<Grid RowDefinitions="Auto, Auto, *" Margin="10">
 		<!-- Header / Tools -->
-		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="Auto, *, Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 					<StackPanel Spacing="5">
-						<TextBlock Text="Supplier List" Classes="H1"/>
+						<TextBlock Text="Supplier List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold"/>
 						<TextBlock Text="Master list of all suppliers. Double-click to edit." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}"/>
 					</StackPanel>
 				</StackPanel>

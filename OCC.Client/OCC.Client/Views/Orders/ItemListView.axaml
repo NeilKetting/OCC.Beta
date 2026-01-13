@@ -25,12 +25,12 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, *" Margin="10">
         <!-- Header / Toolbar -->
-        <Border Grid.Row="0" Padding="20" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Classes="TopHeader" Margin="0,0,0,10" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*, Auto">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="Product Catalog" Classes="H1"/>
+                    <TextBlock Text="Product Catalog" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold"/>
                     <TextBlock Text="Master list of all items and their suppliers. Double-click to edit." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}"/>
                 </StackPanel>
 

@@ -18,13 +18,13 @@
 
 
 
-	<Grid RowDefinitions="Auto, *">
+	<Grid RowDefinitions="Auto, *" Margin="10">
 		<!-- Header / Tools -->
-		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="Auto, *, Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 					<StackPanel Spacing="5">
-						<TextBlock Text="Inventory List" Classes="H1"/>
+						<TextBlock Text="Inventory List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold"/>
 						<TextBlock Text="Master list of all inventory items. Double-click to edit." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}"/>
 					</StackPanel>
 				</StackPanel>
