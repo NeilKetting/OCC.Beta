@@ -29,16 +29,32 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
-                    Description = "Health & Safety Module & Dark Mode",
+                    Description = "Task Management & System UX Refresh",
                     Changes = new ObservableCollection<string>
                     {
-                        "NEW: Health & Safety Module - Added Dashboard, Performance Monitoring (Safe Hours), Incidents and Audits views.",
-                        "NEW: HSEQ Data - Implemented tracking for Safe Hours, Near Misses, and Audit Scores.",
-                        "NEW: Dark Mode - Introduced system-wide Dark Mode theme with toggle in Preferences.",
-                        "NEW: Task Detail Panel - Slide-in panel for task details (Double-click to open/pin, Hold to preview).",
-                        "FIXED: Project Navigation - Resolved issue where 'Projects' tab was not active on load.",
-                        "FIXED: Restock Review - Fixed navigation and logic for generated orders.",
-                        "FIXED: PO Item Population - Resolved issue where existing items appeared at bottom of grid."
+                        "NEW: Personalized 'My Tasks' View - Home dashboard now filters to focus on your specific assignments.",
+                        "NEW: Global Shortcuts - Added Escape key support to instantly close all overlays and side-drawers.",
+                        "IMPROVED: Task Detail Engine - Fixed clipping, added multi-line titles, and instant subtask loading.",
+                        "IMPROVED: Procurement UX - Refactored Order entry grids to standard DataGrid for 2x faster performance and better stability.",
+                        "IMPROVED: Site Manager UI - Searchable assignment dropdown and visual site manager avatars.",
+                        "IMPROVED: User Management - Linked Employees to User accounts for integrated permissions.",
+                        "FIXED: Database Integrity - Implemented server-side persistence auditing for all entity changes.",
+                        "FIXED: Task Hierarchy - Resolved 500 errors and preserved full hierarchy when opening details."
+                    }
+                },
+                new ReleaseNoteItem
+                {
+                    Version = "v1.4.0",
+                    Date = "14 January 2026",
+                    Description = "Health & Safety, Dark Mode & Logistics",
+                    Changes = new ObservableCollection<string>
+                    {
+                        "NEW: Health & Safety Module - Added Dashboard, Performance Monitoring, Incidents and Audits.",
+                        "NEW: HSEQ Metrics - Real-time tracking for Safe Hours, Near Misses, and Audit Scores.",
+                        "NEW: Dark Mode - Introduced system-wide high-contrast Dark Mode theme.",
+                        "IMPROVED: Project Navigation - Fixed tab focus and default 'Projects' view loading.",
+                        "IMPROVED: Order Logistics - Fixed navigation for 'Re-stock Now' and PO generation flows.",
+                        "FIXED: Data Overlap - Resolved issue where order items appeared out of sequence in lists."
                     }
                 },
                 new ReleaseNoteItem
