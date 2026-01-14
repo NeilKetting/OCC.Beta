@@ -366,7 +366,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
              if (subtask != null)
              {
-                 LoadTaskById(subtask.Id);
+                 LoadTaskModel(subtask);
              }
         }
 
@@ -403,26 +403,58 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             {
                 BusyText = "Loading task details...";
                 IsBusy = true;
-                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task: {taskId}...");
-                _currentTaskId = taskId;
-                var task = await _projectTaskRepository.GetByIdAsync(taskId);
-                if (task != null) LoadTask(task);
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task ID: {taskId}...");
                 
-                await LoadAssignableResources();
-                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] LoadTaskById Complete.");
+                var task = await _projectTaskRepository.GetByIdAsync(taskId);
+                if (task != null) 
+                {
+                    LoadTaskModel(task);
+                }
+                else
+                {
+                    IsBusy = false;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] CRASH in LoadTaskById: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Stack: {ex.StackTrace}");
                 if (_dialogService != null)
                 {
                     await _dialogService.ShowAlertAsync("Error", $"Critical Error loading task details: {ex.Message}");
                 }
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Loads a specific task model directly, preserving any child hierarchies already built.
+        /// </summary>
+        /// <param name="task">The pre-populated ProjectTask model.</param>
+        public async void LoadTaskModel(ProjectTask task)
+        {
+            if (task == null) return;
+
+            try 
+            {
+                _isLoading = true;
+                BusyText = "Initializing task details...";
+                IsBusy = true;
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task Model: {task.Name} ({task.Id})...");
+                
+                _currentTaskId = task.Id;
+                LoadTask(task);
+                
+                await LoadAssignableResources();
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] LoadTaskModel Complete.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Error in LoadTaskModel: {ex.Message}");
             }
             finally
             {
                 IsBusy = false;
+                _isLoading = false;
             }
         }
 
@@ -483,29 +515,21 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// <param name="task">The ProjectTask model to display.</param>
         private void LoadTask(ProjectTask task)
         {
-            _isLoading = true;
-            try
+            // Unsubscribe previous
+            if (Task != null) Task.PropertyChanged -= Task_PropertyChanged;
+
+            Task = new ProjectTaskWrapper(task);
+            Task.PropertyChanged += Task_PropertyChanged;
+
+            // Load Subtasks
+            Subtasks.Clear();
+            if (task.Children != null)
             {
-                // Unsubscribe previous
-                if (Task != null) Task.PropertyChanged -= Task_PropertyChanged;
-
-                Task = new ProjectTaskWrapper(task);
-                Task.PropertyChanged += Task_PropertyChanged;
-
-                // Load Subtasks
-                Subtasks.Clear();
-                if (task.Children != null)
-                {
-                    foreach(var child in task.Children) Subtasks.Add(child);
-                }
-                UpdateVisibleSubtasks();
-
-                OnPropertyChanged(nameof(SubtaskCount));
+                foreach(var child in task.Children) Subtasks.Add(child);
             }
-            finally
-            {
-                _isLoading = false;
-            }
+            UpdateVisibleSubtasks();
+
+            OnPropertyChanged(nameof(SubtaskCount));
         }
 
         /// <summary>
@@ -535,9 +559,16 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 // Sync Wrapper back to Model
                 Task.CommitToModel();
 
+                // Sanitize: Clear navigation properties before sending to API 
+                // to prevent circular references or EF Core graph update issues.
+                var model = Task.Model;
+                model.Children?.Clear();
+                model.Assignments?.Clear();
+                model.Comments?.Clear();
+                model.Project = null;
+
                 // Save to DB
-                // Note: Task.Model is the same reference we passed in, so we just save it.
-                await _projectTaskRepository.UpdateAsync(Task.Model);
+                await _projectTaskRepository.UpdateAsync(model);
                 
                 // Notify listeners
                 CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
@@ -575,17 +606,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private void UpdateVisibleSubtasks()
         {
             VisibleSubtasks.Clear();
-            if (IsShowingAllSubtasks)
-            {
-                foreach(var s in Subtasks) VisibleSubtasks.Add(s);
-                HasMoreSubtasks = false;
-            }
-            else
-            {
-                var take = 5;
-                foreach(var s in Subtasks.Take(take)) VisibleSubtasks.Add(s);
-                HasMoreSubtasks = Subtasks.Count > take;
-            }
+            foreach(var s in Subtasks) VisibleSubtasks.Add(s);
+            HasMoreSubtasks = false;
         }
 
         #endregion

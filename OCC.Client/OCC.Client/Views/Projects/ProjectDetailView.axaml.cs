@@ -1,7 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Projects;
 
@@ -12,30 +15,6 @@ public partial class ProjectDetailView : UserControl
     public ProjectDetailView()
     {
         InitializeComponent();
-    }
-
-    private void TaskGrid_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is DataGrid && 
-            e.Source is Visual source && 
-            source.FindAncestorOfType<DataGridRow>() is DataGridRow row && 
-            row.DataContext is ProjectTask task &&
-            DataContext is ProjectDetailViewModel vm)
-        {
-            // Trigger Preview
-            if (vm.PreviewTaskDetailCommand.CanExecute(task))
-            {
-                vm.PreviewTaskDetailCommand.Execute(task);
-            }
-        }
-    }
-
-    private void TaskGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-         if (DataContext is ProjectDetailViewModel vm)
-         {
-             vm.EndPreviewCommand.Execute(null);
-         }
     }
 
     private void TaskGrid_DoubleTapped(object? sender, TappedEventArgs e)
@@ -49,6 +28,32 @@ public partial class ProjectDetailView : UserControl
             {
                 vm.PinTaskDetailCommand.Execute(task);
             }
+            e.Handled = true;
         }
+    }
+
+    private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is Grid grid && grid.Name == "OverlayGrid")
+        {
+            if (DataContext is ProjectDetailViewModel vm)
+            {
+                vm.CloseTaskDetailCommand.Execute(null);
+            }
+        }
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            if (DataContext is ProjectDetailViewModel vm && vm.IsTaskDetailOpen)
+            {
+                vm.CloseTaskDetailCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+        }
+        base.OnKeyDown(e);
     }
 }

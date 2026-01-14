@@ -3,6 +3,7 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:OCC.Client.ViewModels.EmployeeManagement"
+			 xmlns:views="clr-namespace:OCC.Client.Views.EmployeeManagement"
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d"
@@ -31,7 +32,7 @@
 			BoxShadow="0 2 15 5 #292828"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Center">
-		<Grid RowDefinitions="Auto, *, Auto, Auto">
+		<Grid RowDefinitions="Auto, *, Auto, Auto, Auto">
 
 			<!-- Header -->
 			<Border Grid.Row="0"
@@ -61,7 +62,6 @@
 
 						<!-- Left Column -->
 						<StackPanel Grid.Column="0" Spacing="10">
-							<!---->
 							<StackPanel>
 								<TextBlock Text="Employee Number" Classes="FormLabel"/>
 								<TextBox x:Name="EmployeeNumberInput" Text="{Binding EmployeeNumber}" Classes="FormInput" Watermark="e.g. EMP001"
@@ -332,18 +332,42 @@
 			<Grid Grid.Row="2" Height="2" Background="{DynamicResource PrimaryTeal}">
 			</Grid>
 			<!-- Action Buttons -->
-			<StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Right">
+			<Grid Grid.Row="4" Margin="20,15">
+				<Button Content="Manage Access" 
+						Command="{Binding OpenPermissionsCommand}" 
+						Classes="Secondary"
+						HorizontalAlignment="Left"
+						IsVisible="{Binding ShowPermissionsButton}"
+						ToolTip.Tip="Link user account and configure permissions"/>
+				
+				<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
 				<Button Content="Cancel" Command="{Binding CancelCommand}" Classes="Cancel"
 						ToolTip.Tip="Discard changes and close"/>
 				<Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}" Classes="Primary"
 						ToolTip.Tip="Save employee details to database"/>
 			</StackPanel>
+			</Grid>
 
             <!-- Loading -->
-            <StackPanel Grid.RowSpan="4" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+            <StackPanel Grid.RowSpan="5" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
                 <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
                 <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
             </StackPanel>
+            <!-- Permissions Popup Overlay -->
+            <Grid Grid.Row="0" Grid.RowSpan="5" Background="#80000000" IsVisible="{Binding IsPermissionsPopupVisible}">
+                <Border Background="White" CornerRadius="8" Padding="0" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="0 4 20 0 #40000000">
+                    <Grid RowDefinitions="Auto, *">
+                        <views:EmployeePermissionsView DataContext="{Binding PermissionsPopupVM}"/>
+                        <Button Grid.Row="0" Classes="IconButtonClose" 
+                                Command="{Binding $parent[UserControl].((vm:EmployeeDetailViewModel)DataContext).ClosePermissionsCommand}" 
+                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10">
+                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
 		</Grid>
 	</Border>
 </UserControl>

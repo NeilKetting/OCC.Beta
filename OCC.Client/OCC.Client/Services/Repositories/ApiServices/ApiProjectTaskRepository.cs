@@ -8,7 +8,7 @@ using OCC.Client.Services.Interfaces;
 
 namespace OCC.Client.Services.Repositories.ApiServices
 {
-    public class ApiProjectTaskRepository : BaseApiService<ProjectTask>
+    public class ApiProjectTaskRepository : BaseApiService<ProjectTask>, IProjectTaskRepository
     {
         public ApiProjectTaskRepository(IAuthService authService) : base(authService)
         {
@@ -18,7 +18,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<IEnumerable<ProjectTask>> GetMyTasksAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<ProjectTask>>($"{ApiEndpoint}?assignedToMe=true") ?? new List<ProjectTask>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<ProjectTask>>($"api/{ApiEndpoint}?assignedToMe=true") ?? new List<ProjectTask>();
         }
     }
 }

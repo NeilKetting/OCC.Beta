@@ -142,6 +142,7 @@ namespace OCC.Client
             services.AddTransient<IRepository<Employee>, ApiEmployeeRepository>();
             services.AddTransient<IRepository<Project>, ApiProjectRepository>();
             services.AddTransient<IRepository<ProjectTask>, ApiProjectTaskRepository>();
+            services.AddTransient<IProjectTaskRepository, ApiProjectTaskRepository>();
             services.AddTransient<IRepository<Customer>, ApiCustomerRepository>();
             services.AddTransient<IRepository<TaskAssignment>, ApiTaskAssignmentRepository>();
             services.AddTransient<IRepository<TaskComment>, ApiTaskCommentRepository>();
@@ -234,6 +235,7 @@ namespace OCC.Client
             services.AddTransient<AuditLogViewModel>();
             services.AddTransient<TaskDetailViewModel>(); // If needed
             services.AddTransient<EmployeeManagementViewModel>();
+            services.AddTransient<EmployeeDetailViewModel>();
             services.AddTransient<TimeLiveViewModel>();
             services.AddTransient<TimeMenuViewModel>();
             services.AddTransient<TimeAttendanceViewModel>();
@@ -283,7 +285,6 @@ namespace OCC.Client
             services.AddTransient<CompanySettingsViewModel>();
             services.AddTransient<UserPreferencesViewModel>(); // New
             services.AddTransient<ViewModels.Developer.DeveloperViewModel>();
-            services.AddTransient<ViewModels.Dev.TestViewModel>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

@@ -476,9 +476,6 @@ namespace OCC.Client.ViewModels.Core
                 case "Developer":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
                     break;
-                case "DevTest":
-                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Dev.TestViewModel>();
-                     break;
                  default:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
                     break;

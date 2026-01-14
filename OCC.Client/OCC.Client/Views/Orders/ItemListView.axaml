@@ -25,7 +25,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid RowDefinitions="Auto, *" Margin="10">
+    <Grid RowDefinitions="Auto, *" Margin="5">
         <!-- Header / Toolbar -->
         <Border Grid.Row="0" Classes="TopHeader" Margin="0,0,0,10" Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*, Auto">

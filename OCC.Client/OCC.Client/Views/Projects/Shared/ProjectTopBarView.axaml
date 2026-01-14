@@ -12,7 +12,7 @@
         <conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
     </UserControl.Resources>
 
-    <Border Classes="TopBar">
+    <Border Classes="TopHeader">
         <Grid ColumnDefinitions="Auto, *, Auto,*, Auto">
 
             <!-- LEFT: Project Name and Members -->

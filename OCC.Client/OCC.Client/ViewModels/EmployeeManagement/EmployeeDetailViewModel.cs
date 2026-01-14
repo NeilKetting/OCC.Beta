@@ -21,7 +21,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Private Members
 
         private readonly IRepository<Employee> _staffRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly IDialogService _dialogService;
+        private readonly IAuthService _authService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
 
@@ -144,6 +146,26 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private string _busyText = "Please wait...";
 
+        [ObservableProperty]
+        private Guid? _linkedUserId;
+
+        [ObservableProperty]
+        private List<User> _availableUsers = new();
+
+        [ObservableProperty]
+        private string? _currentPermissions;
+
+        [ObservableProperty]
+        private bool _isPermissionsPopupVisible;
+
+        [ObservableProperty]
+        private EmployeePermissionsViewModel? _permissionsPopupVM;
+
+        [ObservableProperty]
+        private bool _showPermissionsButton;
+
+        public bool HasLinkedUser => LinkedUserId.HasValue;
+
         #endregion
 
         #region Properties
@@ -239,10 +261,27 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Constructors
 
-        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IDialogService dialogService)
+        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IRepository<User> userRepository, IDialogService dialogService, IAuthService authService)
         {
             _staffRepository = staffRepository;
+            _userRepository = userRepository;
             _dialogService = dialogService;
+            _authService = authService;
+            
+            _ = InitializeAsync();
+        }
+
+        private async Task InitializeAsync()
+        {
+            try
+            {
+                var users = await _userRepository.GetAllAsync();
+                AvailableUsers = users.OrderBy(u => u.DisplayName).ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading users: {ex.Message}");
+            }
         }
 
         public EmployeeDetailViewModel() 
@@ -250,6 +289,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             // _staffRepository and _dialogService will be null, handle in Save
             _staffRepository = null!;
             _dialogService = null!;
+            _authService = null!;
         }
 
         #endregion
@@ -367,6 +407,18 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             staff.AccountType = (AccountType == "Select Account Type") ? null : AccountType;
             
             staff.RateType = SelectedRateType;
+            staff.LinkedUserId = LinkedUserId;
+
+            // Permissions are saved directly to the USER object, so we handle that if linked
+            if (LinkedUserId.HasValue)
+            {
+                var user = await _userRepository.GetByIdAsync(LinkedUserId.Value);
+                if (user != null)
+                {
+                    user.Permissions = CurrentPermissions;
+                    await _userRepository.UpdateAsync(user);
+                }
+            }
 
             if (_staffRepository != null)
             {
@@ -434,7 +486,24 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 SelectedIdType = staff.IdType;
                 Email = staff.Email;
                 Phone = staff.Phone ?? string.Empty;
+                LinkedUserId = staff.LinkedUserId;
+                
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Basic Info Loaded");
+
+                if (LinkedUserId.HasValue)
+                {
+                    // Fetch user to get current permissions
+                    Task.Run(async () => 
+                    {
+                        var user = await _userRepository.GetByIdAsync(LinkedUserId.Value);
+                        if (user != null)
+                        {
+                            Avalonia.Threading.Dispatcher.UIThread.Post(() => CurrentPermissions = user.Permissions);
+                        }
+                    });
+                }
+                
+                UpdatePermissionsButtonVisibility();
 
                 SelectedSkill = staff.Role;
                 HourlyRate = staff.HourlyRate;
@@ -659,6 +728,72 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 {
                     AnnualLeaveBalance = 0; // Usually accumulate but start 0 too? Or pro-rata. Let's keep 0 safe or 1.25.
                     SickLeaveBalance = 30; // Standard cycle
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void ClosePermissions()
+        {
+            IsPermissionsPopupVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task OpenPermissions()
+        {
+            var currentUser = _authService.CurrentUser;
+            if (currentUser?.UserRole != UserRole.Admin)
+            {
+                await _dialogService.ShowAlertAsync("Access Denied", "Only administrators can manage user access and permissions.");
+                return;
+            }
+
+            var vm = new EmployeePermissionsViewModel(DisplayName, CurrentPermissions, AvailableUsers, LinkedUserId);
+            vm.OnSaved = (p, userId) => 
+            {
+                CurrentPermissions = p;
+                LinkedUserId = userId;
+                IsPermissionsPopupVisible = false;
+            };
+
+            PermissionsPopupVM = vm;
+            IsPermissionsPopupVisible = true;
+        }
+
+        private void UpdatePermissionsButtonVisibility()
+        {
+            var currentUser = _authService.CurrentUser;
+            if (currentUser?.UserRole != UserRole.Admin)
+            {
+                ShowPermissionsButton = false;
+                return;
+            }
+
+            // Only show for Office and SiteManager roles
+            ShowPermissionsButton = SelectedSkill == EmployeeRole.Office || 
+                                   SelectedSkill == EmployeeRole.SiteManager;
+        }
+
+        partial void OnSelectedSkillChanged(EmployeeRole value)
+        {
+            UpdatePermissionsButtonVisibility();
+        }
+
+        partial void OnLinkedUserIdChanged(Guid? value)
+        {
+            OnPropertyChanged(nameof(HasLinkedUser));
+            
+            if (value.HasValue)
+            {
+                var selectedUser = AvailableUsers.FirstOrDefault(u => u.Id == value.Value);
+                if (selectedUser != null)
+                {
+                    // Auto-fill from user
+                    FirstName = selectedUser.FirstName;
+                    LastName = selectedUser.LastName;
+                    Email = selectedUser.Email;
+                    Phone = selectedUser.Phone ?? string.Empty;
+                    CurrentPermissions = selectedUser.Permissions;
                 }
             }
         }

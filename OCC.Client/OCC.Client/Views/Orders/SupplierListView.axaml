@@ -10,7 +10,7 @@
 			 x:Class="OCC.Client.Views.Orders.SupplierListView"
 			 x:DataType="vm:SupplierListViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, *" Margin="10">
+	<Grid RowDefinitions="Auto, Auto, *" Margin="5">
 		<!-- Header / Tools -->
 		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="Auto, *, Auto">

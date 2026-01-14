@@ -23,7 +23,7 @@
             <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
 
             <!-- Header -->
-            <Border Grid.Row="1"  Background="{DynamicResource WeatheredCementGradient}" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20">
+            <Border Grid.Row="1"  Background="{DynamicResource WeatheredCementGradient}" Margin="5" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel>
                         <TextBlock Text="Restock Review" FontSize="20" FontWeight="Bold"/>

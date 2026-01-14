@@ -12,7 +12,7 @@
 
 	<Grid RowDefinitions="Auto, *">
 		<!-- Header -->
-		<Border Grid.Row="0" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="20">
+		<Border Grid.Row="0" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader" Margin="5">
 			<Grid ColumnDefinitions="Auto, *, Auto, Auto">
 				<StackPanel Grid.Column="0">
 					<TextBlock Text="Daily Timesheet" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>

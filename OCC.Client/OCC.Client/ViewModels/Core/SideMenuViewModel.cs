@@ -293,7 +293,7 @@ namespace OCC.Client.ViewModels.Core
         /// Displays a dialog if an update is available.
         /// </summary>
         [RelayCommand]
-        public async System.Threading.Tasks.Task CheckForUpdates()
+        public async Task CheckForUpdates()
         {
             UpdateLastActionMessage("Checking for updates...");
             var updateInfo = await _updateService.CheckForUpdatesAsync();
@@ -376,9 +376,6 @@ namespace OCC.Client.ViewModels.Core
             WeakReferenceMessenger.Default.Send(new NavigationMessage(loginVm));
         }
 
-        // Placeholder commands for settings menu items
-        [RelayCommand]
-        private void Settings() { }
 
         [RelayCommand]
         private void ToggleTheme() 
@@ -392,8 +389,6 @@ namespace OCC.Client.ViewModels.Core
             UpdateLastActionMessage(IsDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled");
         }
 
-        [RelayCommand]
-        private void AccountBilling() { }
 
         /// <summary>
         /// Navigates to the User Management section.
@@ -408,11 +403,7 @@ namespace OCC.Client.ViewModels.Core
              UpdateLastActionMessage("Navigating to Manage Users");
         }
 
-        [RelayCommand]
-        private void Security() { }
 
-        [RelayCommand]
-        private void Integrations() { }
 
         [RelayCommand]
         private void Alerts() { }
@@ -455,8 +446,6 @@ namespace OCC.Client.ViewModels.Core
             UpdateLastActionMessage("Navigating to User Preferences");
         }
 
-        [RelayCommand]
-        private void AccountExport() { }
 
         /// <summary>
         /// Navigates to the My Profile section.

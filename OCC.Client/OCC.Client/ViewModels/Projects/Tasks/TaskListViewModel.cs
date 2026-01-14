@@ -18,12 +18,20 @@ namespace OCC.Client.ViewModels.Projects.Tasks
     {
         #region Private Members
 
-        private readonly IRepository<ProjectTask> _taskRepository;
+        private readonly IProjectTaskRepository _taskRepository;
         private readonly ILogger<TaskListViewModel> _logger; // Added Logger
 
         #endregion
 
         #region Observables
+
+        [ObservableProperty]
+        private bool _myTasksOnly;
+
+        partial void OnMyTasksOnlyChanged(bool value)
+        {
+            LoadTasks();
+        }
 
         // Changed from flat HomeTaskItem to grouped ProjectGroupViewModel
         [ObservableProperty]
@@ -47,7 +55,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             _logger = null!;
         }
 
-        public TaskListViewModel(IRepository<ProjectTask> taskRepository, ILogger<TaskListViewModel> logger)
+        public TaskListViewModel(IProjectTaskRepository taskRepository, ILogger<TaskListViewModel> logger)
         {
             _taskRepository = taskRepository;
             _logger = logger;
@@ -100,7 +108,16 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             {
                 BusyText = "Loading tasks...";
                 IsBusy = true;
-                var tasks = await _taskRepository.GetAllAsync();
+
+                IEnumerable<ProjectTask> tasks;
+                if (MyTasksOnly)
+                {
+                    tasks = await _taskRepository.GetMyTasksAsync();
+                }
+                else
+                {
+                    tasks = await _taskRepository.GetAllAsync();
+                }
                 
                 // 1. Group by Project
                 // We need Project Names. Since ProjectTask has Navigation Property 'Project', 

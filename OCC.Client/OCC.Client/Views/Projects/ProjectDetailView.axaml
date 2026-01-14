@@ -10,7 +10,8 @@
              xmlns:task_widgets="clr-namespace:OCC.Client.Views.Projects.Tasks.Widgets"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="OCC.Client.Views.Projects.ProjectDetailView"
-             x:DataType="vm:ProjectDetailViewModel">
+             x:DataType="vm:ProjectDetailViewModel"
+             Focusable="True">
 
     <UserControl.Resources>
         <conv:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
@@ -67,9 +68,7 @@
                                   GridLinesVisibility="Horizontal"
                                   HorizontalGridLinesBrush="{DynamicResource BorderGray}"
                                   Margin="20"
-                                  DoubleTapped="TaskGrid_DoubleTapped"
-                                  PointerPressed="TaskGrid_PointerPressed"
-                                  PointerReleased="TaskGrid_PointerReleased">
+                                  DoubleTapped="TaskGrid_DoubleTapped">
                             <DataGrid.Columns>
                                 <!-- Checkbox Column -->
                                 <DataGridTemplateColumn Width="Auto">
@@ -223,24 +222,36 @@
         </DataTemplate>
     </UserControl.DataTemplates>
 
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseTaskDetailCommand}"/>
+    </UserControl.KeyBindings>
+
     <Grid Background="White" RowDefinitions="Auto, *">
         <!-- Top Project Navigation Bar -->
         <shared:ProjectTopBarView DataContext="{Binding TopBar}" Grid.Row="0"/>
 
-        <!-- Main Content (List / Gantt Swapping) with Slide-Over Detail View -->
-        <SplitView Grid.Row="1" DisplayMode="Overlay" PanePlacement="Right" OpenPaneLength="800" IsPaneOpen="{Binding IsTaskDetailOpen, Mode=TwoWay}">
-            <SplitView.Pane>
-                <ContentControl Content="{Binding SelectedTaskDetailVM}"/>
-            </SplitView.Pane>
-            
-            <SplitView.Content>
-                <TransitioningContentControl Content="{Binding CurrentView}">
-                     <TransitioningContentControl.PageTransition>
-                          <CrossFade Duration="0:00:00.250" />
-                     </TransitioningContentControl.PageTransition>
-                </TransitioningContentControl>
-            </SplitView.Content>
-        </SplitView>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <TransitioningContentControl Content="{Binding CurrentView}">
+                 <TransitioningContentControl.PageTransition>
+                      <CrossFade Duration="0:00:00.250" />
+                 </TransitioningContentControl.PageTransition>
+            </TransitioningContentControl>
+
+            <!-- Task Detail Overlay Layer -->
+            <Grid IsVisible="{Binding IsTaskDetailOpen}"
+                  Background="#40000000"
+                  Name="OverlayGrid"
+                  PointerPressed="OnOverlayPointerPressed">
+                
+                <Border Width="800" 
+                        Background="#F4F6F8" 
+                        HorizontalAlignment="Right"
+                        BoxShadow="0 0 20 0 #20000000">
+                    <ContentControl Content="{Binding SelectedTaskDetailVM}"/>
+                </Border>
+            </Grid>
+        </Grid>
 
         <!-- Saving -->
         <StackPanel Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">

@@ -10,7 +10,7 @@
 
 	<Grid RowDefinitions="Auto, Auto, *">
 		<!-- Top Bar -->
-		<Grid Grid.Row="0" ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="20" VerticalAlignment="Center">
+		<Grid Grid.Row="0" ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5" Background="{DynamicResource WeatheredCementGradient}" VerticalAlignment="Center">
 			<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}" Margin="0,0,20,0"/>
 
 			<!-- Filters -->

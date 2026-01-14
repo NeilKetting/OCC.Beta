@@ -21,7 +21,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
     {
         #region Private Members
 
-        private readonly IRepository<ProjectTask> _taskRepository;
+        private readonly IProjectTaskRepository _taskRepository;
         private readonly ILogger<TasksWidgetViewModel> _logger;
 
         #endregion
@@ -42,7 +42,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
             _logger = null!;
         }
         
-        public TasksWidgetViewModel(IRepository<ProjectTask> taskRepository, ILogger<TasksWidgetViewModel> logger)
+        public TasksWidgetViewModel(IProjectTaskRepository taskRepository, ILogger<TasksWidgetViewModel> logger)
         {
             _taskRepository = taskRepository;
             _logger = logger;
@@ -60,15 +60,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         {
             try
             {
-                IEnumerable<ProjectTask> tasks;
-                if (_taskRepository is ApiProjectTaskRepository apiRepo)
-                {
-                    tasks = await apiRepo.GetMyTasksAsync();
-                }
-                else
-                {
-                    tasks = await _taskRepository.GetAllAsync();
-                }
+                IEnumerable<ProjectTask> tasks = await _taskRepository.GetMyTasksAsync();
                 var recentTasks = tasks.OrderByDescending(t => t.StartDate).Take(5); // Show recent or upcoming
 
                 Tasks.Clear();

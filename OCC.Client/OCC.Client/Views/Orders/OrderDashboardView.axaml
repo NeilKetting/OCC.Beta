@@ -47,7 +47,7 @@
     </UserControl.Styles>
 
 	<ScrollViewer>
-		<StackPanel Spacing="20" Margin="10">
+		<StackPanel Spacing="20" Margin="5">
 			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="*, Auto" Margin="0">
 				<StackPanel Grid.Column="0" Spacing="5">

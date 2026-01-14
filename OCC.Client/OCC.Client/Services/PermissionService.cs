@@ -1,4 +1,6 @@
 using OCC.Client.Infrastructure;
+using System;
+using System.Linq;
 using OCC.Shared.Models;
 
 using OCC.Client.Services.Interfaces;
@@ -44,41 +46,51 @@ namespace OCC.Client.Services
                 return false;
             }
 
-            // Office Staff Access
-            if (user.UserRole == UserRole.Office)
+            // Dynamic Permission Check for Office and SiteManager
+            if (user.UserRole == UserRole.Office || user.UserRole == UserRole.SiteManager)
             {
-                return route switch
+                // If they have explicit permissions set, check them
+                if (!string.IsNullOrEmpty(user.Permissions))
                 {
-                    "Home" => true, // Home is essential
-                    "Time" => true, // Restore Time Access
-                    "HealthSafety" => true,
-                    "LeaveApproval" => true,
-                    "OvertimeRequest" => true,
-                    "OvertimeApproval" => true,
-                    "Orders" => true,
-                    // "EmployeeManagement" => false, // Now Restricted
-                    _ => false
-                };
-            }
+                    var allowedRoutes = user.Permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (allowedRoutes.Contains(route, StringComparer.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
 
-            // Site Manager Access
-            if (user.UserRole == UserRole.SiteManager)
-            {
-                // Site Manager also loses EmployeeManagement based on user request
-                return route switch
+                // Fallback to defaults if no explicit permissions OR not found in explicit list
+                if (user.UserRole == UserRole.Office)
                 {
-                    "Home" => true, 
-                    "Time" => true, // Restore Time Access
-                    "HealthSafety" => true,
-                    "RollCall" => true,
-                    "ClockOut" => true,
-                    "LeaveApproval" => true,
-                    "OvertimeRequest" => true,
-                    "OvertimeApproval" => true,
-                    "Teams" => true, 
-                    // "EmployeeManagement" => false, // Now Restricted
-                    _ => false
-                };
+                    return route switch
+                    {
+                        "Home" => true,
+                        "Time" => true,
+                        "HealthSafety" => true,
+                        "LeaveApproval" => true,
+                        "OvertimeRequest" => true,
+                        "OvertimeApproval" => true,
+                        "Orders" => true,
+                        _ => false
+                    };
+                }
+
+                if (user.UserRole == UserRole.SiteManager)
+                {
+                    return route switch
+                    {
+                        "Home" => true,
+                        "Time" => true,
+                        "HealthSafety" => true,
+                        "RollCall" => true,
+                        "ClockOut" => true,
+                        "LeaveApproval" => true,
+                        "OvertimeRequest" => true,
+                        "OvertimeApproval" => true,
+                        "Teams" => true,
+                        _ => false
+                    };
+                }
             }
 
             // Contractor/Guest Access

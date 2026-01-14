@@ -128,7 +128,7 @@ namespace OCC.Client.ViewModels.Projects
 
             _currentView = _listVM;
 
-            _listVM.TaskSelectionRequested += (s, id) => TaskSelectionRequested?.Invoke(this, id);
+            _listVM.TaskSelectionRequested += (s, id) => OnTaskSelectionRequested(id);
             _listVM.ToggleExpandRequested += (s, e) => { RefreshDisplayList(); };
 
             _topBar.PropertyChanged += TopBar_PropertyChanged;
@@ -169,24 +169,11 @@ namespace OCC.Client.ViewModels.Projects
         private System.Threading.CancellationTokenSource? _previewCancellation;
 
         [RelayCommand]
-        private async Task EndPreview()
+        private void EndPreview()
         {
             if (IsPinned) return;
 
-            // Debounce close to prevent flickering during double-click or accidental release
-            var cts = _previewCancellation;
-            if (cts == null) return;
-
-            try
-            {
-                await Task.Delay(200, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-
-            if (!IsPinned && IsTaskDetailOpen && !cts.IsCancellationRequested)
+            if (!IsPinned && IsTaskDetailOpen)
             {
                 IsTaskDetailOpen = false;
                 SelectedTaskDetailVM = null;
@@ -195,18 +182,18 @@ namespace OCC.Client.ViewModels.Projects
 
         private void LoadTaskDetail(ProjectTask task, bool pin)
         {
-            if (task == null || task.HasChildren) return; 
+            if (task == null) return; 
 
             // Optimization: If already loaded same task, just update pin status
             if (SelectedTaskDetailVM != null && SelectedTaskDetailVM.Task.Id == task.Id)
             {
-                IsPinned = pin;
+                if (pin) IsPinned = true;
                 IsTaskDetailOpen = true;
                 return;
             }
 
             var vm = _serviceProvider.GetRequiredService<ViewModels.Projects.Tasks.TaskDetailViewModel>();
-            vm.LoadTaskById(task.Id);
+            vm.LoadTaskModel(task);
             vm.CloseRequested += TaskDetailVM_CloseRequested;
             
             SelectedTaskDetailVM = vm;
@@ -215,6 +202,12 @@ namespace OCC.Client.ViewModels.Projects
         }
 
         private void TaskDetailVM_CloseRequested(object? sender, EventArgs e)
+        {
+            CloseTaskDetail();
+        }
+
+        [RelayCommand]
+        private void CloseTaskDetail()
         {
             _previewCancellation?.Cancel();
             IsTaskDetailOpen = false;
@@ -325,6 +318,11 @@ namespace OCC.Client.ViewModels.Projects
                 IsBusy = false;
                 _loadLock.Release();
             }
+        }
+
+        private void OnTaskSelectionRequested(Guid taskId)
+        {
+            TaskSelectionRequested?.Invoke(this, taskId);
         }
 
         private void TopBar_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

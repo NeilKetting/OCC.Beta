@@ -32,17 +32,58 @@ namespace OCC.Client.ViewModels.Projects
             if (value != null)
             {
                 TaskSelectionRequested?.Invoke(this, value.Id);
-                SelectedTask = null;
             }
         }
 
         public void UpdateTasks(IEnumerable<ProjectTask> tasks)
         {
-            Tasks.Clear();
-            foreach (var task in tasks)
+            var newList = tasks.ToList();
+            var previousSelectedId = SelectedTask?.Id;
+
+            // 1. Remove items no longer present
+            var toRemove = Tasks.Where(t => !newList.Any(n => n.Id == t.Id)).ToList();
+            foreach (var item in toRemove) Tasks.Remove(item);
+
+            // 2. Add or Update items
+            for (int i = 0; i < newList.Count; i++)
             {
-                Tasks.Add(task);
+                var newTask = newList[i];
+                if (i < Tasks.Count)
+                {
+                    if (Tasks[i].Id == newTask.Id)
+                    {
+                        // Update if state changed - since ProjectTask auto-properties don't notify, 
+                        // we replace the object if key properties differ.
+                        if (Tasks[i].Status != newTask.Status || 
+                            Tasks[i].PercentComplete != newTask.PercentComplete ||
+                            Tasks[i].Name != newTask.Name ||
+                            Tasks[i].FinishDate != newTask.FinishDate)
+                        {
+                            Tasks[i] = newTask;
+                        }
+                    }
+                    else
+                    {
+                        Tasks.Insert(i, newTask);
+                    }
+                }
+                else
+                {
+                    Tasks.Add(newTask);
+                }
             }
+
+            // 3. Restore selection based on ID
+            if (previousSelectedId.HasValue)
+            {
+                var newSelected = Tasks.FirstOrDefault(t => t.Id == previousSelectedId.Value);
+                if (newSelected != null)
+                {
+                    // Selection might have been cleared by collection changes, so re-set it
+                    SelectedTask = newSelected;
+                }
+            }
+
             OnPropertyChanged(nameof(HasTasks));
         }
     }

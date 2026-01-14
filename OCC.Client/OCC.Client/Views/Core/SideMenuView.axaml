@@ -156,15 +156,6 @@
 						<TextBlock Text="Developer" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
 					</StackPanel>
 				</Button>
-				<!-- Dev Grid Demo (Neil Only) -->
-				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" 
-						Command="{Binding GoToDevTestCommand}" HorizontalAlignment="Stretch" 
-						IsVisible="{Binding IsDeveloper}">
-					<StackPanel Orientation="Horizontal" Spacing="15">
-						<PathIcon Data="{StaticResource IconSheet}" Classes="IconStyle" Foreground="Purple"/>
-						<TextBlock Text="Grid Demo" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="Purple" FontWeight="Bold"/>
-					</StackPanel>
-				</Button>
 				<!-- Notifications Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
 					<StackPanel Orientation="Horizontal" Spacing="15">
@@ -250,9 +241,8 @@
 				<!-- Setup / Version Info -->
 				<StackPanel Margin="0,10,0,15" IsVisible="{Binding !IsCollapsed}">
 					<TextBlock FontSize="10"
-							   FontWeight="SemiBold"
 							   HorizontalAlignment="Center"
-							   Text="POWERED BY ORIGIZE 63" Foreground="{DynamicResource StructuralConcreteGradient}"/>
+							   Text="POWERED BY ORIGIZE 63" Foreground="{StaticResource TextSecondaryDark}" FontWeight="Bold"/>
 					<TextBlock Text="{Binding AppVersion}"
 							   FontSize="12"
 							   HorizontalAlignment="Center"

@@ -19,7 +19,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Private Members
 
         private readonly IRepository<Employee> _employeeRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly IDialogService _dialogService;
+        private readonly IAuthService _authService;
+        private readonly INotificationService _notificationService;
         
         /// <summary>
         /// Cache for all loaded employees to support filtering without database calls
@@ -86,6 +89,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _teamsVM = null!;
             _serviceProvider = null!;
             _dialogService = null!;
+            _authService = null!;
+            _notificationService = null!;
             CurrentContent = this;
         }
 
@@ -93,14 +98,20 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public EmployeeManagementViewModel(
             IRepository<Employee> employeeRepository, 
+            IRepository<User> userRepository,
             TeamManagementViewModel teamsVM,
             IServiceProvider serviceProvider,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            INotificationService notificationService,
+            IAuthService authService)
         {
             _employeeRepository = employeeRepository;
+            _userRepository = userRepository;
             _teamsVM = teamsVM;
             _serviceProvider = serviceProvider;
             _dialogService = dialogService;
+            _notificationService = notificationService;
+            _authService = authService;
             
             _teamsVM.EditTeamRequested += (s, team) => 
             {
@@ -138,14 +149,17 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [RelayCommand]
         private void AddEmployee()
         {
-            AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _dialogService);
-            AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
-            AddEmployeePopup.EmployeeAdded += (s, e) => 
-            {
-                IsAddEmployeePopupVisible = false;
-                LoadData();
-            };
-            IsAddEmployeePopupVisible = true;
+             AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService);
+             AddEmployeePopup.Title = "Add New Employee";
+             AddEmployeePopup.SaveButtonText = "Create Employee";
+             AddEmployeePopup.EmployeeAdded += (s, e) => {
+                  IsAddEmployeePopupVisible = false;
+                  // Refresh list?
+                  LoadData();
+             };
+             AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
+
+             IsAddEmployeePopupVisible = true;
         }
 
         [RelayCommand]
@@ -157,7 +171,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] Attempting to edit employee: {employee.Id} - {employee.FirstName} {employee.LastName}");
                 
-                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _dialogService);
+                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService);
                 AddEmployeePopup.Load(employee);
                 
                 AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;

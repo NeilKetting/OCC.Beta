@@ -25,7 +25,7 @@ namespace OCC.Client.ViewModels.Home
 
         private readonly IAuthService _authService;
         private readonly ITimeService _timeService;
-        private readonly IRepository<ProjectTask> _projectTaskRepository;
+        private readonly IProjectTaskRepository _projectTaskRepository;
         private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<Customer> _customerRepository;
         private readonly IRepository<ProjectTask> _projectTaskModelRepository;
@@ -125,7 +125,7 @@ namespace OCC.Client.ViewModels.Home
                              ProjectSummaryViewModel projectSummary,
                              IAuthService authService,
                              ITimeService timeService,
-                             IRepository<ProjectTask> projectTaskRepository,
+                             IProjectTaskRepository projectTaskRepository,
                              IRepository<Project> projectRepository,
                              IRepository<Customer> customerRepository,
                              IRepository<ProjectTask> projectTaskModelRepository,
@@ -159,6 +159,7 @@ namespace OCC.Client.ViewModels.Home
             ProjectSummaryPage = new ProjectSummaryPageViewModel(projectSummary, new TeamSummaryViewModel());
             Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
+            TaskList.MyTasksOnly = true;
             
             // Subscribe to selection
             TaskList.TaskSelectionRequested += (s, idString) => 
