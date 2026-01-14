@@ -108,6 +108,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             {
                 BusyText = "Loading tasks...";
                 IsBusy = true;
+                ProjectGroups.Clear();
 
                 IEnumerable<ProjectTask> tasks;
                 if (MyTasksOnly)
@@ -136,8 +137,6 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 
                 // Let's Group by ProjectId.
                 var grouped = tasks.GroupBy(t => t.ProjectId);
-
-                ProjectGroups.Clear();
 
                 foreach (var group in grouped)
                 {

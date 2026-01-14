@@ -43,12 +43,13 @@ namespace OCC.API.Controllers
 
                 if (assignedToMe)
                 {
-                    // 1. Get current logged-in user's email/ID from Claims
-                    var userEmail = User.Identity?.Name;
-                    if (string.IsNullOrEmpty(userEmail)) return Unauthorized();
+                    // 1. Get current logged-in user's ID from Claims
+                    var userIdString = User.Identity?.Name;
+                    if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId)) 
+                        return Unauthorized();
 
-                    // 2. Find the User record to get their ID (assuming Identity.Name is Email)
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+                    // 2. Find the User record
+                    var user = await _context.Users.FindAsync(userId);
                     if (user == null) return Unauthorized();
 
                     // 3. Find the Employee linked to this User
