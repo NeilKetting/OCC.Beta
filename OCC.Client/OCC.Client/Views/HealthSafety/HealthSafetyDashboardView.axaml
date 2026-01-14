@@ -3,16 +3,127 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:OCC.Client.ViewModels.HealthSafety"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="OCC.Client.Views.HealthSafety.HealthSafetyDashboardView"
              x:DataType="vm:HealthSafetyDashboardViewModel">
     
-    <Grid Background="{DynamicResource AppBackgroundSlate}">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-            <PathIcon Data="{StaticResource IconHealthSafety}" Width="64" Height="64" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Health &amp; Safety" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Coming Soon" FontSize="18" Foreground="{DynamicResource TextSecondaryGray}" HorizontalAlignment="Center"/>
-            <TextBlock Text="This module is currently under development." FontSize="14" Foreground="{DynamicResource TextSecondaryGray}" HorizontalAlignment="Center" Opacity="0.7"/>
-        </StackPanel>
-    </Grid>
+    <ScrollViewer>
+        <Grid Background="{DynamicResource AppBackgroundSlate}" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Title -->
+                <RowDefinition Height="300"/> <!-- Top Row -->
+                <RowDefinition Height="300"/> <!-- Bottom Row -->
+                <RowDefinition Height="300"/> <!-- Demo Row 1 -->
+                <RowDefinition Height="300"/> <!-- Demo Row 2 -->
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Header -->
+            <TextBlock Text="HSEQ DASHBOARD" Classes="H1" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <!-- 1. Audit Scores -->
+            <Border Grid.Row="1" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Average Audit Score" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding AuditScoreSeries}" XAxes="{Binding AuditXAxes}" 
+                                        TooltipPosition="Top" LegendPosition="Right" />
+                </DockPanel>
+            </Border>
+
+            <!-- 2. Training Stats -->
+            <Border Grid.Row="1" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Training Completed 2025" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding TrainingSeries}" XAxes="{Binding TrainingXAxes}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 3. Safe Hours -->
+            <Border Grid.Row="2" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Safe Working Hours (Monthly)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding SafeHoursSeries}" XAxes="{Binding SafeHoursXAxes}" 
+                                        TooltipPosition="Top" LegendPosition="Right"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 4. Non Conformance (Pie Chart) -->
+            <Border Grid.Row="2" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Audit Non-Conformance Distribution" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:PieChart Series="{Binding NonConformanceSeries}" LegendPosition="Right" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 5. Trends (Spline) -->
+            <Border Grid.Row="3" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Incident Trends (Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding LineSeries}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 6. Stacked Composition -->
+            <Border Grid.Row="3" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Workforce Composition (Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding StackedSeries}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 7. Radar -->
+            <Border Grid.Row="4" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Skills Assessment (Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:PolarChart Series="{Binding RadarSeries}" AngleAxes="{Binding RadarAxes}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 8. Scatter -->
+            <Border Grid.Row="4" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Risk Correlation (Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding ScatterSeries}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 9. Financial (Candlesticks) -->
+            <Border Grid.Row="5" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Project Costs (Financial Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding FinancialSeries}" XAxes="{Binding FinancialXAxes}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 10. Gauge -->
+            <Border Grid.Row="5" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Completion Gauge (Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:PieChart Series="{Binding GaugeSeries}" TooltipPosition="Top" InitialRotation="-90" MaxAngle="270" />
+                </DockPanel>
+            </Border>
+
+            <!-- 11. Heatmap -->
+            <Border Grid.Row="6" Grid.Column="0" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Risk Matrix (Heatmap Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <lvc:CartesianChart Series="{Binding HeatSeries}" TooltipPosition="Top"/>
+                </DockPanel>
+            </Border>
+
+            <!-- 12. GeoMap -->
+            <Border Grid.Row="6" Grid.Column="1" Classes="Card" Margin="5">
+                <DockPanel>
+                    <TextBlock Text="Site Locations (GeoMap Demo)" Classes="H3" DockPanel.Dock="Top" Margin="0,0,0,10"/>
+                    <!-- <lvc:GeoMap Series="{Binding HeatSeries}" /> -->
+                    <TextBlock Text="GeoMap requires Map Assets" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+        </Grid>
+    </ScrollViewer>
 </UserControl>

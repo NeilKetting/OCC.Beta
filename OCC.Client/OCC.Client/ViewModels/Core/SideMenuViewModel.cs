@@ -21,6 +21,7 @@ using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Login;
 using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Messages;
 
 namespace OCC.Client.ViewModels.Core
 {
@@ -109,6 +110,12 @@ namespace OCC.Client.ViewModels.Core
         /// Gets whether the current user has permission to manage users.
         /// </summary>
         public bool CanManageUsers => _permissionService.CanAccess("UserManagement");
+
+        [ObservableProperty]
+        private bool _isDarkMode;
+
+        [ObservableProperty]
+        private string _themeToggleText = "Enable Dark Mode";
 
         /// <summary>
         /// Gets whether the current user has permission to view staff management.
@@ -374,7 +381,16 @@ namespace OCC.Client.ViewModels.Core
         private void Settings() { }
 
         [RelayCommand]
-        private void ToggleTheme() { }
+        private void ToggleTheme() 
+        {
+            IsDarkMode = !IsDarkMode;
+            App.ChangeTheme(IsDarkMode);
+            ThemeToggleText = IsDarkMode ? "Enable Light Mode" : "Enable Dark Mode";
+            
+            // Close menu
+            IsPreferencesOpen = false;
+            UpdateLastActionMessage(IsDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled");
+        }
 
         [RelayCommand]
         private void AccountBilling() { }
@@ -512,6 +528,14 @@ namespace OCC.Client.ViewModels.Core
         {
             IsQuickActionsOpen = false;
             WeakReferenceMessenger.Default.Send(new TestBirthdayMessage());
+        }
+
+        [RelayCommand]
+        public void GoToDevTest()
+        {
+            IsQuickActionsOpen = false;
+            // Send navigation test
+            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("DevTest"));
         }
 
         #endregion

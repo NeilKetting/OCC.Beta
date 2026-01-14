@@ -13,6 +13,7 @@ using OCC.Client.ViewModels.Core;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OCC.Client.ViewModels.Projects
 {
@@ -21,6 +22,7 @@ namespace OCC.Client.ViewModels.Projects
         #region Private Members
 
         private readonly IProjectManager _projectManager;
+        private readonly IServiceProvider _serviceProvider;
         private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
         private List<ProjectTask> _rootTasks = new();
 
@@ -46,6 +48,15 @@ namespace OCC.Client.ViewModels.Projects
 
         [ObservableProperty]
         private ProjectGanttViewModel _ganttVM;
+
+        [ObservableProperty]
+        private ViewModels.Projects.Tasks.TaskDetailViewModel? _selectedTaskDetailVM;
+
+        [ObservableProperty]
+        private bool _isTaskDetailOpen;
+
+        [ObservableProperty]
+        private bool _isPinned;
 
         [ObservableProperty]
         private Guid _currentProjectId;
@@ -100,15 +111,17 @@ namespace OCC.Client.ViewModels.Projects
         public ProjectDetailViewModel()
         {
             _projectManager = null!;
+            _serviceProvider = null!;
             _topBar = new Shared.ProjectTopBarViewModel();
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel();
             _currentView = _listVM;
         }
         
-        public ProjectDetailViewModel(IProjectManager projectManager)
+        public ProjectDetailViewModel(IProjectManager projectManager, IServiceProvider serviceProvider)
         {
             _projectManager = projectManager;
+            _serviceProvider = serviceProvider;
             _topBar = new Shared.ProjectTopBarViewModel();
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
@@ -132,6 +145,89 @@ namespace OCC.Client.ViewModels.Projects
         #endregion
 
         #region Commands
+
+        [RelayCommand]
+        private void PreviewTaskDetail(ProjectTask task)
+        {
+            // Cancel any pending close
+            _previewCancellation?.Cancel();
+            _previewCancellation = new System.Threading.CancellationTokenSource();
+
+            LoadTaskDetail(task, pin: false);
+        }
+
+        [RelayCommand]
+        private void PinTaskDetail(ProjectTask task)
+        {
+            // Cancel any pending close
+            _previewCancellation?.Cancel();
+            _previewCancellation = new System.Threading.CancellationTokenSource();
+
+            LoadTaskDetail(task, pin: true);
+        }
+
+        private System.Threading.CancellationTokenSource? _previewCancellation;
+
+        [RelayCommand]
+        private async Task EndPreview()
+        {
+            if (IsPinned) return;
+
+            // Debounce close to prevent flickering during double-click or accidental release
+            var cts = _previewCancellation;
+            if (cts == null) return;
+
+            try
+            {
+                await Task.Delay(200, cts.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+
+            if (!IsPinned && IsTaskDetailOpen && !cts.IsCancellationRequested)
+            {
+                IsTaskDetailOpen = false;
+                SelectedTaskDetailVM = null;
+            }
+        }
+
+        private void LoadTaskDetail(ProjectTask task, bool pin)
+        {
+            if (task == null || task.HasChildren) return; 
+
+            // Optimization: If already loaded same task, just update pin status
+            if (SelectedTaskDetailVM != null && SelectedTaskDetailVM.Task.Id == task.Id)
+            {
+                IsPinned = pin;
+                IsTaskDetailOpen = true;
+                return;
+            }
+
+            var vm = _serviceProvider.GetRequiredService<ViewModels.Projects.Tasks.TaskDetailViewModel>();
+            vm.LoadTaskById(task.Id);
+            vm.CloseRequested += TaskDetailVM_CloseRequested;
+            
+            SelectedTaskDetailVM = vm;
+            IsPinned = pin;
+            IsTaskDetailOpen = true;
+        }
+
+        private void TaskDetailVM_CloseRequested(object? sender, EventArgs e)
+        {
+            _previewCancellation?.Cancel();
+            IsTaskDetailOpen = false;
+            SelectedTaskDetailVM = null;
+            IsPinned = false;
+        }
+
+        [RelayCommand]
+        private void OpenTaskDetail(ProjectTask task)
+        {
+            // Legacy/Fallback - treats as Pin
+            PinTaskDetail(task);
+        }
 
         [RelayCommand]
         private void AddNewTask()

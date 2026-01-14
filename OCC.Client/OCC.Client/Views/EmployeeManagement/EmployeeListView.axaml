@@ -13,11 +13,11 @@
     <Grid RowDefinitions="Auto, Auto, *">
         <!-- Tool Bar -->
         <!-- Stats Bar -->
-        <Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
-            <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+        <Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">
+            <Grid ColumnDefinitions="*, *, Auto, Auto">
 
-                <StackPanel Grid.Column="0">
-                    <Grid ColumnDefinitions="*, Auto" Margin="0">
+                <StackPanel Grid.Column="0" >
+                    <Grid ColumnDefinitions="*, *" >
 				<StackPanel Grid.Column="0" Spacing="5">
 					<TextBlock Text="Employee Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
 					<TextBlock Text="Create employees, set up teams" Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />

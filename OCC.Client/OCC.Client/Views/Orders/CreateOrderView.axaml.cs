@@ -133,5 +133,24 @@ namespace OCC.Client.Views.Orders
                  }
              }
         }
+        private void AutoCompleteBox_GotFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is AutoCompleteBox box)
+            {
+                // Delay slightly to ensure focus is settled before opening
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    box.IsDropDownOpen = true;
+                });
+            }
+        }
+
+        private void TextBox_GotFocus(object? sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                tb.SelectAll();
+            }
+        }
     }
 }

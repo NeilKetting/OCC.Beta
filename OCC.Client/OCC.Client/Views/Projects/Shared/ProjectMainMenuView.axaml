@@ -16,14 +16,14 @@
 				<StackPanel.Resources>
 					<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 				</StackPanel.Resources>
-				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="My Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='My Summary'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Projects" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Projects'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconSummary}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="PROJECTS" VerticalAlignment="Center"/>
 					</StackPanel>
 				</Button>
 
-				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Project Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Project Summary'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Dashboard'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
@@ -32,9 +32,9 @@
 
 				<Separator Background="{DynamicResource BorderGray}" Width="1" Height="24" VerticalAlignment="Center" Margin="5,0"/>
 
-				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
+				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Reports" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Reports'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<PathIcon Data="{StaticResource IconList}" Classes="IconStyle" Width="16" Height="16"/>
+						<PathIcon Data="{StaticResource IconReport}" Classes="IconStyle" Width="16" Height="16"/>
 						<TextBlock Text="REPORTS" VerticalAlignment="Center"/>
 					</StackPanel>
 				</Button>				

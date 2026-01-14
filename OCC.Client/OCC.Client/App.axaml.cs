@@ -32,7 +32,8 @@ using OCC.Shared.Models;
 using Serilog;
 using System;
 using System.Linq;
-
+using LiveChartsCore; 
+using LiveChartsCore.SkiaSharpView; 
 
 namespace OCC.Client
 {
@@ -43,6 +44,34 @@ namespace OCC.Client
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            LiveCharts.Configure(config => 
+                config
+                    .AddSkiaSharp()
+                    .AddDefaultMappers()
+                    .AddLightTheme()
+            );
+        }
+
+        public static void ChangeTheme(bool isDarkMode)
+        {
+            if (Current == null) 
+            {
+                System.Diagnostics.Debug.WriteLine("ChangeTheme: Current Application is null!");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"ChangeTheme: Switching to {(isDarkMode ? "Dark" : "Light")}");
+
+            var merged = Current.Resources.MergedDictionaries;
+            merged.Clear();
+            
+            var newTheme = isDarkMode 
+                ? new Avalonia.Markup.Xaml.Styling.ResourceInclude(new Uri("avares://OCC.Client/Styles/Themes/DarkMode.axaml")) { Source = new Uri("avares://OCC.Client/Styles/Themes/DarkMode.axaml") }
+                : new Avalonia.Markup.Xaml.Styling.ResourceInclude(new Uri("avares://OCC.Client/Styles/Themes/LightMode.axaml")) { Source = new Uri("avares://OCC.Client/Styles/Themes/LightMode.axaml") };
+            
+            merged.Add(newTheme);
+            System.Diagnostics.Debug.WriteLine("ChangeTheme: Theme switched.");
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -196,6 +225,7 @@ namespace OCC.Client
             services.AddTransient<ProjectSummaryViewModel>();
             services.AddTransient<TaskListViewModel>();
             services.AddTransient<ProjectListViewModel>();
+            services.AddTransient<ProjectReportViewModel>();
             services.AddTransient<ProjectDetailViewModel>();
 
             services.AddTransient<ProjectGanttViewModel>();
@@ -223,8 +253,15 @@ namespace OCC.Client
             services.AddTransient<ProfileViewModel>();
             
             // Health Safety
+            // Health Safety
             services.AddTransient<HealthSafetyViewModel>();
             services.AddTransient<HealthSafetyDashboardViewModel>();
+            services.AddTransient<HealthSafetyMenuViewModel>();
+            services.AddTransient<PerformanceMonitoringViewModel>();
+            services.AddTransient<IncidentsViewModel>();
+            services.AddTransient<TrainingViewModel>();
+            services.AddTransient<AuditsViewModel>();
+            services.AddTransient<DocumentsViewModel>();
 
             // Orders
             services.AddTransient<IOrderManager, OrderManager>();
@@ -246,6 +283,7 @@ namespace OCC.Client
             services.AddTransient<CompanySettingsViewModel>();
             services.AddTransient<UserPreferencesViewModel>(); // New
             services.AddTransient<ViewModels.Developer.DeveloperViewModel>();
+            services.AddTransient<ViewModels.Dev.TestViewModel>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

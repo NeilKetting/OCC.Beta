@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.HealthSafety"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="OCC.Client.Views.HealthSafety.AuditsView"
+             x:DataType="vm:AuditsViewModel">
+    <Grid Background="{DynamicResource AppBackgroundSlate}">
+        <Grid RowDefinitions="Auto, *">
+            <!-- Header -->
+            <Border Grid.Row="0" Classes="TopHeader" Margin="10,10,10,0">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <PathIcon Data="{StaticResource IconAudit}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
+                    <TextBlock Text="Audits &amp; Inspections" Classes="H1" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Data Table -->
+            <Border Grid.Row="1" Classes="Card" Margin="10">
+                <DataGrid ItemsSource="{Binding Audits}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="Auto"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="*"/>
+                        <DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="*"/>
+                        
+                        <!-- Scores -->
+                        <DataGridTemplateColumn Header="Score" Width="1.5*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="30, *">
+                                        <TextBlock Text="{Binding ActualScore, StringFormat='{}{0}%'}" VerticalAlignment="Center"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding ActualScore}" Maximum="100" Height="10" Margin="10,0"
+                                                     Foreground="{DynamicResource PrimaryTeal}" Background="#E0E0E0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Non-Conformance" Binding="{Binding NonConformance}" Width="2*"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

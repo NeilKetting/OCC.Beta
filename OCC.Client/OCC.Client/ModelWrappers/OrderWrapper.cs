@@ -158,8 +158,12 @@ namespace OCC.Client.ModelWrappers
             _model.Lines.Clear();
             foreach (var wrapper in Lines)
             {
-                wrapper.CommitToModel();
-                _model.Lines.Add(wrapper.Model);
+                // Only save lines that have at least a description or item code
+                if (!string.IsNullOrWhiteSpace(wrapper.Description) || !string.IsNullOrWhiteSpace(wrapper.ItemCode))
+                {
+                    wrapper.CommitToModel();
+                    _model.Lines.Add(wrapper.Model);
+                }
             }
             
             // Sync totals to model - REMOVED assignments to read-only properties

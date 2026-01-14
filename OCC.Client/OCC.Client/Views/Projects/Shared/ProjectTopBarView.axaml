@@ -19,13 +19,12 @@
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center" Margin="20,0">
                 <!-- Project Name -->
                 <!-- Project Name with Dropdown -->
-                <Button Classes="GhostButton" 
+                <Button Classes="Ghost" 
                         VerticalAlignment="Center" 
-                        Foreground="{DynamicResource TextPrimaryDark}" 
                         Padding="5,2">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="{Binding ProjectName, FallbackValue=Engen 1 Stop}" FontSize="20" FontWeight="SemiBold"/>
-                        <PathIcon Data="{StaticResource IconChevronDown}" Width="12" Height="12" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+                        <PathIcon Data="{StaticResource IconChevronDown}" Width="12" Height="12" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}"/>
                     </StackPanel>
                     
                     <Button.Flyout>
@@ -49,7 +48,8 @@
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>
-                <!-- Project Members Icon -->
+                <!-- Site Manager Members Icon -->
+                <TextBlock Text="Site Manager" FontSize="{StaticResource FontSizeMedium}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource PrimaryTeal}">
                     <TextBlock Text="{Binding ProjectIconInitials}" Foreground="White" FontWeight="Bold" FontSize="12" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -60,44 +60,44 @@
             <ScrollViewer Grid.Column="2" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" Margin="20,0">
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconList}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="LIST" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Gantt" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Gantt'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Gantt" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Gantt'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconGantt}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="GANTT" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Sheet" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Sheet'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Sheet" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Sheet'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconSheet}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="SHEET" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Dashboard'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Dashboard'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconPortfolio}" Classes="IconStyle" Width="16" Height="16"/>
+                            <PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Calendar" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Calendar'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Calendar" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Calendar'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconCalendar}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="CALENDAR" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Classes="TabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Files" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Files'}">
+                    <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Files" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Files'}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconFiles}" Classes="IconStyle" Width="16" Height="16"/>
+                            <PathIcon Data="{StaticResource IconFile}" Classes="IconStyle" Width="16" Height="16"/>
                             <TextBlock Text="FILES" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

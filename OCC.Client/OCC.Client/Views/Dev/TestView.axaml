@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OCC.Client.ViewModels.Dev"
+             xmlns:wrappers="using:OCC.Client.ModelWrappers"
+             xmlns:models="using:OCC.Shared.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="OCC.Client.Views.Dev.TestView"
+             x:DataType="vm:TestViewModel">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <AutoCompleteBox ItemsSource="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).DummyItems}"
+                           Text="{Binding ItemCode, Mode=TwoWay}"
+                           Watermark="Search..."
+                           MinimumPrefixLength="0"
+                           FilterMode="Contains"
+                           GotFocus="AutoCompleteBox_GotFocus"
+                           BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DescriptionTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <TextBox Text="{Binding Description, Mode=TwoWay}"
+                     GotFocus="TextBox_GotFocus"
+                     Watermark="Description"
+                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" VerticalContentAlignment="Center"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="QtyTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <TextBox Text="{Binding QuantityOrdered, Mode=TwoWay}"
+                     GotFocus="TextBox_GotFocus"
+                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="UnitTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <ComboBox SelectedItem="{Binding UnitOfMeasure, Mode=TwoWay}"
+                      ItemsSource="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).AvailableUOMs}"
+                      BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" HorizontalAlignment="Stretch" VerticalContentAlignment="Center"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PriceTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <TextBox Text="{Binding UnitPrice, Mode=TwoWay}"
+                     GotFocus="TextBox_GotFocus"
+                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TotalTemplate" x:DataType="wrappers:OrderLineWrapper">
+            <TextBlock Text="{Binding LineTotal, StringFormat='{}{0:N2}'}"
+                     Focusable="False"
+                     Padding="4,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto, Auto, *, *" Margin="20">
+        <TextBlock Text="Developer Test View: Spreadsheet Editing Simulation" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <!-- Manual Simulation Header Row -->
+        <Grid Grid.Row="1" Background="#F8F9FA" Height="30" Margin="0,0,200,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/> <!-- Item -->
+                <ColumnDefinition Width="3*"/> <!-- Description -->
+                <ColumnDefinition Width="80"/> <!-- Qty -->
+                <ColumnDefinition Width="80"/> <!-- Unit -->
+                <ColumnDefinition Width="100"/> <!-- Price -->
+                <ColumnDefinition Width="100"/> <!-- Total -->
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderThickness="1,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Item" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="5,0"/></Border>
+            <Border Grid.Column="1" BorderThickness="0,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Description" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="5,0"/></Border>
+            <Border Grid.Column="2" BorderThickness="0,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Qty" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
+            <Border Grid.Column="3" BorderThickness="0,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Unit" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
+            <Border Grid.Column="4" BorderThickness="0,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Price" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
+            <Border Grid.Column="5" BorderThickness="0,1,1,1" BorderBrush="#E0E0E0"><TextBlock Text="Total" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
+        </Grid>
+
+        <!-- Manual Simulation Data Rows -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto" Margin="0,0,200,0">
+            <ItemsControl ItemsSource="{Binding Source.Items}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="wrappers:OrderLineWrapper">
+                        <Grid Height="30">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Delete Row" 
+                                              Command="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).RemoveLineCommand}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource delete_regular}" Foreground="Red"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
+
+                            <Border Grid.Column="0" BorderThickness="1,0,1,1" BorderBrush="#E0E0E0">
+                                <AutoCompleteBox ItemsSource="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).DummyItems}"
+                                               Text="{Binding ItemCode, Mode=TwoWay}"
+                                               Watermark="Search..."
+                                               MinimumPrefixLength="0"
+                                               FilterMode="Contains"
+                                               GotFocus="AutoCompleteBox_GotFocus"
+                                               BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"/>
+                            </Border>
+
+                            <Border Grid.Column="1" BorderThickness="0,0,1,1" BorderBrush="#E0E0E0">
+                                <TextBox Text="{Binding Description, Mode=TwoWay}"
+                                         GotFocus="TextBox_GotFocus"
+                                         Watermark="Description"
+                                         BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" VerticalContentAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="2" BorderThickness="0,0,1,1" BorderBrush="#E0E0E0">
+                                <TextBox Text="{Binding QuantityOrdered, Mode=TwoWay}"
+                                         GotFocus="TextBox_GotFocus"
+                                         BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="3" BorderThickness="0,0,1,1" BorderBrush="#E0E0E0">
+                                <ComboBox SelectedItem="{Binding UnitOfMeasure, Mode=TwoWay}"
+                                          ItemsSource="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).AvailableUOMs}"
+                                          BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" HorizontalAlignment="Stretch" VerticalContentAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="4" BorderThickness="0,0,1,1" BorderBrush="#E0E0E0">
+                                <TextBox Text="{Binding UnitPrice, Mode=TwoWay}"
+                                         GotFocus="TextBox_GotFocus"
+                                         BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+                            </Border>
+
+                            <Border Grid.Column="5" BorderThickness="0,0,1,1" BorderBrush="#E0E0E0" Background="#F9F9F9">
+                                <TextBlock Text="{Binding LineTotal, StringFormat='{}{0:N2}'}"
+                                         Padding="4,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- DataGrid Section -->
+        <Grid Grid.Row="3" RowDefinitions="Auto, *" Margin="0,40,200,0">
+            <TextBlock Grid.Row="0" Text="Standard DataGrid" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+            
+            <DataGrid Grid.Row="1" ItemsSource="{Binding DataGridSource}"
+                      AutoGenerateColumns="False"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      BorderThickness="1"
+                      BorderBrush="#E0E0E0"
+                      GridLinesVisibility="All"
+                      RowHeight="30"
+                      HeadersVisibility="Column">
+                <DataGrid.Styles>
+                    <Style Selector="DataGridRow" x:DataType="wrappers:OrderLineWrapper">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="Delete Row" 
+                                              Command="{Binding $parent[UserControl].((vm:TestViewModel)DataContext).RemoveLineCommand}"
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource delete_regular}" Foreground="Red"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.Styles>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Item" Width="2*" CellTemplate="{StaticResource ItemTemplate}"/>
+                    <DataGridTemplateColumn Header="Description" Width="3*" CellTemplate="{StaticResource DescriptionTemplate}"/>
+                    <DataGridTemplateColumn Header="Qty" Width="Auto" CellTemplate="{StaticResource QtyTemplate}"/>
+                    <DataGridTemplateColumn Header="Unit" Width="Auto" CellTemplate="{StaticResource UnitTemplate}"/>
+                    <DataGridTemplateColumn Header="Price" Width="Auto" CellTemplate="{StaticResource PriceTemplate}"/>
+                    <DataGridTemplateColumn Header="Total" Width="Auto" CellTemplate="{StaticResource TotalTemplate}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Grid>
+</UserControl>

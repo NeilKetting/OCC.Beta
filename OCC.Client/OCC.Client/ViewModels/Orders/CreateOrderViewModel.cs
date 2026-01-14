@@ -237,9 +237,40 @@ namespace OCC.Client.ViewModels.Orders
 
         private void OnLineChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(OrderLine.LineTotal) || e.PropertyName == nameof(OrderLine.VatAmount))
+            if (e.PropertyName == nameof(OrderLineWrapper.LineTotal) || 
+                e.PropertyName == nameof(OrderLineWrapper.ItemCode) || 
+                e.PropertyName == nameof(OrderLineWrapper.Description))
             {
                 RecalculateTotals();
+                if (sender is OrderLineWrapper line)
+                {
+                    CheckForNewRow(line);
+                }
+            }
+        }
+
+        private void CheckForNewRow(OrderLineWrapper changedItem)
+        {
+            if (CurrentOrder?.Lines == null || IsReadOnly) return;
+
+            var lastItem = CurrentOrder.Lines.LastOrDefault();
+            if (lastItem == changedItem)
+            {
+                bool hasProduct = !string.IsNullOrWhiteSpace(lastItem.ItemCode);
+                bool hasDesc = !string.IsNullOrWhiteSpace(lastItem.Description);
+                bool hasPrice = lastItem.LineTotal > 0;
+
+                if (hasProduct || hasDesc || hasPrice)
+                {
+                    var existsEmpty = CurrentOrder.Lines.Any(x => string.IsNullOrWhiteSpace(x.ItemCode) && 
+                                                                string.IsNullOrWhiteSpace(x.Description) && 
+                                                                x.LineTotal == 0);
+                    
+                    if (!existsEmpty)
+                    {
+                        CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
+                    }
+                }
             }
         }
 
@@ -314,12 +345,29 @@ namespace OCC.Client.ViewModels.Orders
                 }
             }
 
-            NewLine.CommitToModel(); // Sync specific fields if needed, though wrapper does it.
-            CurrentOrder.Lines.Add(NewLine);
+            NewLine.CommitToModel();
+
+            // Smart-add: if the first line is empty, replace it. Otherwise, find the first empty row or insert at 0.
+            bool added = false;
+            for (int i = 0; i < CurrentOrder.Lines.Count; i++)
+            {
+                var line = CurrentOrder.Lines[i];
+                if (string.IsNullOrWhiteSpace(line.ItemCode) && string.IsNullOrWhiteSpace(line.Description) && line.QuantityOrdered == 0)
+                {
+                    CurrentOrder.Lines[i] = NewLine;
+                    added = true;
+                    break;
+                }
+            }
+
+            if (!added)
+            {
+                CurrentOrder.Lines.Insert(0, NewLine);
+            }
+            
             // Reset New Line
             NewLine = new OrderLineWrapper(new OrderLine { QuantityOrdered = 1 });
-        }
-        
+        }        
         /// <summary>
         /// Removes a line item from the order.
         /// </summary>
@@ -329,8 +377,32 @@ namespace OCC.Client.ViewModels.Orders
             if (item is OrderLineWrapper line)
             {
                 CurrentOrder.Lines.Remove(line);
+                
+                // If we removed the last row and now it's empty, add one back
+                if (CurrentOrder.Lines.Count == 0)
+                {
+                    AddEmptyLine();
+                }
             }
-            OnPropertyChanged(nameof(CurrentOrder.TotalAmount));
+            RecalculateTotals();
+        }
+
+        /// <summary>
+        /// Inserts an empty line above the specified line.
+        /// </summary>
+        [RelayCommand]
+        public void InsertLine(object parameter)
+        {
+            if (parameter is OrderLineWrapper anchor && CurrentOrder?.Lines != null)
+            {
+                var index = CurrentOrder.Lines.IndexOf(anchor);
+                if (index >= 0)
+                {
+                    var newLine = new OrderLineWrapper(new OrderLine { QuantityOrdered = 1, UnitOfMeasure = "ea" });
+                    newLine.PropertyChanged += OnLineChanged;
+                    CurrentOrder.Lines.Insert(index, newLine);
+                }
+            }
         }
 
         /// <summary>
@@ -799,62 +871,69 @@ namespace OCC.Client.ViewModels.Orders
             CurrentOrder.Attention = string.Empty;
             UpdateOrderTypeFlags();
 
-            // Pre-fill with empty rows for spreadsheet-style entry
-            for (int i = 0; i < 20; i++)
-            {
-                CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "" })); 
-            }
+            // Start with EXACTLY one row (TestView style)
+            CurrentOrder.Lines.Clear();
+            CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
+            
             SetupLineListeners();
         }
 
         /// <summary>
         /// Loads an existing order into the ViewModel for viewing or editing.
         /// </summary>
-        public void LoadExistingOrder(Order order)
+        public async Task LoadExistingOrder(Order order)
         {
-            CurrentOrder = new OrderWrapper(order);
-            if (CurrentOrder.SupplierId.HasValue)
-                SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == CurrentOrder.SupplierId.Value);
-
-            if (CurrentOrder.CustomerId.HasValue)
-                SelectedCustomer = Customers.FirstOrDefault(c => c.Id == CurrentOrder.CustomerId.Value);
-
-            if (CurrentOrder.ProjectId.HasValue)
-                SelectedProject = Projects.FirstOrDefault(p => p.Id == CurrentOrder.ProjectId.Value);
-
-            IsSiteDelivery = CurrentOrder.DestinationType == OrderDestinationType.Site;
-            IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
-            
-            SetupLineListeners();
-            
-            UpdateOrderTypeFlags();
-            
-            if (CurrentOrder.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
-            else IsOfficeDelivery = true;
-
-            // CHECK: Allow editing as long as the order is NOT Completed or Cancelled.
-            // User confirmed: "If the order says completed then we lock. Orders partial delivers we leave it unlocked."
-            IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
-            
-
-            // If it is editable, we should add the empty "spreadsheet rows" so user can add more items easily
-            if (!IsReadOnly)
+            try
             {
-                SetupLineListeners(); // Ensure existing lines are hooked up
+                IsBusy = true;
                 
-                // Add padding rows
-                int currentCount = CurrentOrder.Lines?.Count ?? 0;
-                // Pad to 20 rows
-                if (currentCount < 20)
-                {
-                    for (int i = 0; i < (20 - currentCount); i++)
-                    {
-                        CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "" }));
-                    }
-                }
-            }
+                // Fetch full order to ensure all lines are included (List view might only provide summary)
+                var fullOrder = await _orderManager.GetOrderByIdAsync(order.Id) ?? order;
 
-            OnPropertyChanged(nameof(CurrentOrder));
+                CurrentOrder = new OrderWrapper(fullOrder);
+                
+                if (CurrentOrder.SupplierId.HasValue)
+                    SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == CurrentOrder.SupplierId.Value);
+
+                if (CurrentOrder.CustomerId.HasValue)
+                    SelectedCustomer = Customers.FirstOrDefault(c => c.Id == CurrentOrder.CustomerId.Value);
+
+                if (CurrentOrder.ProjectId.HasValue)
+                    SelectedProject = Projects.FirstOrDefault(p => p.Id == CurrentOrder.ProjectId.Value);
+
+                IsSiteDelivery = CurrentOrder.DestinationType == OrderDestinationType.Site;
+                IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
+            
+                SetupLineListeners();
+            
+                UpdateOrderTypeFlags();
+            
+                if (CurrentOrder.DestinationType == OrderDestinationType.Site) IsSiteDelivery = true;
+                else IsOfficeDelivery = true;
+
+                // CHECK: Allow editing as long as the order is NOT Completed or Cancelled.
+                // User confirmed: "If the order says completed then we lock. Orders partial delivers we leave it unlocked."
+                IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
+            
+                // If it is editable, ensure at least one row exists or add one at the end if needed
+                if (!IsReadOnly && CurrentOrder.Lines != null)
+                {
+                    // Always add an empty row for editing convenience
+                    CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
+                    SetupLineListeners(); // Hook up all lines including the new one
+                }
+
+                OnPropertyChanged(nameof(CurrentOrder));
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load order details");
+                await _dialogService.ShowAlertAsync("Error", "Failed to load order details.");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         /// <summary>
@@ -866,7 +945,7 @@ namespace OCC.Client.ViewModels.Orders
             if (savedOrder != null)
             {
                  // Toast removed
-                LoadExistingOrder(savedOrder);
+                await LoadExistingOrder(savedOrder);
                 if (pendingLine != null) NewLine = new OrderLineWrapper(pendingLine);
                 if (!string.IsNullOrEmpty(searchTerm))
                 {

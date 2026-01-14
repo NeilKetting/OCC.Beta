@@ -6,6 +6,8 @@
              xmlns:conv="clr-namespace:OCC.Client.Converters"
              xmlns:proj="clr-namespace:OCC.Client.Views.Projects"
              xmlns:shared="clr-namespace:OCC.Client.Views.Projects.Shared"
+             xmlns:vm_tasks="clr-namespace:OCC.Client.ViewModels.Projects.Tasks"
+             xmlns:task_widgets="clr-namespace:OCC.Client.Views.Projects.Tasks.Widgets"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="OCC.Client.Views.Projects.ProjectDetailView"
              x:DataType="vm:ProjectDetailViewModel">
@@ -14,6 +16,7 @@
         <conv:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
         <conv:IntToIndentationConverter x:Key="IntToIndentationConverter"/>
         <conv:NameToInitialsConverter x:Key="NameToInitialsConverter"/>
+        <conv:UnassignedToVisibilityConverter x:Key="UnassignedToVisibilityConverter"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -63,8 +66,10 @@
                                   IsReadOnly="True"
                                   GridLinesVisibility="Horizontal"
                                   HorizontalGridLinesBrush="{DynamicResource BorderGray}"
-                                  BorderThickness="0"
-                                  Margin="20">
+                                  Margin="20"
+                                  DoubleTapped="TaskGrid_DoubleTapped"
+                                  PointerPressed="TaskGrid_PointerPressed"
+                                  PointerReleased="TaskGrid_PointerReleased">
                             <DataGrid.Columns>
                                 <!-- Checkbox Column -->
                                 <DataGridTemplateColumn Width="Auto">
@@ -106,69 +111,6 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- Site Manager -->
-                                <DataGridTemplateColumn Header="SITE MANAGER" Width="Auto">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                                <Button Classes="Ghost" 
-                                                        Padding="0" 
-                                                        Theme="{StaticResource {x:Type Button}}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <Panel>
-                                                            <Border Width="28" Height="28" CornerRadius="14" 
-                                                                    Background="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).SiteManagerColor}">
-                                                                <TextBlock Text="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).SiteManagerInitials}"
-                                                                           Foreground="White"
-                                                                           FontWeight="Bold"
-                                                                           FontSize="11"
-                                                                           HorizontalAlignment="Center"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Border>
-                                                        </Panel>
-                                                        <PathIcon Data="{StaticResource IconChevronDown}" 
-                                                                  Width="10" Height="10" 
-                                                                  Foreground="{DynamicResource TextSecondaryGray}"
-                                                                  VerticalAlignment="Center"/>
-                                                    </StackPanel>
-
-                                                    <Button.Flyout>
-                                                        <Flyout Placement="BottomEdgeAlignedLeft">
-                                                            <StackPanel Width="220" Spacing="8" Margin="4">
-                                                                <TextBlock Text="Assign Site Manager" FontWeight="SemiBold" FontSize="12"/>
-                                                                <TextBox Watermark="Search managers..." 
-                                                                         Text="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).ManagerSearchText, Mode=TwoWay}"/>
-                                                                <ListBox ItemsSource="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).FilteredSiteManagers}"
-                                                                         Background="Transparent">
-                                                                    <ListBox.ItemTemplate>
-                                                                        <DataTemplate>
-                                                                            <Button Command="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).AssignSiteManagerCommand}"
-                                                                                    CommandParameter="{Binding}"
-                                                                                    Background="Transparent"
-                                                                                    Padding="4"
-                                                                                    HorizontalAlignment="Stretch"
-                                                                                    Theme="{StaticResource {x:Type Button}}">
-                                                                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                                                                    <Border Width="24" Height="24" CornerRadius="12" Background="{DynamicResource PrimaryTeal}">
-                                                                                         <TextBlock Text="{Binding DisplayName, Converter={StaticResource NameToInitialsConverter}}" 
-                                                                                                    Foreground="White" FontSize="10" FontWeight="Bold"
-                                                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                                    </Border>
-                                                                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" FontSize="12"/>
-                                                                                </StackPanel>
-                                                                            </Button>
-                                                                        </DataTemplate>
-                                                                    </ListBox.ItemTemplate>
-                                                                </ListBox>
-                                                            </StackPanel>
-                                                        </Flyout>
-                                                    </Button.Flyout>
-                                                </Button>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-
                                 <!-- Assigned To -->
                                 <DataGridTemplateColumn Width="200">
                                     <DataGridTemplateColumn.Header>
@@ -176,7 +118,8 @@
                                     </DataGridTemplateColumn.Header>
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource PrimaryTealLight}" HorizontalAlignment="Center">
+                                            <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource PrimaryTealLight}" HorizontalAlignment="Center"
+                                                    IsVisible="{Binding AssignedTo, Converter={StaticResource UnassignedToVisibilityConverter}}">
                                                 <TextBlock Text="{Binding AssignedTo}"
                                                            VerticalAlignment="Center"
                                                            HorizontalAlignment="Center"
@@ -273,18 +216,31 @@
         <DataTemplate DataType="{x:Type vm:ProjectGanttViewModel}" x:DataType="vm:ProjectGanttViewModel">
              <proj:ProjectGanttView/>
         </DataTemplate>
+        
+        <!-- Task Detail View Template -->
+        <DataTemplate DataType="{x:Type vm_tasks:TaskDetailViewModel}">
+             <task_widgets:TaskDetailView/>
+        </DataTemplate>
     </UserControl.DataTemplates>
 
     <Grid Background="White" RowDefinitions="Auto, *">
         <!-- Top Project Navigation Bar -->
         <shared:ProjectTopBarView DataContext="{Binding TopBar}" Grid.Row="0"/>
 
-        <!-- Main Content (List / Gantt Swapping) -->
-        <TransitioningContentControl Content="{Binding CurrentView}" Grid.Row="1">
-             <TransitioningContentControl.PageTransition>
-                  <CrossFade Duration="0:00:00.250" />
-             </TransitioningContentControl.PageTransition>
-        </TransitioningContentControl>
+        <!-- Main Content (List / Gantt Swapping) with Slide-Over Detail View -->
+        <SplitView Grid.Row="1" DisplayMode="Overlay" PanePlacement="Right" OpenPaneLength="800" IsPaneOpen="{Binding IsTaskDetailOpen, Mode=TwoWay}">
+            <SplitView.Pane>
+                <ContentControl Content="{Binding SelectedTaskDetailVM}"/>
+            </SplitView.Pane>
+            
+            <SplitView.Content>
+                <TransitioningContentControl Content="{Binding CurrentView}">
+                     <TransitioningContentControl.PageTransition>
+                          <CrossFade Duration="0:00:00.250" />
+                     </TransitioningContentControl.PageTransition>
+                </TransitioningContentControl>
+            </SplitView.Content>
+        </SplitView>
 
         <!-- Saving -->
         <StackPanel Grid.RowSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">

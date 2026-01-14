@@ -229,7 +229,7 @@ namespace OCC.Client.ViewModels.Orders
         public async void OpenViewOrder(Order order)
         {
             await CreateOrderVM.LoadData(); 
-            CreateOrderVM.LoadExistingOrder(order);
+            await CreateOrderVM.LoadExistingOrder(order);
 // CreateOrderVM.IsReadOnly = true; // Handled by LoadExistingOrder based on Status
             IsOrderDetailVisible = true;
         }
@@ -254,7 +254,7 @@ namespace OCC.Client.ViewModels.Orders
             OrderListVM.ViewOrderRequested += async (s, o) => 
             { 
                  await CreateOrderVM.LoadData();
-                 CreateOrderVM.LoadExistingOrder(o);
+                 await CreateOrderVM.LoadExistingOrder(o);
                  // CreateOrderVM.IsReadOnly = true; // Handled by LoadExistingOrder based on Status
                  IsOrderDetailVisible = true; 
             };

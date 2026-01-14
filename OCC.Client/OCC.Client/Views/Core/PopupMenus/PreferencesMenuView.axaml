@@ -24,7 +24,7 @@
             <Button Classes="PopupMenuButton" Command="{Binding ToggleThemeCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconDarkModel}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
-                    <TextBlock Text="Enable Dark Mode" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="{Binding ThemeToggleText}" VerticalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Button>
             

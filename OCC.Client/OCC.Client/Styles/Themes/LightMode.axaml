@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Brand & Primary Colors -->
+    <SolidColorBrush x:Key="OCCOrange">#FF8F00</SolidColorBrush>
+    <SolidColorBrush x:Key="PrimaryTeal">#00b5ad</SolidColorBrush>
+    <SolidColorBrush x:Key="PrimaryTealHover">#00a39c</SolidColorBrush>
+    <SolidColorBrush x:Key="PrimaryTealLight">#e0f2f1</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentOrange">#ED985F</SolidColorBrush>
+
+    <!-- Background & Surface Colors -->
+    <SolidColorBrush x:Key="AppBackgroundSlate">#f8fafc</SolidColorBrush>
+    <SolidColorBrush x:Key="SurfaceLightGray">#dedfe2</SolidColorBrush>
+    <SolidColorBrush x:Key="SurfaceWhite">#FFFFFF</SolidColorBrush>
+    <SolidColorBrush x:Key="BorderGray">#e2e8f0</SolidColorBrush>
+    <SolidColorBrush x:Key="BorderDark">#00252e</SolidColorBrush>
+    <SolidColorBrush x:Key="BorderBlack">#000000</SolidColorBrush>
+    <SolidColorBrush x:Key="LimeGreen">#A3E635</SolidColorBrush>
+
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TextPrimaryDark">#000000</SolidColorBrush>
+    <SolidColorBrush x:Key="TextSecondaryDark">#475569</SolidColorBrush>
+    <SolidColorBrush x:Key="TextSecondaryGray">#64748b</SolidColorBrush>
+    <SolidColorBrush x:Key="TextTertiarySlate">#94a3b8</SolidColorBrush>
+    <SolidColorBrush x:Key="ErrorRed">#EF4444</SolidColorBrush> <!-- Extracted from inline styles -->
+
+    <!-- Status & Misc -->
+    <SolidColorBrush x:Key="StatusGreen">#22c55e</SolidColorBrush>
+    <SolidColorBrush x:Key="LoginBackgroundDark">#0f172a</SolidColorBrush>
+    <SolidColorBrush x:Key="LoginTextDark">#1e293b</SolidColorBrush>
+    <SolidColorBrush x:Key="LoginTextLight">#64748b</SolidColorBrush>
+
+    <!-- Button Top Bar and Top Header Colors -->
+    <SolidColorBrush x:Key="SelectedBackground">#ced1d6</SolidColorBrush>
+    <SolidColorBrush x:Key="HoverButtonBackground">#c5c5c5</SolidColorBrush>
+    <SolidColorBrush x:Key="GreenButtonBackground">#B6F500</SolidColorBrush>
+    <SolidColorBrush x:Key="CancelGrayButtonBackground">#D7DEE7</SolidColorBrush>
+    <SolidColorBrush x:Key="WarningYellow">#FFC785</SolidColorBrush>
+
+    <!-- Gradients -->
+    <!-- Note: Gradients might look okay in both modes or need variants. Keeping defaults for now. -->
+    <LinearGradientBrush x:Key="SideMenuGradient" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="#FFFFFFFF"/>
+        <GradientStop Offset="1" Color="#40F78D37"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="HomeMenuGradient" StartPoint="50%,0%" EndPoint="100%,0%">
+        <GradientStop Offset="0" Color="#DEDFE2"/>
+        <GradientStop Offset="0.90" Color="#ED985F"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="StructuralConcreteGradient" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0.0" Color="#E2E8F0" />
+        <GradientStop Offset="0.4" Color="#DEDFE2" />
+        <GradientStop Offset="0.5" Color="#CBD5E1" />
+        <GradientStop Offset="0.51" Color="#DEDFE2" />
+        <GradientStop Offset="1.0" Color="#94A3B8" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="WeatheredCementGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+        <GradientStop Offset="0.0" Color="#F1F5F9" />
+        <GradientStop Offset="1.0" Color="#CBD5E1" />
+    </LinearGradientBrush>
+
+</ResourceDictionary>

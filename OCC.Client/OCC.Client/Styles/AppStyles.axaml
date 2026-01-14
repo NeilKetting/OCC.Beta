@@ -141,7 +141,7 @@
 
 	<!-- Cancel Button (Red) -->
 	<Style Selector="Button.Cancel">
-		<Setter Property="Background" Value="Red" />
+		<Setter Property="Background" Value="{DynamicResource ErrorRed}" />
 		<Setter Property="Foreground" Value="{DynamicResource SurfaceWhite}"/>
 	</Style>
 	<Style Selector="Button.Cancel:pressed /template/ ContentPresenter">
@@ -174,10 +174,10 @@
 	</Style>
 	<Style Selector="Button.Close:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="Transparent"/>
-		<Setter Property="Foreground" Value="#EF4444"/>
+		<Setter Property="Foreground" Value="{DynamicResource ErrorRed}"/>
 	</Style>
 	<Style Selector="Button.Close:pointerover PathIcon">
-		<Setter Property="Foreground" Value="#EF4444"/>
+		<Setter Property="Foreground" Value="{DynamicResource ErrorRed}"/>
 	</Style>
 
 	<!-- Icon Button (Transparent, usually for toolbars) -->
@@ -207,7 +207,7 @@
 		<Setter Property="Background" Value="Transparent"/>
 	</Style>
 	<Style Selector="Button.IconButtonClose:pointerover PathIcon">
-		<Setter Property="Foreground" Value="#EF4444"/>
+		<Setter Property="Foreground" Value="{DynamicResource ErrorRed}"/>
 	</Style>
 
 	<!-- Success Button -->
@@ -409,7 +409,7 @@
 		<Setter Property="Width" Value="140" />
 		<Setter Property="Height" Value="140" />
 		<Setter Property="CornerRadius" Value="80" />
-		<Setter Property="Background" Value="White" />
+		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
 		<Setter Property="Padding" Value="5" />
 	</Style>
 
@@ -471,7 +471,7 @@
 	</Style>
 	<Style Selector="DataGridRow">
 		<Setter Property="Height" Value="40"/>
-		<Setter Property="Background" Value="White"/>
+		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}"/>
 		<Setter Property="Padding" Value="0,5"/>
 	</Style>
 
@@ -538,7 +538,7 @@
 
 	<Style Selector="FlyoutPresenter.SidebarFlyout /template/ Border#PART_BorderElement">
 		<Setter Property="BoxShadow" Value="0 10 50 0 #45000000"/>
-		<Setter Property="Background" Value="White"/>
+		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}"/>
 		<Setter Property="BorderBrush" Value="#94A3B8"/>
 		<Setter Property="BorderThickness" Value="1"/>
 		<Setter Property="CornerRadius" Value="6"/>
@@ -667,6 +667,10 @@
 		<StreamGeometry x:Key="IconInfo">M11,9H13V7H11V9M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z</StreamGeometry>
 		<StreamGeometry x:Key="IconDelete">M6 7h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7Zm3-3h6l1 1h4v2H2V5h4l1-1Z</StreamGeometry>
 		<StreamGeometry x:Key="IconView">M2 12 C5 6 19 6 22 12 C19 18 5 18 2 12 Z M12 8 C14.5 8 16 9.5 16 12 C16 14.5 14.5 16 12 16 C9.5 16 8 14.5 8 12 C8 9.5 9.5 8 12 8 Z</StreamGeometry>
+		<StreamGeometry x:Key="IconReport">M4 2h10l4 4v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm9 1.5V7h3.5L13 3.5z M6 10h8v2H6v-2zm0 4h8v2H6v-2zm0 4h5v2H6v-2z</StreamGeometry>
+		<StreamGeometry x:Key="IconFile">M4 2h10l4 4v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm9 1.5V7h3.5L13 3.5z</StreamGeometry>
+		<StreamGeometry x:Key="IconSheet">M3 2h11l5 5v15a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm10 1.5V8h4.5L13 3.5z M6 11h8v2H6v-2zm0 4h8v2H6v-2zm0 4h8v2H6v-2z</StreamGeometry>
+		<StreamGeometry x:Key="IconGantt">M3 4h18v2H3V4zm2 4h8v2H5V8zm10 0h4v2h-4V8zM5 12h4v2H5v-2zm6 0h10v2H11v-2zM5 16h10v2H5v-2zM17 16h4v2h-4v-2z</StreamGeometry>
 
 
 

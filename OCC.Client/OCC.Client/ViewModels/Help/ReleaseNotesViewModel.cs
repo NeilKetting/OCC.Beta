@@ -29,6 +29,22 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
+                    Description = "Health & Safety Module & Dark Mode",
+                    Changes = new ObservableCollection<string>
+                    {
+                        "NEW: Health & Safety Module - Added Dashboard, Performance Monitoring (Safe Hours), Incidents and Audits views.",
+                        "NEW: HSEQ Data - Implemented tracking for Safe Hours, Near Misses, and Audit Scores.",
+                        "NEW: Dark Mode - Introduced system-wide Dark Mode theme with toggle in Preferences.",
+                        "NEW: Task Detail Panel - Slide-in panel for task details (Double-click to open/pin, Hold to preview).",
+                        "FIXED: Project Navigation - Resolved issue where 'Projects' tab was not active on load.",
+                        "FIXED: Restock Review - Fixed navigation and logic for generated orders.",
+                        "FIXED: PO Item Population - Resolved issue where existing items appeared at bottom of grid."
+                    }
+                },
+                new ReleaseNoteItem
+                {
+                    Version = "v1.3.5",
+                    Date = "14 January 2026",
                     Description = "Low Stock Tracking & Codebase Health",
                     Changes = new ObservableCollection<string>
                     {

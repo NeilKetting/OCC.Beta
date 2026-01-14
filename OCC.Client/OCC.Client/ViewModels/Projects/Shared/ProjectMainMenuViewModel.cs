@@ -17,7 +17,7 @@ namespace OCC.Client.ViewModels.Projects.Shared
         #region Observables
 
         [ObservableProperty]
-        private string _activeTab = "My Summary";
+        private string _activeTab = "Projects";
 
         [ObservableProperty]
         private string _userEmail = "origize63@gmail.com";

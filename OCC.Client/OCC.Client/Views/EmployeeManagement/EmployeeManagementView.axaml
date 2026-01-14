@@ -6,7 +6,7 @@
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:views="clr-namespace:OCC.Client.Views.EmployeeManagement"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
-			 mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+			 mc:Ignorable="d" d:DesignWidth="1200"
 			 x:Class="OCC.Client.Views.EmployeeManagement.EmployeeManagementView"
 			 x:DataType="vm:EmployeeManagementViewModel">
 
@@ -21,7 +21,7 @@
 	<Grid RowDefinitions="Auto, *">
 		<!-- Top Bar -->
 		<Border Grid.Row="0" Classes="Topbar">
-			<Grid ColumnDefinitions="Auto, *, Auto, Auto">
+			<Grid ColumnDefinitions="Auto, *, Auto, Auto" Background="{DynamicResource SurfaceLightGray}">
 				<!-- Tab Buttons -->
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Grid.ColumnSpan="2" HorizontalAlignment="Center">
 					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Employees"
