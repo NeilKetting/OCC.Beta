@@ -94,7 +94,7 @@ namespace OCC.Client.ViewModels.Notifications
                     Message = message,
                     Timestamp = DateTime.Now,
                     IsRead = false,
-                    TargetAction = "Info", // Just info
+                    TargetAction = null, // No actions for simple system notifications
                     UserId = null
                 });
             });
