@@ -20,6 +20,8 @@ namespace OCC.Shared.Models
         public DateTime? CheckInTime { get; set; }
         public DateTime? CheckOutTime { get; set; }
         
+        public double HoursWorked { get; set; }
+
         public string? Notes { get; set; }
         public string? LeaveReason { get; set; }
         public string? DoctorsNoteImagePath { get; set; }
@@ -29,6 +31,10 @@ namespace OCC.Shared.Models
         
         // Snapshot to preserve historical wage data if employee rate changes
         public decimal? CachedHourlyRate { get; set; }
+
+        public bool IsDeleted { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public enum AttendanceStatus

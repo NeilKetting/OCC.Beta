@@ -48,6 +48,16 @@ namespace OCC.API.Data
         public DbSet<BugReport> BugReports { get; set; }
         public DbSet<BugComment> BugComments { get; set; }
 
+        // HSEQ Modules
+        public DbSet<Incident> Incidents { get; set; }
+        public DbSet<IncidentPhoto> IncidentPhotos { get; set; }
+        public DbSet<HseqAudit> HseqAudits { get; set; }
+        public DbSet<HseqAuditSection> HseqAuditSections { get; set; }
+        public DbSet<HseqAuditComplianceItem> HseqAuditComplianceItems { get; set; }
+        public DbSet<HseqAuditNonComplianceItem> HseqAuditNonComplianceItems { get; set; }
+        public DbSet<HseqTrainingRecord> HseqTrainingRecords { get; set; }
+        public DbSet<HseqSafeHourRecord> HseqSafeHourRecords { get; set; }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var auditEntries = OnBeforeSaveChanges();
@@ -199,6 +209,27 @@ namespace OCC.API.Data
             {
                 entity.Property(e => e.CachedHourlyRate).HasPrecision(18, 2);
             });
+
+            // HSEQ Configurations
+            modelBuilder.Entity<HseqAudit>()
+                .HasMany(a => a.Sections)
+                .WithOne().HasForeignKey(s => s.AuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HseqAudit>()
+                .HasMany(a => a.ComplianceItems)
+                .WithOne().HasForeignKey(i => i.AuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HseqAudit>()
+                .HasMany(a => a.NonComplianceItems)
+                .WithOne().HasForeignKey(i => i.AuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Incident>()
+                .HasMany(i => i.Photos)
+                .WithOne().HasForeignKey(p => p.IncidentId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

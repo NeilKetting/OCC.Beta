@@ -17,8 +17,12 @@ namespace OCC.Shared.Models
         public string Findings { get; set; } = string.Empty;
         public string NonConformance { get; set; } = string.Empty;
         public string ImmediateAction { get; set; } = string.Empty;
-        public string Status { get; set; } = "Open";
+        public Enums.AuditStatus Status { get; set; } = Enums.AuditStatus.Scheduled;
         public DateTime? CloseOutDate { get; set; }
+
+        public System.Collections.Generic.List<HseqAuditSection> Sections { get; set; } = new();
+        public System.Collections.Generic.List<HseqAuditComplianceItem> ComplianceItems { get; set; } = new();
+        public System.Collections.Generic.List<HseqAuditNonComplianceItem> NonComplianceItems { get; set; } = new();
 
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

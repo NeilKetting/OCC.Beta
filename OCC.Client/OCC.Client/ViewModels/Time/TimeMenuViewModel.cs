@@ -34,6 +34,7 @@ namespace OCC.Client.ViewModels.Time
         public bool CanApproveLeave => _permissionService.CanAccess("LeaveApprovals");
         public bool CanRequestOvertime => _permissionService.CanAccess("OvertimeRequest");
         public bool CanApproveOvertime => _permissionService.CanAccess("OvertimeApproval");
+        public bool CanAccessCalendar => _permissionService.CanAccess("Calendar");
 
         public TimeMenuViewModel(IPermissionService permissionService)
         {

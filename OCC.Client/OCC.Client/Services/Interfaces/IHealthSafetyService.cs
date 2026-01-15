@@ -1,0 +1,51 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using OCC.Shared.DTOs;
+using OCC.Shared.Models;
+
+namespace OCC.Client.Services.Interfaces
+{
+    public interface IHealthSafetyService
+    {
+        // Incidents
+        Task<IEnumerable<Incident>> GetIncidentsAsync();
+        Task<Incident?> GetIncidentAsync(Guid id);
+        Task<Incident?> CreateIncidentAsync(Incident incident);
+        Task<bool> UpdateIncidentAsync(Incident incident);
+        Task<bool> DeleteIncidentAsync(Guid id);
+
+        // Audits
+        Task<IEnumerable<HseqAudit>> GetAuditsAsync();
+        Task<HseqAudit?> GetAuditAsync(Guid id);
+        Task<HseqAudit?> CreateAuditAsync(HseqAudit audit);
+        Task<bool> UpdateAuditAsync(HseqAudit audit);
+        Task<IEnumerable<HseqAuditNonComplianceItem>> GetAuditDeviationsAsync(Guid auditId);
+
+        // Training
+        Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync();
+        Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days);
+        Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record);
+        Task<bool> DeleteTrainingRecordAsync(Guid id);
+
+        // Stats
+        Task<HseqDashboardStats?> GetDashboardStatsAsync();
+    }
+
+    public class HseqDashboardStats
+    {
+        public double TotalSafeHours { get; set; }
+        public int IncidentsTotal { get; set; }
+        public int NearMisses { get; set; }
+        public int Injuries { get; set; }
+        public int Environmentals { get; set; }
+        public List<AuditScoreDto> RecentAuditScores { get; set; } = new();
+    }
+
+    public class AuditScoreDto
+    {
+        public string SiteName { get; set; } = string.Empty;
+        public decimal ActualScore { get; set; }
+        public DateTime Date { get; set; }
+    }
+}

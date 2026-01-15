@@ -198,6 +198,7 @@ namespace OCC.Client
             services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IPdfService, PdfService>();
             services.AddSingleton<IToastService, ToastService>();

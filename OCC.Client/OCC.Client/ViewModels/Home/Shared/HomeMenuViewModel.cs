@@ -23,10 +23,13 @@ namespace OCC.Client.ViewModels.Home.Shared
         #region Constructors
 
         public NotificationViewModel NotificationVM { get; }
+        private readonly Services.Interfaces.IPermissionService _permissionService;
+        public bool CanAccessCalendar => _permissionService.CanAccess("Calendar");
 
-        public HomeMenuViewModel(NotificationViewModel notificationVM)
+        public HomeMenuViewModel(NotificationViewModel notificationVM, Services.Interfaces.IPermissionService permissionService)
         {
             NotificationVM = notificationVM;
+            _permissionService = permissionService;
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
 

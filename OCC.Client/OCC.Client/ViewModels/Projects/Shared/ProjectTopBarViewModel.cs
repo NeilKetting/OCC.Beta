@@ -9,7 +9,21 @@ namespace OCC.Client.ViewModels.Projects.Shared
     {
         #region Private Members
 
+        private readonly OCC.Client.Services.Interfaces.IPermissionService _permissionService;
+
         #endregion
+
+        public bool CanAccessCalendar => _permissionService != null && _permissionService.CanAccess("Calendar");
+
+        public ProjectTopBarViewModel(OCC.Client.Services.Interfaces.IPermissionService permissionService)
+        {
+            _permissionService = permissionService;
+        }
+
+        public ProjectTopBarViewModel()
+        {
+             _permissionService = null!;
+        }
 
         #region Events
 

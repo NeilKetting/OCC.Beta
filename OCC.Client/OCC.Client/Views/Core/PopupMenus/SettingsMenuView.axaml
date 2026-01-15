@@ -50,14 +50,14 @@
                 </StackPanel>
             </Button>
             
-            <Button Classes="PopupMenuButton" Command="{Binding AuditLogCommand}" Height="50">
+            <Button Classes="PopupMenuButton" Command="{Binding AuditLogCommand}" Height="50" IsVisible="{Binding CanAccessAuditLog}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                      <PathIcon Data="{StaticResource IconAudit}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                      <TextBlock Text="Audit Log" VerticalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Button>
             
-            <Button Classes="PopupMenuButton" Command="{Binding ViewBugsCommand}" IsVisible="{Binding CanManageUsers}">
+            <Button Classes="PopupMenuButton" Command="{Binding ViewBugsCommand}" IsVisible="{Binding CanAccessBugs}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconBug}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     <TextBlock Text="Reported Bugs" VerticalAlignment="Center" FontSize="14"/>

@@ -19,8 +19,20 @@
             </Border>
 
             <!-- Data Table -->
-            <Border Grid.Row="1" Classes="Card" Margin="10">
-                <DataGrid ItemsSource="{Binding TrainingRecords}"
+            <Grid Grid.Row="1" ColumnDefinitions="*, 300" Margin="10">
+                
+                <!-- Main List -->
+                <Border Grid.Column="0" Classes="Card" Margin="0,0,10,0">
+                    <Grid RowDefinitions="Auto, *">
+                        <!-- Toolbar -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="10">
+                             <TextBlock Text="Expiry Warning (Days):" VerticalAlignment="Center"/>
+                             <NumericUpDown Value="{Binding ExpiryWarningDays}" Minimum="1" Maximum="365" Width="80"/>
+                             <Button Content="Show Expiring" Command="{Binding FilterExpiringCommand}" Classes="Secondary"/>
+                             <Button Content="Reset/Reload" Command="{Binding LoadDataCommand}" Classes="Ghost"/>
+                        </StackPanel>
+                        
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding TrainingRecords}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           HeadersVisibility="Column"
@@ -47,8 +59,38 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
-                </DataGrid>
-            </Border>
+                    </DataGrid>
+                    </Grid>
+                </Border>
+                
+                <!-- Add New Form -->
+                <Border Grid.Column="1" Classes="Card">
+                    <StackPanel Spacing="10" Margin="10">
+                        <TextBlock Text="Add Training Record" Classes="H2" Margin="0,0,0,10"/>
+                        
+                        <TextBox Watermark="Employee Name" Text="{Binding NewRecord.EmployeeName}"/>
+                        <TextBox Watermark="Role / Position" Text="{Binding NewRecord.Role}"/>
+                        
+                        <TextBlock Text="Certificate Type" Classes="Label"/>
+                        <ComboBox ItemsSource="{Binding CertificateTypes}" 
+                                  SelectedItem="{Binding NewRecord.CertificateType}"
+                                  PlaceholderText="Select Certificate..."
+                                  HorizontalAlignment="Stretch"/>
+                                  
+                        <TextBlock Text="Date Completed" Classes="Label"/>
+                        <CalendarDatePicker SelectedDate="{Binding NewRecord.DateCompleted}" HorizontalAlignment="Stretch"/>
+                        
+                        <TextBlock Text="Trainer / Provider" Classes="Label"/>
+                        <TextBox Watermark="e.g. Red Cross" Text="{Binding NewRecord.Trainer}"/>
+
+                        <Button Content="Save Record" 
+                                Command="{Binding SaveTrainingCommand}" 
+                                Classes="Primary" 
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

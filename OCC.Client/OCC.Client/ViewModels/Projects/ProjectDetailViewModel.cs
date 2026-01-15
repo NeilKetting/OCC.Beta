@@ -122,7 +122,8 @@ namespace OCC.Client.ViewModels.Projects
         {
             _projectManager = projectManager;
             _serviceProvider = serviceProvider;
-            _topBar = new Shared.ProjectTopBarViewModel();
+            var permService = serviceProvider.GetRequiredService<IPermissionService>();
+            _topBar = new Shared.ProjectTopBarViewModel(permService);
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
 

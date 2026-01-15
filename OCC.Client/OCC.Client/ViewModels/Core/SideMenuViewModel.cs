@@ -127,6 +127,12 @@ namespace OCC.Client.ViewModels.Core
 
         public bool CanAccessOrders => _permissionService.CanAccess("Orders");
         public bool CanAccessCompanySettings => _permissionService.CanAccess("CompanySettings");
+        
+        // Critical Security Fixes
+        public bool CanAccessBugs => _permissionService.CanAccess("BugList");
+        public bool CanAccessAuditLog => _permissionService.CanAccess("AuditLog");
+        public bool CanAccessHealthSafety => _permissionService.CanAccess("HealthSafety");
+
         public bool IsDeveloper => UserEmail?.Equals("neil@mdk.co.za", StringComparison.OrdinalIgnoreCase) ?? false;
 
         #endregion

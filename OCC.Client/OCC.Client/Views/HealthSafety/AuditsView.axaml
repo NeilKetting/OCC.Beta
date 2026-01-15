@@ -7,46 +7,156 @@
              x:Class="OCC.Client.Views.HealthSafety.AuditsView"
              x:DataType="vm:AuditsViewModel">
     <Grid Background="{DynamicResource AppBackgroundSlate}">
-        <Grid RowDefinitions="Auto, *">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" RowDefinitions="Auto, *">
             <!-- Header -->
-            <Border Grid.Row="0" Classes="TopHeader" Margin="10,10,10,0">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <PathIcon Data="{StaticResource IconAudit}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
-                    <TextBlock Text="Audits &amp; Inspections" Classes="H1" VerticalAlignment="Center"/>
+            <Border Grid.Row="0" Margin="24">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="AUDITS &amp; INSPECTIONS" Classes="H1"/>
+                    <TextBlock Text="Track compliance and deviations across sites" Classes="TextSecondary"/>
                 </StackPanel>
             </Border>
 
+            <!-- Loading Overlay -->
+            <Border Grid.RowSpan="2" IsVisible="{Binding IsBusy}" Background="#80000000" ZIndex="100">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
+                   <ProgressBar Classes="Circular" IsIndeterminate="True"/>
+                   <TextBlock Text="{Binding BusyText}" Foreground="White" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+
+            <Interaction.Behaviors>
+                <EventTriggerBehavior EventName="AttachedToVisualTree">
+                    <InvokeCommandAction Command="{Binding LoadAuditsCommand}"/>
+                </EventTriggerBehavior>
+            </Interaction.Behaviors>
+
             <!-- Data Table -->
-            <Border Grid.Row="1" Classes="Card" Margin="10">
+            <Border Grid.Row="1" Classes="Card" Margin="24,0,24,24" Padding="0">
                 <DataGrid ItemsSource="{Binding Audits}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
+                          Classes="AppNativeDataGrid"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="Auto"/>
-                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="100"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="120"/>
                         <DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="*"/>
-                        <DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="*"/>
+                        <DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="150"/>
                         
                         <!-- Scores -->
-                        <DataGridTemplateColumn Header="Score" Width="1.5*">
+                        <DataGridTemplateColumn Header="Score" Width="140">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="30, *">
-                                        <TextBlock Text="{Binding ActualScore, StringFormat='{}{0}%'}" VerticalAlignment="Center"/>
-                                        <ProgressBar Grid.Column="1" Value="{Binding ActualScore}" Maximum="100" Height="10" Margin="10,0"
-                                                     Foreground="{DynamicResource PrimaryTeal}" Background="#E0E0E0"/>
+                                    <Grid ColumnDefinitions="40, *">
+                                        <TextBlock Text="{Binding ActualScore, StringFormat='{}{0}%'}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                        <ProgressBar Grid.Column="1" Value="{Binding ActualScore}" Maximum="100" Height="6" Margin="8,0"
+                                                     Foreground="{DynamicResource PrimaryTeal}" Background="#E0E0E0" CornerRadius="3"/>
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTextColumn Header="Non-Conformance" Binding="{Binding NonConformance}" Width="2*"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+                        <DataGridTemplateColumn Header="Status" Width="120">
+                             <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="12" Padding="8,2" Background="{DynamicResource PrimaryLight}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Primary}" FontSize="12" FontWeight="SemiBold"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        
+                        <!-- Actions -->
+                         <DataGridTemplateColumn Width="140">
+                             <DataGridTemplateColumn.CellTemplate>
+                                 <DataTemplate>
+                                     <Button Classes="LinkButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).ViewDeviationsCommand}" CommandParameter="{Binding}"
+                                             Content="View Deviations" Foreground="{DynamicResource Primary}"/>
+                                 </DataTemplate>
+                             </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Border>
         </Grid>
+
+        <!-- Deviation Action Sheet Panel -->
+        <Border Grid.Column="1" Background="{DynamicResource CardBackground}" 
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0"
+                Width="500" Padding="0" IsVisible="{Binding IsDeviationsOpen}">
+            <Grid RowDefinitions="Auto, *">
+                
+                <!-- Header -->
+                <Border Grid.Row="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="24">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel>
+                            <TextBlock Text="Deviation Action Sheet" Classes="H2"/>
+                            <TextBlock Text="{Binding SelectedAudit.AuditNumber, StringFormat='Audit Ref: {0}'}" Classes="TextSecondary"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="IconOnlyButton" Command="{Binding CloseDeviationsCommand}">
+                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- List -->
+                <ScrollViewer Grid.Row="1" Padding="24">
+                    <ItemsControl ItemsSource="{Binding Deviations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="Card" Margin="0,0,0,16" BorderThickness="1" BorderBrush="{DynamicResource BorderColor}">
+                                    <StackPanel Spacing="12">
+                                        <!-- Header line -->
+                                        <Grid ColumnDefinitions="*, Auto">
+                                             <TextBlock Text="{Binding RegulationReference}" FontWeight="Bold" Foreground="{DynamicResource Primary}"/>
+                                             <Border Background="{DynamicResource ErrorLight}" CornerRadius="4" Padding="6,2">
+                                                 <TextBlock Text="Non-Compliant" Foreground="{DynamicResource ErrorRed}" FontSize="11"/>
+                                             </Border>
+                                        </Grid>
+
+                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+
+                                        <Border Height="1" Background="{DynamicResource BorderColor}"/>
+
+                                        <!-- Action Plan -->
+                                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="*, 16, *">
+                                            
+                                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                                                <TextBlock Text="Corrective Action" Classes="FormLabel"/>
+                                                <TextBox Text="{Binding CorrectiveAction}" Watermark="Required action..."/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                                                <TextBlock Text="Responsible Person" Classes="FormLabel"/>
+                                                <TextBox Text="{Binding ResponsiblePerson}" Watermark="Name"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,12,0,0">
+                                                <TextBlock Text="Target Date" Classes="FormLabel"/>
+                                                <CalendarDatePicker SelectedDate="{Binding TargetDate}" HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Save Button for this item -->
+                                            <Button Grid.Row="2" Grid.ColumnSpan="3" Classes="SecondaryButton" Margin="0,12,0,0"
+                                                    Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).SaveDeviationCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="Update Item" HorizontalAlignment="Right"/>
+                                        </Grid>
+
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

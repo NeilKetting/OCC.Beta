@@ -13,6 +13,9 @@ namespace OCC.Shared.Models
         public DateTime? ValidUntil { get; set; }
         public string Trainer { get; set; } = string.Empty;
         public string CertificateUrl { get; set; } = string.Empty;
+        
+        public string CertificateType { get; set; } = string.Empty; // e.g. First Aid L1
+        public int ExpiryWarningDays { get; set; } = 30;
 
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
