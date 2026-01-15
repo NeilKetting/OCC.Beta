@@ -75,6 +75,10 @@ namespace OCC.Client.ViewModels.Time
         public AttendanceHistoryViewModel()
         {
             IsWageVisible = true;
+            _timeService = null!;
+            _exportService = null!;
+            _timer = null!;
+            _holidayService = null!;
         }
 
         public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService)

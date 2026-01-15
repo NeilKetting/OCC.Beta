@@ -76,7 +76,6 @@ namespace OCC.Shared.Models
         Unibank = 34,
         [Description("eNL Mutual Bank")]
         eNLMutualBank = 35,
-
         [Description("Other")]
         Other = 999
     }
