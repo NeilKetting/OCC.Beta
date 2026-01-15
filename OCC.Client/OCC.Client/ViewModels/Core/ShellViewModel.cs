@@ -36,6 +36,7 @@ namespace OCC.Client.ViewModels.Core
         IRecipient<OpenNotificationsMessage>,
         IRecipient<OpenManageUsersMessage>,
         IRecipient<TestBirthdayMessage>,
+        IRecipient<OpenProfileMessage>,
         IRecipient<ToastNotificationMessage>
     {
 
@@ -47,6 +48,7 @@ namespace OCC.Client.ViewModels.Core
         private readonly IAuthService _authService;
         private readonly IDialogService _dialogService;
         private readonly IToastService _toastService;
+        private readonly IRepository<Project> _projectRepo;
         private string _previousSection = Infrastructure.NavigationRoutes.Home;
         private string _currentSection = Infrastructure.NavigationRoutes.Home;
 
@@ -62,6 +64,12 @@ namespace OCC.Client.ViewModels.Core
 
         [ObservableProperty]
         private NotificationViewModel _notificationVM;
+
+        [ObservableProperty]
+        private Shared.ProfileViewModel? _currentProfile;
+
+        [ObservableProperty]
+        private bool _isProfileOpen;
 
         [ObservableProperty]
         private bool _isNotificationOpen;
@@ -96,6 +104,7 @@ namespace OCC.Client.ViewModels.Core
             _authService = null!;
             _dialogService = null!;
             _toastService = null!;
+            _projectRepo = null!;
         }
 
         public ShellViewModel(
@@ -115,6 +124,9 @@ namespace OCC.Client.ViewModels.Core
             _authService = authService;
             _dialogService = dialogService;
             _toastService = toastService;
+
+            // Initialize Project Repo for Profile
+            _projectRepo = _serviceProvider.GetRequiredService<IRepository<Project>>();
             
             _signalRService.OnUserListReceived += OnUserUiUpdate;
             _signalRService.OnBroadcastReceived += (sender, message) => 
@@ -456,7 +468,7 @@ namespace OCC.Client.ViewModels.Core
                     CurrentPage = _serviceProvider.GetRequiredService<UserManagementViewModel>();
                     break;
                 case "MyProfile":
-                    CurrentPage = _serviceProvider.GetRequiredService<ProfileViewModel>();
+                    Receive(new OpenProfileMessage());
                     break;
                 case "HealthSafety":
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
@@ -586,6 +598,28 @@ namespace OCC.Client.ViewModels.Core
                     Avalonia.Threading.Dispatcher.UIThread.Post(() => Toasts.Remove(toast));
                 });
             });
+        }
+
+        public void Receive(OpenProfileMessage message)
+        {
+            CurrentProfile = new Shared.ProfileViewModel(_authService, _projectRepo, _dialogService);
+            CurrentProfile.CloseRequested += (s, e) => 
+            {
+                IsProfileOpen = false;
+                CurrentProfile = null;
+            };
+            CurrentProfile.ChangeEmailRequested += (s, e) => 
+            {
+                 // Handling email change if critical, for now ProfileViewModel handles its own logic or alerts
+            };
+            IsProfileOpen = true;
+        }
+
+        [RelayCommand]
+        public void CloseProfile()
+        {
+            IsProfileOpen = false;
+            CurrentProfile = null;
         }
 
         [RelayCommand]

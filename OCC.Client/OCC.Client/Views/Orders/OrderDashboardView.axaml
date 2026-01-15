@@ -49,16 +49,16 @@
 	<ScrollViewer>
 		<StackPanel Spacing="20" Margin="5">
 			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
-			<Grid ColumnDefinitions="*, Auto" Margin="0">
-				<StackPanel Grid.Column="0" Spacing="5">
-					<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
-					<TextBlock Text="Track purchases, deliveries, and site inventory." Foreground="#94A3B8" FontSize="{StaticResource FontSizeMedium}" />
-				</StackPanel>
-				<PathIcon Grid.Column="1" Data="{StaticResource IconCart}" Width="48" Height="48" Foreground="#000000" Margin="20,0"/>
-			</Grid>
-		</Border>
+				<Grid ColumnDefinitions="*, Auto" Margin="0">
+					<StackPanel Grid.Column="0" Spacing="5">
+						<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
+						<TextBlock Text="Track purchases, deliveries, and site inventory." Foreground="#94A3B8" FontSize="{StaticResource FontSizeMedium}" />
+					</StackPanel>
+					<PathIcon Grid.Column="1" Data="{StaticResource IconCart}" Width="48" Height="48" Foreground="#000000" Margin="20,0"/>
+				</Grid>
+			</Border>
 			<!-- Stats Grid -->
-			<Grid ColumnDefinitions="*, 20, *, 20, *">
+			<Grid ColumnDefinitions="*, 20, *, 20, *" Margin="10,0">
 				<!-- Stat 1 -->
 				<Border Grid.Column="0" Classes="CardMedium">
                     <Interaction.Behaviors>
@@ -96,7 +96,7 @@
 			</Grid>
 
 			<!-- Main Content Grid -->
-			<Grid ColumnDefinitions="2*, 30, *">
+			<Grid ColumnDefinitions="2*, 30, *" Margin="15,0">
 
 				<!-- Recent Orders List -->
 				<StackPanel Grid.Column="0" Spacing="15">

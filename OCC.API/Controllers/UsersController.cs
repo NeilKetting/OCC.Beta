@@ -11,7 +11,7 @@ namespace OCC.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -29,6 +29,7 @@ namespace OCC.API.Controllers
 
         // GET: api/Users
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             try
@@ -46,6 +47,14 @@ namespace OCC.API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(Guid id)
         {
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
+            if (currentUserId != null && id.ToString() != currentUserId && !isAdmin)
+            {
+                return Forbid();
+            }
+
             try
             {
                 var user = await _context.Users.FindAsync(id);
@@ -66,6 +75,7 @@ namespace OCC.API.Controllers
 
         // POST: api/Users
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<User>> PostUser(User user)
         {
             if (await _context.Users.AnyAsync(u => u.Email == user.Email))
@@ -99,11 +109,20 @@ namespace OCC.API.Controllers
 
             var existingUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
 
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+            // Allow Admin to update anyone, or user to update themselves
+            if (currentUserId != null && id.ToString() != currentUserId && userRole != "Admin") 
+            {
+                return Forbid("You can only update your own profile.");
+            }
+
             // Prevent changing own role or locking oneself out ideally, but simple for now
             if (existingUser != null && (existingUser.Email == "neil@mdk.co.za" || existingUser.Email == "neil@origize63.co.za"))
             {
-                var currentUser = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.ToLowerInvariant();
-                if (currentUser != "neil@mdk.co.za" && currentUser != "neil@origize63.co.za")
+                var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.ToLowerInvariant();
+                if (currentUserEmail != "neil@mdk.co.za" && currentUserEmail != "neil@origize63.co.za")
                 {
                     return Forbid("Only the Developer can modify this account.");
                 }
@@ -154,8 +173,31 @@ namespace OCC.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] OCC.Shared.DTOs.ChangePasswordRequest request)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            var user = await _context.Users.FindAsync(Guid.Parse(userId));
+            if (user == null) return NotFound("User not found.");
+
+            // Verify old password
+            if (!_passwordHasher.VerifyPassword(user.Password, request.OldPassword))
+            {
+                return BadRequest("Incorrect current password.");
+            }
+
+            // Set new password
+            user.Password = _passwordHasher.HashPassword(request.NewPassword);
+            
+            await _context.SaveChangesAsync();
+            return Ok("Password updated successfully.");
+        }
+
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             try

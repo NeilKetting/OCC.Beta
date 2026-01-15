@@ -105,6 +105,45 @@ namespace OCC.Client.Services.Repositories.ApiServices
             }
         }
 
+        public async Task<bool> UpdateProfileAsync(User user)
+        {
+            try
+            {
+                if (user == null) return false;
+                var response = await _httpClient.PutAsJsonAsync($"api/Users/{user.Id}", user);
+                if (response.IsSuccessStatusCode)
+                {
+                    _currentUser = user; // Update local cache
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Update Profile Error: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword)
+        {
+            try
+            {
+                var request = new OCC.Shared.DTOs.ChangePasswordRequest 
+                { 
+                    OldPassword = oldPassword, 
+                    NewPassword = newPassword 
+                };
+                var response = await _httpClient.PostAsJsonAsync("api/Users/change-password", request);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Change Password Error: {ex.Message}");
+                return false;
+            }
+        }
+
         private class LoginResponse
         {
             public string Token { get; set; } = string.Empty;

@@ -2,7 +2,8 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Core;assembly=OCC.Client"
+             xmlns:vm="clr-namespace:OCC.Client.ViewModels.Core;assembly=OCC.Client"
+             xmlns:vmShared="clr-namespace:OCC.Client.ViewModels.Shared;assembly=OCC.Client"
 			 xmlns:viewsShared="using:OCC.Client.Views.Shared"
 			 xmlns:core="clr-namespace:OCC.Client.Views.Core"
 			 mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -44,6 +45,30 @@
                                 HorizontalAlignment="Left" VerticalAlignment="Top"
                                 Margin="0"
                                 Width="400" Height="500"/>
+            </Grid>
+
+            <!-- Profile Overlay -->
+            <Grid Grid.Row="0" IsVisible="{Binding IsProfileOpen}" ZIndex="150" Background="#66000000">
+                 <Button HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Background="Transparent"
+                        Command="{Binding CloseProfileCommand}">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                         <Style Selector="Button:pressed /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                    </Button.Styles>
+                </Button>
+                
+                <ContentControl Content="{Binding CurrentProfile}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                     <ContentControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vmShared:ProfileViewModel}">
+                             <viewsShared:ProfileView/>
+                        </DataTemplate>
+                     </ContentControl.DataTemplates>
+                </ContentControl>
             </Grid>
 
             <!-- Bottom Status Bar -->

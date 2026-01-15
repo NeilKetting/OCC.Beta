@@ -17,9 +17,9 @@
 		<conv:MathConverter x:Key="MathConverter" />
 	</UserControl.Resources>
 
-    <UserControl.KeyBindings>
-        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
-    </UserControl.KeyBindings>
+	<UserControl.KeyBindings>
+		<KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+	</UserControl.KeyBindings>
 
 	<UserControl.Styles>
 		<!-- Compact Styles -->
@@ -44,7 +44,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="White" Width="700" Height="480" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
+	<Border Background="White" Width="700" Height="450" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
 			VerticalAlignment="Center" HorizontalAlignment="Center">
 		<Grid RowDefinitions="Auto, *, Auto">
 
@@ -62,47 +62,54 @@
 			<!-- Form -->
 			<ScrollViewer Grid.Row="1" Padding="20">
 				<Grid ColumnDefinitions="*, 20, *, 20, *">
+
 					<!-- Left Column: Company Info -->
 					<StackPanel Grid.Column="0" Spacing="15">
+
+						<!-- Supplier Number -->
+						<StackPanel Spacing="5">
+							<TextBlock Text="Supplier Account No" Classes="Label"/>
+							<TextBox Text="{Binding Supplier.SupplierAccountNumber}" Classes="FormInput" Watermark="Your account ID with them"/>
+						</StackPanel>
+
+						<!-- Company Name -->
 						<StackPanel Spacing="5">
 							<TextBlock Text="Company Name" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.Name}" Classes="FormInput" Watermark="e.g. Acme Corp"/>
 						</StackPanel>
 
+						<!-- Contact Person -->
 						<StackPanel Spacing="5">
 							<TextBlock Text="Contact Person" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.ContactPerson}" Classes="FormInput" Watermark="e.g. John Doe"/>
 						</StackPanel>
 
-
+						<!-- Email Address -->
 						<StackPanel Spacing="5">
 							<TextBlock Text="Email Address" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.Email}" Classes="FormInput" Watermark="e.g. contact@acme.com"/>
 						</StackPanel>
+					</StackPanel>
 
+					<!-- Middel Column: Banking Info -->
+					<StackPanel Grid.Column="2" Spacing="15">
+						
+						<!-- Phone Number -->
 						<StackPanel Spacing="5">
 							<TextBlock Text="Phone Number" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.Phone}" Classes="FormInput" Watermark="e.g. +27 12 345 6789"/>
 						</StackPanel>
 
-					</StackPanel>
-
-					<!-- Middel Column: Banking Info -->
-					<StackPanel Grid.Column="2" Spacing="15">
-
-						<StackPanel Spacing="5">
-							<TextBlock Text="VAT Number" Classes="Label"/>
-							<TextBox Text="{Binding Supplier.VatNumber}" Classes="FormInput" Watermark="e.g. 4012345678"/>
-						</StackPanel>
-
+						<!-- Address -->
 						<StackPanel Spacing="5">
 							<TextBlock Text="Physical Address" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.Address}" Classes="FormInput" Height="60" AcceptsReturn="True" Watermark="Physical address..."/>
 						</StackPanel>
 
+						<!-- Vat Number -->
 						<StackPanel Spacing="5">
-							<TextBlock Text="Supplier Account No" Classes="Label"/>
-							<TextBox Text="{Binding Supplier.SupplierAccountNumber}" Classes="FormInput" Watermark="Your account ID with them"/>
+							<TextBlock Text="VAT Number" Classes="Label"/>
+							<TextBox Text="{Binding Supplier.VatNumber}" Classes="FormInput" Watermark="e.g. 4012345678"/>
 						</StackPanel>
 					</StackPanel>
 
@@ -158,11 +165,11 @@
 				</StackPanel>
 			</Border>
 
-            <!-- Loading -->
-            <StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
-                <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
-                <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
-            </StackPanel>
+			<!-- Loading -->
+			<StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+				<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+			</StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

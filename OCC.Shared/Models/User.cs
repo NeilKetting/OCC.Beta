@@ -9,6 +9,7 @@
         public string LastName { get; set; } = string.Empty;
         public string? Phone { get; set; }
         public string? Location { get; set; }
+        public string? ProfilePictureBase64 { get; set; }
         public Guid? ApproverId { get; set; }
         public bool IsApproved { get; set; } = false;
         public bool IsEmailVerified { get; set; } = false;

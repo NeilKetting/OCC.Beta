@@ -455,7 +455,11 @@ namespace OCC.Client.ViewModels.Core
         { 
              IsQuickActionsOpen = false; 
              IsSettingsOpen = false;
+             IsPreferencesOpen = false;
              ActiveSection = "MyProfile";
+             // Instead of just setting ActiveSection, we should ensure the message is sent or Shell handles it.
+             // ShellViewModel listens to ActiveSection property change.
+             WeakReferenceMessenger.Default.Send(new OpenProfileMessage());
         }
 
         /// <summary>

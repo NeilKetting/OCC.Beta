@@ -8,6 +8,8 @@ namespace OCC.Client.Services.Interfaces
         Task<(bool Success, string ErrorMessage)> LoginAsync(string email, string password);
         Task<bool> RegisterAsync(User user);
         Task LogoutAsync();
+        Task<bool> UpdateProfileAsync(User user);
+        Task<bool> ChangePasswordAsync(string oldPassword, string newPassword);
         User? CurrentUser { get; }
         string? AuthToken { get; }
         bool IsAuthenticated { get; }

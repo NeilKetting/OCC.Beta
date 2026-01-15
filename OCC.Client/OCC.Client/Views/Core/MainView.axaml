@@ -18,16 +18,6 @@
     <Grid>
         <ContentControl Content="{Binding CurrentViewModel}" />
         
-        <!-- Profile Overlay -->
-        <Grid IsVisible="{Binding IsProfileVisible}" Background="#50000000">
-            <ContentControl Content="{Binding CurrentProfile}">
-                <ContentControl.DataTemplates>
-                    <DataTemplate DataType="{x:Type vmShared:ProfileViewModel}">
-                        <viewsShared:ProfileView/>
-                    </DataTemplate>
-                </ContentControl.DataTemplates>
-            </ContentControl>
-        </Grid>
 
         <!-- Change Email Overlay (Higher Z-Index) -->
         <Grid IsVisible="{Binding IsChangeEmailVisible}" Background="#50000000">

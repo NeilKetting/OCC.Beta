@@ -22,7 +22,7 @@ using OCC.Client.ViewModels.Login; // Added
 
 namespace OCC.Client.ViewModels.Core
 {
-    public partial class MainViewModel : ViewModelBase, IRecipient<NavigationMessage>, IRecipient<OpenProfileMessage>
+    public partial class MainViewModel : ViewModelBase, IRecipient<NavigationMessage>
     {
         #region Private Members
 
@@ -35,11 +35,6 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private ViewModelBase _currentViewModel;
 
-        [ObservableProperty]
-        private bool _isProfileVisible;
-
-        [ObservableProperty]
-        private Shared.ProfileViewModel? _currentProfile;
 
         [ObservableProperty]
         private bool _isChangeEmailVisible;
@@ -90,46 +85,8 @@ namespace OCC.Client.ViewModels.Core
             CurrentViewModel = message.Value;
         }
 
-        public void Receive(OpenProfileMessage message)
-        {
-            var auth = _serviceProvider.GetRequiredService<IAuthService>();
-            var projectRepo = _serviceProvider.GetRequiredService<IRepository<Project>>();
-            
-            CurrentProfile = new Shared.ProfileViewModel(auth, projectRepo);
-            CurrentProfile.CloseRequested += (s, e) => 
-            {
-                IsProfileVisible = false;
-                CurrentProfile = null;
-            };
-            CurrentProfile.ChangeEmailRequested += (s, e) => OpenChangeEmailPopup();
-            IsProfileVisible = true;
-        }
 
         #endregion
 
-        #region Helper Methods
-
-        private void OpenChangeEmailPopup()
-        {
-             ChangeEmailPopup = new Shared.ChangeEmailPopupViewModel();
-             ChangeEmailPopup.CloseRequested += (s, e) => 
-             {
-                 IsChangeEmailVisible = false;
-                 ChangeEmailPopup = null;
-             };
-             ChangeEmailPopup.EmailChanged += (s, newEmail) =>
-             {
-                 if (CurrentProfile != null)
-                 {
-                     CurrentProfile.Email = newEmail;
-                     // Also update auth service user if possible
-                     // But ProfileViewModel Done() handles saving mostly.
-                     // The user asked for immediate feedback visually?
-                 }
-             };
-             IsChangeEmailVisible = true;
-        }
-
-        #endregion
     }
 }
