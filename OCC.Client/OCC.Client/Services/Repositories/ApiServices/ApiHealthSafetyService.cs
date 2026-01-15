@@ -109,6 +109,28 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return response.IsSuccessStatusCode;
         }
 
+        // --- Documents ---
+        public async Task<IEnumerable<HseqDocument>> GetDocumentsAsync()
+        {
+            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqDocument>>("api/HseqDocuments") ?? new List<HseqDocument>();
+        }
+
+        public async Task<HseqDocument?> UploadDocumentAsync(HseqDocument document)
+        {
+             var response = await _httpClient.PostAsJsonAsync("api/HseqDocuments", document);
+             if (response.IsSuccessStatusCode)
+             {
+                 return await response.Content.ReadFromJsonAsync<HseqDocument>();
+             }
+             return null;
+        }
+
+        public async Task<bool> DeleteDocumentAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/HseqDocuments/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
         // --- Stats ---
         public async Task<HseqDashboardStats?> GetDashboardStatsAsync()
         {

@@ -43,4 +43,14 @@ namespace OCC.Shared.Enums
         Rectified,
         Closed
     }
+
+    public enum DocumentCategory
+    {
+        Policy,
+        Template,
+        Procedure,
+        Form,
+        Report,
+        Other
+    }
 }

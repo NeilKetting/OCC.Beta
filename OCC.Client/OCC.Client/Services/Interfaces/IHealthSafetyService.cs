@@ -28,6 +28,11 @@ namespace OCC.Client.Services.Interfaces
         Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record);
         Task<bool> DeleteTrainingRecordAsync(Guid id);
 
+        // Documents
+        Task<IEnumerable<HseqDocument>> GetDocumentsAsync();
+        Task<HseqDocument?> UploadDocumentAsync(HseqDocument document);
+        Task<bool> DeleteDocumentAsync(Guid id);
+
         // Stats
         Task<HseqDashboardStats?> GetDashboardStatsAsync();
     }
