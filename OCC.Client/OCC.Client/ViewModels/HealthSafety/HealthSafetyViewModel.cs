@@ -51,18 +51,18 @@ namespace OCC.Client.ViewModels.HealthSafety
             AuditsViewModel auditsView,
             DocumentsViewModel documentsView)
         {
-            _menuViewModel = menuViewModel;
-            _dashboardView = dashboardView;
-            _performanceView = performanceView;
-            _incidentsView = incidentsView;
-            _trainingView = trainingView;
-            _auditsView = auditsView;
-            _documentsView = documentsView;
+            MenuViewModel = menuViewModel;
+            DashboardView = dashboardView;
+            PerformanceView = performanceView;
+            IncidentsView = incidentsView;
+            TrainingView = trainingView;
+            AuditsView = auditsView;
+            DocumentsView = documentsView;
             
             // Default view
-            _currentView = _dashboardView;
+            CurrentView = DashboardView;
 
-            _menuViewModel.PropertyChanged += MenuViewModel_PropertyChanged;
+            MenuViewModel.PropertyChanged += MenuViewModel_PropertyChanged;
         }
 
         private void MenuViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -75,26 +75,26 @@ namespace OCC.Client.ViewModels.HealthSafety
 
         private void UpdateVisibility()
         {
-            switch (_menuViewModel.ActiveTab)
+            switch (MenuViewModel.ActiveTab)
             {
                 case "Performance Monitoring":
-                    CurrentView = _performanceView;
+                    CurrentView = PerformanceView;
                     break;
                 case "Incidents":
-                    CurrentView = _incidentsView;
+                    CurrentView = IncidentsView;
                     break;
                 case "Training":
-                    CurrentView = _trainingView;
+                    CurrentView = TrainingView;
                     break;
                 case "Audits":
-                    CurrentView = _auditsView;
+                    CurrentView = AuditsView;
                     break;
                 case "Documents":
-                    CurrentView = _documentsView;
+                    CurrentView = DocumentsView;
                     break;
                 case "Dashboard":
                 default:
-                    CurrentView = _dashboardView;
+                    CurrentView = DashboardView;
                     break;
             }
         }

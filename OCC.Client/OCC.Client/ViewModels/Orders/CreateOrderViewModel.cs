@@ -49,7 +49,7 @@ namespace OCC.Client.ViewModels.Orders
         private string _busyText = "Please wait...";
 
         [ObservableProperty]
-        private OrderWrapper _currentOrder; // Renamed from NewOrder
+        private OrderWrapper _currentOrder = null!; // Renamed from NewOrder
 
         [ObservableProperty]
         private bool _isReadOnly;

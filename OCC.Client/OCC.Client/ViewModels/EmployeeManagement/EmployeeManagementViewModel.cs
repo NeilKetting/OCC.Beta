@@ -87,6 +87,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         {
             // Designer constructor
             _employeeRepository = null!;
+            _userRepository = null!;
             _teamsVM = null!;
             _serviceProvider = null!;
             _dialogService = null!;

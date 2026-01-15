@@ -103,6 +103,7 @@ namespace OCC.Client.ViewModels.Orders
         public OrderDashboardViewModel()
         {
             _orderManager = null!;
+            _orderStateService = null!;
             _logger = null!;
         }
 

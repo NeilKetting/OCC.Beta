@@ -28,16 +28,16 @@ namespace OCC.Client.ViewModels.Projects
             ProjectSummaryViewModel projectSummaryVM,
             ProjectReportViewModel projectReportVM) 
         {
-            _projectMainMenu = projectMenu;
+            ProjectMainMenu = projectMenu;
             _projectListVM = projectsListVM;
             _projectDetailVM = projectDetailVM;
             _projectSummaryVM = projectSummaryVM;
             _projectReportVM = projectReportVM;
 
             // Default
-            _currentView = _projectListVM;
+            CurrentView = _projectListVM;
 
-            _projectMainMenu.PropertyChanged += Menu_PropertyChanged;
+            ProjectMainMenu.PropertyChanged += Menu_PropertyChanged;
 
             // Register for Project Selection
             CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.RegisterAll(this);
@@ -53,7 +53,7 @@ namespace OCC.Client.ViewModels.Projects
 
         private void UpdateView()
         {
-            switch (_projectMainMenu.ActiveTab)
+            switch (ProjectMainMenu.ActiveTab)
             {
                 case "Dashboard":
                     CurrentView = _projectSummaryVM;
