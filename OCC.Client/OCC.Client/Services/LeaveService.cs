@@ -133,7 +133,6 @@ namespace OCC.Client.Services
         {
             if (employee == null) return 0;
 
-            System.Diagnostics.Debug.WriteLine($"[LeaveService] Calculating for Employee: {employee.Id}, Initial: {employee.AnnualLeaveBalance}, Join: {employee.EmploymentDate:yyyy-MM-dd}");
 
             // 1. Get Initial Balance
             double balance = employee.AnnualLeaveBalance;
@@ -152,8 +151,6 @@ namespace OCC.Client.Services
             double accrued = CalculateAnnualLeaveAccrual(daysWorked);
             balance += accrued;
 
-            System.Diagnostics.Debug.WriteLine($"[LeaveService] Days Worked: {daysWorked}, Accrued: {accrued:N2}");
-
             // 3. Subtract Taken (Approved Annual Leave)
             // Only count leave taken on or after Employment Date
             var requests = await _leaveRepository.GetAllAsync();
@@ -164,8 +161,6 @@ namespace OCC.Client.Services
             
             double daysTaken = approvedAnnualLeave.Sum(r => r.NumberOfDays);
             balance -= daysTaken;
-
-            System.Diagnostics.Debug.WriteLine($"[LeaveService] Days Taken: {daysTaken}, Final Balance: {balance:N2}");
 
             return Math.Round(balance, 2);
         }

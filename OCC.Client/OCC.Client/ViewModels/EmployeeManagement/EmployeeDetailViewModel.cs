@@ -80,7 +80,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 if (value.HasValue && value.Value != EmploymentDate.DateTime)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] EmploymentDateDateTime setter called with: {value.Value:dd MMM yyyy}");
                     EmploymentDate = value.Value;
                     _ = RefreshBalanceAsync();
                 }
@@ -141,10 +140,28 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private double _sickLeaveBalance = 30; // Default SA Limit
 
         [ObservableProperty]
-        private DateTime? _leaveCycleStartDate;
+        private string _sickLeaveCycleEndDisplay = "N/A";
 
         [ObservableProperty]
-        private string _sickLeaveCycleEndDisplay = "N/A";
+        [NotifyPropertyChangedFor(nameof(SickLeaveCycleEndDisplay))]
+        private DateTime? _leaveCycleStartDate;
+
+        partial void OnLeaveCycleStartDateChanged(DateTime? value)
+        {
+            if (value.HasValue && value.Value > new DateTime(1900, 1, 1))
+            {
+                // SA BCEA: Sick leave cycle is 36 months (3 years) from start of employment or cycle
+                var endDate = value.Value.AddMonths(36).AddDays(-1);
+                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
+            }
+            else
+            {
+                SickLeaveCycleEndDisplay = "N/A";
+            }
+            
+            // Trigger balance refresh as this might affect calculations later
+             _ = RefreshBalanceAsync();
+        }
 
         [ObservableProperty]
         private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
@@ -662,19 +679,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
         }
 
-        partial void OnLeaveCycleStartDateChanged(DateTime? value)
-        {
-            if (value.HasValue && value.Value > new DateTime(1900, 1, 1))
-            {
-                // SA BCEA: Sick leave cycle is 36 months (3 years) from start of employment or cycle
-                var endDate = value.Value.AddMonths(36).AddDays(-1);
-                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
-            }
-            else
-            {
-                SickLeaveCycleEndDisplay = "N/A";
-            }
-        }
 
         [ObservableProperty]
         private BankName _selectedBank = OCC.Shared.Models.BankName.None;
@@ -834,9 +838,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         {
             if (_leaveService == null) return;
 
-            string empName = string.IsNullOrEmpty(FirstName) ? "New Employee" : $"{FirstName} {LastName}";
-            System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Refreshing balance for {empName}...");
-
             try
             {
                 // Create a temporary employee object to calculate balance without saving to DB
@@ -847,21 +848,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                     EmploymentDate = EmploymentDate.DateTime
                 };
 
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Calling LeaveService for ID: {tempEmployee.Id}, JoinDate: {tempEmployee.EmploymentDate:yyyy-MM-dd}, Initial: {tempEmployee.AnnualLeaveBalance}");
-                
                 var balance = await _leaveService.CalculateCurrentLeaveBalanceAsync(tempEmployee);
-                
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] New Balance calculated: {balance}");
-                
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => {
-                    CurrentAnnualLeaveBalance = balance;
-                    System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] UI Property Updated to: {CurrentAnnualLeaveBalance}");
-                });
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => CurrentAnnualLeaveBalance = balance);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] ERROR refreshing balance: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Error refreshing balance: {ex.Message}");
             }
         }
 
