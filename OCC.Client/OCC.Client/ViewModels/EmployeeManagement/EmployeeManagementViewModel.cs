@@ -23,6 +23,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
         private readonly INotificationService _notificationService;
+        private readonly ILeaveService _leaveService;
         
         /// <summary>
         /// Cache for all loaded employees to support filtering without database calls
@@ -91,6 +92,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _dialogService = null!;
             _authService = null!;
             _notificationService = null!;
+            _leaveService = null!;
             CurrentContent = this;
         }
 
@@ -103,7 +105,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             IServiceProvider serviceProvider,
             IDialogService dialogService,
             INotificationService notificationService,
-            IAuthService authService)
+            IAuthService authService,
+            ILeaveService leaveService)
         {
             _employeeRepository = employeeRepository;
             _userRepository = userRepository;
@@ -112,6 +115,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _dialogService = dialogService;
             _notificationService = notificationService;
             _authService = authService;
+            _leaveService = leaveService;
             
             _teamsVM.EditTeamRequested += (s, team) => 
             {
@@ -149,7 +153,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [RelayCommand]
         private void AddEmployee()
         {
-             AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService);
+             AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
              AddEmployeePopup.Title = "Add New Employee";
              AddEmployeePopup.SaveButtonText = "Create Employee";
              AddEmployeePopup.EmployeeAdded += (s, e) => {
@@ -171,7 +175,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] Attempting to edit employee: {employee.Id} - {employee.FirstName} {employee.LastName}");
                 
-                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService);
+                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
                 AddEmployeePopup.Load(employee);
                 
                 AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;

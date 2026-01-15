@@ -97,9 +97,19 @@ namespace OCC.API.Controllers
                 return BadRequest();
             }
 
-            // Prevent changing own role or locking oneself out ideally, but simple for now
-            // If password provided, hash it
             var existingUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+
+            // Prevent changing own role or locking oneself out ideally, but simple for now
+            if (existingUser != null && (existingUser.Email == "neil@mdk.co.za" || existingUser.Email == "neil@origize63.co.za"))
+            {
+                var currentUser = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.ToLowerInvariant();
+                if (currentUser != "neil@mdk.co.za" && currentUser != "neil@origize63.co.za")
+                {
+                    return Forbid("Only the Developer can modify this account.");
+                }
+            }
+
+            // If password provided, hash it
             
             // Note: AsNoTracking means the entity is not tracked. 
             // We need to attach the new 'user' or update properties.
@@ -154,6 +164,11 @@ namespace OCC.API.Controllers
                 if (user == null)
                 {
                     return NotFound();
+                }
+
+                if (user.Email == "neil@mdk.co.za" || user.Email == "neil@origize63.co.za")
+                {
+                    return BadRequest("The Developer account cannot be deleted.");
                 }
 
                 _context.Users.Remove(user);

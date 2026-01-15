@@ -33,17 +33,16 @@ namespace OCC.Client.Converters
                     };
                 }
             }
-            else if (value is OrderStatus orderStatus) // No parameter needed usually, or default to Background logic if bound to Border
+            else if (value is string statusStr)
             {
-                 // Assuming usage in Border Background mainly
-                 return orderStatus switch
-                 {
-                     OrderStatus.Ordered => Brushes.Orange,
-                     OrderStatus.PartialDelivery => Brushes.LightBlue,
-                     OrderStatus.Completed => Brushes.LightGreen,
-                     OrderStatus.Cancelled => Brushes.LightPink,
-                     _ => Brushes.Transparent
-                 };
+                return statusStr switch
+                {
+                    "Open" => Brushes.IndianRed,
+                    "Waiting for Client" => Brushes.Orange,
+                    "Resolved" => Brushes.MediumSeaGreen,
+                    "Closed" => Brushes.Gray,
+                    _ => Brushes.Transparent
+                };
             }
             
             return Brushes.Transparent;

@@ -21,7 +21,7 @@ namespace OCC.Client.Services
             _serviceProvider = serviceProvider;
         }
 
-        public async Task ShowBugReportAsync(string viewName)
+        public async Task ShowBugReportAsync(string viewName, string? screenshotBase64 = null)
         {
              if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
              {
@@ -32,6 +32,7 @@ namespace OCC.Client.Services
                      viewName,
                      () => Avalonia.Threading.Dispatcher.UIThread.Post(() => dialog.Close())
                  );
+                 vm.ScreenshotBase64 = screenshotBase64;
                  dialog.DataContext = vm;
                  await dialog.ShowDialog(desktop.MainWindow);
              }

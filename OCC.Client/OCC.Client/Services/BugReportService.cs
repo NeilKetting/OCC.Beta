@@ -2,6 +2,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -13,11 +14,13 @@ namespace OCC.Client.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IAuthService _authService;
-
-        public BugReportService(HttpClient httpClient, IAuthService authService)
+        private readonly IPermissionService _permissionService;
+        
+        public BugReportService(HttpClient httpClient, IAuthService authService, IPermissionService permissionService)
         {
             _httpClient = httpClient;
             _authService = authService;
+            _permissionService = permissionService;
         }
 
         private void EnsureAuthorization()
@@ -40,6 +43,30 @@ namespace OCC.Client.Services
         {
             EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<List<BugReport>>("api/BugReports") ?? new List<BugReport>();
+        }
+
+        public async Task AddCommentAsync(Guid bugId, string comment, string? status)
+        {
+            EnsureAuthorization();
+            var currentUser = _authService.CurrentUser;
+            var bugComment = new BugComment
+            {
+                BugReportId = bugId,
+                Content = comment,
+                AuthorName = (currentUser?.FirstName + " " + currentUser?.LastName)?.Trim() ?? "System",
+                AuthorEmail = currentUser?.Email ?? "",
+                IsDevComment = _permissionService.IsDev,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var url = $"api/BugReports/{bugId}/comments";
+            if (!string.IsNullOrEmpty(status))
+            {
+                url += $"?status={status}";
+            }
+
+            var response = await _httpClient.PostAsJsonAsync(url, bugComment);
+            response.EnsureSuccessStatusCode();
         }
     }
 }

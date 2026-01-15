@@ -6,8 +6,6 @@
 			 xmlns:conv="using:OCC.Client.Converters"
 			 xmlns:models="using:OCC.Shared.Models"
 			 mc:Ignorable="d"
-			 d:DesignHeight="600"
-			 d:DesignWidth="800"
 			 x:Name="Root"
 
 			 x:Class="OCC.Client.Views.Orders.SupplierDetailView"
@@ -46,7 +44,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="White" Width="700" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
+	<Border Background="White" Width="700" Height="480" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
 			VerticalAlignment="Center" HorizontalAlignment="Center">
 		<Grid RowDefinitions="Auto, *, Auto">
 

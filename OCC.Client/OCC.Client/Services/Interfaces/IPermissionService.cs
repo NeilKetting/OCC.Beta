@@ -14,5 +14,10 @@ namespace OCC.Client.Services.Interfaces
         /// <param name="route">The route or resource identifier.</param>
         /// <returns>True if access is granted.</returns>
         bool CanAccess(string route);
+
+        /// <summary>
+        /// Gets a value indicating whether the current user is a developer.
+        /// </summary>
+        bool IsDev { get; }
     }
 }

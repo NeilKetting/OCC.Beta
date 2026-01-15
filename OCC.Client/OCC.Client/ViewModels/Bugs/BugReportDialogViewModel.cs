@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
@@ -5,7 +6,6 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core; // Added
 using OCC.Shared.Models;
-using System;
 using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Bugs
@@ -25,6 +25,9 @@ namespace OCC.Client.ViewModels.Bugs
 
         [ObservableProperty]
         private bool _isSubmitting;
+
+        [ObservableProperty]
+        private string? _screenshotBase64;
 
         public BugReportDialogViewModel(
             IBugReportService bugService, 
@@ -59,7 +62,8 @@ namespace OCC.Client.ViewModels.Bugs
                     ReportedDate = DateTime.UtcNow,
                     ViewName = ViewName,
                     Description = Description,
-                    Status = "Open"
+                    Status = "Open",
+                    ScreenshotBase64 = ScreenshotBase64
                 };
 
                 await _bugService.SubmitBugAsync(report);

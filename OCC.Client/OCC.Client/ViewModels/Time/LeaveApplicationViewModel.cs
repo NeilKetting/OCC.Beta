@@ -124,10 +124,10 @@ namespace OCC.Client.ViewModels.Time
             CalculatedDays = await _leaveService.CalculateBusinessDaysAsync(start, end);
             IsCalculated = true;
             
-            CheckBalance();
+            await CheckBalanceAsync();
         }
 
-        private void CheckBalance()
+        private async Task CheckBalanceAsync()
         {
             HasBalanceWarning = false;
             BalanceWarning = string.Empty;
@@ -135,11 +135,13 @@ namespace OCC.Client.ViewModels.Time
             if (SelectedEmployee == null) return;
             if (SelectedLeaveType != LeaveType.Annual) return; // Only check Annual Leave balance for now
 
-            if (CalculatedDays > SelectedEmployee.LeaveBalance)
+            double currentBalance = await _leaveService.CalculateCurrentLeaveBalanceAsync(SelectedEmployee.Id);
+
+            if (CalculatedDays > currentBalance)
             {
-                double shortfall = CalculatedDays - SelectedEmployee.LeaveBalance;
+                double shortfall = CalculatedDays - currentBalance;
                 HasBalanceWarning = true;
-                BalanceWarning = $"Insufficient Leave Balance ({SelectedEmployee.LeaveBalance} days available). {shortfall} days will be UNPAID.";
+                BalanceWarning = $"Insufficient Leave Balance ({currentBalance:N2} days available). {shortfall:N2} days will be UNPAID.";
             }
         }
 

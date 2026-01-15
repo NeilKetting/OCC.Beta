@@ -26,6 +26,18 @@ namespace OCC.Client.Services
             _authService = authService;
         }
 
+        public bool IsDev
+        {
+            get
+            {
+                var user = _authService.CurrentUser;
+                if (user == null) return false;
+                
+                var email = user.Email?.ToLowerInvariant();
+                return email == "neil@mdk.co.za" || email == "neil@origize63.co.za";
+            }
+        }
+
         /// <summary>
         /// Determines if the current user has access to a specific route or feature.
         /// </summary>
@@ -36,7 +48,10 @@ namespace OCC.Client.Services
             var user = _authService.CurrentUser;
             if (user == null) return false;
 
-            // Admin has access to everything
+            // Dev has access to everything
+            if (IsDev) return true;
+
+            // Admin access
             if (user.UserRole == UserRole.Admin) return true;
 
             // Special Check for Wage Visibility

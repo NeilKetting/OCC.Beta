@@ -34,5 +34,12 @@ namespace OCC.Client.Services.Interfaces
         /// Calculates Sick Leave accrual for first 6 months (1 day per 26 worked).
         /// </summary>
         double CalculateSickLeaveAccrual(double daysWorked);
+        
+        /// <summary>
+        /// Calculates the current real-time leave balance for an employee.
+        /// Formula: (Initial Balance) + (Accrued: 1 day / 17 worked) - (Approved Taken)
+        /// </summary>
+        Task<double> CalculateCurrentLeaveBalanceAsync(Guid employeeId);
+        Task<double> CalculateCurrentLeaveBalanceAsync(Employee employee);
     }
 }

@@ -127,6 +127,13 @@ namespace OCC.Client.ViewModels.Settings
                 {
                     try
                     {
+                        var email = user.Email?.ToLowerInvariant();
+                        if (email == "neil@mdk.co.za" || email == "neil@origize63.co.za")
+                        {
+                            await _dialogService.ShowAlertAsync("Restricted Action", "The Developer account cannot be deleted.");
+                            return;
+                        }
+
                         BusyText = "Deleting user...";
                         IsBusy = true;
                         await _userRepository.DeleteAsync(user.Id);

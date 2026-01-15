@@ -24,6 +24,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly IRepository<User> _userRepository;
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
+        private readonly ILeaveService _leaveService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
 
@@ -72,10 +73,18 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [NotifyPropertyChangedFor(nameof(EmploymentDateDateTime))]
         private DateTimeOffset _employmentDate = DateTimeOffset.Now;
 
-        public DateTime EmploymentDateDateTime
+        public DateTime? EmploymentDateDateTime
         {
             get => EmploymentDate.DateTime;
-            set => EmploymentDate = value;
+            set 
+            {
+                if (value.HasValue && value.Value != EmploymentDate.DateTime)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] EmploymentDateDateTime setter called with: {value.Value:dd MMM yyyy}");
+                    EmploymentDate = value.Value;
+                    _ = RefreshBalanceAsync();
+                }
+            }
         }
 
         [ObservableProperty]
@@ -126,10 +135,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private double _annualLeaveBalance;
 
         [ObservableProperty]
+        private double _currentAnnualLeaveBalance;
+
+        [ObservableProperty]
         private double _sickLeaveBalance = 30; // Default SA Limit
 
         [ObservableProperty]
-        private DateTimeOffset? _leaveCycleStartDate;
+        private DateTime? _leaveCycleStartDate;
 
         [ObservableProperty]
         private string _sickLeaveCycleEndDisplay = "N/A";
@@ -261,12 +273,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Constructors
 
-        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IRepository<User> userRepository, IDialogService dialogService, IAuthService authService)
+        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IRepository<User> userRepository, IDialogService dialogService, IAuthService authService, ILeaveService leaveService)
         {
             _staffRepository = staffRepository;
             _userRepository = userRepository;
             _dialogService = dialogService;
             _authService = authService;
+            _leaveService = leaveService;
             
             _ = InitializeAsync();
         }
@@ -288,8 +301,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         {
             // _staffRepository and _dialogService will be null, handle in Save
             _staffRepository = null!;
+            _userRepository = null!;
             _dialogService = null!;
             _authService = null!;
+            _leaveService = null!;
         }
 
         #endregion
@@ -386,7 +401,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             // Leave Balances
             staff.AnnualLeaveBalance = AnnualLeaveBalance;
             staff.SickLeaveBalance = SickLeaveBalance;
-            staff.LeaveCycleStartDate = LeaveCycleStartDate?.DateTime;
+            staff.LeaveCycleStartDate = LeaveCycleStartDate;
             
             // Banking
             // Map "Select Bank" (None) to null/empty
@@ -534,6 +549,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 AnnualLeaveBalance = staff.AnnualLeaveBalance;
                 SickLeaveBalance = staff.SickLeaveBalance;
                 
+                // Calculate Current Balance asynchronously
+                _ = RefreshBalanceAsync();
+                
                 // Sanitize LeaveCycleStartDate
                 if (staff.LeaveCycleStartDate.HasValue && 
                    (staff.LeaveCycleStartDate.Value < new DateTime(1900, 1, 1) || staff.LeaveCycleStartDate.Value == DateTime.MinValue))
@@ -543,7 +561,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 }
                 else
                 {
-                    LeaveCycleStartDate = staff.LeaveCycleStartDate.HasValue ? staff.LeaveCycleStartDate.Value : null;
+                    LeaveCycleStartDate = staff.LeaveCycleStartDate;
                 }
 
                 // Set Initial Rule Text
@@ -644,9 +662,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
         }
 
-        partial void OnLeaveCycleStartDateChanged(DateTimeOffset? value)
+        partial void OnLeaveCycleStartDateChanged(DateTime? value)
         {
-            if (value.HasValue)
+            if (value.HasValue && value.Value > new DateTime(1900, 1, 1))
             {
                 // SA BCEA: Sick leave cycle is 36 months (3 years) from start of employment or cycle
                 var endDate = value.Value.AddMonths(36).AddDays(-1);
@@ -806,6 +824,44 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             if (DateTime.TryParseExact(datePart, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dob))
             {
                 _calculatedDoB = dob;
+            }
+        }
+
+        partial void OnAnnualLeaveBalanceChanged(double value) => _ = RefreshBalanceAsync();
+        partial void OnEmploymentDateChanged(DateTimeOffset value) => _ = RefreshBalanceAsync();
+
+        private async Task RefreshBalanceAsync()
+        {
+            if (_leaveService == null) return;
+
+            string empName = string.IsNullOrEmpty(FirstName) ? "New Employee" : $"{FirstName} {LastName}";
+            System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Refreshing balance for {empName}...");
+
+            try
+            {
+                // Create a temporary employee object to calculate balance without saving to DB
+                var tempEmployee = new Employee
+                {
+                    Id = _existingStaffId ?? Guid.Empty,
+                    AnnualLeaveBalance = AnnualLeaveBalance,
+                    EmploymentDate = EmploymentDate.DateTime
+                };
+
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Calling LeaveService for ID: {tempEmployee.Id}, JoinDate: {tempEmployee.EmploymentDate:yyyy-MM-dd}, Initial: {tempEmployee.AnnualLeaveBalance}");
+                
+                var balance = await _leaveService.CalculateCurrentLeaveBalanceAsync(tempEmployee);
+                
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] New Balance calculated: {balance}");
+                
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                    CurrentAnnualLeaveBalance = balance;
+                    System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] UI Property Updated to: {CurrentAnnualLeaveBalance}");
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] ERROR refreshing balance: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(ex.StackTrace);
             }
         }
 
