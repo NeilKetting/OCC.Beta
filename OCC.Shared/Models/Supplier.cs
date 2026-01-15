@@ -16,8 +16,11 @@ namespace OCC.Shared.Models
         
         // Banking Details (Optional but good for POs)
         public string BankName { get; set; } = string.Empty;
-        public string AccountNumber { get; set; } = string.Empty;
+        public string BankAccountNumber { get; set; } = string.Empty;
         public string BranchCode { get; set; } = string.Empty;
+
+        // Our account number with this supplier
+        public string SupplierAccountNumber { get; set; } = string.Empty;
         
         public override string ToString() => Name;
     }

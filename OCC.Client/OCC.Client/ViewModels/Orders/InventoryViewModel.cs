@@ -30,6 +30,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IDialogService _dialogService;
         private readonly ILogger<InventoryViewModel> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IAuthService _authService;
         private List<InventoryItem> _allItems = new();
 
         #endregion
@@ -46,6 +47,17 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         [ObservableProperty]
         private string _searchQuery = "";
+
+        /// <summary>
+        /// Gets or sets the currently selected branch filter.
+        /// </summary>
+        [ObservableProperty]
+        private Branch? _selectedBranch;
+
+        /// <summary>
+        /// Gets the list of available branches for filtering.
+        /// </summary>
+        public List<Branch> AvailableBranches { get; } = Enum.GetValues<Branch>().ToList();
 
         /// <summary>
         /// Gets or sets a value indicating whether an asynchronous operation is in progress.
@@ -88,17 +100,23 @@ namespace OCC.Client.ViewModels.Orders
         /// <param name="dialogService">Service for displaying user notifications.</param>
         /// <param name="logger">Logger for capturing diagnostic information.</param>
         /// <param name="serviceProvider">Service provider for resolving child ViewModels via DI.</param>
+        /// <param name="authService">Service for accessing current user context.</param>
         public InventoryViewModel(
             IOrderManager orderManager, 
             IDialogService dialogService, 
             ILogger<InventoryViewModel> logger,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IAuthService authService)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _authService = authService;
             
+            // Default to user's branch if available, otherwise JHB
+            SelectedBranch = _authService.CurrentUser?.Branch ?? Branch.JHB;
+
             _ = LoadInventoryAsync();
         }
 
@@ -127,7 +145,7 @@ namespace OCC.Client.ViewModels.Orders
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
             DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemDetailViewModel>(_serviceProvider);
-            DetailViewModel.Load(item, categories);
+            DetailViewModel.Load(item, categories); // Pass branch if needed, or item has it all
             
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 

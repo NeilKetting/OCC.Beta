@@ -67,10 +67,14 @@
         </DataTemplate>
 
         <DataTemplate x:Key="QtyTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <TextBox Text="{Binding QuantityOrdered, Mode=TwoWay, Converter={StaticResource ZeroToEmptyStringConverter}}"
-                     GotFocus="TextBox_GotFocus"
-                     ContextMenu="{x:Null}"
-                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+            <NumericUpDown Value="{Binding QuantityOrdered}"
+                           Minimum="0"
+                           Increment="1"
+                           FormatString="0.##"
+                           GotFocus="TextBox_GotFocus"
+                           ContextMenu="{x:Null}"
+                           BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                           ShowButtonSpinner="False"/>
         </DataTemplate>
 
         <DataTemplate x:Key="UnitTemplate" x:DataType="wrappers:OrderLineWrapper">
@@ -108,10 +112,14 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PriceTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <TextBox Text="{Binding UnitPrice, Mode=TwoWay, Converter={StaticResource ZeroToEmptyStringConverter}}"
-                     GotFocus="TextBox_GotFocus"
-                     ContextMenu="{x:Null}"
-                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" TextAlignment="Right" VerticalContentAlignment="Center"/>
+            <NumericUpDown Value="{Binding UnitPrice}"
+                           Minimum="0"
+                           Increment="0.01"
+                           FormatString="N2"
+                           GotFocus="TextBox_GotFocus"
+                           ContextMenu="{x:Null}"
+                           BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+                           ShowButtonSpinner="False"/>
         </DataTemplate>
 
         <DataTemplate x:Key="TotalTemplate" x:DataType="wrappers:OrderLineWrapper">

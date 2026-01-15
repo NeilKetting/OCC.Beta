@@ -27,6 +27,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly ILeaveService _leaveService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
+        private bool _isLoading;
 
         #endregion
 
@@ -504,6 +505,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             try 
             {
+                _isLoading = true;
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Loading Employee: {staff.Id}");
 
                 _existingStaffId = staff.Id;
@@ -642,13 +644,19 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 OnPropertyChanged(nameof(IsContractVisible));
                 OnPropertyChanged(nameof(IsOtherBankSelected));
                 
+                _isLoading = false;
+
+                // Single, final refresh after all properties are set
+                _ = RefreshBalanceAsync();
+
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Load Complete");
             }
             catch (Exception ex)
             {
-                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] CRASH in Load: {ex.Message}");
-                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Stack: {ex.StackTrace}");
-                 throw;
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] CRASH in Load: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Stack: {ex.StackTrace}");
+                _isLoading = false;
+                throw;
             }
         }
 
@@ -836,7 +844,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         private async Task RefreshBalanceAsync()
         {
-            if (_leaveService == null) return;
+            if (_leaveService == null || _isLoading) return;
 
             try
             {

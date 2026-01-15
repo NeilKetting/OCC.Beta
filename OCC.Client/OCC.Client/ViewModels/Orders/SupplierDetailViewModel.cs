@@ -187,7 +187,8 @@ namespace OCC.Client.ViewModels.Orders
                     Phone = supplier.Phone,
                     Address = supplier.Address,
                     VatNumber = supplier.VatNumber,
-                    AccountNumber = supplier.AccountNumber,
+                    BankAccountNumber = supplier.BankAccountNumber,
+                    SupplierAccountNumber = supplier.SupplierAccountNumber,
                     BranchCode = supplier.BranchCode
                 };
                 IsEditMode = true;

@@ -34,13 +34,22 @@ namespace OCC.Client.Converters
 
             try 
             {
-                 return System.Convert.ChangeType(value, targetType, culture);
+                // Smart Input: Handle both dot and comma as decimal separators
+                if (value is string s && (targetType == typeof(double) || targetType == typeof(decimal) || targetType == typeof(float)))
+                {
+                    // Normalize to dot for ChangeType
+                    var normalized = s.Replace(',', '.');
+                    return System.Convert.ChangeType(normalized, targetType, CultureInfo.InvariantCulture);
+                }
+
+                return System.Convert.ChangeType(value, targetType, culture);
             }
             catch
             {
                  // Fallback
                  if (targetType == typeof(int)) return 0;
                  if (targetType == typeof(decimal)) return 0m;
+                 if (targetType == typeof(double)) return 0.0;
                  return 0;
             }
         }

@@ -129,23 +129,44 @@
 						<!-- Inventory Levels -->
 						<TextBlock Text="Inventory Levels" Classes="SectionHeader" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource PrimaryTeal}"/>
                         
-						<ToggleSwitch Content="Track Low Stock" 
-                                      IsChecked="{Binding IsTrackingLowStock}"
+						<ToggleSwitch Content="Allow Stock Tracking" 
+                                      IsChecked="{Binding IsStockItem}"
                                       OnContent="Yes" OffContent="No"
                                       Theme="{DynamicResource MaterialToggleSwitch}"/>
 
-						<Grid ColumnDefinitions="*, 20, *">
-							<StackPanel Grid.Column="0" Spacing="10">
-								<TextBlock Text="Quantity On Hand" Classes="FormLabel"/>
-								<!-- Read Only to prevent manual edits bypassing Receive/Adjust flow -->
-								<TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0" IsReadOnly="True" Background="#F8FAFC"/>
-							</StackPanel>
+						<ToggleSwitch Content="Track Low Stock" 
+                                      IsChecked="{Binding IsTrackingLowStock}"
+                                      IsVisible="{Binding IsStockItem}"
+                                      OnContent="Yes" OffContent="No"
+                                      Theme="{DynamicResource MaterialToggleSwitch}"/>
+
+                        <StackPanel IsVisible="{Binding IsStockItem}" Spacing="10">
                             
-							<StackPanel Grid.Column="2" Spacing="10" IsVisible="{Binding IsTrackingLowStock}">
-								<TextBlock Text="Reorder Point" Classes="FormLabel"/>
-								<TextBox Text="{Binding ReorderPoint}" Classes="FormInput" Watermark="10" ToolTip.Tip="Alert when stock falls below this level"/>
-							</StackPanel>
-						</Grid>
+                            <Grid ColumnDefinitions="*, 20, *">
+                                <StackPanel Grid.Column="0" Spacing="10">
+                                    <TextBlock Text="JHB Quantity" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding JhbQuantity}" Classes="FormInput" Watermark="0" IsReadOnly="{Binding !IsEditMode}"/>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="2" Spacing="10">
+                                    <TextBlock Text="CPT Quantity" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding CptQuantity}" Classes="FormInput" Watermark="0" IsReadOnly="{Binding !IsEditMode}"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*, 20, *">
+                                <StackPanel Grid.Column="0" Spacing="10">
+                                    <TextBlock Text="Total On Hand" Classes="FormLabel"/>
+                                    <!-- Read Only to prevent manual edits bypassing Receive/Adjust flow -->
+                                    <TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0" IsReadOnly="True" Background="#F8FAFC"/>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="2" Spacing="10" IsVisible="{Binding IsTrackingLowStock}">
+                                    <TextBlock Text="Reorder Point" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding ReorderPoint}" Classes="FormInput" Watermark="10" ToolTip.Tip="Global alert level (Total Stock)"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel> <!-- End of Stock Tracking Group -->
 
 						<StackPanel Spacing="10">
 							<TextBlock Text="Avg Buying Price (R)" Classes="FormLabel"/>

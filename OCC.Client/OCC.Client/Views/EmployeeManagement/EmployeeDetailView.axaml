@@ -178,8 +178,12 @@
 							<!-- Rate -->
 							<StackPanel>
 								<TextBlock Text="Rate / Salary (R)" Classes="FormLabel"/>
-								<TextBox Text="{Binding HourlyRate}" Watermark="0.00"
-										 ToolTip.Tip="Hourly rate or monthly salary amount"/>
+								<NumericUpDown Value="{Binding HourlyRate}" 
+											   Minimum="0" 
+											   Increment="0.5"
+											   FormatString="N2"
+											   ShowButtonSpinner="False"
+											   ToolTip.Tip="Hourly rate or monthly salary amount"/>
 							</StackPanel>
 							
 							<!-- Branch -->
@@ -287,7 +291,7 @@
 									<PathIcon Data="{StaticResource IconCalendar}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
 									<TextBlock Text="Initial Leave Balances (Days)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 								</StackPanel>
-								<TextBlock Text="{Binding LeaveAccrualRule}" Classes="StatLabel" TextWrapping="Wrap" Margin="0,0,0,5"/>
+								<TextBlock Text="{Binding LeaveAccrualRule}" Classes="StatLabel" Width="300" TextWrapping="Wrap" Margin="0,0,0,5"/>
 								<!-- Formula Explanation -->
 								<TextBlock Text="Accrual Calculation: (Initial Balance) + (Accrued: 1 day per 17 days worked) - (Approved Leave Taken)" 
 										   Classes="StatLabel"
@@ -297,7 +301,11 @@
 									<!-- Annual Leave -->
 									<StackPanel Grid.Column="0" Spacing="5">
 										<TextBlock Text="Initial Annual Leave" Classes="FormLabel"/>
-										<TextBox Text="{Binding AnnualLeaveBalance, UpdateSourceTrigger=PropertyChanged}" Classes="FormInput" Watermark="0.0"/>
+										<NumericUpDown Value="{Binding AnnualLeaveBalance}" 
+													   Minimum="0" 
+													   Increment="0.5"
+													   FormatString="N1"
+													   ShowButtonSpinner="False"/>
 										<StackPanel Orientation="Horizontal" Spacing="5">
 											<TextBlock Text="Current:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
 											<TextBlock Text="{Binding CurrentAnnualLeaveBalance, StringFormat='\{0:N2\}'}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTeal}"/>
@@ -307,7 +315,11 @@
 									<!-- Sick Leave -->
 									<StackPanel Grid.Column="2" Spacing="5">
 										<TextBlock Text="Initial Sick Leave" Classes="FormLabel"/>
-										<TextBox Text="{Binding SickLeaveBalance}" Classes="FormInput" Watermark="30.0"/>
+										<NumericUpDown Value="{Binding SickLeaveBalance}" 
+													   Minimum="0" 
+													   Increment="1.0"
+													   FormatString="N1"
+													   ShowButtonSpinner="False"/>
 										<!-- Vertical alignment dummy -->
 										<StackPanel Orientation="Horizontal" Opacity="0">
 											<TextBlock Text="Dummy:" FontSize="11"/>
@@ -332,7 +344,7 @@
 										</Button>
 									</Grid>
 									<StackPanel Orientation="Horizontal" Margin="0,5,0,0" Spacing="5">
-										<TextBlock Text="Sick Leave Cycle Ends:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
+										<TextBlock Text="Sick Leave Cycle Ends:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" />
 										<TextBlock Text="{Binding SickLeaveCycleEndDisplay}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTeal}"/>
 									</StackPanel>
 								</StackPanel>

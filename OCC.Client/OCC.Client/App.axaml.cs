@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using System.Globalization;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Services;
 using OCC.Client.Services.Infrastructure; // Added
@@ -43,6 +45,15 @@ namespace OCC.Client
 
         public override void Initialize()
         {
+            // Force dot decimal separator globally for consistency (e.g. for South African locale)
+            var culture = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            culture.NumberFormat.NumberDecimalSeparator = ".";
+            culture.NumberFormat.CurrencyDecimalSeparator = ".";
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+
             AvaloniaXamlLoader.Load(this);
 
             LiveCharts.Configure(config => 

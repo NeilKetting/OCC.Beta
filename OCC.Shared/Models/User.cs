@@ -15,6 +15,7 @@
         
         public string? Permissions { get; set; }
         
+        public Branch? Branch { get; set; }
         public UserRole UserRole { get; set; } = UserRole.Guest;
         public string? DisplayName => (!string.IsNullOrWhiteSpace(FirstName) && !string.IsNullOrWhiteSpace(LastName)) 
             ? $"{FirstName}, {LastName}" 

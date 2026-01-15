@@ -99,6 +99,11 @@
 							<TextBlock Text="Physical Address" Classes="Label"/>
 							<TextBox Text="{Binding Supplier.Address}" Classes="FormInput" Height="60" AcceptsReturn="True" Watermark="Physical address..."/>
 						</StackPanel>
+
+						<StackPanel Spacing="5">
+							<TextBlock Text="Supplier Account No" Classes="Label"/>
+							<TextBox Text="{Binding Supplier.SupplierAccountNumber}" Classes="FormInput" Watermark="Your account ID with them"/>
+						</StackPanel>
 					</StackPanel>
 
 					<!-- Right Column: Additional Info -->
@@ -138,8 +143,8 @@
 						</StackPanel>
 
 						<StackPanel Spacing="5">
-							<TextBlock Text="Account Number" Classes="Label"/>
-							<TextBox Text="{Binding Supplier.AccountNumber}" Classes="FormInput" Watermark="Account number"/>
+							<TextBlock Text="Bank Account Number" Classes="Label"/>
+							<TextBox Text="{Binding Supplier.BankAccountNumber}" Classes="FormInput" Watermark="Account number"/>
 						</StackPanel>
 					</StackPanel>
 				</Grid>

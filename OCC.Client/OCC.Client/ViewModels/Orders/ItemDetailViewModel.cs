@@ -27,7 +27,6 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
         private readonly Services.Infrastructure.OrderStateService _orderStateService;
-        private bool _isEditMode;
         private Guid _editingId;
 
         #endregion
@@ -77,10 +76,9 @@ namespace OCC.Client.ViewModels.Orders
         private string _unitOfMeasure = "ea";
 
         /// <summary>
-        /// Gets or sets the current quantity of items in stock.
+        /// Gets the total quantity of items in stock (JHB + CPT).
         /// </summary>
-        [ObservableProperty]
-        private double _quantityOnHand;
+        public double QuantityOnHand => JhbQuantity + CptQuantity;
 
         /// <summary>
         /// Gets or sets the stock level at which a reorder should be triggered.
@@ -101,6 +99,26 @@ namespace OCC.Client.ViewModels.Orders
         private bool _isTrackingLowStock = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether this is a stock item that tracks quantities.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isStockItem = true;
+        
+        /// <summary>
+        /// Gets or sets the quantity in JHB branch.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(QuantityOnHand))]
+        private double _jhbQuantity;
+
+        /// <summary>
+        /// Gets or sets the quantity in CPT branch.
+        /// </summary>
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(QuantityOnHand))]
+        private double _cptQuantity;
+
+        /// <summary>
         /// Gets or sets a value indicating whether an asynchronous operation is in progress.
         /// </summary>
         [ObservableProperty]
@@ -111,6 +129,12 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         [ObservableProperty]
         private string _busyText = "Please wait...";
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the view is in edit mode.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isEditMode;
 
         /// <summary>
         /// Gets the collection of available product categories for selection.
@@ -172,20 +196,23 @@ namespace OCC.Client.ViewModels.Orders
 
                 InventoryItem item = new InventoryItem
                 {
-                    Id = _isEditMode ? _editingId : Guid.NewGuid(),
+                    Id = IsEditMode ? _editingId : Guid.NewGuid(),
                     Sku = Sku,
                     ProductName = ProductName,
                     Category = Category,
                     Supplier = SupplierName ?? string.Empty,
                     Location = Location,
                     UnitOfMeasure = UnitOfMeasure,
-                    QuantityOnHand = QuantityOnHand,
+                    JhbQuantity = JhbQuantity,
+                    CptQuantity = CptQuantity,
+                    QuantityOnHand = QuantityOnHand, // Will be computed or ignored by API largely, but good to send
                     ReorderPoint = ReorderPoint,
                     AverageCost = AverageCost,
-                    TrackLowStock = IsTrackingLowStock
+                    TrackLowStock = IsTrackingLowStock,
+                    IsStockItem = IsStockItem
                 };
 
-                if (_isEditMode)
+                if (IsEditMode)
                 {
                     await _orderManager.UpdateItemAsync(item);
                 }
@@ -242,7 +269,7 @@ namespace OCC.Client.ViewModels.Orders
 
             if (item == null)
             {
-                _isEditMode = false;
+                IsEditMode = false;
                 Title = "Add New Item";
                 Sku = "";
                 ProductName = "";
@@ -250,13 +277,15 @@ namespace OCC.Client.ViewModels.Orders
                 SupplierName = "";
                 Location = "Warehouse";
                 UnitOfMeasure = "ea";
-                QuantityOnHand = 0;
+                JhbQuantity = 0;
+                CptQuantity = 0;
                 ReorderPoint = 10;
                 IsTrackingLowStock = true;
+                IsStockItem = true;
             }
             else
             {
-                _isEditMode = true;
+                IsEditMode = true;
                 _editingId = item.Id;
                 Title = $"Edit {item.ProductName}";
                 Sku = item.Sku;
@@ -265,10 +294,13 @@ namespace OCC.Client.ViewModels.Orders
                 SupplierName = item.Supplier;
                 Location = item.Location;
                 UnitOfMeasure = item.UnitOfMeasure;
-                QuantityOnHand = item.QuantityOnHand;
+                JhbQuantity = item.JhbQuantity;
+                CptQuantity = item.CptQuantity;
+                // QuantityOnHand is computed
                 ReorderPoint = item.ReorderPoint;
                 AverageCost = item.AverageCost;
                 IsTrackingLowStock = item.TrackLowStock;
+                IsStockItem = item.IsStockItem;
             }
         }
 

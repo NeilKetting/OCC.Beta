@@ -248,27 +248,35 @@ namespace OCC.API.Controllers
                         var inventoryItem = await _context.InventoryItems.FindAsync(originalLine.InventoryItemId.Value);
                         if (inventoryItem != null)
                         {
-                            // Adjust Average Cost (Weighted Average)
-                            // Only valid if adding stock (delta > 0)
-                            if (delta > 0)
+                            // Only track stock if it's a stock item
+                            if (inventoryItem.IsStockItem)
                             {
-                                decimal currentTotalValue = (decimal)(inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) * inventoryItem.AverageCost;
-                                decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
-                                double newTotalQty = (inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) + delta;
+                                // Adjust Average Cost (Weighted Average)
+                                // Only valid if adding stock (delta > 0)
+                                if (delta > 0)
+                                {
+                                    decimal currentTotalValue = (decimal)(inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) * inventoryItem.AverageCost;
+                                    decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
+                                    double newTotalQty = (inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) + delta;
 
-                                if (newTotalQty > 0)
-                                {
-                                    inventoryItem.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
+                                    if (newTotalQty > 0)
+                                    {
+                                        inventoryItem.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
+                                    }
+                                    else if (inventoryItem.QuantityOnHand <= 0) 
+                                    {
+                                         // Initial stock
+                                         inventoryItem.AverageCost = originalLine.UnitPrice;
+                                    }
                                 }
-                                else if (inventoryItem.QuantityOnHand <= 0) 
-                                {
-                                     // Initial stock
-                                     inventoryItem.AverageCost = originalLine.UnitPrice;
-                                }
+                                
+                                // Update Branch-Specific Quantity
+                                if (order.Branch == Branch.JHB) inventoryItem.JhbQuantity += delta;
+                                else if (order.Branch == Branch.CPT) inventoryItem.CptQuantity += delta;
+
+                                // Update Total Stock Quantity
+                                inventoryItem.QuantityOnHand += delta;
                             }
-                            
-                            // Update Stock Quantity
-                            inventoryItem.QuantityOnHand += delta;
                         }
                     }
                 }

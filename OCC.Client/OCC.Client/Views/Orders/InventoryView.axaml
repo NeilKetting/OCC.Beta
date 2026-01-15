@@ -10,17 +10,19 @@
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 x:Class="OCC.Client.Views.Orders.InventoryView"
+			 x:Name="Root"
 			 x:DataType="vm:InventoryViewModel">
 
 	<UserControl.Resources>
 		<conv:StatusColorConverter x:Key="StatusColorConverter" />
+		<conv:BranchQuantityConverter x:Key="BranchQuantityConverter" />
 	</UserControl.Resources>
 
 
 
 	<Grid RowDefinitions="Auto, *" Margin="5">
 		<!-- Header / Tools -->
-		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+		<Border Grid.Row="0" Margin="0,0,0,0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
 			<Grid ColumnDefinitions="Auto, *, Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 					<StackPanel Spacing="5">
@@ -30,6 +32,11 @@
 				</StackPanel>
 
 				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+					<ComboBox ItemsSource="{Binding AvailableBranches}" 
+							  SelectedItem="{Binding SelectedBranch}"
+							  Width="100"
+							  Classes="SearchBox"
+							  VerticalAlignment="Center"/>
 					<TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search Product..." Classes="SearchBox"/>
 				</StackPanel>
 			</Grid>
@@ -73,7 +80,22 @@
 				<DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 				<DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
-				<DataGridTextColumn Header="ON HAND" Binding="{Binding QuantityOnHand}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
+				
+				<DataGridTemplateColumn Header="STOCK" Width="Auto">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" Margin="12,0,0,0">
+								<TextBlock.Text>
+									<MultiBinding Converter="{StaticResource BranchQuantityConverter}">
+										<Binding Path="." />
+										<Binding Path="DataContext.SelectedBranch" ElementName="Root" />
+									</MultiBinding>
+								</TextBlock.Text>
+							</TextBlock>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
 				<DataGridTextColumn Header="UNIT" Binding="{Binding UnitOfMeasure}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 
 				<DataGridTemplateColumn Header="STATUS" Width="Auto">

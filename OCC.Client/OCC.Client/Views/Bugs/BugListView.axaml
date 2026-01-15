@@ -154,7 +154,8 @@
                 </ScrollViewer>
 
                 <!-- Reply / Action Bar -->
-                <Border Grid.Row="2" Padding="25,15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,1,0,0" Background="#FAFAFA">
+                <Border Grid.Row="2" Padding="25,15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,1,0,0" Background="#FAFAFA"
+                        IsVisible="{Binding IsDev}">
                     <StackPanel Spacing="15">
                         <TextBox Text="{Binding NewCommentText}" Watermark="Write a reply..." AcceptsReturn="True" Height="80"
                                  Classes="FormInput"/>
