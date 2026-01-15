@@ -44,6 +44,11 @@
                                  TextWrapping="Wrap" 
                                  Watermark="Please describe what happened..."/>
                     </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding ScreenshotBase64, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <PathIcon Data="{StaticResource IconCheck}" Width="12" Height="12" Foreground="Green"/>
+                        <TextBlock Text="Screenshot captured automatically" FontSize="11" Foreground="Green" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

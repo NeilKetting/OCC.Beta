@@ -1,14 +1,12 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 
 namespace OCC.Client.ViewModels.Time
 {
@@ -70,6 +68,14 @@ namespace OCC.Client.ViewModels.Time
         // Permission and Holiday Services
         public bool IsWageVisible { get; }
         private readonly IHolidayService _holidayService;
+
+        /// <summary>
+        /// Design-time constructor
+        /// </summary>
+        public AttendanceHistoryViewModel()
+        {
+            IsWageVisible = true;
+        }
 
         public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService)
         {

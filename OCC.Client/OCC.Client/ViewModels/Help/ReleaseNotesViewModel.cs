@@ -29,13 +29,27 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
+                    Description = "Annual Leave Automation & Security Refinement",
+                    Changes = new ObservableCollection<string>
+                    {
+                        "NEW: Automatic Leave Accrual - Implemented 1:17 accrual ratio (1 day for 17 days worked) based on BCEA.",
+                        "NEW: Leave Balance UI - Dynamic 'Current Balance' display with interactive formula explanation.",
+                        "IMPROVED: Leave Validation - Real-time calculation prevents over-requesting and automatically flags unpaid leave.",
+                        "IMPROVED: Security Model - Transitioned from explicit 'Dev' roles to implicit email-based developer privileges.",
+                        "FIXED: Bug Report Visibility - Restricted 'Closed' bug reports to developer-only visibility."
+                    }
+                },
+                new ReleaseNoteItem
+                {
+                    Version = "v1.4.3",
+                    Date = "15 January 2026",
                     Description = "Task Management & System UX Refresh",
                     Changes = new ObservableCollection<string>
                     {
                         "NEW: Personalized 'My Tasks' View - Home dashboard now filters to focus on your specific assignments.",
                         "NEW: Global Shortcuts - Added Escape key support to instantly close all overlays and side-drawers.",
                         "IMPROVED: Task Detail Engine - Fixed clipping, added multi-line titles, and instant subtask loading.",
-                        "IMPROVED: Procurement UX - Refactored Order entry grids to standard DataGrid for 2x faster performance and better stability.",
+                        "IMPROVED: Procurement UX - Refactored Order entry grids to standard DataGrid for 2x faster performance.",
                         "IMPROVED: Site Manager UI - Searchable assignment dropdown and visual site manager avatars.",
                         "IMPROVED: User Management - Linked Employees to User accounts for integrated permissions.",
                         "FIXED: Database Integrity - Implemented server-side persistence auditing for all entity changes.",

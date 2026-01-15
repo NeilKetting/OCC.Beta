@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OCC.API.Controllers
 {
@@ -23,9 +24,20 @@ namespace OCC.API.Controllers
 
         // GET: api/BugReports
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<BugReport>>> GetBugReports()
         {
-            return await _context.BugReports
+            var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.ToLowerInvariant();
+            var isDev = currentUserEmail == "neil@mdk.co.za" || currentUserEmail == "neil@origize63.co.za";
+
+            var query = _context.BugReports.Include(b => b.Comments).AsQueryable();
+
+            if (!isDev)
+            {
+                query = query.Where(b => b.Status != "Closed");
+            }
+
+            return await query
                 .OrderByDescending(b => b.ReportedDate)
                 .ToListAsync();
         }
@@ -99,6 +111,40 @@ namespace OCC.API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // POST: api/BugReports/5/comments
+        [HttpPost("{id}/comments")]
+        [Authorize]
+        public async Task<ActionResult<BugComment>> PostBugComment(Guid id, [FromQuery] string? status, BugComment comment)
+        {
+            var currentUserEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value?.ToLowerInvariant();
+            var isDev = currentUserEmail == "neil@mdk.co.za" || currentUserEmail == "neil@origize63.co.za";
+
+            if (!isDev)
+            {
+                return Forbid("Only the Developer can comment on or update bug reports.");
+            }
+
+            var bugReport = await _context.BugReports.FindAsync(id);
+            if (bugReport == null)
+            {
+                return NotFound();
+            }
+
+            comment.BugReportId = id;
+            comment.CreatedAt = DateTime.UtcNow;
+            _context.BugComments.Add(comment);
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                bugReport.Status = status;
+                _context.Entry(bugReport).State = EntityState.Modified;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(comment);
         }
 
         private bool BugReportExists(Guid id)

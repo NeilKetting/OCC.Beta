@@ -275,6 +275,36 @@ namespace OCC.Client.ViewModels.Core
         [RelayCommand]
         public async Task ReportBug()
         {
+            string? screenshotBase64 = null;
+            try
+            {
+                if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime && lifetime.MainWindow != null)
+                {
+                    // Find the top-most visible window (likely the one with the bug)
+                    var window = lifetime.Windows.LastOrDefault(w => w.IsVisible && w.GetType().Name != "BugReportDialog") ?? lifetime.MainWindow;
+                    
+                    // Capture screenshot
+                    var size = window.Bounds.Size;
+                    if (size.Width > 0 && size.Height > 0)
+                    {
+                        var pixelSize = new PixelSize((int)size.Width, (int)size.Height);
+                        using (var bitmap = new Avalonia.Media.Imaging.RenderTargetBitmap(pixelSize, new Vector(96, 96)))
+                        {
+                            bitmap.Render(window);
+                            using (var ms = new System.IO.MemoryStream())
+                            {
+                                bitmap.Save(ms);
+                                screenshotBase64 = Convert.ToBase64String(ms.ToArray());
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error capturing screenshot: {ex.Message}");
+            }
+
             var viewName = "Unknown";
 
             // 1. Check for any open Popup/Dialog windows first

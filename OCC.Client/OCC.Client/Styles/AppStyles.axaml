@@ -54,9 +54,7 @@
 
 	<Style Selector="TextBlock.StatLabel">
 		<Setter Property="FontSize" Value="{DynamicResource FontSizeXS}"/>
-		<Setter Property="FontWeight" Value="Bold"/>
 		<Setter Property="Foreground" Value="{DynamicResource TextSecondaryGray}"/>
-		<Setter Property="Margin" Value="0,0,0,5"/>
 	</Style>
 
 	<Style Selector="TextBlock.StatValue">

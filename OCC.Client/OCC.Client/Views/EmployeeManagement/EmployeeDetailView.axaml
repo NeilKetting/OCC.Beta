@@ -288,20 +288,34 @@
 									<TextBlock Text="Initial Leave Balances (Days)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 								</StackPanel>
 								<TextBlock Text="{Binding LeaveAccrualRule}" Classes="StatLabel" TextWrapping="Wrap" Margin="0,0,0,5"/>
+								<!-- Formula Explanation -->
+								<TextBlock Text="Accrual Calculation: (Initial Balance) + (Accrued: 1 day per 17 days worked) - (Approved Leave Taken)" 
+										   Classes="StatLabel"
+										   TextWrapping="Wrap" Margin="0,-10,0,0" Width="300"/>
 
 								<Grid ColumnDefinitions="*, 10, *">
 									<!-- Annual Leave -->
-									<StackPanel Grid.Column="0">
-										<TextBlock Text="Annual Leave" Classes="FormLabel"/>
-										<TextBox Text="{Binding AnnualLeaveBalance}" Classes="FormInput" Watermark="0.0"/>
+									<StackPanel Grid.Column="0" Spacing="5">
+										<TextBlock Text="Initial Annual Leave" Classes="FormLabel"/>
+										<TextBox Text="{Binding AnnualLeaveBalance, UpdateSourceTrigger=PropertyChanged}" Classes="FormInput" Watermark="0.0"/>
+										<StackPanel Orientation="Horizontal" Spacing="5">
+											<TextBlock Text="Current:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>
+											<TextBlock Text="{Binding CurrentAnnualLeaveBalance, StringFormat='\{0:N2\}'}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryTeal}"/>
+										</StackPanel>
 									</StackPanel>
 
 									<!-- Sick Leave -->
-									<StackPanel Grid.Column="2">
-										<TextBlock Text="Sick Leave" Classes="FormLabel"/>
+									<StackPanel Grid.Column="2" Spacing="5">
+										<TextBlock Text="Initial Sick Leave" Classes="FormLabel"/>
 										<TextBox Text="{Binding SickLeaveBalance}" Classes="FormInput" Watermark="30.0"/>
+										<!-- Vertical alignment dummy -->
+										<StackPanel Orientation="Horizontal" Opacity="0">
+											<TextBlock Text="Dummy:" FontSize="11"/>
+										</StackPanel>
 									</StackPanel>
 								</Grid>
+
+								
 
 								<!-- Leave Cycle Start -->
 								<StackPanel>
@@ -333,6 +347,7 @@
 			</Grid>
 			<!-- Action Buttons -->
 			<Grid Grid.Row="4" Margin="20,15">
+				<!-- Permission Button -->
 				<Button Content="Manage Access" 
 						Command="{Binding OpenPermissionsCommand}" 
 						Classes="Secondary"

@@ -24,5 +24,9 @@ namespace OCC.Shared.Models
         public string Status { get; set; } = "Open";
 
         public string? AdminComments { get; set; }
+
+        public string? ScreenshotBase64 { get; set; }
+
+        public virtual System.Collections.Generic.ICollection<BugComment> Comments { get; set; } = new System.Collections.Generic.List<BugComment>();
     }
 }
