@@ -23,14 +23,18 @@ namespace OCC.Client.Converters
                 {
                     case "critical":
                         return Brush.Parse("#EF4444"); // Red-500
-                    case "high":
+                    case "very high":
                         return Brush.Parse("#F97316"); // Orange-500
+                    case "high":
+                        return Brush.Parse("#F59E0B"); // Amber-500
                     case "medium":
-                        return Brush.Parse("#EAB308"); // Yellow-500
+                        return Brush.Parse("#3B82F6"); // Blue-500
                     case "low":
-                        return Brush.Parse("#22C55E"); // Green-500
+                        return Brush.Parse("#10B981"); // Emerald-500
+                    case "very low":
+                        return Brush.Parse("#64748B"); // Slate-500
                     default:
-                        return Brush.Parse("#94A3B8"); // Slate-400 (Gray)
+                        return Brush.Parse("#94A3B8"); // Slate-400
                 }
             }
             return Brush.Parse("#94A3B8");

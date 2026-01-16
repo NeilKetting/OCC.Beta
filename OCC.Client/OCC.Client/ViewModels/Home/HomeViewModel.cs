@@ -183,7 +183,7 @@ namespace OCC.Client.ViewModels.Home
         [RelayCommand]
         private void OpenTaskDetail(Guid taskId)
         {
-            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _taskAssignmentRepository, _commentRepository, _dialogService);
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
             CurrentTaskDetail.LoadTaskById(taskId);
             IsTaskDetailVisible = true;

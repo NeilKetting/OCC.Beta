@@ -29,6 +29,20 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
+                    Description = "Wage Run Precision & Bug Reporting V2",
+                    Changes = new ObservableCollection<string>
+                    {
+                        "NEW: Wage Run Logic - Fixed Fortnightly cycle (Mon-Sun) and Advance Pay (Thu-Fri) calculation.",
+                        "NEW: Attendance Management - Added Right-Click 'Edit Time' context menu for dispute resolution.",
+                        "NEW: Bug Reporting V2 - Auto-screenshots, Delete capability (Dev), and Status Updates (Reporters).",
+                        "IMPROVED: Wage Run UI - Clearer column separation for Advance Pay and Previous Adjustments.",
+                        "FIXED: Bug Screenshot - Resolved issue where screenshots were missing from reports."
+                    }
+                },
+                new ReleaseNoteItem
+                {
+                    Version = "v1.5.0",
+                    Date = "15 January 2026",
                     Description = "Annual Leave Automation & Security Refinement",
                     Changes = new ObservableCollection<string>
                     {

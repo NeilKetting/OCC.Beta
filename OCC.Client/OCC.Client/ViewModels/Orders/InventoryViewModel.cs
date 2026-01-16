@@ -28,6 +28,7 @@ namespace OCC.Client.ViewModels.Orders
 
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
+        private readonly IInventoryImportService _importService;
         private readonly ILogger<InventoryViewModel> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IAuthService _authService;
@@ -104,12 +105,14 @@ namespace OCC.Client.ViewModels.Orders
         public InventoryViewModel(
             IOrderManager orderManager, 
             IDialogService dialogService, 
+            IInventoryImportService importService,
             ILogger<InventoryViewModel> logger,
             IServiceProvider serviceProvider,
             IAuthService authService)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
+            _importService = importService;
             _logger = logger;
             _serviceProvider = serviceProvider;
             _authService = authService;
@@ -123,6 +126,47 @@ namespace OCC.Client.ViewModels.Orders
         #endregion
 
         #region Commands
+
+        [RelayCommand]
+        public async Task ImportInventory()
+        {
+            try
+            {
+                var filePath = await _dialogService.PickFileAsync("Select Inventory List CSV", new[] { "*.csv" });
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    IsBusy = true;
+                    BusyText = "Importing inventory...";
+                    
+                    await using var stream = System.IO.File.OpenRead(filePath);
+                    var (success, failed, errors) = await _importService.ImportInventoryAsync(stream);
+
+                    if (failed == 0)
+                    {
+                        await _dialogService.ShowAlertAsync("Success", $"Successfully imported {success} items.");
+                    }
+                    else
+                    {
+                        var errorMsg = $"Imported: {success}\nSkipped/Failed: {failed}\n\nErrors:\n" + string.Join("\n", errors.Take(5));
+                        if (errors.Count > 5) errorMsg += "\n...";
+                        
+                        await _dialogService.ShowAlertAsync("Import Result", errorMsg);
+                    }
+                    
+                    await LoadInventoryAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                 _logger.LogError(ex, "Error importing inventory");
+                 await _dialogService.ShowAlertAsync("Error", $"Import failed: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
 
         /// <summary>
         /// Command to manually refresh the inventory list.

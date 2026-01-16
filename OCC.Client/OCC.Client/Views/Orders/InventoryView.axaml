@@ -37,6 +37,7 @@
 							  Width="100"
 							  Classes="SearchBox"
 							  VerticalAlignment="Center"/>
+					<Button Content="Import CSV" Classes="Secondary" Command="{Binding ImportInventoryCommand}" ToolTip.Tip="Import inventory from CSV file"/>
 					<TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search Product..." Classes="SearchBox"/>
 				</StackPanel>
 			</Grid>

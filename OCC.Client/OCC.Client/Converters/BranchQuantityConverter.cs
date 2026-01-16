@@ -13,15 +13,15 @@ namespace OCC.Client.Converters
             if (values.Count < 2 || values[0] is not InventoryItem item || values[1] is not Branch branch)
             {
                 // Fallback or total if something is missing, or 0
-                if (values.Count > 0 && values[0] is InventoryItem i) return i.QuantityOnHand;
-                return 0;
+                if (values.Count > 0 && values[0] is InventoryItem i) return i.QuantityOnHand.ToString();
+                return "0";
             }
 
             return branch switch
             {
-                Branch.JHB => item.JhbQuantity,
-                Branch.CPT => item.CptQuantity,
-                _ => item.QuantityOnHand
+                Branch.JHB => item.JhbQuantity.ToString(),
+                Branch.CPT => item.CptQuantity.ToString(),
+                _ => item.QuantityOnHand.ToString()
             };
         }
     }

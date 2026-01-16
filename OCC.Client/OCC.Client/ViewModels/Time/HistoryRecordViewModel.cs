@@ -40,6 +40,7 @@ namespace OCC.Client.ViewModels.Time
         public DateTime Date => _attendance.Date;
         public string EmployeeName => _employee.DisplayName;
         public string Branch => _attendance.Branch; // Or employee branch? Attendance branch preserves history.
+        public string PayType => _employee.RateType == RateType.Hourly ? "Hourly" : "Salary";
         
         // Times
         public string InTime => _attendance.CheckInTime?.ToString("HH:mm") ?? _attendance.ClockInTime?.ToString(@"hh\:mm") ?? "--:--";

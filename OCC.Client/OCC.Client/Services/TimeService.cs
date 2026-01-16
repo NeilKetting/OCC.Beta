@@ -155,6 +155,12 @@ namespace OCC.Client.Services
                 // throw? or return null
                 return null;
             }
+            }
+
+
+        public async Task DeleteAttendanceRecordAsync(Guid id)
+        {
+            await _attendanceRepository.DeleteAsync(id);
         }
     }
 }

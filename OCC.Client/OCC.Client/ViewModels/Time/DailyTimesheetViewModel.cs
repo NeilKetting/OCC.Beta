@@ -177,66 +177,73 @@ namespace OCC.Client.ViewModels.Time
         [RelayCommand]
         private async Task ReClockIn(StaffAttendanceViewModel item)
         {
-             if (item == null) return;
-             
-             // 1. Prevent Multiple Active Shifts
-             // Check if this employee ALREADY has an active record (CheckOutTime is null) - checking GLOBAL active list to catch yesterday's shifts
-             var activeRecords = await _timeService.GetActiveAttendanceAsync();
-             bool hasActiveShift = activeRecords.Any(x => x.EmployeeId == item.EmployeeId);
-             
-             if (hasActiveShift)
-             {
-                 await _dialogService.ShowAlertAsync("Active Shift Exists", $"{item.Name} is already clocked in. Please clock them out before starting a new shift.");
-                 return;
-             }
-
-             // Logic: Create a BRAND NEW record for this employee.
-             // We can fetch the employee details from the viewmodel item.
-             var emp = await _timeService.GetAllStaffAsync(); 
-             var staff = emp.FirstOrDefault(e => e.Id == item.EmployeeId);
-             
-             if (staff == null) return;
-
-             IsSaving = true;
+             if (item == null || _isProcessingAction) return;
+             _isProcessingAction = true;
              try
              {
-                 var now = DateTime.Now;
-                 var record = new AttendanceRecord
-                 {
-                     Id = Guid.NewGuid(),
-                     EmployeeId = staff.Id,
-                     Date = Date,
-                     Branch = staff.Branch,
-                     Status = AttendanceStatus.Present,
-                     CheckInTime = now,
-                     ClockInTime = now.TimeOfDay,
-                     CheckOutTime = null, // Open shift
-                     CachedHourlyRate = (decimal?)staff.HourlyRate // SNAPSHOT RATE
-                 };
-
-                 await _timeService.SaveAttendanceRecordAsync(record);
-
-                 // Create a new VM for this new record
-                 var newVm = new StaffAttendanceViewModel(staff)
-                 {
-                     Id = record.Id,
-                     Status = AttendanceStatus.Present,
-                     ClockInTime = now.TimeOfDay,
-                     ClockOutTime = null
-                 };
-
-                 // Add to cache (at TOP) and refresh
-                 _allLoggedCache.Insert(0, newVm); // Insert at 0 to keep "Newest Top" order consistent
-                 ApplyFilters();
+                 // 1. Prevent Multiple Active Shifts
+                 // Check if this employee ALREADY has an active record (CheckOutTime is null) - checking GLOBAL active list to catch yesterday's shifts
+                 var activeRecords = await _timeService.GetActiveAttendanceAsync();
+                 bool hasActiveShift = activeRecords.Any(x => x.EmployeeId == item.EmployeeId);
                  
-                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{staff.FirstName} started a new shift."));
+                 if (hasActiveShift)
+                 {
+                     await _dialogService.ShowAlertAsync("Active Shift Exists", $"{item.Name} is already clocked in. Please clock them out before starting a new shift.");
+                     return;
+                 }
+
+                 // Logic: Create a BRAND NEW record for this employee.
+                 // We can fetch the employee details from the viewmodel item.
+                 var emp = await _timeService.GetAllStaffAsync(); 
+                 var staff = emp.FirstOrDefault(e => e.Id == item.EmployeeId);
+                 
+                 if (staff == null) return;
+
+                 IsSaving = true;
+                 try
+                 {
+                     var now = DateTime.Now;
+                     var record = new AttendanceRecord
+                     {
+                         Id = Guid.NewGuid(),
+                         EmployeeId = staff.Id,
+                         Date = Date,
+                         Branch = staff.Branch,
+                         Status = AttendanceStatus.Present,
+                         CheckInTime = now,
+                         ClockInTime = now.TimeOfDay,
+                         CheckOutTime = null, // Open shift
+                         CachedHourlyRate = (decimal?)staff.HourlyRate // SNAPSHOT RATE
+                     };
+
+                     await _timeService.SaveAttendanceRecordAsync(record);
+
+                     // Create a new VM for this new record
+                     var newVm = new StaffAttendanceViewModel(staff)
+                     {
+                         Id = record.Id,
+                         Status = AttendanceStatus.Present,
+                         ClockInTime = now.TimeOfDay,
+                         ClockOutTime = null
+                     };
+
+                     // Add to cache (at TOP) and refresh
+                     _allLoggedCache.Insert(0, newVm); // Insert at 0 to keep "Newest Top" order consistent
+                     ApplyFilters();
+                     
+                     WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{staff.FirstName} started a new shift."));
+                 }
+                 catch (Exception ex)
+                 {
+                     System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in ReClockIn: {ex.Message}");
+                     if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to re-clock in: {ex.Message}");
+                 }
+                 finally { IsSaving = false; }
              }
-             catch (Exception ex)
+             finally
              {
-                 System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in ReClockIn: {ex.Message}");
-                 if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to re-clock in: {ex.Message}");
+                 _isProcessingAction = false;
              }
-             finally { IsSaving = false; }
         }
 
         private void ApplyFilters()
@@ -264,286 +271,310 @@ namespace OCC.Client.ViewModels.Time
         partial void OnSearchTextChanged(string value) => ApplyFilters();
         partial void OnSelectedBranchChanged(string value) => ApplyFilters();
 
+        private bool _isProcessingAction = false;
+
         [RelayCommand]
         private async Task MarkPresent(StaffAttendanceViewModel item)
         {
-            if (item == null) return;
-            
-            // CONFLICT CHECK: Is on Leave?
-            if (item.IsOnLeave)
-            {
-                var confirm = await _dialogService.ShowConfirmationAsync(
-                    "Leave Conflict", 
-                    $"{item.Name} is on Approved {item.LeaveType} Leave today.\n\nDo you want to CANCEL their leave and mark them Present?");
-                
-                if (!confirm) return;
-            }
-
-            // CONFLICT CHECK: Global Active
-            var activeRecords = await _timeService.GetActiveAttendanceAsync();
-            if (activeRecords.Any(r => r.EmployeeId == item.EmployeeId))
-            {
-                await _dialogService.ShowAlertAsync("Already Clocked In", $"{item.Name} has an active shift (possibly from yesterday). Please clock them out first.");
-                return;
-            }
-
-            DateTime checkInTime = DateTime.Now;
-            DateTime? checkOutTime = null;
-
-            if (IsManualMode)
-            {
-                // Default Start Time: Shift Start or 07:00:00
-                TimeSpan defaultStart = item.Staff.ShiftStartTime ?? new TimeSpan(7, 0, 0);
-
-                // Open Dialog to get Manual Times (IN ONLY)
-                var result = await _dialogService.ShowEditAttendanceAsync(defaultStart, null, showIn: true, showOut: false);
-                if (!result.Confirmed) return; // User cancelled
-                
-                if (result.InTime.HasValue)
-                {
-                    checkInTime = Date.Date.Add(result.InTime.Value); 
-                }
-            }
-
-            IsSaving = true;
+            if (item == null || _isProcessingAction) return;
+            _isProcessingAction = true;
             try
             {
-                var record = new AttendanceRecord
+                // CONFLICT CHECK: Is on Leave?
+                if (item.IsOnLeave)
                 {
-                    Id = Guid.NewGuid(),
-                    EmployeeId = item.EmployeeId,
-                    Date = Date,
-                    Branch = item.Branch,
-                    Status = AttendanceStatus.Present,
-                    CheckInTime = checkInTime,
-                    ClockInTime = checkInTime.TimeOfDay,
-                    CheckOutTime = checkOutTime, 
-                    CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
-                };
+                    var confirm = await _dialogService.ShowConfirmationAsync(
+                        "Leave Conflict", 
+                        $"{item.Name} is on Approved {item.LeaveType} Leave today.\n\nDo you want to CANCEL their leave and mark them Present?");
+                    
+                    if (!confirm) return;
+                }
 
-                await _timeService.SaveAttendanceRecordAsync(record);
-                
-                item.Id = record.Id;
-                item.Status = AttendanceStatus.Present;
-                item.ClockInTime = record.ClockInTime;
-                item.ClockOutTime = record.CheckOutTime?.TimeOfDay;
+                // CONFLICT CHECK: Global Active
+                var activeRecords = await _timeService.GetActiveAttendanceAsync();
+                if (activeRecords.Any(r => r.EmployeeId == item.EmployeeId))
+                {
+                    await _dialogService.ShowAlertAsync("Already Clocked In", $"{item.Name} has an active shift (possibly from yesterday). Please clock them out first.");
+                    return;
+                }
 
-                MoveToLogged(item);
-                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Present"));
+                DateTime checkInTime = DateTime.Now;
+                DateTime? checkOutTime = null;
+
+                if (IsManualMode)
+                {
+                    // Default Start Time: Shift Start or 07:00:00
+                    TimeSpan defaultStart = item.Staff.ShiftStartTime ?? new TimeSpan(7, 0, 0);
+
+                    // Open Dialog to get Manual Times (IN ONLY)
+                    var result = await _dialogService.ShowEditAttendanceAsync(defaultStart, null, showIn: true, showOut: false);
+                    if (!result.Confirmed) return; // User cancelled
+                    
+                    if (result.InTime.HasValue)
+                    {
+                        checkInTime = Date.Date.Add(result.InTime.Value); 
+                    }
+                }
+
+                IsSaving = true;
+                try
+                {
+                    var record = new AttendanceRecord
+                    {
+                        Id = Guid.NewGuid(),
+                        EmployeeId = item.EmployeeId,
+                        Date = Date,
+                        Branch = item.Branch,
+                        Status = AttendanceStatus.Present,
+                        CheckInTime = checkInTime,
+                        ClockInTime = checkInTime.TimeOfDay,
+                        CheckOutTime = checkOutTime, 
+                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
+                    };
+
+                    await _timeService.SaveAttendanceRecordAsync(record);
+                    
+                    item.Id = record.Id;
+                    item.Status = AttendanceStatus.Present;
+                    item.ClockInTime = record.ClockInTime;
+                    item.ClockOutTime = record.CheckOutTime?.TimeOfDay;
+
+                    MoveToLogged(item);
+                    WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Present"));
+                }
+                catch (Exception ex)
+                {
+                     System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in MarkPresent: {ex.Message}");
+                     if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to mark present: {ex.Message}");
+                }
+                finally { IsSaving = false; }
             }
-            catch (Exception ex)
+            finally
             {
-                 System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in MarkPresent: {ex.Message}");
-                 if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to mark present: {ex.Message}");
+                _isProcessingAction = false;
             }
-            finally { IsSaving = false; }
         }
 
         [RelayCommand]
         private async Task MarkAbsent(StaffAttendanceViewModel item)
         {
-            if (item == null) return;
-            IsSaving = true;
+            if (item == null || _isProcessingAction) return;
+            _isProcessingAction = true;
             try
             {
-                // STRICT DATA INTEGRITY: Absent = No Times
-                var record = new AttendanceRecord
+                IsSaving = true;
+                try
                 {
-                    Id = Guid.NewGuid(),
-                    EmployeeId = item.EmployeeId,
-                    Date = Date,
-                    Branch = item.Branch,
-                    Status = AttendanceStatus.Absent,
-                    CheckInTime = null,
-                    ClockInTime = null,
-                    CheckOutTime = Date // Closed immediately so it doesn't show as "Live"
-                };
+                    // STRICT DATA INTEGRITY: Absent = No Times
+                    var record = new AttendanceRecord
+                    {
+                        Id = Guid.NewGuid(),
+                        EmployeeId = item.EmployeeId,
+                        Date = Date,
+                        Branch = item.Branch,
+                        Status = AttendanceStatus.Absent,
+                        CheckInTime = null,
+                        ClockInTime = null,
+                        CheckOutTime = Date // Closed immediately so it doesn't show as "Live"
+                    };
 
-                await _timeService.SaveAttendanceRecordAsync(record);
-                
-                item.Id = record.Id;
-                item.Status = AttendanceStatus.Absent;
-                item.Id = record.Id;
-                item.Status = AttendanceStatus.Absent;
-                item.ClockInTime = null;
-                item.ClockOutTime = Date.TimeOfDay; // Or just ensure it has a value so it's not "active"
+                    await _timeService.SaveAttendanceRecordAsync(record);
+                    
+                    item.Id = record.Id;
+                    item.Status = AttendanceStatus.Absent;
+                    item.Id = record.Id;
+                    item.Status = AttendanceStatus.Absent;
+                    item.ClockInTime = null;
+                    item.ClockOutTime = Date.TimeOfDay; // Or just ensure it has a value so it's not "active"
 
-                MoveToLogged(item);
-                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Absent"));
+                    MoveToLogged(item);
+                    WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Absent"));
+                }
+                catch (Exception ex)
+                {
+                     System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in MarkAbsent: {ex.Message}");
+                     if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to mark absent: {ex.Message}");
+                }
+                finally { IsSaving = false; }
             }
-            catch (Exception ex)
+            finally
             {
-                 System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in MarkAbsent: {ex.Message}");
-                 if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to mark absent: {ex.Message}");
+                _isProcessingAction = false;
             }
-            finally { IsSaving = false; }
         }
 
         [RelayCommand]
         private async Task ClockOut(StaffAttendanceViewModel item)
         {
-            if (item == null || item.Id == Guid.Empty) return;
-
-            // 1. Determine Business Hours / Expected End Time
-            // Priority:
-            // A. Approved Overtime End Time
-            // B. Employee Specific Shift End Time
-            // C. Branch Default (Fallback)
-
-            TimeSpan expectedEndTime;
-
-            // B. Employee Shift
-            // We need to fetch the employee for this info, waiting on item.Staff might be cached snapshot but should be mostly fine.
-            // For rigorous check we can fetch from Repo but item.Staff is decent.
-            if (item.Staff != null && item.Staff.ShiftEndTime.HasValue)
+            if (item == null || item.Id == Guid.Empty || _isProcessingAction) return;
+            _isProcessingAction = true;
+            try
             {
-                expectedEndTime = item.Staff.ShiftEndTime.Value;
-            }
-            else
-            {
-                // C. Branch Default
-                // JHB: 16:00, CPT: 17:00
-                string branch = item.Branch ?? "Johannesburg";
-                expectedEndTime = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
-                    ? new TimeSpan(17, 0, 0) 
-                    : new TimeSpan(16, 0, 0);
-            }
+                // 1. Determine Business Hours / Expected End Time
+                // Priority:
+                // A. Approved Overtime End Time
+                // B. Employee Specific Shift End Time
+                // C. Branch Default (Fallback)
 
-            // A. Overtime Check
-            // Find APPROVED overtime for this user on THIS DATE (The date of the attendance record, not necessarily today if clocking out late)
-            // But we typically clock out "now".
-            // Logic: If I have approved overtime until 20:00, and I leave at 18:00, I am leaving early.
-            
-            try 
-            {
-                var allOvertime = await _overtimeRepository.GetAllAsync();
-                var approvedOt = allOvertime.FirstOrDefault(o => 
-                    o.EmployeeId == item.EmployeeId && 
-                    o.Date.Date == Date.Date && // Match sheet date
-                    o.Status == LeaveStatus.Approved); // MUST be Approved
+                TimeSpan expectedEndTime;
 
-                if (approvedOt != null)
+                // B. Employee Shift
+                // We need to fetch the employee for this info, waiting on item.Staff might be cached snapshot but should be mostly fine.
+                // For rigorous check we can fetch from Repo but item.Staff is decent.
+                if (item.Staff != null && item.Staff.ShiftEndTime.HasValue)
                 {
-                    // If OT extends beyond normal shift, use OT end time.
-                    if (approvedOt.EndTime > expectedEndTime)
-                    {
-                        expectedEndTime = approvedOt.EndTime;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-               System.Diagnostics.Debug.WriteLine($"[ClockOut] Error fetching overtime: {ex.Message}");
-            }
-
-            var now = DateTime.Now;
-            string? leaveReason = null;
-            string? leaveNote = null;
-
-            // Check if Early
-            bool isSameDay = now.Date == Date.Date;
-            bool isWithinCommittedHours = false;
-
-            // Define Normal Window
-            TimeSpan shiftStart;
-            if (item.Staff != null && item.Staff.ShiftStartTime.HasValue) shiftStart = item.Staff.ShiftStartTime.Value;
-            else shiftStart = new TimeSpan(7, 0, 0);
-
-
-
-            // Check if Manual Mode for Clock Out
-            if (IsManualMode)
-            {
-                // JHB: 16:45, CPT: 16:30
-                string branch = item.Branch ?? "Johannesburg";
-                TimeSpan defaultEnd = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
-                    ? new TimeSpan(16, 30, 0) 
-                    : new TimeSpan(16, 45, 0);
-
-                 // Open Dialog to get Manual Times (OUT ONLY)
-                 // Pass defaultEnd as 'currentOut' so it populates the picker
-                var result = await _dialogService.ShowEditAttendanceAsync(null, defaultEnd, showIn: false, showOut: true);
-                if (!result.Confirmed) return;
-                
-                if (result.OutTime.HasValue)
-                {
-                     // Override 'now' with manual time
-                     now = Date.Date.Add(result.OutTime.Value);
+                    expectedEndTime = item.Staff.ShiftEndTime.Value;
                 }
                 else
                 {
-                    // User confirmed but cleared time? Default to now.
-                     now = DateTime.Now;
-                }
-            }
-            else 
-            {
-                // Only do Early Leave check if Not Manual (Manual assumes user knows what they are doing)
-                // We are 'within' committed hours if Now is between ShiftStart and ExpectedEndTime
-                if (now.TimeOfDay >= shiftStart && now.TimeOfDay < expectedEndTime)
-                {
-                    isWithinCommittedHours = true;
+                    // C. Branch Default
+                    // JHB: 16:00, CPT: 17:00
+                    string branch = item.Branch ?? "Johannesburg";
+                    expectedEndTime = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
+                        ? new TimeSpan(17, 0, 0) 
+                        : new TimeSpan(16, 0, 0);
                 }
 
-                if (isSameDay && isWithinCommittedHours)
+                // A. Overtime Check
+                // Find APPROVED overtime for this user on THIS DATE (The date of the attendance record, not necessarily today if clocking out late)
+                // But we typically clock out "now".
+                // Logic: If I have approved overtime until 20:00, and I leave at 18:00, I am leaving early.
+                
+                try 
                 {
-                    var diff = expectedEndTime - now.TimeOfDay;
-                    if (diff.TotalMinutes > 15) // 15 min buffer
+                    var allOvertime = await _overtimeRepository.GetAllAsync();
+                    var approvedOt = allOvertime.FirstOrDefault(o => 
+                        o.EmployeeId == item.EmployeeId && 
+                        o.Date.Date == Date.Date && // Match sheet date
+                        o.Status == LeaveStatus.Approved); // MUST be Approved
+
+                    if (approvedOt != null)
                     {
-                        var result = await _dialogService.ShowLeaveEarlyReasonAsync();
-                        if (!result.Confirmed) return;
-
-                        leaveReason = result.Reason;
-                        leaveNote = result.Note;
+                        // If OT extends beyond normal shift, use OT end time.
+                        if (approvedOt.EndTime > expectedEndTime)
+                        {
+                            expectedEndTime = approvedOt.EndTime;
+                        }
                     }
                 }
-            }
-            // If clocking out on a FUTURE date (e.g. next morning), we assume they worked full shift + more, so no "Early" prompt.
-
-            IsSaving = true;
-            try 
-            {
-                var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
-                if (record != null)
+                catch (Exception ex)
                 {
-                    record.CheckOutTime = now;
-                    // If we have a reason, update status and notes
-                    if (!string.IsNullOrEmpty(leaveReason))
+                   System.Diagnostics.Debug.WriteLine($"[ClockOut] Error fetching overtime: {ex.Message}");
+                }
+
+                var now = DateTime.Now;
+                string? leaveReason = null;
+                string? leaveNote = null;
+
+                // Check if Early
+                bool isSameDay = now.Date == Date.Date;
+                bool isWithinCommittedHours = false;
+
+                // Define Normal Window
+                TimeSpan shiftStart;
+                if (item.Staff != null && item.Staff.ShiftStartTime.HasValue) shiftStart = item.Staff.ShiftStartTime.Value;
+                else shiftStart = new TimeSpan(7, 0, 0);
+
+
+
+                // Check if Manual Mode for Clock Out
+                if (IsManualMode)
+                {
+                    // JHB: 16:45, CPT: 16:30
+                    string branch = item.Branch ?? "Johannesburg";
+                    TimeSpan defaultEnd = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
+                        ? new TimeSpan(16, 30, 0) 
+                        : new TimeSpan(16, 45, 0);
+
+                     // Open Dialog to get Manual Times (OUT ONLY)
+                     // Pass defaultEnd as 'currentOut' so it populates the picker
+                    var result = await _dialogService.ShowEditAttendanceAsync(null, defaultEnd, showIn: false, showOut: true);
+                    if (!result.Confirmed) return;
+                    
+                    if (result.OutTime.HasValue)
                     {
-                        record.Status = AttendanceStatus.LeaveEarly;
-                        record.LeaveReason = leaveReason;
-                        record.Notes = !string.IsNullOrEmpty(leaveNote) ? $"[Leave Early Note] {leaveNote}" : null;
+                         // Override 'now' with manual time
+                         now = Date.Date.Add(result.OutTime.Value);
                     }
                     else
                     {
-                        // Logic: If status was already something else (e.g. Present), keep it. 
-                        // If they worked full shift, it stays Present.
-                        // If they arrived Late, it stays Late.
+                        // User confirmed but cleared time? Default to now.
+                         now = DateTime.Now;
                     }
-                    
-                    await _timeService.SaveAttendanceRecordAsync(record);
-                    
-                    item.ClockOutTime = record.CheckOutTime.Value.TimeOfDay;
-                    // status might update if 'LeaveEarly' was set
-                    item.Status = record.Status; 
-                    
-                    // Trigger UI refresh?
-                    var loggedItem = LoggedStaff.FirstOrDefault(x => x.Id == item.Id);
-                    if (loggedItem != null) 
-                    {
-                        loggedItem.ClockOutTime = item.ClockOutTime;
-                        loggedItem.Status = item.Status;
-                    }
-                    // Move back to Pending
-                    MoveToPending(item);
                 }
+                else 
+                {
+                    // Only do Early Leave check if Not Manual (Manual assumes user knows what they are doing)
+                    // We are 'within' committed hours if Now is between ShiftStart and ExpectedEndTime
+                    if (now.TimeOfDay >= shiftStart && now.TimeOfDay < expectedEndTime)
+                    {
+                        isWithinCommittedHours = true;
+                    }
+
+                    if (isSameDay && isWithinCommittedHours)
+                    {
+                        var diff = expectedEndTime - now.TimeOfDay;
+                        if (diff.TotalMinutes > 15) // 15 min buffer
+                        {
+                            var result = await _dialogService.ShowLeaveEarlyReasonAsync();
+                            if (!result.Confirmed) return;
+
+                            leaveReason = result.Reason;
+                            leaveNote = result.Note;
+                        }
+                    }
+                }
+                // If clocking out on a FUTURE date (e.g. next morning), we assume they worked full shift + more, so no "Early" prompt.
+
+                IsSaving = true;
+                try 
+                {
+                    var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
+                    if (record != null)
+                    {
+                        record.CheckOutTime = now;
+                        // If we have a reason, update status and notes
+                        if (!string.IsNullOrEmpty(leaveReason))
+                        {
+                            record.Status = AttendanceStatus.LeaveEarly;
+                            record.LeaveReason = leaveReason;
+                            record.Notes = !string.IsNullOrEmpty(leaveNote) ? $"[Leave Early Note] {leaveNote}" : null;
+                        }
+                        else
+                        {
+                            // Logic: If status was already something else (e.g. Present), keep it. 
+                            // If they worked full shift, it stays Present.
+                            // If they arrived Late, it stays Late.
+                        }
+                        
+                        await _timeService.SaveAttendanceRecordAsync(record);
+                        
+                        item.ClockOutTime = record.CheckOutTime.Value.TimeOfDay;
+                        // status might update if 'LeaveEarly' was set
+                        item.Status = record.Status; 
+                        
+                        // Trigger UI refresh?
+                        var loggedItem = LoggedStaff.FirstOrDefault(x => x.Id == item.Id);
+                        if (loggedItem != null) 
+                        {
+                            loggedItem.ClockOutTime = item.ClockOutTime;
+                            loggedItem.Status = item.Status;
+                        }
+                        // Move back to Pending
+                        MoveToPending(item);
+                    }
+                }
+                catch (Exception ex)
+                {
+                     System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in ClockOut: {ex.Message}");
+                     if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to clock out: {ex.Message}");
+                }
+                finally { IsSaving = false; }
             }
-            catch (Exception ex)
+            finally
             {
-                 System.Diagnostics.Debug.WriteLine($"[DailyTimesheetViewModel] Error in ClockOut: {ex.Message}");
-                 if (_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to clock out: {ex.Message}");
+                _isProcessingAction = false;
             }
-            finally { IsSaving = false; }
         }
 
         [RelayCommand]

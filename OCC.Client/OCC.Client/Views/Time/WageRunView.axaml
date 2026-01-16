@@ -1,97 +1,104 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:OCC.Client.ViewModels.Time"
-             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
-             x:Class="OCC.Client.Views.Time.WageRunView"
-             x:DataType="vm:WageRunViewModel">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:OCC.Client.ViewModels.Time"
+			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+			 x:Class="OCC.Client.Views.Time.WageRunView"
+			 x:DataType="vm:WageRunViewModel">
 
-    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
-        
-        <!-- Header / Controls -->
-        <Border Grid.Row="0" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BoxShadow="0 2 4 0 #15000000">
-            <StackPanel Spacing="15">
-                <TextBlock Text="New Wage Run" Classes="h2" FontWeight="Bold"/>
-                
-                <StackPanel Orientation="Horizontal" Spacing="20">
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="Start Date (Monday)" Classes="label"/>
-                        <CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
-                    </StackPanel>
+	<Grid RowDefinitions="Auto, *, Auto" Margin="20">
 
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="End Date (Fortnight)" Classes="label"/>
-                        <CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150" IsEnabled="False" Opacity="0.7"/>
-                    </StackPanel>
-                    
-                    <StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
-                         <TextBlock Text="Note: Run covers 2 weeks (Week 1 = Actuals, Week 2 = Adv. Thu/Fri)." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
-                         <TextBlock Text="Differences adjusted in next run." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
-                    </StackPanel>
+		<!-- Header / Controls -->
+		<Border Grid.Row="0" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BoxShadow="0 2 4 0 #15000000">
+			<StackPanel Spacing="15">
+				<TextBlock Text="New Wage Run" Classes="h2" FontWeight="Bold"/>
 
-                    <StackPanel Spacing="5" VerticalAlignment="Bottom">
-                        <Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsLoading}" Classes="accent">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconWagesDollar}" Foreground="White"/>
-                                <TextBlock Text="Generate Draft Run"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                    
-                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" VerticalAlignment="Center"/>
-                </StackPanel>
-                
-                <TextBox Watermark="Run Notes (Optional)" Text="{Binding Notes}" MaxWidth="400" HorizontalAlignment="Left"/>
-            </StackPanel>
-        </Border>
+				<StackPanel Orientation="Horizontal" Spacing="20">
+					<StackPanel Spacing="5">
+						<TextBlock Text="Start Date (Monday)" Classes="label"/>
+						<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
+					</StackPanel>
 
-        <!-- Data Grid -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Lines}" IsReadOnly="True" 
-                  CanUserSortColumns="True" GridLinesVisibility="Horizontal"
-                  BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}"
-                  Background="{DynamicResource SurfaceBackground}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
-                <DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
-                
-                <DataGridTextColumn Header="Actual Hrs" Binding="{Binding NormalHours, StringFormat={}{0:F1}}" Width="Auto"/>
-                <DataGridTextColumn Header="Overtime" Binding="{Binding OvertimeHours, StringFormat={}{0:F1}}" Width="Auto"/>
-                <DataGridTextColumn Header="Adv. Pay (Thu-Fri)" Binding="{Binding ProjectedHours, StringFormat={}{0:F1}}" Width="Auto"/>
-                
-                <DataGridTemplateColumn Header="Prev. Adj." Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="5" ToolTip.Tip="{Binding VarianceNotes}">
-                                <TextBlock Text="{Binding VarianceHours, StringFormat={}{0:F1}}" 
-                                           Foreground="{Binding VarianceColor}"/>
-                                <PathIcon Data="{StaticResource info_regular}" Width="12" Height="12" IsVisible="{Binding HasVariance}" Opacity="0.6"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+					<StackPanel Spacing="5">
+						<TextBlock Text="End Date (Fortnight)" Classes="label"/>
+						<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150" IsEnabled="False" Opacity="0.7"/>
+					</StackPanel>
 
-                <DataGridTextColumn Header="Total Paid Hrs" Binding="{Binding TotalPaidHours, StringFormat={}{0:F1}}" Width="Auto" FontWeight="Bold"/>
-                <DataGridTextColumn Header="Rate" Binding="{Binding HourlyRate, StringFormat={}{0:C}}" Width="Auto"/>
-                <DataGridTextColumn Header="Total Wage" Binding="{Binding TotalWage, StringFormat={}{0:C}}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+					<StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
+						<TextBlock Text="Note: Run covers 2 weeks (Week 1 = Actuals, Week 2 = Adv. Thu/Fri)." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
+						<TextBlock Text="Differences adjusted in next run." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
+					</StackPanel>
 
-        <!-- Footer -->
-        <Border Grid.Row="2" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="15" Margin="0,15,0,0" IsVisible="{Binding IsGenerated}">
-            <Grid ColumnDefinitions="*, Auto">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="Grand Total Wage:" FontSize="18"/>
-                    <TextBlock Text="{Binding GrandTotalWage, StringFormat={}{0:C}}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
-                </StackPanel>
+					<StackPanel Spacing="5" VerticalAlignment="Bottom">
+						<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsLoading}" Classes="accent">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconWagesDollar}" Foreground="White"/>
+								<TextBlock Text="Generate Draft Run"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
 
-                <Button Grid.Column="1" Command="{Binding FinalizeRunCommand}" Classes="Primary">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <PathIcon Data="{StaticResource IconCheck}" Foreground="White"/>
-                        <TextBlock Text="Finalize &amp; Save Run"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
-    </Grid>
+				</StackPanel>
+
+				<TextBox Watermark="Run Notes (Optional)" Text="{Binding Notes}" MaxWidth="400" HorizontalAlignment="Left"/>
+			</StackPanel>
+		</Border>
+
+		<!-- Data Grid -->
+		<DataGrid Grid.Row="1" ItemsSource="{Binding Lines}" IsReadOnly="True"
+				  CanUserSortColumns="True" GridLinesVisibility="Horizontal"
+				  BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}"
+				  Background="{DynamicResource SurfaceBackground}">
+			<DataGrid.Columns>
+				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
+				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
+
+				<DataGridTextColumn Header="Actual Hrs" Binding="{Binding NormalHours, StringFormat={}{0:F1}}" Width="Auto"/>
+				<DataGridTextColumn Header="Overtime" Binding="{Binding OvertimeHours, StringFormat={}{0:F1}}" Width="Auto"/>
+				<DataGridTextColumn Header="Adv. Pay (Thu-Fri)" Binding="{Binding ProjectedHours, StringFormat={}{0:F1}}" Width="Auto"/>
+
+				<DataGridTemplateColumn Header="Prev. Adj." Width="Auto">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal" Spacing="5" ToolTip.Tip="{Binding VarianceNotes}">
+								<TextBlock Text="{Binding VarianceHours, StringFormat={}{0:F1}}"
+										   Foreground="{Binding VarianceColor}"/>
+								<PathIcon Data="{StaticResource info_regular}" Width="12" Height="12" IsVisible="{Binding HasVariance}" Opacity="0.6"/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTextColumn Header="Total Paid Hrs" Binding="{Binding TotalPaidHours, StringFormat={}{0:F1}}" Width="Auto" FontWeight="Bold"/>
+				<DataGridTextColumn Header="Rate" Binding="{Binding HourlyRate, StringFormat={}{0:C}}" Width="Auto"/>
+				<DataGridTextColumn Header="Total Wage" Binding="{Binding TotalWage, StringFormat={}{0:C}}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
+			</DataGrid.Columns>
+		</DataGrid>
+
+		<!-- Footer -->
+		<Border Grid.Row="2" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="15" Margin="0,15,0,0" IsVisible="{Binding IsGenerated}">
+			<Grid ColumnDefinitions="*, Auto">
+				<StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					<TextBlock Text="Grand Total Wage:" FontSize="18"/>
+					<TextBlock Text="{Binding GrandTotalWage, StringFormat={}{0:C}}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
+				</StackPanel>
+
+				<Button Grid.Column="1" Command="{Binding FinalizeRunCommand}" Classes="Primary">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<PathIcon Data="{StaticResource IconCheck}" Foreground="White"/>
+						<TextBlock Text="Finalize &amp; Save Run"/>
+					</StackPanel>
+				</Button>
+			</Grid>
+		</Border>
+
+
+
+					<!-- Saving -->
+			<StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoading}">
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+			</StackPanel>
+
+	</Grid>
 </UserControl>
