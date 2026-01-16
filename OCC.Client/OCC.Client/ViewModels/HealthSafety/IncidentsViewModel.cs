@@ -27,11 +27,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private bool _isAdding;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Processing...";
 
         // Enums for ComboBoxes
         public IncidentType[] IncidentTypes => Enum.GetValues<IncidentType>();

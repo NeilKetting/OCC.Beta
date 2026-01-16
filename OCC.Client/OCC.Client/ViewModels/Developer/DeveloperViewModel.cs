@@ -20,8 +20,7 @@ namespace OCC.Client.ViewModels.Developer
         [ObservableProperty]
         private string _broadcastMessage = string.Empty;
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         public DeveloperViewModel(
             ILogger<DeveloperViewModel> logger,

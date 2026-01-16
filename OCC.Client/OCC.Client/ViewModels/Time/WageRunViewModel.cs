@@ -58,17 +58,18 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isGenerated;
         
-        [ObservableProperty]
-        private bool _isLoading;
+
 
         private Guid? _currentDraftId;
 
         [RelayCommand]
         private async Task GenerateDraft()
         {
-            IsLoading = true;
             try
             {
+                BusyText = "Generating draft run...";
+                IsBusy = true;
+                
                 var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, Notes);
                 _currentDraftId = draft.Id;
                 
@@ -87,7 +88,7 @@ namespace OCC.Client.ViewModels.Time
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 
@@ -101,9 +102,11 @@ namespace OCC.Client.ViewModels.Time
             
             if (!confirm) return;
 
-            IsLoading = true;
             try
             {
+                BusyText = "Finalizing run...";
+                IsBusy = true;
+                
                 await _wageService.FinalizeRunAsync(_currentDraftId.Value);
                 await _dialogService.ShowAlertAsync("Success", "Wage Run Finalized Successfully.");
                 
@@ -118,7 +121,7 @@ namespace OCC.Client.ViewModels.Time
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
     }

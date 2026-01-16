@@ -30,8 +30,7 @@ namespace OCC.Client.ViewModels.Bugs
         [ObservableProperty]
         private ObservableCollection<BugReport> _bugs = new();
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         [ObservableProperty]
         private BugReport? _selectedBug;

@@ -1,12 +1,8 @@
 using OCC.Client.Infrastructure;
+using OCC.Client.Services.Interfaces;
+using OCC.Shared.Models;
 using System;
 using System.Linq;
-using OCC.Shared.Models;
-
-using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
-using OCC.Client.Services.Infrastructure; // If needed
 
 namespace OCC.Client.Services
 {

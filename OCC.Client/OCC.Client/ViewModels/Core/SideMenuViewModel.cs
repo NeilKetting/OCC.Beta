@@ -231,7 +231,7 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private Avalonia.Media.IBrush _notificationIconColor = Avalonia.Media.Brushes.Gray;
 
-        private async System.Threading.Tasks.Task StartAutoUpdateCheckAsync()
+        private async Task StartAutoUpdateCheckAsync()
         {
             using var timer = new PeriodicTimer(TimeSpan.FromMinutes(5));
             while (await timer.WaitForNextTickAsync())
@@ -312,7 +312,7 @@ namespace OCC.Client.ViewModels.Core
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => 
                 {
                     var dialog = new Views.Shared.UpdateDialogView();
-                    dialog.DataContext = new ViewModels.Shared.UpdateDialogViewModel(_updateService, updateInfo, () => dialog.Close());
+                    dialog.DataContext = new UpdateDialogViewModel(_updateService, updateInfo, () => dialog.Close());
                     
                     if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null) 
                     {

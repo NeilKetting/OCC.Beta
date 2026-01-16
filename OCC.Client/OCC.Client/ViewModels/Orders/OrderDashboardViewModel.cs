@@ -56,8 +56,7 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Gets or sets a value indicating whether the dashboard is currently loading data.
         /// </summary>
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         /// <summary>
         /// Gets or sets the growth description text (e.g., "+5% from last month").

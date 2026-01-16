@@ -26,11 +26,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private Team? _selectedTeam;
         
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         [ObservableProperty]
         private string? _errorMessage;

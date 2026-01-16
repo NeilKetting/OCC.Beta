@@ -38,14 +38,7 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Gets or sets a value indicating whether an operation is currently in progress.
         /// </summary>
-        [ObservableProperty]
-        private bool _isBusy;
 
-        /// <summary>
-        /// Gets or sets the text to display during busy operations.
-        /// </summary>
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         /// <summary>
         /// Gets or sets the search query used to filter orders by number or supplier name.

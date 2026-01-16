@@ -60,17 +60,7 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public List<Branch> AvailableBranches { get; } = Enum.GetValues<Branch>().ToList();
 
-        /// <summary>
-        /// Gets or sets a value indicating whether an asynchronous operation is in progress.
-        /// </summary>
-        [ObservableProperty]
-        private bool _isBusy;
 
-        /// <summary>
-        /// Gets or sets the text to be displayed when <see cref="IsBusy"/> is true.
-        /// </summary>
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         /// <summary>
         /// Gets or sets a value indicating whether the item details popup is visible.

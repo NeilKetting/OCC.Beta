@@ -92,11 +92,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             NewTaskRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         #endregion
 

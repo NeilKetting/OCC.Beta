@@ -27,8 +27,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private bool _isUploading;
 
-        [ObservableProperty]
-        private bool _isLoading;
+
 
         // Upload Form Properties
         [ObservableProperty]
@@ -62,7 +61,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         public async Task LoadDocuments()
         {
             if (_hseqService == null) return;
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 var docs = await _hseqService.GetDocumentsAsync();
@@ -74,7 +73,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 

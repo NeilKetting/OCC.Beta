@@ -33,8 +33,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private ObservableCollection<StaffAttendanceViewModel> _loggedStaff = new();
 
-        [ObservableProperty]
-        private bool _isLoading;
+
 
         [ObservableProperty]
         private bool _isSaving;
@@ -75,7 +74,7 @@ namespace OCC.Client.ViewModels.Time
         [RelayCommand]
         private async Task LoadDataAsync()
         {
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 // 1. Fetch Staff, Attendance, Leaves
@@ -170,7 +169,7 @@ namespace OCC.Client.ViewModels.Time
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 

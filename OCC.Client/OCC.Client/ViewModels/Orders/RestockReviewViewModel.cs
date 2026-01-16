@@ -20,8 +20,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IOrderManager _orderManager;
         private readonly OrderStateService _orderStateService;
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         [ObservableProperty]
         private ObservableCollection<SupplierRestockGroup> _groups = new();

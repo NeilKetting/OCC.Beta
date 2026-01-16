@@ -1,11 +1,9 @@
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core; // Added
 using OCC.Shared.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Bugs

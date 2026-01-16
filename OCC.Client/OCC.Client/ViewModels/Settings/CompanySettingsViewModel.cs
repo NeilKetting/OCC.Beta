@@ -30,8 +30,7 @@ namespace OCC.Client.ViewModels.Settings
         
         public List<Branch> AvailableBranches { get; } = Enum.GetValues<Branch>().ToList();
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         private readonly ILogger<CompanySettingsViewModel> _logger;
 

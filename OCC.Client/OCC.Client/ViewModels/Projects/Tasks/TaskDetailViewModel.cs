@@ -35,12 +35,16 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
         
+
         private SemaphoreSlim _updateLock = new SemaphoreSlim(1, 1);
         private Guid _currentTaskId;
-        private bool _isLoading;
 
         [ObservableProperty]
         private ProjectTaskWrapper _task;
+
+        // ...
+
+
 
         [ObservableProperty]
         private string _newCommentContent = string.Empty;
@@ -54,11 +58,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         [ObservableProperty]
         private bool _hasMoreSubtasks;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = string.Empty;
 
         public ObservableCollection<TaskComment> Comments { get; } = new();
         public ObservableCollection<ProjectTask> Subtasks { get; } = new();
@@ -307,7 +307,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
             try 
             {
-                _isLoading = true;
+
                 BusyText = "Initializing task details...";
                 IsBusy = true;
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task Model: {task.Name} ({task.Id})...");
@@ -339,7 +339,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             finally
             {
                 IsBusy = false;
-                _isLoading = false;
+
             }
         }
 
@@ -423,7 +423,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// </summary>
         private async void Task_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (_isLoading) return;
+            if (IsBusy) return;
             await UpdateTask();
         }
 
@@ -433,7 +433,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// </summary>
         public async System.Threading.Tasks.Task UpdateTask()
         {
-            if (_isLoading) return;
+            if (IsBusy) return;
             if (_currentTaskId == Guid.Empty) return;
 
             await _updateLock.WaitAsync();

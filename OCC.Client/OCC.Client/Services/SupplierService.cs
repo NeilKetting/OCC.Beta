@@ -46,7 +46,13 @@ namespace OCC.Client.Services
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Suppliers", supplier);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Failed to create supplier: {response.StatusCode} - {error}");
+            }
+
             return await response.Content.ReadFromJsonAsync<Supplier>() ?? supplier;
         }
 
@@ -54,7 +60,12 @@ namespace OCC.Client.Services
         {
              EnsureAuthorization();
              var response = await _httpClient.PutAsJsonAsync($"api/Suppliers/{supplier.Id}", supplier);
-             response.EnsureSuccessStatusCode();
+             
+             if (!response.IsSuccessStatusCode)
+             {
+                 var error = await response.Content.ReadAsStringAsync();
+                 throw new HttpRequestException($"Failed to update supplier: {response.StatusCode} - {error}");
+             }
         }
 
         public async Task DeleteSupplierAsync(Guid id)

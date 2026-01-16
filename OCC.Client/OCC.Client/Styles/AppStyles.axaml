@@ -312,7 +312,7 @@
 
 	<!-- Shared Input Styles (TextBox, ComboBox, DatePicker, NumericUpDown) -->
 	<Style Selector="TextBox, ComboBox, DatePicker, NumericUpDown">
-		<Setter Property="Height" Value="36"/>
+		<Setter Property="Height" Value="30"/>
 		<Setter Property="BorderThickness" Value="1" />
 		<Setter Property="BorderBrush" Value="{DynamicResource BorderGray}" />
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />

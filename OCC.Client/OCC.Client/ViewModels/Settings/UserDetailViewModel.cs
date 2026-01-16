@@ -57,17 +57,12 @@ namespace OCC.Client.ViewModels.Settings
         [ObservableProperty]
         private bool _isEmailVerified;
 
-        [ObservableProperty]
-        private string _title = "Create User";
+
 
         [ObservableProperty]
         private string _saveButtonText = "Create User";
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         #endregion
 
@@ -84,6 +79,7 @@ namespace OCC.Client.ViewModels.Settings
         public UserDetailViewModel(IRepository<User> userRepository)
         {
             _userRepository = userRepository;
+            Title = "Create User";
         }
 
         public UserDetailViewModel()

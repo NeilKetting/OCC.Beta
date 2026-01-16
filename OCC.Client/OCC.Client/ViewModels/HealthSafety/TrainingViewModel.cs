@@ -25,8 +25,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private int _expiryWarningDays = 30;
 
-        [ObservableProperty]
-        private bool _isLoading;
+
 
         public TrainingViewModel()
         {
@@ -75,7 +74,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         {
             if (_hseqService == null) return;
 
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 var records = await _hseqService.GetTrainingRecordsAsync();
@@ -93,14 +92,14 @@ namespace OCC.Client.ViewModels.HealthSafety
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 
         [RelayCommand]
         private async Task FilterExpiring()
         {
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 var expiring = await _hseqService.GetExpiringTrainingAsync(ExpiryWarningDays);
@@ -113,7 +112,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
 
@@ -146,7 +145,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                 return;
             }
 
-            IsLoading = true;
+            IsBusy = true;
             try
             {
                 // Default valid until based on type? Usually 1-3 years. Let's assume 2 years for now if not set.
@@ -172,7 +171,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             }
             finally
             {
-                IsLoading = false;
+                IsBusy = false;
             }
         }
     }

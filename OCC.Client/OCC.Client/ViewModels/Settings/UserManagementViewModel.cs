@@ -186,11 +186,7 @@ namespace OCC.Client.ViewModels.Settings
 
         #region Methods
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         public async void OpenUser(Guid userId)
         {

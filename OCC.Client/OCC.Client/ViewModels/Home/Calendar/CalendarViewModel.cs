@@ -49,8 +49,7 @@ namespace OCC.Client.ViewModels.Home.Calendar
         [ObservableProperty]
         private ObservableCollection<string> _weekDays = new() { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 
-        [ObservableProperty] 
-        private bool _isBusy;
+
 
         [ObservableProperty]
         private ObservableCollection<ProjectTask> _dayTasks = new();

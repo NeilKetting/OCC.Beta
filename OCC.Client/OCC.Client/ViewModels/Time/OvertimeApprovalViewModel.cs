@@ -27,8 +27,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private string _rejectionReason = string.Empty;
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         public OvertimeApprovalViewModel(
             IRepository<OvertimeRequest> overtimeRepository,

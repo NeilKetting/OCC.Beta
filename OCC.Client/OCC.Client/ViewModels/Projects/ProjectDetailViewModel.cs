@@ -92,11 +92,7 @@ namespace OCC.Client.ViewModels.Projects
             }
         }
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         #endregion
 

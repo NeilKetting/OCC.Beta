@@ -42,14 +42,7 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Gets or sets a value indicating whether the ViewModel is busy with an asynchronous operation.
         /// </summary>
-        [ObservableProperty]
-        private bool _isBusy;
 
-        /// <summary>
-        /// Gets or sets the text to be displayed during a busy operation.
-        /// </summary>
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         /// <summary>
         /// Gets or sets the search query used to filter the supplier list by name or email.

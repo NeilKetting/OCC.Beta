@@ -14,8 +14,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         [ObservableProperty]
         private Guid _id;
 
-        [ObservableProperty]
-        private string _title = string.Empty;
+
 
         [ObservableProperty]
         private string _description = string.Empty;

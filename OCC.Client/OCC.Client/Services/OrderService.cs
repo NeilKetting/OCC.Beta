@@ -49,7 +49,13 @@ namespace OCC.Client.Services
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Orders", order);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Failed to create order: {response.StatusCode} - {error}");
+            }
+            
             return await response.Content.ReadFromJsonAsync<Order>() ?? order;
         }
 
@@ -57,7 +63,12 @@ namespace OCC.Client.Services
         {
              EnsureAuthorization();
              var response = await _httpClient.PutAsJsonAsync($"api/Orders/{order.Id}", order);
-             response.EnsureSuccessStatusCode();
+             
+             if (!response.IsSuccessStatusCode)
+             {
+                 var error = await response.Content.ReadAsStringAsync();
+                 throw new HttpRequestException($"Failed to update order: {response.StatusCode} - {error}");
+             }
         }
 
         public async Task ReceiveOrderAsync(Order order, List<OrderLine> updatedLines)

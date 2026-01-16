@@ -42,11 +42,7 @@ namespace OCC.Client.ViewModels.Orders
 
         #region Observables
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         [ObservableProperty]
         private OrderWrapper _currentOrder = null!; // Renamed from NewOrder

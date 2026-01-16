@@ -288,11 +288,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Methods
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         public async void LoadData()
         {

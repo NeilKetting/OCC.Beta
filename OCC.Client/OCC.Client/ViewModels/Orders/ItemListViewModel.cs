@@ -47,17 +47,7 @@ namespace OCC.Client.ViewModels.Orders
         [ObservableProperty]
         private string _searchQuery = "";
 
-        /// <summary>
-        /// Gets or sets a value indicating whether an asynchronous operation is currently running.
-        /// </summary>
-        [ObservableProperty]
-        private bool _isBusy;
 
-        /// <summary>
-        /// Gets or sets the text to be displayed when <see cref="IsBusy"/> is true.
-        /// </summary>
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         /// <summary>
         /// Gets or sets the currently selected item in the list.

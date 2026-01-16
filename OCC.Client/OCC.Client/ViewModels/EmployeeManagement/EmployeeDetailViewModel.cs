@@ -27,7 +27,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly ILeaveService _leaveService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
-        private bool _isLoading;
+
 
         #endregion
 
@@ -92,15 +92,18 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         [ObservableProperty]
         private string _contractDuration = string.Empty;
-
-        [ObservableProperty]
-        private string _title = "Add Employee";
+        
+        // Title Removed
 
         [ObservableProperty]
         private string _saveButtonText = "Add Employee";
 
         [ObservableProperty]
         private string _branch = "Johannesburg";
+        
+        // ...
+        
+
 
         [ObservableProperty]
         private TimeSpan? _shiftStartTime = new TimeSpan(7, 0, 0);
@@ -170,11 +173,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private bool _isShowingAllSubtasks;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         [ObservableProperty]
         private Guid? _linkedUserId;
@@ -505,7 +504,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
             try 
             {
-                _isLoading = true;
+                IsBusy = true;
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Loading Employee: {staff.Id}");
 
                 _existingStaffId = staff.Id;
@@ -644,7 +643,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 OnPropertyChanged(nameof(IsContractVisible));
                 OnPropertyChanged(nameof(IsOtherBankSelected));
                 
-                _isLoading = false;
+                IsBusy = false;
 
                 // Single, final refresh after all properties are set
                 _ = RefreshBalanceAsync();
@@ -655,7 +654,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] CRASH in Load: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Stack: {ex.StackTrace}");
-                _isLoading = false;
+                IsBusy = false;
                 throw;
             }
         }
@@ -844,7 +843,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         private async Task RefreshBalanceAsync()
         {
-            if (_leaveService == null || _isLoading) return;
+            if (_leaveService == null || IsBusy) return;
 
             try
             {

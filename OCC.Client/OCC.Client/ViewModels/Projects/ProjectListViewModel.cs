@@ -25,11 +25,7 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private ProjectDashboardItemViewModel? _selectedProject;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService)
         {

@@ -73,8 +73,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private double _totalHours;
 
-        [ObservableProperty]
-        private bool _isBusy;
+
 
         [ObservableProperty]
         private string _searchText = string.Empty;

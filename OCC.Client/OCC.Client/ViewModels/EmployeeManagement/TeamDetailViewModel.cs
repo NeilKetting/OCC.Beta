@@ -28,9 +28,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         [ObservableProperty]
         private string _description = string.Empty;
-
-        [ObservableProperty]
-        private string _title = "Add Team";
+        
+        // Title Removed
 
         public ObservableCollection<TeamMemberDisplay> Members { get; } = new();
         
@@ -40,11 +39,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private Employee? _selectedEmployeeToAdd;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Please wait...";
 
         public event EventHandler? CloseRequested;
         public event EventHandler? TeamSaved;
@@ -57,6 +52,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _teamRepository = teamRepository;
             _teamMemberRepository = teamMemberRepository;
             _employeeRepository = employeeRepository;
+            Title = "Add Team";
             
             CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
         }

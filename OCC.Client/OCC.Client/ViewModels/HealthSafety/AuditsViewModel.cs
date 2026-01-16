@@ -28,11 +28,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private bool _isDeviationsOpen;
 
-        [ObservableProperty]
-        private bool _isBusy;
 
-        [ObservableProperty]
-        private string _busyText = "Processing...";
 
         public AuditsViewModel(IHealthSafetyService hseqService, IToastService toastService)
         {

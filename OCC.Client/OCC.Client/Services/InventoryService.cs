@@ -53,7 +53,15 @@ namespace OCC.Client.Services
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Inventory", item);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                // If the error looks like it might be JSON (e.g. Problem Details), we could try to parse it, 
+                // but for now, raw string is better than nothing.
+                throw new HttpRequestException($"Failed to create item: {response.StatusCode} - {error}");
+            }
+
             return await response.Content.ReadFromJsonAsync<InventoryItem>() ?? item;
         }
 
@@ -61,7 +69,12 @@ namespace OCC.Client.Services
         {
              EnsureAuthorization();
              var response = await _httpClient.PutAsJsonAsync($"api/Inventory/{item.Id}", item);
-             response.EnsureSuccessStatusCode();
+             
+             if (!response.IsSuccessStatusCode)
+             {
+                 var error = await response.Content.ReadAsStringAsync();
+                 throw new HttpRequestException($"Failed to update item: {response.StatusCode} - {error}");
+             }
         }
         public async Task DeleteItemAsync(Guid id)
         {

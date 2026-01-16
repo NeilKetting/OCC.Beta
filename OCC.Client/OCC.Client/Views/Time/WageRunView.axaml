@@ -31,7 +31,7 @@
 					</StackPanel>
 
 					<StackPanel Spacing="5" VerticalAlignment="Bottom">
-						<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsLoading}" Classes="accent">
+						<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="accent">
 							<StackPanel Orientation="Horizontal" Spacing="8">
 								<PathIcon Data="{StaticResource IconWagesDollar}" Foreground="White"/>
 								<TextBlock Text="Generate Draft Run"/>
@@ -96,7 +96,7 @@
 
 
 					<!-- Saving -->
-			<StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsLoading}">
+			<StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
 				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
 			</StackPanel>
 
