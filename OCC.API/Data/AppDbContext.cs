@@ -35,6 +35,8 @@ namespace OCC.API.Data
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<PublicHoliday> PublicHolidays { get; set; }
         public DbSet<OvertimeRequest> OvertimeRequests { get; set; }
+        public DbSet<WageRun> WageRuns { get; set; }
+        public DbSet<WageRunLine> WageRunLines { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
@@ -209,6 +211,12 @@ namespace OCC.API.Data
             modelBuilder.Entity<AttendanceRecord>(entity =>
             {
                 entity.Property(e => e.CachedHourlyRate).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<WageRunLine>(entity =>
+            {
+                entity.Property(e => e.HourlyRate).HasPrecision(18, 2);
+                entity.Property(e => e.TotalWage).HasPrecision(18, 2);
             });
 
             // HSEQ Configurations

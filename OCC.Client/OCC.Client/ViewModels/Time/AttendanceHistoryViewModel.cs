@@ -170,6 +170,7 @@ namespace OCC.Client.ViewModels.Time
                 { "Out", "Out" },
                 { "Status", "Status" },
                 { "Hours", "Hours" },
+                { "Overtime", "Overtime" },
                 { "Wage", "Wage Cost" }
             };
 
@@ -182,6 +183,7 @@ namespace OCC.Client.ViewModels.Time
                 Out = r.OutTime,
                 Status = r.Status,
                 Hours = r.HoursWorkedDisplay,
+                Overtime = r.OvertimeHoursDisplay,
                 Wage = r.WageDisplay
             });
             

@@ -100,11 +100,11 @@ namespace OCC.Client.Services
             }
             return (false, null, null);
         }
-        public async Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut)
+        public async Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut, bool showIn = true, bool showOut = true)
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Views.Time.EditAttendanceDialog(currentIn, currentOut);
+                var dialog = new OCC.Client.Views.Time.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
                 var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
                 
                 if (result)

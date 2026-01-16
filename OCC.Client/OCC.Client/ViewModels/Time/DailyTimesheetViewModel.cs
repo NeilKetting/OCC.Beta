@@ -46,6 +46,9 @@ namespace OCC.Client.ViewModels.Time
         private string _selectedBranch = "Johannesburg";
         public string[] Branches => new[] { "All", "Johannesburg", "Cape Town" };
 
+        [ObservableProperty]
+        private bool _isManualMode;
+
         #endregion
 
         private System.Collections.Generic.List<StaffAttendanceViewModel> _allPendingCache = new();
@@ -274,9 +277,6 @@ namespace OCC.Client.ViewModels.Time
                     $"{item.Name} is on Approved {item.LeaveType} Leave today.\n\nDo you want to CANCEL their leave and mark them Present?");
                 
                 if (!confirm) return;
-                
-                // TODO: Cancel logic via LeaveService (Wait, do we have Cancel in Interface? We might need to add it or just proceed with warning)
-                // For now, assume we proceed. Ideally we should API call to Cancel Leave.
             }
 
             // CONFLICT CHECK: Global Active
@@ -287,10 +287,27 @@ namespace OCC.Client.ViewModels.Time
                 return;
             }
 
+            DateTime checkInTime = DateTime.Now;
+            DateTime? checkOutTime = null;
+
+            if (IsManualMode)
+            {
+                // Default Start Time: Shift Start or 07:00:00
+                TimeSpan defaultStart = item.Staff.ShiftStartTime ?? new TimeSpan(7, 0, 0);
+
+                // Open Dialog to get Manual Times (IN ONLY)
+                var result = await _dialogService.ShowEditAttendanceAsync(defaultStart, null, showIn: true, showOut: false);
+                if (!result.Confirmed) return; // User cancelled
+                
+                if (result.InTime.HasValue)
+                {
+                    checkInTime = Date.Date.Add(result.InTime.Value); 
+                }
+            }
+
             IsSaving = true;
             try
             {
-                var now = DateTime.Now;
                 var record = new AttendanceRecord
                 {
                     Id = Guid.NewGuid(),
@@ -298,18 +315,18 @@ namespace OCC.Client.ViewModels.Time
                     Date = Date,
                     Branch = item.Branch,
                     Status = AttendanceStatus.Present,
-                    CheckInTime = now,
-                    ClockInTime = now.TimeOfDay,
-                    CheckOutTime = null, // Explicitly null
-                    CachedHourlyRate = (decimal?)item.Staff.HourlyRate // SNAPSHOT RATE
+                    CheckInTime = checkInTime,
+                    ClockInTime = checkInTime.TimeOfDay,
+                    CheckOutTime = checkOutTime, 
+                    CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
                 };
 
                 await _timeService.SaveAttendanceRecordAsync(record);
                 
                 item.Id = record.Id;
                 item.Status = AttendanceStatus.Present;
-                item.ClockInTime = now.TimeOfDay;
-                item.ClockOutTime = null;
+                item.ClockInTime = record.ClockInTime;
+                item.ClockOutTime = record.CheckOutTime?.TimeOfDay;
 
                 MoveToLogged(item);
                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Present"));
@@ -432,22 +449,53 @@ namespace OCC.Client.ViewModels.Time
             if (item.Staff != null && item.Staff.ShiftStartTime.HasValue) shiftStart = item.Staff.ShiftStartTime.Value;
             else shiftStart = new TimeSpan(7, 0, 0);
 
-            // We are 'within' committed hours if Now is between ShiftStart and ExpectedEndTime
-            if (now.TimeOfDay >= shiftStart && now.TimeOfDay < expectedEndTime)
-            {
-                isWithinCommittedHours = true;
-            }
 
-            if (isSameDay && isWithinCommittedHours)
+
+            // Check if Manual Mode for Clock Out
+            if (IsManualMode)
             {
-                var diff = expectedEndTime - now.TimeOfDay;
-                if (diff.TotalMinutes > 15) // 15 min buffer
+                // JHB: 16:45, CPT: 16:30
+                string branch = item.Branch ?? "Johannesburg";
+                TimeSpan defaultEnd = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
+                    ? new TimeSpan(16, 30, 0) 
+                    : new TimeSpan(16, 45, 0);
+
+                 // Open Dialog to get Manual Times (OUT ONLY)
+                 // Pass defaultEnd as 'currentOut' so it populates the picker
+                var result = await _dialogService.ShowEditAttendanceAsync(null, defaultEnd, showIn: false, showOut: true);
+                if (!result.Confirmed) return;
+                
+                if (result.OutTime.HasValue)
                 {
-                    var result = await _dialogService.ShowLeaveEarlyReasonAsync();
-                    if (!result.Confirmed) return;
+                     // Override 'now' with manual time
+                     now = Date.Date.Add(result.OutTime.Value);
+                }
+                else
+                {
+                    // User confirmed but cleared time? Default to now.
+                     now = DateTime.Now;
+                }
+            }
+            else 
+            {
+                // Only do Early Leave check if Not Manual (Manual assumes user knows what they are doing)
+                // We are 'within' committed hours if Now is between ShiftStart and ExpectedEndTime
+                if (now.TimeOfDay >= shiftStart && now.TimeOfDay < expectedEndTime)
+                {
+                    isWithinCommittedHours = true;
+                }
 
-                    leaveReason = result.Reason;
-                    leaveNote = result.Note;
+                if (isSameDay && isWithinCommittedHours)
+                {
+                    var diff = expectedEndTime - now.TimeOfDay;
+                    if (diff.TotalMinutes > 15) // 15 min buffer
+                    {
+                        var result = await _dialogService.ShowLeaveEarlyReasonAsync();
+                        if (!result.Confirmed) return;
+
+                        leaveReason = result.Reason;
+                        leaveNote = result.Note;
+                    }
                 }
             }
             // If clocking out on a FUTURE date (e.g. next morning), we assume they worked full shift + more, so no "Early" prompt.
