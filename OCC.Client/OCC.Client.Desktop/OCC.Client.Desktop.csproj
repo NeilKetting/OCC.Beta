@@ -13,7 +13,7 @@
     <Copyright>Copyright © 2026 Origize63</Copyright>
     <!-- Icon Configuration -->
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.4.9</Version>
+    <Version>1.5.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

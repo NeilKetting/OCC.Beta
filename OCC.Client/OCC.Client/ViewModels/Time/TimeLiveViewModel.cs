@@ -205,7 +205,12 @@ namespace OCC.Client.ViewModels.Time
                     var currentTime = DateTime.Now.TimeOfDay;
                     bool isOutsideNormalHours = currentTime < shiftStart || currentTime > shiftEnd;
 
-                    if (multiplier > 1.0 || isOutsideNormalHours)
+                    if (isOutsideNormalHours && multiplier < 1.5)
+                    {
+                        multiplier = 1.5;
+                    }
+
+                    if (multiplier > 1.0)
                     {
                         vm.IsOvertimeActive = true;
                         vm.OvertimeText = $"OVERTIME {multiplier:F1}x";

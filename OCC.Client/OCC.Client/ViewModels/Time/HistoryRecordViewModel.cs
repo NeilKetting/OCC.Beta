@@ -159,6 +159,50 @@ namespace OCC.Client.ViewModels.Time
              return totalWage;
         }
 
+        public double OvertimeHours
+        {
+            get
+            {
+                // Similar to Wage Calculation but summing hours where multiplier > 1.0
+                 // 1. Get Start and End Times
+                 DateTime start;
+                 if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
+                 else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
+                 else return 0;
+    
+                 DateTime end;
+                 if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
+                 else end = DateTime.Now; 
+    
+                 if (start >= end) return 0;
+    
+                 double overtimeHours = 0;
+                 string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
+                 
+                 var current = start;
+                 var interval = TimeSpan.FromMinutes(15);
+                 
+                 while (current < end)
+                 {
+                     var next = current.Add(interval);
+                     if (next > end) next = end;
+                     
+                     var durationHours = (next - current).TotalHours;
+                     var multiplier = GetMultiplier(current, branch);
+                     
+                     if (multiplier > 1.0)
+                     {
+                        overtimeHours += durationHours;
+                     }
+                     
+                     current = next;
+                 }
+                 return overtimeHours;
+            }
+        }
+        
+        public string OvertimeHoursDisplay => OvertimeHours > 0 ? $"{OvertimeHours:F2}" : "-";
+
         private double GetMultiplier(DateTime time, string branch)
         {
             // 0. Public Holidays = 2.0x (Highest Priority)

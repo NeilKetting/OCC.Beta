@@ -22,6 +22,7 @@
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="20" Margin="40,0,0,0" VerticalAlignment="Center">
 					<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}" Width="200" Classes="FormInput"/>
 					<TextBox Text="{Binding SearchText}" Watermark="Search..." Width="250" Classes="FormInput"/>
+                    <ToggleSwitch IsChecked="{Binding IsManualMode}" OnContent="Manual Mode" OffContent="Manual Mode" Margin="10,0"/>
 				</StackPanel>
 
 				<Button Grid.Column="3" Classes="IconButtonClose" Command="{Binding CloseCommand}" VerticalAlignment="Top"

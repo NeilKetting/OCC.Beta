@@ -35,6 +35,8 @@ namespace OCC.API.Data
         public DbSet<LeaveRequest> LeaveRequests { get; set; }
         public DbSet<PublicHoliday> PublicHolidays { get; set; }
         public DbSet<OvertimeRequest> OvertimeRequests { get; set; }
+        public DbSet<WageRun> WageRuns { get; set; }
+        public DbSet<WageRunLine> WageRunLines { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }

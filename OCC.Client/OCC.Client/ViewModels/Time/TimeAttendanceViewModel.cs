@@ -35,6 +35,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
         [ObservableProperty] private GlobalCalendarViewModel _globalCalendarVM; // Added
+        [ObservableProperty] private WageRunViewModel _wageRunVM; // Added
 
         [ObservableProperty]
         private string _greeting = string.Empty;
@@ -58,6 +59,7 @@ namespace OCC.Client.ViewModels.Time
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
             _globalCalendarVM = null!; // Added
+            _wageRunVM = null!;
             _currentView = null!;
 
             _authService = null!;
@@ -70,9 +72,10 @@ namespace OCC.Client.ViewModels.Time
             AttendanceHistoryViewModel attendanceHistoryView,
             LeaveApplicationViewModel leaveApplicationView,
             LeaveApprovalViewModel leaveApprovalViewModel,
-            OvertimeViewModel overtimeViewModel,
-            OvertimeApprovalViewModel overtimeApprovalViewModel,
+            OvertimeViewModel overtimeViewModel, // Kept one
+            OvertimeApprovalViewModel overtimeApprovalViewModel, // Kept one
             GlobalCalendarViewModel globalCalendarViewModel, // Added
+            WageRunViewModel wageRunViewModel,
             IAuthService authService)
         {
             _timeMenu = timeMenu;
@@ -84,6 +87,7 @@ namespace OCC.Client.ViewModels.Time
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
             _globalCalendarVM = globalCalendarViewModel; // Added
+            _wageRunVM = wageRunViewModel;
             _authService = authService;
             
             // Default View
@@ -139,6 +143,9 @@ namespace OCC.Client.ViewModels.Time
                     break;
                 case "Calendar": // Added
                     CurrentView = GlobalCalendarVM;
+                    break;
+                case "WageRun":
+                    CurrentView = WageRunVM;
                     break;
                 case "Overtime":
                     CurrentView = OvertimeVM;

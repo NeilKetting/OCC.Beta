@@ -14,12 +14,12 @@
         <StackPanel Spacing="15">
             <TextBlock Text="Correct Time" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
             
-            <StackPanel Spacing="5">
+            <StackPanel x:Name="ClockInPanel" Spacing="5">
                 <TextBlock Text="Clock In Time" FontWeight="Medium"/>
                 <TimePicker x:Name="ClockInPicker" ClockIdentifier="24HourClock"/>
             </StackPanel>
 
-            <StackPanel Spacing="5">
+            <StackPanel x:Name="ClockOutPanel" Spacing="5">
                 <TextBlock Text="Clock Out Time" FontWeight="Medium"/>
                 <TimePicker x:Name="ClockOutPicker" ClockIdentifier="24HourClock"/>
             </StackPanel>
