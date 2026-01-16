@@ -28,7 +28,6 @@ namespace OCC.Client.Services
 
         public async Task<(List<InventoryItem> Items, int FailureCount, List<string> Errors)> ImportInventoryAsync(Stream csvStream)
         {
-            var items = new List<InventoryItem>();
             var failureCount = 0;
             var errors = new List<string>();
 
@@ -39,8 +38,6 @@ namespace OCC.Client.Services
                 {
                     HeaderValidated = null,
                     MissingFieldFound = null,
-                    PrepareHeaderForMatch = args => args.Header.ToLower().Trim(),
-                    TrimOptions = TrimOptions.Trim,
                 });
 
                 var records = csv.GetRecords<InventoryImportRow>();
@@ -65,9 +62,6 @@ namespace OCC.Client.Services
                     {
                         var item = MapToInventoryItem(row);
                         
-                        // We verify uniqueness but do not save yet.
-                        // The ViewModel will handle interactive validation and saving.
-                        items.Add(item);
                     }
                     catch (Exception ex)
                     {
@@ -83,7 +77,6 @@ namespace OCC.Client.Services
                 errors.Add($"Fatal error reading CSV: {ex.Message}");
             }
 
-            return (items, failureCount, errors);
         }
 
         private InventoryItem MapToInventoryItem(InventoryImportRow row)
@@ -99,6 +92,7 @@ namespace OCC.Client.Services
                 qty = q;
             }
 
+            // Parse Cost
             decimal cost = 0;
             if (decimal.TryParse(row.Cost, NumberStyles.Any, CultureInfo.InvariantCulture, out var c))
             {
@@ -121,7 +115,7 @@ namespace OCC.Client.Services
 
 
             // Mapping Logic per User Instruction: "Product/Service = SKU"
-            
+
             // 1. SKU: Always use "Product/Service Name"
             var effectiveSku = row.ProductName?.Trim() ?? string.Empty;
             
@@ -132,7 +126,6 @@ namespace OCC.Client.Services
             return new InventoryItem
             {
                 Id = Guid.NewGuid(),
-                ProductName = effectiveName,
                 Category = string.IsNullOrWhiteSpace(row.Category) ? "General" : row.Category.Trim(),
                 Supplier = string.Empty, // Not in CSV
                 Location = "Warehouse", // Default
@@ -141,7 +134,6 @@ namespace OCC.Client.Services
                 QuantityOnHand = qty, // Derived total
                 ReorderPoint = reorder,
                 UnitOfMeasure = uom,
-                Sku = effectiveSku,
                 AverageCost = cost,
                 Price = price,
                 TrackLowStock = true,
