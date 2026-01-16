@@ -33,7 +33,14 @@ namespace OCC.Client.Services
         public async Task<List<InventoryItem>> GetInventoryAsync()
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<List<InventoryItem>>("api/Inventory") ?? new List<InventoryItem>();
+            EnsureAuthorization();
+            using var response = await _httpClient.GetAsync("api/Inventory");
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Failed to get inventory: {response.StatusCode} - {error}");
+            }
+            return await response.Content.ReadFromJsonAsync<List<InventoryItem>>() ?? new List<InventoryItem>();
         }
 
         public async Task<InventoryItem?> GetInventoryItemAsync(Guid id)

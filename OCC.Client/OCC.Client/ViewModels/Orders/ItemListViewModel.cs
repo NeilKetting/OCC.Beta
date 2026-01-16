@@ -214,7 +214,7 @@ namespace OCC.Client.ViewModels.Orders
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error loading master item list");
-                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", "Failed to retrieve the item list. Please try again.");
+                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to retrieve the item list: {ex.Message}");
             }
             finally
             {

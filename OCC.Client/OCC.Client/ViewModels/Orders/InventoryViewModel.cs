@@ -264,7 +264,7 @@ namespace OCC.Client.ViewModels.Orders
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error loading inventory list");
-                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", "Failed to retrieve inventory items. Please try again later.");
+                if(_dialogService != null) await _dialogService.ShowAlertAsync("Error", $"Failed to retrieve inventory items: {ex.Message}");
             }
              finally
             {

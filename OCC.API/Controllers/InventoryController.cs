@@ -39,7 +39,7 @@ namespace OCC.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching inventory.");
-                return StatusCode(500, "An error occurred while fetching inventory.");
+                return StatusCode(500, $"An error occurred while fetching inventory: {ex.Message} {ex.InnerException?.Message}");
             }
         }
 
