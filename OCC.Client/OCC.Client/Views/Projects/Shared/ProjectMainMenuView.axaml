@@ -39,11 +39,6 @@
 					</StackPanel>
 				</Button>				
 			</StackPanel>
-
-			<StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center" Margin="20,0">
-				<TextBox Width="200" Classes="FormInput" Watermark="Search..."/>
-				<PathIcon Data="{StaticResource IconSearch}" Classes="IconStyle" Width="18" Height="18"/>
-			</StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

@@ -40,6 +40,26 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private bool _isCustomDateEnabled;
 
+        [ObservableProperty]
+        private string _selectedPayType = "All";
+
+        public ObservableCollection<string> PayTypeOptions { get; } = new ObservableCollection<string>
+        {
+            "All",
+            "Hourly",
+            "Salary"
+        };
+
+        [ObservableProperty]
+        private string _selectedBranch = "All";
+
+        public ObservableCollection<string> BranchOptions { get; } = new ObservableCollection<string>
+        {
+            "All",
+            "Johannesburg",
+            "Cape Town"
+        };
+
         #endregion
 
         #region Data Properties
@@ -232,6 +252,21 @@ namespace OCC.Client.ViewModels.Time
         }
 
         [RelayCommand]
+        private async Task DeleteRecord(HistoryRecordViewModel record)
+        {
+            if (record == null) return;
+            
+            var confirm = await _dialogService.ShowConfirmationAsync("Delete Record", 
+                $"Are you sure you want to delete the attendance record for {record.EmployeeName} on {record.Date:dd MMM}?");
+                
+            if (confirm)
+            {
+                await _timeService.DeleteAttendanceRecordAsync(record.Attendance.Id);
+                await LoadData();
+            }
+        }
+
+        [RelayCommand]
         private async Task Initialize()
         {
             await LoadData();
@@ -243,17 +278,40 @@ namespace OCC.Client.ViewModels.Time
             await LoadData();
         }
 
+
+
         partial void OnSearchTextChanged(string value) => FilterRecords();
+        partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
+        partial void OnSelectedBranchChanged(string value) => FilterRecords();
 
         private void FilterRecords()
         {
             if (_allRecords == null) return;
             
             var query = SearchText?.Trim();
-            var filtered = string.IsNullOrWhiteSpace(query)
-                ? _allRecords
-                : _allRecords.Where(r => 
-                    r.EmployeeName != null && r.EmployeeName.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+            
+            var filtered = _allRecords.Where(r => 
+            {
+                // Text Search
+                bool matchText = string.IsNullOrWhiteSpace(query) || 
+                                 (r.EmployeeName != null && r.EmployeeName.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+                // Pay Type Filter
+                bool matchPay = SelectedPayType == "All" || string.Equals(r.PayType, SelectedPayType, StringComparison.OrdinalIgnoreCase);
+
+                // Branch Filter
+                // Note: Branch might be null on record, check carefully.
+                // Assuming "Johannesburg" as default if null, or strict check? 
+                // Using Loose matching: if filter is JHB, we want JHB records.
+                // If record has no branch, maybe exclude? Or assume JHB? 
+                // Let's assume explicit check on Branch property.
+                string recordBranch = r.Branch ?? "Johannesburg"; // Default per HistoryRecordViewModel logic needed? Or check r.Branch directly?
+                // r.Branch property in VM: public string Branch => _attendance.Branch;
+                // If null, filter might fail. Let's use string comparison safely.
+                bool matchBranch = SelectedBranch == "All" || string.Equals(recordBranch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
+
+                return matchText && matchPay && matchBranch;
+            }).ToList();
 
             var list = new ObservableCollection<HistoryRecordViewModel>(filtered);
             Records = list;

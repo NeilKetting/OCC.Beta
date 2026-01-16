@@ -19,8 +19,16 @@
 				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}" Margin="0,0,20,0"/>
 
 				<!-- Filters -->
-				<ComboBox Grid.Column="1" ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
-						  Width="180" Classes="FormInput" VerticalAlignment="Center" Margin="0,0,10,0"/>
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,0,10,0">
+					<ComboBox ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
+							  Width="150" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Range"/>
+
+					<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}"
+							  Width="150" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Branch"/>
+
+					<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}"
+							  Width="120" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Pay Type"/>
+				</StackPanel>
 
 				<DatePicker Grid.Column="2" SelectedDate="{Binding StartDate}" IsEnabled="{Binding IsCustomDateEnabled}"
 							IsVisible="{Binding IsCustomDateEnabled}"
@@ -81,6 +89,15 @@
                                     <PathIcon Data="{StaticResource IconEdit}" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <Separator/>
+                            <MenuItem Header="Delete Record"
+                                      Command="{Binding #Root.DataContext.DeleteRecordCommand}"
+                                      CommandParameter="{Binding}"
+                                      Foreground="Red">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                     </Setter>
                 </Style>
@@ -89,6 +106,7 @@
 				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
 				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
+				<DataGridTextColumn Header="Pay Type" Binding="{Binding PayType}" Width="Auto"/>
 				<DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
 				<DataGridTextColumn Header="In" Binding="{Binding InTime}" Width="Auto"/>
 				<DataGridTextColumn Header="Out" Binding="{Binding OutTime}" Width="Auto"/>

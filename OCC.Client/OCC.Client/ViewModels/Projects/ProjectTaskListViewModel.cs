@@ -55,8 +55,10 @@ namespace OCC.Client.ViewModels.Projects
                         // Update if state changed - since ProjectTask auto-properties don't notify, 
                         // we replace the object if key properties differ.
                         if (Tasks[i].Status != newTask.Status || 
+                            Tasks[i].Priority != newTask.Priority ||
                             Tasks[i].PercentComplete != newTask.PercentComplete ||
                             Tasks[i].Name != newTask.Name ||
+                            Tasks[i].AssignedTo != newTask.AssignedTo ||
                             Tasks[i].FinishDate != newTask.FinishDate)
                         {
                             Tasks[i] = newTask;

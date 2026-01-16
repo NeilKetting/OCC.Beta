@@ -17,5 +17,6 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<AttendanceRecord>> GetActiveAttendanceAsync();
         Task<IEnumerable<Employee>> GetAllStaffAsync();
         Task<string?> UploadDoctorNoteAsync(string localFilePath);
+        Task DeleteAttendanceRecordAsync(Guid id);
     }
 }

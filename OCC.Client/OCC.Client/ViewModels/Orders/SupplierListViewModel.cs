@@ -26,6 +26,7 @@ namespace OCC.Client.ViewModels.Orders
 
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
+        private readonly ISupplierImportService _importService;
         private readonly ILogger<SupplierListViewModel> _logger;
         private List<Supplier> _allSuppliers = new();
 
@@ -66,22 +67,58 @@ namespace OCC.Client.ViewModels.Orders
 
         #region Constructors
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SupplierListViewModel"/> class with required dependencies.
-        /// </summary>
-        /// <param name="orderManager">Central manager for supplier and order operations.</param>
-        /// <param name="dialogService">Service for displaying user dialogs and confirmations.</param>
-        /// <param name="logger">Logger for diagnostic information.</param>
-        public SupplierListViewModel(IOrderManager orderManager, IDialogService dialogService, ILogger<SupplierListViewModel> logger)
+        public SupplierListViewModel(IOrderManager orderManager, IDialogService dialogService, ISupplierImportService importService, ILogger<SupplierListViewModel> logger)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
+            _importService = importService;
             _logger = logger;
         }
 
         #endregion
 
         #region Commands
+
+        [RelayCommand]
+        private async Task ImportSuppliers()
+        {
+            try
+            {
+                var filePath = await _dialogService.PickFileAsync("Select Supplier List CSV", new[] { "*.csv" });
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    IsBusy = true;
+                    BusyText = "Importing suppliers...";
+                    
+                    await using var stream = System.IO.File.OpenRead(filePath);
+                    var (success, failed, errors) = await _importService.ImportSuppliersAsync(stream);
+
+                    if (failed == 0)
+                    {
+                        await _dialogService.ShowAlertAsync("Success", $"Successfully imported {success} suppliers.");
+                    }
+                    else
+                    {
+                        var errorMsg = $"Imported: {success}\nSkipped/Failed: {failed}\n\nErrors:\n" + string.Join("\n", errors.Take(5));
+                        if (errors.Count > 5) errorMsg += "\n...";
+                        
+                        await _dialogService.ShowAlertAsync("Import Result", errorMsg);
+                    }
+                    
+                    await LoadData();
+                }
+            }
+            catch (Exception ex)
+            {
+                 _logger.LogError(ex, "Error importing suppliers");
+                 await _dialogService.ShowAlertAsync("Error", $"Import failed: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
 
         /// <summary>
         /// Command to initiate the process of adding a new supplier.

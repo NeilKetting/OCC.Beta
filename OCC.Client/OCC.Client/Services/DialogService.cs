@@ -126,5 +126,16 @@ namespace OCC.Client.Services
             }
             return false;
         }
+
+        public async Task<string?> ShowInputAsync(string title, string message, string defaultValue = "")
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var dialog = new OCC.Client.Views.TextInputDialog(title, message, defaultValue);
+                var result = await dialog.ShowDialog<string?>(desktop.MainWindow);
+                return result;
+            }
+            return null;
+        }
     }
 }

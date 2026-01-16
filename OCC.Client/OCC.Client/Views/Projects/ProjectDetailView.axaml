@@ -244,7 +244,7 @@
                   Name="OverlayGrid"
                   PointerPressed="OnOverlayPointerPressed">
                 
-                <Border Width="800" 
+                <Border Width="950" 
                         Background="#F4F6F8" 
                         HorizontalAlignment="Right"
                         BoxShadow="0 0 20 0 #20000000">

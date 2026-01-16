@@ -165,8 +165,9 @@ namespace OCC.Client.ModelWrappers
             _model.IsOnHold = IsOnHold;
             _model.Priority = Priority;
             
-            _model.StartDate = StartDate ?? DateTime.MinValue; // Or generic default
-            _model.FinishDate = FinishDate ?? DateTime.MinValue;
+            var safeMinDate = new DateTime(1753, 1, 1);
+            _model.StartDate = StartDate ?? safeMinDate; 
+            _model.FinishDate = FinishDate ?? safeMinDate;
             _model.ActualStartDate = ActualStartDate;
             _model.ActualCompleteDate = ActualCompleteDate;
 
@@ -192,10 +193,10 @@ namespace OCC.Client.ModelWrappers
             // Instead, we update the state that triggers completion.
             if (value)
             {
-                Status = "Completed"; // Model expects "Completed"
+                if (ActualCompleteDate == null) ActualCompleteDate = DateTime.Now; // Set first to satisfy server validation
                 PercentComplete = 100;
                 ProgressPercent = 100;
-                if (ActualCompleteDate == null) ActualCompleteDate = DateTime.Now;
+                Status = "Completed"; // Set last
             }
             else
             {

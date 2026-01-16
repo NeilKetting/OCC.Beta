@@ -19,6 +19,7 @@ namespace OCC.Shared.Models
         
         public string Sku { get; set; } = string.Empty;
         public decimal AverageCost { get; set; }
+        public decimal Price { get; set; }
         public bool TrackLowStock { get; set; } = true;
         public bool IsStockItem { get; set; } = true;
 

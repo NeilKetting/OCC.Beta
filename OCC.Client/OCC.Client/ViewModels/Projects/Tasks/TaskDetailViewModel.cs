@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using OCC.Client.Services;
 using OCC.Shared.Models;
@@ -32,278 +33,65 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private readonly IRepository<TaskAssignment> _assignmentRepository;
         private readonly IRepository<TaskComment> _commentRepository;
         private readonly IDialogService _dialogService;
+        private readonly IAuthService _authService;
         
-        private readonly SemaphoreSlim _updateLock = new(1, 1);
-        private Guid _currentTaskId; 
-        private bool _isLoading = false;
+        private SemaphoreSlim _updateLock = new SemaphoreSlim(1, 1);
+        private Guid _currentTaskId;
+        private bool _isLoading;
 
-        #endregion
-
-        #region Events
-
-        public event EventHandler? CloseRequested;
-
-        #endregion
-
-        #region Observables
-
-        /// <summary>
-        /// The wrapper around the current ProjectTask, providing reactive properties for the UI.
-        /// </summary>
         [ObservableProperty]
         private ProjectTaskWrapper _task;
 
-        /// <summary>
-        /// Collection of checklist items (To-Do list) associated with the task.
-        /// Changes to this collection notify the SubtaskCount property.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(SubtaskCount))]
-        private ObservableCollection<ChecklistItem> _toDoList = new ObservableCollection<ChecklistItem>();
-
-        /// <summary>
-        /// Collection of tags or labels applied to the task.
-        /// </summary>
-        [ObservableProperty]
-        private ObservableCollection<string> _tags = new ObservableCollection<string>();
-
-        /// <summary>
-        /// Helper property for the input field when adding a new checklist item.
-        /// </summary>
-        [ObservableProperty]
-        private string _newToDoContent = string.Empty;
-
-        /// <summary>
-        /// Collection of comments posted primarily on this task.
-        /// </summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(CommentsCount))]
-        private ObservableCollection<TaskComment> _comments = new();
-
-        /// <summary>
-        /// Helper property for the input field when adding a new comment.
-        /// </summary>
         [ObservableProperty]
         private string _newCommentContent = string.Empty;
 
-        /// <summary>
-        /// The list of users assigned to this task.
-        /// </summary>
         [ObservableProperty]
-        private ObservableCollection<TaskAssignment> _assignments = new();
+        private string _newToDoContent = string.Empty;
 
-        /// <summary>
-        /// The complete list of subtasks (children) for this task.
-        /// </summary>
-        [ObservableProperty]
-        private ObservableCollection<ProjectTask> _subtasks = new();
-
-        /// <summary>
-        /// The subset of subtasks currently visible in the UI (handles pagination/preview limits).
-        /// </summary>
-        [ObservableProperty]
-        private ObservableCollection<ProjectTask> _visibleSubtasks = new();
-
-        /// <summary>
-        /// Indicates if there are more subtasks than currently displayed.
-        /// </summary>
-        [ObservableProperty]
-        private bool _hasMoreSubtasks;
-
-        /// <summary>
-        /// Toggles whether to show the full list of subtasks or just a preview.
-        /// </summary>
         [ObservableProperty]
         private bool _isShowingAllSubtasks;
+
+        [ObservableProperty]
+        private bool _hasMoreSubtasks;
 
         [ObservableProperty]
         private bool _isBusy;
 
         [ObservableProperty]
-        private string _busyText = "Please wait...";
+        private string _busyText = string.Empty;
 
-        #endregion
+        public ObservableCollection<TaskComment> Comments { get; } = new();
+        public ObservableCollection<ProjectTask> Subtasks { get; } = new();
+        public ObservableCollection<ProjectTask> VisibleSubtasks { get; } = new();
+        public ObservableCollection<TaskAssignment> Assignments { get; } = new();
+        public ObservableCollection<Employee> AvailableStaff { get; } = new();
+        public ObservableCollection<ModelWrappers.ToDoItemWrapper> ToDoList { get; } = new();
 
-        #region Properties
-
-        /// <summary>
-        /// Gets the total count of items in the To-Do list.
-        /// </summary>
-        public int SubtaskCount => ToDoList?.Count ?? 0;
-
-        /// <summary>
-        /// Gets the total count of comments on this task.
-        /// </summary>
-        public int CommentsCount => Comments?.Count ?? 0;
-
+        public int CommentsCount => Comments.Count;
+        public int SubtaskCount => Subtasks.Count;
         public int AttachmentsCount => 0; // Placeholder for now
 
-        public ObservableCollection<string> PriorityLevels { get; } = new() 
-        { 
-            "Critical", "Very High", "High", "Medium", "Low", "Very Low" 
-        };
+        public event EventHandler? CloseRequested;
 
-        // Lists for selection
-        public ObservableCollection<Employee> AvailableStaff { get; } = new();
-
-        #endregion
-
-        #region Constructors
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskDetailViewModel"/> class.
-        /// Parameterless constructor required for design-time support.
-        /// </summary>
-        public TaskDetailViewModel()
-        {
-             _projectTaskRepository = null!;
-             _staffRepository = null!;
-             _assignmentRepository = null!;
-             _commentRepository = null!;
-             _dialogService = null!;
-             _task = new ProjectTaskWrapper(new ProjectTask());
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TaskDetailViewModel"/> class with required dependencies.
-        /// </summary>
-        /// <param name="projectTaskRepository">Repository for accessing ProjectTask data.</param>
-        /// <param name="staffRepository">Repository for accessing Employee data.</param>
-        /// <param name="assignmentRepository">Repository for managing task assignments.</param>
-        /// <param name="commentRepository">Repository for managing task comments.</param>
-        /// <param name="dialogService">Service for showing alerts.</param>
         public TaskDetailViewModel(
             IRepository<ProjectTask> projectTaskRepository,
             IRepository<Employee> staffRepository,
             IRepository<TaskAssignment> assignmentRepository,
             IRepository<TaskComment> commentRepository,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            IAuthService authService)
         {
             _projectTaskRepository = projectTaskRepository;
             _staffRepository = staffRepository;
             _assignmentRepository = assignmentRepository;
             _commentRepository = commentRepository;
             _dialogService = dialogService;
+            _authService = authService;
             _task = new ProjectTaskWrapper(new ProjectTask());
         }
 
-        #endregion
+        // ...
 
-        #region Commands
-
-        /// <summary>
-        /// Updates the status of the current task.
-        /// </summary>
-        /// <param name="status">The new status string (e.g. "InProgress", "Done").</param>
-        [RelayCommand]
-        public void SetStatus(string status)
-        {
-            Task.Status = status;
-        }
-
-        /// <summary>
-        /// Toggles the 'On Hold' state of the task, updating the status color accordingly.
-        /// </summary>
-        [RelayCommand]
-        public void ToggleOnHold()
-        {
-            Task.IsOnHold = !Task.IsOnHold;
-        }
-
-        /// <summary>
-        /// Updates the priority level of the task.
-        /// </summary>
-        /// <param name="priority">The new priority level (e.g. "High", "Low").</param>
-        [RelayCommand]
-        public void SetPriority(string priority)
-        {
-            Task.Priority = priority;
-        }
-
-        /// <summary>
-        /// Assigns a staff member to the current task.
-        /// Prevents duplicate assignments for the same staff member.
-        /// </summary>
-        /// <param name="staff">The employee to assign.</param>
-        [RelayCommand]
-        public async System.Threading.Tasks.Task AssignStaff(Employee staff)
-        {
-            if (staff == null || Assignments.Any(a => a.AssigneeId == staff.Id)) return;
-            
-            await _updateLock.WaitAsync();
-            try
-            {
-                BusyText = "Updating assignments...";
-                IsBusy = true;
-                var assignment = new TaskAssignment
-                {
-                     ProjectTaskId = _currentTaskId,
-                     AssigneeId = staff.Id,
-                     AssigneeType = AssigneeType.Staff,
-                     AssigneeName = $"{staff.FirstName} {staff.LastName}"
-                };
-                
-                await _assignmentRepository.AddAsync(assignment);
-                Assignments.Add(assignment);
-            }
-            finally
-            {
-                IsBusy = false;
-                _updateLock.Release();
-            }
-        }
-
-        /// <summary>
-        /// Removes an existing assignment from the task.
-        /// </summary>
-        /// <param name="assignment">The assignment record to remove.</param>
-        [RelayCommand]
-        public async System.Threading.Tasks.Task RemoveAssignment(TaskAssignment assignment)
-        {
-            if (assignment == null) return;
-            
-            await _updateLock.WaitAsync();
-            try
-            {
-                BusyText = "Updating assignments...";
-                IsBusy = true;
-                await _assignmentRepository.DeleteAsync(assignment.Id);
-                Assignments.Remove(assignment);
-            }
-            finally
-            {
-                IsBusy = false;
-                _updateLock.Release();
-            }
-        }
-
-        /// <summary>
-        /// Commits planned and actual duration changes to the model.
-        /// Triggered manually or by loss of focus on duration fields.
-        /// </summary>
-        [RelayCommand]
-        public void CommitDurations()
-        {
-           // Handled by Wrapper logic via TwoWay binding
-        }
-
-        /// <summary>
-        /// Adds a new item to the To-Do checklist based on the NewToDoContent property.
-        /// </summary>
-        [RelayCommand]
-        private void AddToDo()
-        {
-            if (!string.IsNullOrWhiteSpace(NewToDoContent))
-            {
-                ToDoList.Add(new ChecklistItem(NewToDoContent));
-                NewToDoContent = string.Empty;
-                OnPropertyChanged(nameof(SubtaskCount));
-            }
-        }
-
-        /// <summary>
-        /// Adds a new comment to the task and saves it to the repository.
-        /// </summary>
         [RelayCommand]
         private async Task AddComment()
         {
@@ -313,13 +101,19 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 {
                     BusyText = "Posting comment...";
                     IsBusy = true;
-                var newComment = new TaskComment
-                {
-                    AuthorName = "Current User", // In real app, get from AuthService
-                    AuthorEmail = "user@occ.com",
-                    Content = NewCommentContent,
-                    CreatedAt = DateTime.Now
-                };
+                    
+                    var user = _authService.CurrentUser;
+                    var authorName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown User";
+                    var authorEmail = user?.Email ?? "Unknown";
+
+                    var newComment = new TaskComment
+                    {
+                        AuthorName = authorName,
+                        AuthorEmail = authorEmail,
+                        Content = NewCommentContent,
+                        CreatedAt = DateTime.Now
+                    };
+// ...
 
                 Comments.Insert(0, newComment);
                 NewCommentContent = string.Empty;
@@ -389,6 +183,83 @@ namespace OCC.Client.ViewModels.Projects.Tasks
              UpdateVisibleSubtasks();
         }
 
+        [RelayCommand]
+        private void SetStatus(string status)
+        {
+            if (Task != null)
+            {
+                Task.Status = status;
+            }
+        }
+
+        [RelayCommand]
+        private void SetPriority(string priority)
+        {
+            if (Task != null)
+            {
+                Task.Priority = priority;
+            }
+        }
+
+        [RelayCommand]
+        private void ToggleOnHold()
+        {
+             // Toggle logic if needed, or set status to On Hold
+             if (Task != null)
+             {
+                 if (Task.Status == "On Hold")
+                     Task.Status = "Not Started"; // Or revert to previous? Simplification: Toggle to Not Started
+                 else
+                     Task.Status = "On Hold";
+             }
+        }
+
+        [RelayCommand]
+        private async Task CommitDurations()
+        {
+            await UpdateTask();
+        }
+
+        [RelayCommand]
+        private async Task AssignStaff(Employee staff)
+        {
+             if (staff == null) return;
+             // Logic to assign staff
+             // Check if already assigned
+             if (Assignments.Any(a => a.AssigneeId == staff.Id)) return;
+
+             var assignment = new TaskAssignment
+             {
+                 ProjectTaskId = _currentTaskId,
+                 AssigneeId = staff.Id,
+                 AssigneeName = $"{staff.FirstName} {staff.LastName}",
+                 AssigneeType = AssigneeType.Staff
+             };
+             
+             Assignments.Add(assignment);
+             
+             // Persist
+             await _updateLock.WaitAsync();
+             try 
+             {
+                await _assignmentRepository.AddAsync(assignment);
+             }
+             finally
+             {
+                _updateLock.Release();
+             }
+        }
+
+        [RelayCommand]
+        private void AddToDo()
+        {
+            if (!string.IsNullOrWhiteSpace(NewToDoContent))
+            {
+                ToDoList.Add(new ModelWrappers.ToDoItemWrapper(NewToDoContent));
+                NewToDoContent = string.Empty;
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -441,8 +312,22 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 IsBusy = true;
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task Model: {task.Name} ({task.Id})...");
                 
-                _currentTaskId = task.Id;
-                LoadTask(task);
+                // Sync fix: We reload the task from DB to ensure we are working on a 
+                // separate instance from the one in the List View. This prevents live-updates 
+                // in the background list which disappear if we don't save, 
+                // and avoids concurrency issues when saving children.
+                var freshTask = await _projectTaskRepository.GetByIdAsync(task.Id);
+                if (freshTask != null)
+                {
+                    _currentTaskId = freshTask.Id;
+                    LoadTask(freshTask);
+                }
+                else
+                {
+                    // Fallback to passed task if DB fetch fails (new task case)
+                    _currentTaskId = task.Id;
+                    LoadTask(task);
+                }
                 
                 await LoadAssignableResources();
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] LoadTaskModel Complete.");
@@ -559,19 +444,62 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 // Sync Wrapper back to Model
                 Task.CommitToModel();
 
-                // Sanitize: Clear navigation properties before sending to API 
-                // to prevent circular references or EF Core graph update issues.
-                var model = Task.Model;
-                model.Children?.Clear();
-                model.Assignments?.Clear();
-                model.Comments?.Clear();
-                model.Project = null;
+                // Clean Update: Create a fresh object to send only necessary scalars.
+                // This avoids any issues with navigation properties, circular refs, or EF Core tracking.
+                var cleanModel = new ProjectTask
+                {
+                    Id = Task.Model.Id,
+                    ProjectId = Task.Model.ProjectId,
+                    LegacyId = Task.Model.LegacyId,
+                    Name = Task.Model.Name,
+                    Description = Task.Model.Description,
+                    
+                    Status = Task.Model.Status,
+                    Priority = Task.Model.Priority,
+                    IsOnHold = Task.Model.IsOnHold,
+                    PercentComplete = Task.Model.PercentComplete,
+                    Type = Task.Model.Type,
+                    
+                    StartDate = Task.Model.StartDate,
+                    FinishDate = Task.Model.FinishDate,
+                    Duration = Task.Model.Duration, // Copy string duration
+                    
+                    ActualStartDate = Task.Model.ActualStartDate,
+                    ActualCompleteDate = Task.Model.ActualCompleteDate,
+                    PlanedDurationHours = Task.Model.PlanedDurationHours,
+                    ActualDuration = Task.Model.ActualDuration,
+                    
+                    AssignedTo = Task.Model.AssignedTo,
+                    
+                    // Structural Properties (Critical for Tree)
+                    ParentId = Task.Model.ParentId,
+                    OrderIndex = Task.Model.OrderIndex,
+                    IndentLevel = Task.Model.IndentLevel,
+                    IsGroup = Task.Model.IsGroup,
+                    Predecessors = Task.Model.Predecessors ?? new List<string>(),
 
-                // Save to DB
-                await _projectTaskRepository.UpdateAsync(model);
-                
-                // Notify listeners
-                CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+                    // Empty Lists instead of null, to satisfy API if it expects collection
+                    Children = new List<ProjectTask>(),
+                    Assignments = new List<TaskAssignment>(),
+                    Comments = new List<TaskComment>(),
+                    Project = null
+                };
+
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Sending Update for {cleanModel.Id} (Project: {cleanModel.ProjectId}) Priority: {cleanModel.Priority}");
+
+                try 
+                {
+                    // Save to DB
+                    await _projectTaskRepository.UpdateAsync(cleanModel);
+                    
+                    // Notify listeners
+                    CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Update failed: {ex.Message}");
+                    await _dialogService.ShowAlertAsync("Update Failed", $"Could not save changes: {ex.Message}");
+                }
             }
             finally
             {

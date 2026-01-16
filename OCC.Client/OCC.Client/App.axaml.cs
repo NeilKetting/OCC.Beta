@@ -212,6 +212,8 @@ namespace OCC.Client
             services.AddSingleton<IToastService, ToastService>();
             services.AddSingleton<IProjectManager, ProjectManager>();
             services.AddSingleton<IExportService, ExportService>();
+            services.AddSingleton<ISupplierImportService, SupplierImportService>();
+            services.AddSingleton<IInventoryImportService, InventoryImportService>();
 
             // Logging
             services.AddLogging(l => l.AddSerilog());

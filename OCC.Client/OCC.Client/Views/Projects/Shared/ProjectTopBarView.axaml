@@ -12,7 +12,7 @@
         <conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
     </UserControl.Resources>
 
-    <Border Classes="TopHeader">
+    <Border Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
         <Grid ColumnDefinitions="Auto, *, Auto,*, Auto">
 
             <!-- LEFT: Project Name and Members -->
@@ -121,7 +121,6 @@
                     <PathIcon Data="{StaticResource IconSearch}" Width="18" Height="18" Foreground="{DynamicResource TextSecondaryGray}"/>
                 </Button>
             </StackPanel>
-
         </Grid>
     </Border>
 </UserControl>

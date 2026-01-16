@@ -13,5 +13,6 @@ namespace OCC.Client.Services.Interfaces
         Task<(bool Confirmed, string? Reason, string? Note)> ShowLeaveEarlyReasonAsync();
         Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut, bool showIn = true, bool showOut = true);
         Task<bool> ShowSessionTimeoutAsync();
+        Task<string?> ShowInputAsync(string title, string message, string defaultValue = "");
     }
 }
