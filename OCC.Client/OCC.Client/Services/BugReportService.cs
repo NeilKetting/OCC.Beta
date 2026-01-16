@@ -68,5 +68,12 @@ namespace OCC.Client.Services
             var response = await _httpClient.PostAsJsonAsync(url, bugComment);
             response.EnsureSuccessStatusCode();
         }
+
+        public async Task DeleteBugAsync(Guid bugId)
+        {
+            EnsureAuthorization();
+            var response = await _httpClient.DeleteAsync($"api/BugReports/{bugId}");
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

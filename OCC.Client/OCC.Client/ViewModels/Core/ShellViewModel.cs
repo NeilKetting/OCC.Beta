@@ -37,7 +37,8 @@ namespace OCC.Client.ViewModels.Core
         IRecipient<OpenManageUsersMessage>,
         IRecipient<TestBirthdayMessage>,
         IRecipient<OpenProfileMessage>,
-        IRecipient<ToastNotificationMessage>
+        IRecipient<ToastNotificationMessage>,
+        IRecipient<OpenBugReportMessage>
     {
 
         #region Private Members
@@ -394,7 +395,7 @@ namespace OCC.Client.ViewModels.Core
                 }
             }
             
-            await _dialogService.ShowBugReportAsync(viewName);
+            await _dialogService.ShowBugReportAsync(viewName, screenshotBase64);
         }
 
         [RelayCommand]
@@ -613,6 +614,13 @@ namespace OCC.Client.ViewModels.Core
                  // Handling email change if critical, for now ProfileViewModel handles its own logic or alerts
             };
             IsProfileOpen = true;
+        }
+
+        public void Receive(OpenBugReportMessage message)
+        {
+            NavigateTo("BugList");
+            // Future: Select specific bug if BugListViewModel supports it
+            // if (message.Value.HasValue && CurrentPage is ViewModels.Bugs.BugListViewModel vm) { ... }
         }
 
         [RelayCommand]

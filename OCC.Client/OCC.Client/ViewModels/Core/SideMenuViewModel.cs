@@ -468,18 +468,7 @@ namespace OCC.Client.ViewModels.Core
              WeakReferenceMessenger.Default.Send(new OpenProfileMessage());
         }
 
-        /// <summary>
-        /// Opens the Work Hours popup.
-        /// </summary>
-        [RelayCommand]
-        private void OpenWorkHours()
-        {
-            IsQuickActionsOpen = false;
-            IsSettingsOpen = false;
 
-            var vm = new WorkHoursPopupViewModel((AppDbContext)_serviceProvider.GetRequiredService<AppDbContext>());
-            WeakReferenceMessenger.Default.Send(new OpenWorkHoursMessage(vm));
-        }
 
         /// <summary>
         /// Triggers the creation of a new task.

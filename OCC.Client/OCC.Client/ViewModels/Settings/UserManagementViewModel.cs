@@ -69,7 +69,7 @@ namespace OCC.Client.ViewModels.Settings
         {
             _userRepository = userRepository;
             _dialogService = dialogService;
-            LoadData();
+            _ = LoadData();
             
             CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
         }
@@ -91,10 +91,10 @@ namespace OCC.Client.ViewModels.Settings
         {
             UserPopup = new UserDetailViewModel(_userRepository);
             UserPopup.CloseRequested += (s, e) => IsUserPopupVisible = false;
-            UserPopup.UserSaved += (s, e) => 
+            UserPopup.UserSaved += async (s, e) => 
             {
                 IsUserPopupVisible = false;
-                LoadData();
+                await LoadData();
             };
             IsUserPopupVisible = true;
         }
@@ -107,10 +107,10 @@ namespace OCC.Client.ViewModels.Settings
             UserPopup = new UserDetailViewModel(_userRepository);
             UserPopup.Load(user);
             UserPopup.CloseRequested += (s, e) => IsUserPopupVisible = false;
-            UserPopup.UserSaved += (s, e) => 
+            UserPopup.UserSaved += async (s, e) => 
             {
                 IsUserPopupVisible = false;
-                LoadData(); 
+                await LoadData(); 
             };
             IsUserPopupVisible = true;
         }
@@ -137,7 +137,7 @@ namespace OCC.Client.ViewModels.Settings
                         BusyText = "Deleting user...";
                         IsBusy = true;
                         await _userRepository.DeleteAsync(user.Id);
-                        LoadData();
+                await LoadData();
                     }
                     finally
                     {
@@ -162,7 +162,7 @@ namespace OCC.Client.ViewModels.Settings
                 IsBusy = true;
                 user.IsApproved = true;
                 await _userRepository.UpdateAsync(user);
-                LoadData(); // Refresh counts
+                await LoadData(); // Refresh counts
             }
             catch (Exception ex)
             {
@@ -192,8 +192,13 @@ namespace OCC.Client.ViewModels.Settings
         [ObservableProperty]
         private string _busyText = "Please wait...";
 
-        public void OpenUser(Guid userId)
+        public async void OpenUser(Guid userId)
         {
+            if (_allUsers.Count == 0)
+            {
+                await LoadData();
+            }
+
             var user = _allUsers.FirstOrDefault(u => u.Id == userId);
             if (user != null)
             {
@@ -201,7 +206,7 @@ namespace OCC.Client.ViewModels.Settings
             }
         }
 
-        public async void LoadData()
+        public async Task LoadData()
         {
             try
             {

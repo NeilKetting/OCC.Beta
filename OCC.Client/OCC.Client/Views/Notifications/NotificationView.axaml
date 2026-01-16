@@ -10,8 +10,7 @@
              x:DataType="vm:NotificationViewModel">
 
     <UserControl.Resources>
-        <conv:StringContainsConverter x:Key="StringContainsConverter"/>
-        <conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
+        <conv:NotificationActionVisibilityConverter x:Key="NotificationActionVisibilityConverter"/>
     </UserControl.Resources>
 
     <Border Background="{DynamicResource AppBackgroundSlate}" 
@@ -60,7 +59,7 @@
                                             <Button Classes="IconButton"
                                                     Command="{Binding $parent[UserControl].((vm:NotificationViewModel)DataContext).ApproveActionCommand}"
                                                     CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding TargetAction, Converter={x:Static converters:StringConverters.IsNotNullOrEmpty}}"
+                                                    IsVisible="{Binding TargetAction, Converter={StaticResource NotificationActionVisibilityConverter}, ConverterParameter='Approve'}"
                                                     ToolTip.Tip="Approve">
                                                 <PathIcon Data="{StaticResource IconYes}" Foreground="#22C55E" Width="16" Height="16"/>
                                             </Button>
@@ -69,7 +68,7 @@
                                             <Button Classes="IconButton"
                                                     Command="{Binding $parent[UserControl].((vm:NotificationViewModel)DataContext).DenyActionCommand}"
                                                     CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding TargetAction, Converter={x:Static converters:StringConverters.IsNotNullOrEmpty}}"
+                                                    IsVisible="{Binding TargetAction, Converter={StaticResource NotificationActionVisibilityConverter}, ConverterParameter='Deny'}"
                                                     ToolTip.Tip="Deny">
                                                 <PathIcon Data="{StaticResource IconNo}" Foreground="#EF4444" Width="16" Height="16"/>
                                             </Button>
@@ -78,7 +77,7 @@
                                             <Button Classes="IconButton"
                                                     Command="{Binding $parent[UserControl].((vm:NotificationViewModel)DataContext).NavigateCommand}"
                                                     CommandParameter="{Binding .}"
-                                                    IsVisible="{Binding TargetAction, Converter={x:Static converters:StringConverters.IsNotNullOrEmpty}}"
+                                                    IsVisible="{Binding TargetAction, Converter={StaticResource NotificationActionVisibilityConverter}, ConverterParameter='View'}"
                                                     ToolTip.Tip="View Details">
                                                 <PathIcon Data="{StaticResource IconLiveView}" Foreground="{DynamicResource TextPrimary}" Width="16" Height="16"/>
                                             </Button>

@@ -129,9 +129,9 @@ namespace OCC.Client.ViewModels.Bugs
 
             try
             {
-                if (!IsDev)
+                if (!IsDev && !IsReporter)
                 {
-                    await _dialogService.ShowAlertAsync("Access Denied", "Only the Developer (Neil) can comment on bug reports.");
+                    await _dialogService.ShowAlertAsync("Access Denied", "Only the Developer (Neil) or the Reporter can comment on this bug.");
                     return;
                 }
 
@@ -171,6 +171,44 @@ namespace OCC.Client.ViewModels.Bugs
             
             var text = "Developer closed the bug.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Closed");
+            await LoadBugs();
+        }
+
+        [RelayCommand]
+        private async Task DeleteBug()
+        {
+             if (SelectedBug == null || !IsDev) return;
+             
+             var result = await _dialogService.ShowConfirmationAsync("Delete Bug Report", "Are you sure you want to permanently delete this bug report?");
+             if (!result) return;
+             
+             try
+             {
+                 await _bugService.DeleteBugAsync(SelectedBug.Id);
+                 await LoadBugs();
+                 SelectedBug = null;
+             }
+             catch(Exception ex)
+             {
+                 await _dialogService.ShowAlertAsync("Error", $"Delete failed: {ex.Message}");
+             }
+        }
+
+        [RelayCommand]
+        private async Task MarkResolved()
+        {
+            if (SelectedBug == null) return;
+            var text = $"{_authService.CurrentUser?.FirstName ?? "Reporter"} marked this issue as Resolved.";
+            await _bugService.AddCommentAsync(SelectedBug.Id, text, "Resolved");
+            await LoadBugs();
+        }
+
+        [RelayCommand]
+        private async Task MarkNotResolved()
+        {
+            if (SelectedBug == null) return;
+            var text = $"{_authService.CurrentUser?.FirstName ?? "Reporter"} marked this issue as Still Broken.";
+            await _bugService.AddCommentAsync(SelectedBug.Id, text, "Open");
             await LoadBugs();
         }
 

@@ -181,16 +181,31 @@
                                         <TextBlock Text="Close Bug" FontSize="12"/>
                                     </StackPanel>
                                 </Button>
+                                <Button Command="{Binding DeleteBugCommand}" Classes="Danger" Padding="15,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+                                        <TextBlock Text="Delete" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
 
                             <!-- Client/Reporter Actions -->
                             <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding !IsDev}">
-                                <Button Command="{Binding CloseBugCommand}" Classes="Standout" Padding="15,6" IsVisible="{Binding IsReporter}">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconCheck}" Width="14" Height="14"/>
-                                        <TextBlock Text="Confirm Fixed" FontSize="12"/>
-                                    </StackPanel>
-                                </Button>
+                                <!-- ONLY Show if I am the Reporter -->
+                                <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsReporter}">
+                                    <Button Command="{Binding MarkResolvedCommand}" Classes="Success" Padding="15,6">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <PathIcon Data="{StaticResource IconCheck}" Width="14" Height="14"/>
+                                            <TextBlock Text="Mark Resolved" FontSize="12"/>
+                                        </StackPanel>
+                                    </Button>
+                                     <Button Command="{Binding MarkNotResolvedCommand}" Classes="Danger" Padding="15,6">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <PathIcon Data="{StaticResource IconX}" Width="14" Height="14"/>
+                                            <TextBlock Text="Still Broken" FontSize="12"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
 
                             <!-- Send Button -->

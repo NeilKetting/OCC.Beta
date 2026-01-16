@@ -10,5 +10,6 @@ namespace OCC.Client.Services.Interfaces
         Task SubmitBugAsync(BugReport report);
         Task<List<BugReport>> GetBugReportsAsync();
         Task AddCommentAsync(Guid bugId, string comment, string? status);
+        Task DeleteBugAsync(Guid bugId);
     }
 }

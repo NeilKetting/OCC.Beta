@@ -9,6 +9,9 @@ using OCC.API.Data;
 using OCC.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
+using OCC.API.Hubs;
+// using OCC.Shared.Extensions; // Assuming extension is not available, using Substring safe check
 
 namespace OCC.API.Controllers
 {
@@ -19,10 +22,12 @@ namespace OCC.API.Controllers
         #region Fields & Constructor
 
         private readonly AppDbContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public BugReportsController(AppDbContext context)
+        public BugReportsController(AppDbContext context, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         #endregion
@@ -87,15 +92,14 @@ namespace OCC.API.Controllers
             return CreatedAtAction("GetBugReport", new { id = bugReport.Id }, bugReport);
         }
 
-        // POST: api/BugReports/5/comments
-        [HttpPost("{id}/comments")]
+        // DELETE: api/BugReports/5
+        [HttpDelete("{id}")]
         [Authorize]
-        public async Task<ActionResult<BugComment>> PostBugComment(Guid id, [FromQuery] string? status, BugComment comment)
+        public async Task<IActionResult> DeleteBugReport(Guid id)
         {
-            // REPLY RESTRICTION: Only Neil can reply
             if (!IsNeilDev())
             {
-                return Forbid("Only the Developer (Neil) can comment on or update bug reports.");
+                return Forbid("Only the Developer (Neil) can delete bug reports.");
             }
 
             var bugReport = await _context.BugReports.FindAsync(id);
@@ -104,17 +108,99 @@ namespace OCC.API.Controllers
                 return NotFound();
             }
 
+            _context.BugReports.Remove(bugReport);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // POST: api/BugReports/5/comments
+        [HttpPost("{id}/comments")]
+        [Authorize]
+        public async Task<ActionResult<BugComment>> PostBugComment(Guid id, [FromQuery] string? status, BugComment comment)
+        {
+            var bugReport = await _context.BugReports.FindAsync(id);
+            if (bugReport == null)
+            {
+                return NotFound();
+            }
+
+            // REPLY PERMISSION: Neil OR the original Reporter
+            var isDev = IsNeilDev();
+            var currentUserEmail = User.FindFirst(ClaimTypes.Email)?.Value?.ToLowerInvariant();
+            var isReporter = false;
+            
+            // Check if current user is the reporter
+            if (bugReport.ReporterId.HasValue && User.FindFirst(ClaimTypes.NameIdentifier)?.Value == bugReport.ReporterId.ToString())
+            {
+                isReporter = true;
+            }
+            // Fallback: check by name matches? No, rely on ID or Email if stored.
+            // Earlier PostBugReport set ReporterId from Auth. 
+            // Also check if ReporterId matches the sub claim.
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var uid) && uid == bugReport.ReporterId)
+            {
+                isReporter = true;
+            }
+
+            if (!isDev && !isReporter)
+            {
+                return Forbid("Only the Developer (Neil) or the original Reporter can comment on this bug.");
+            }
+
             comment.BugReportId = id;
             comment.CreatedAt = DateTime.UtcNow;
+            
+            // Ensure Author Details
+            if (string.IsNullOrEmpty(comment.AuthorName))
+            {
+               comment.AuthorName = User.FindFirst(ClaimTypes.Name)?.Value ?? (isDev ? "Neil Ketting" : "User");
+            }
+            if (string.IsNullOrEmpty(comment.AuthorEmail))
+            {
+                comment.AuthorEmail = currentUserEmail;
+            }
+
             _context.BugComments.Add(comment);
 
             if (!string.IsNullOrEmpty(status))
             {
+                // Validate Status? (Open, Resolved, Closed)
                 bugReport.Status = status;
                 _context.Entry(bugReport).State = EntityState.Modified;
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify...
+            // If Dev replied -> Notify Reporter
+            // If Reporter replied -> Notify Dev (Neil)
+            
+            try
+            {
+                string message = "";
+                if (isDev && bugReport.ReporterId.HasValue)
+                {
+                     var desc = bugReport.Description.Length > 20 ? bugReport.Description.Substring(0, 20) : bugReport.Description;
+                     message = $"Update on Bug Report: {desc}... (For: {bugReport.ReporterName})";
+                }
+                else if (isReporter)
+                {
+                     // Notify Neil
+                     message = $"New Reply from {bugReport.ReporterName} on Bug Report: {bugReport.ViewName}";
+                     // Since Neil might not be listening filters identically, we'll just broadcast.
+                }
+
+                if (!string.IsNullOrEmpty(message))
+                {
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", message);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending notification: {ex.Message}");
+            }
 
             return Ok(comment);
         }

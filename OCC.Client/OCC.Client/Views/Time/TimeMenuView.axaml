@@ -46,7 +46,7 @@
                             </MenuItem>
                             <MenuItem Header="Wage Run" Command="{Binding SetActiveTabCommand}" CommandParameter="WageRun">
                                 <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource calculator_regular}" Classes="IconStyle" Width="16" Height="16"/>
+                                    <PathIcon Data="{StaticResource IconWagesDollar}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
                         </MenuFlyout>

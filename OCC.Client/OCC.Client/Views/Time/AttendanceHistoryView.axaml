@@ -70,6 +70,21 @@
 				  IsReadOnly="True" GridLinesVisibility="Horizontal"
 				  BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderGray}"
 				  Background="White" RowBackground="White">
+            <DataGrid.Styles>
+                <Style Selector="DataGridRow">
+                    <Setter Property="ContextMenu">
+                        <ContextMenu>
+                            <MenuItem Header="Edit Time" 
+                                      Command="{Binding #Root.DataContext.EditRecordCommand}" 
+                                      CommandParameter="{Binding}">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconEdit}" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Setter>
+                </Style>
+            </DataGrid.Styles>
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
 				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>

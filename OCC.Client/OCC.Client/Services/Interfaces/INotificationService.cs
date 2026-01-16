@@ -11,6 +11,9 @@ namespace OCC.Client.Services.Interfaces
         Task MarkAsReadAsync(Guid notificationId);
         Task ClearAllAsync();
         
+        Task<IEnumerable<Guid>> GetDismissedIdsAsync();
+        Task DismissAsync(NotificationDismissal dismissal);
+        
         // Helper to send a simplified notification
         Task SendReminderAsync(string title, string message, string? action = null);
         

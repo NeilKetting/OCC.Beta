@@ -58,6 +58,31 @@ namespace OCC.Client.Services.Repositories.ApiServices
             }
         }
 
+        public async Task<IEnumerable<Guid>> GetDismissedIdsAsync()
+        {
+             try 
+            {
+                return await _httpClient.GetFromJsonAsync<IEnumerable<Guid>>("api/Notifications/Dismissed") ?? new List<Guid>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting dismissed items: {ex.Message}");
+                return new List<Guid>();
+            }
+        }
+
+        public async Task DismissAsync(NotificationDismissal dismissal)
+        {
+             try 
+            {
+                await _httpClient.PostAsJsonAsync("api/Notifications/Dismiss", dismissal);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error dismissing item: {ex.Message}");
+            }
+        }
+
         public async Task ClearAllAsync()
         {
             // Implementation depends on API support for bulk delete

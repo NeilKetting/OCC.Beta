@@ -64,17 +64,16 @@ namespace OCC.Client.Services
             // Dynamic Permission Check for Office and SiteManager
             if (user.UserRole == UserRole.Office || user.UserRole == UserRole.SiteManager)
             {
-                // If they have explicit permissions set, check them
-                if (!string.IsNullOrEmpty(user.Permissions))
+                // If permissions are explicitly set (not null), we enforce STRICT access control.
+                // Even if the string is empty (user.Permissions == ""), it means the user has 0 permissions.
+                // We do NOT fall back to default role permissions in this case.
+                if (user.Permissions != null)
                 {
                     var allowedRoutes = user.Permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (allowedRoutes.Contains(route, StringComparer.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
+                    return allowedRoutes.Contains(route, StringComparer.OrdinalIgnoreCase);
                 }
 
-                // Fallback to defaults if no explicit permissions OR not found in explicit list
+                // Fallback to defaults ONLY if user.Permissions is NULL (i.e., permissions have never been configured for this user)
                 if (user.UserRole == UserRole.Office)
                 {
                     return route switch

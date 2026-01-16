@@ -122,5 +122,95 @@ namespace OCC.API.Controllers
                  return StatusCode(500, "Internal server error");
             }
         }
+        // GET: api/Notifications/Dismissed
+        [HttpGet("Dismissed")]
+        public async Task<ActionResult<IEnumerable<Guid>>> GetDismissedIds()
+        {
+            try
+            {
+                var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                // Fallback for name claim
+                if (string.IsNullOrEmpty(userIdString)) userIdString = User.Identity?.Name;
+                
+                // If using actual User IDs in DB, we need to resolve it. 
+                // However, the Dismissal model links by UserId (Guid). 
+                // Let's assume the auth token provides the Guid Claim or we resolve it.
+                // Re-using logic from GetNotifications check if possible, or simple name check if purely email based.
+                // But NotificationDismissal uses Guid UserId.
+                
+                // Let's rely on finding the user by email if Claim is missing, or NameIdentifier.
+                Guid userId = Guid.Empty;
+                var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (idClaim != null && Guid.TryParse(idClaim.Value, out var parsed))
+                {
+                    userId = parsed;
+                }
+                else
+                {
+                    // Attempt to resolve via email
+                    var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                        if (user != null) userId = user.Id;
+                    }
+                }
+
+                if (userId == Guid.Empty) return Unauthorized("User ID not resolved.");
+
+                return await _context.NotificationDismissals
+                    .Where(d => d.UserId == userId)
+                    .Select(d => d.EntityId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting dismissed IDs");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        // POST: api/Notifications/Dismiss
+        [HttpPost("Dismiss")]
+        public async Task<IActionResult> Dismiss([FromBody] NotificationDismissal dismissal)
+        {
+            try
+            {
+               var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+               Guid userId = Guid.Empty;
+
+               // Resolve User ID same as above (Consider refracting into helper)
+                var idClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (idClaim != null && Guid.TryParse(idClaim.Value, out var parsed))
+                {
+                    userId = parsed;
+                }
+                else
+                {
+                    var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity?.Name;
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                        if (user != null) userId = user.Id;
+                    }
+                }
+
+                if (userId == Guid.Empty) return Unauthorized("User ID not resolved.");
+
+                dismissal.Id = Guid.NewGuid();
+                dismissal.UserId = userId; // Force secure user ID
+                dismissal.DismissedAt = DateTime.UtcNow;
+
+                _context.NotificationDismissals.Add(dismissal);
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error dismissing notification");
+                return StatusCode(500, "Internal server error");
+            }
+        }
     }
 }

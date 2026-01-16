@@ -68,6 +68,7 @@ namespace OCC.Client.ViewModels.Time
         // Permission and Holiday Services
         public bool IsWageVisible { get; }
         private readonly IHolidayService _holidayService;
+        private readonly IDialogService _dialogService;
 
         /// <summary>
         /// Design-time constructor
@@ -79,13 +80,15 @@ namespace OCC.Client.ViewModels.Time
             _exportService = null!;
             _timer = null!;
             _holidayService = null!;
+            _dialogService = null!;
         }
 
-        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService)
+        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService, IDialogService dialogService)
         {
             _timeService = timeService;
             _exportService = exportService;
             _holidayService = holidayService;
+            _dialogService = dialogService;
             
             // Check Permission
             IsWageVisible = permissionService.CanAccess("WageViewing");
@@ -191,6 +194,41 @@ namespace OCC.Client.ViewModels.Time
             var path = await _exportService.GenerateHtmlReportAsync(data, title, columns);
             
             await _exportService.OpenFileAsync(path);
+        }
+
+        [RelayCommand]
+        private async Task EditRecord(HistoryRecordViewModel record)
+        {
+            if (record == null) return;
+
+            // Use the specific Edit Attendance Dialog
+            // We parse current strings to TimeSpans if possible
+            TimeSpan? currentIn = TimeSpan.TryParse(record.InTime, out var inTs) ? inTs : null;
+            TimeSpan? currentOut = TimeSpan.TryParse(record.OutTime, out var outTs) ? outTs : null;
+
+            var result = await _dialogService.ShowEditAttendanceAsync(currentIn, currentOut);
+
+            if (result.Confirmed && result.InTime.HasValue)
+            {
+                var originalDate = record.Attendance.Date.Date;
+                var newCheckIn = originalDate.Add(result.InTime.Value);
+                
+                DateTime? newCheckOut = null;
+                if (result.OutTime.HasValue)
+                {
+                    newCheckOut = originalDate.Add(result.OutTime.Value);
+                    // Handle overnight shift?
+                    if (newCheckOut < newCheckIn) newCheckOut = newCheckOut.Value.AddDays(1);
+                }
+                
+                // Update Model
+                record.Attendance.CheckInTime = newCheckIn;
+                record.Attendance.CheckOutTime = newCheckOut;
+                
+                // Save
+                await _timeService.SaveAttendanceRecordAsync(record.Attendance);
+                await LoadData(); // Refresh list to update calcs
+            }
         }
 
         [RelayCommand]

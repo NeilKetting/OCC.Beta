@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using OCC.Shared.Models;
 using OCC.Client.Services;
 using System;
+using System.Collections.Generic;
 using Avalonia.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
@@ -34,19 +35,24 @@ namespace OCC.Client.ViewModels.Notifications
 
         private readonly SignalRNotificationService _signalRService;
         private readonly IAuthService _authService;
+        private readonly INotificationService _notificationService;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<LeaveRequest> _leaveRepository;
         private readonly IRepository<OvertimeRequest> _overtimeRepository;
+        
+        private HashSet<Guid> _dismissedEntityIds = new();
 
         public NotificationViewModel(
             SignalRNotificationService signalRService, 
             IAuthService authService, 
+            INotificationService notificationService,
             IRepository<User> userRepository,
             IRepository<LeaveRequest> leaveRepository,
             IRepository<OvertimeRequest> overtimeRepository)
         {
             _signalRService = signalRService;
             _authService = authService;
+            _notificationService = notificationService;
             _userRepository = userRepository;
             _leaveRepository = leaveRepository;
             _overtimeRepository = overtimeRepository;
@@ -65,12 +71,32 @@ namespace OCC.Client.ViewModels.Notifications
 
             _signalRService.OnNotificationReceived += OnNotificationReceived;
 
+            InitializeData();
+        }
+
+        private async void InitializeData()
+        {
+            await LoadDismissedItems();
+
             if (IsAdmin)
             {
                 // Load pending approvals initially
                 LoadPendingApprovals();
                 LoadPendingLeaveRequests();
                 LoadPendingOvertimeRequests();
+            }
+        }
+        
+        private async Task LoadDismissedItems()
+        {
+            try
+            {
+                var ids = await _notificationService.GetDismissedIdsAsync();
+                _dismissedEntityIds = new HashSet<Guid>(ids);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading dismissed items: {ex}");
             }
         }
 
@@ -82,6 +108,7 @@ namespace OCC.Client.ViewModels.Notifications
              _userRepository = null!;
              _leaveRepository = null!;
              _overtimeRepository = null!;
+             _notificationService = null!;
         }
 
         public void AddSystemNotification(string title, string message)
@@ -114,7 +141,7 @@ namespace OCC.Client.ViewModels.Notifications
                     foreach (var user in pending)
                     {
                         // Dedup
-                        if (!Notifications.Any(n => n.Message.Contains(user.Email)))
+                        if (!Notifications.Any(n => n.Message.Contains(user.Email)) && !_dismissedEntityIds.Contains(user.Id))
                         {
                             Notifications.Insert(0, new Notification
                             {
@@ -148,7 +175,7 @@ namespace OCC.Client.ViewModels.Notifications
                     {
                          // Basic Dedup
                          string msg = $"New Leave Request from {req.Employee?.FirstName} {req.Employee?.LastName}";
-                         if (!Notifications.Any(n => n.Message.Contains(req.Id.ToString()) || n.Message == msg))
+                         if (!Notifications.Any(n => n.Message.Contains(req.Id.ToString()) || n.Message == msg) && !_dismissedEntityIds.Contains(req.Id))
                          {
                             Notifications.Insert(0, new Notification
                             {
@@ -178,7 +205,7 @@ namespace OCC.Client.ViewModels.Notifications
                     foreach (var req in pending)
                     {
                          string msg = $"New Overtime Request from {req.Employee?.FirstName} {req.Employee?.LastName}";
-                         if (!Notifications.Any(n => n.Message == msg))
+                         if (!Notifications.Any(n => n.Message == msg) && !_dismissedEntityIds.Contains(req.Id))
                          {
                             Notifications.Insert(0, new Notification
                             {
@@ -256,6 +283,18 @@ namespace OCC.Client.ViewModels.Notifications
                 {
                      title = "Overtime Request";
                      targetAction = "ManageOvertime";
+                     title = "Overtime Request";
+                     targetAction = "ManageOvertime";
+                }
+                else if (message.Contains("Update on Bug Report", StringComparison.OrdinalIgnoreCase))
+                {
+                     // "Update on Bug Report: Description... (For: ReporterName)"
+                     // We can try to extract basic info or just set action
+                     title = "Bug Report Update";
+                     targetAction = "BugReports";
+                     // We don't have the ID easily unless we encoded it in message or look it up.
+                     // The backend message: "Update on Bug Report: {Desc} (For: {Name})"
+                     // The requirement is just to navigate to list view.
                 }
 
                 Dispatcher.UIThread.Post(() =>
@@ -382,6 +421,13 @@ namespace OCC.Client.ViewModels.Notifications
              {
                  WeakReferenceMessenger.Default.Send(new SwitchTabMessage("OvertimeApproval"));
              }
+             else if (notification.TargetAction == "BugReports")
+             {
+                 // Go to Bug List
+                 WeakReferenceMessenger.Default.Send(new SwitchTabMessage("BugReports"));
+                 // Optionally pass ID if we had it, but list is fine for now as requested.
+                 WeakReferenceMessenger.Default.Send(new OpenBugReportMessage(null));
+             }
         }
 
         // Kept for fallback
@@ -415,11 +461,23 @@ namespace OCC.Client.ViewModels.Notifications
         }
         
         [RelayCommand]
-        private void ClearNotification(Notification notification)
+        private async Task ClearNotification(Notification notification)
         {
             if (Notifications.Contains(notification))
             {
                 Notifications.Remove(notification);
+            }
+
+            // Persist dismissal if it has a target action/entity
+            if (notification.UserId.HasValue && !string.IsNullOrEmpty(notification.TargetAction))
+            {
+                _dismissedEntityIds.Add(notification.UserId.Value);
+                await _notificationService.DismissAsync(new NotificationDismissal
+                {
+                     EntityId = notification.UserId.Value,
+                     NotificationType = notification.TargetAction,
+                     UserId = _authService.CurrentUser?.Id ?? Guid.Empty // Will be overwritten by controller anyway
+                });
             }
         }
     }

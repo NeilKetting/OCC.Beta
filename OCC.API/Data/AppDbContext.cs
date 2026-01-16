@@ -60,6 +60,8 @@ namespace OCC.API.Data
         public DbSet<HseqTrainingRecord> HseqTrainingRecords { get; set; }
         public DbSet<HseqSafeHourRecord> HseqSafeHourRecords { get; set; }
         public DbSet<HseqDocument> HseqDocuments { get; set; }
+        
+        public DbSet<NotificationDismissal> NotificationDismissals { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

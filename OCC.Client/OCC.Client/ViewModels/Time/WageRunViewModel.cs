@@ -20,15 +20,28 @@ namespace OCC.Client.ViewModels.Time
             _wageService = wageService;
             _dialogService = dialogService;
             
-            // Default period: Current Fortnight? 
-            // Logic to find "Next Pay Cycle" would be cool, but for now default to "This Week + Next Week" or something.
-            // Or just default StartDate to Today.
-            StartDate = DateTime.Today; // Likely should be a Monday
-            EndDate = DateTime.Today.AddDays(13); 
+            // Default period: Current Week's Monday
+            // If today is Monday, use today. If today is Sunday, go back to previous Monday?
+            // "Wage run will be run on a Wednesday... The run will be fortnight so it will start on a monday."
+            // If we run on Wednesday of Week 2, the cycle started on Monday of Week 1.
+            // So we take the current Monday, and subtract 7 days.
+            var today = DateTime.Today;
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+            StartDate = today.AddDays(-1 * diff).AddDays(-7).Date;
+            
+            // EndDate is calculated in OnStartDateChanged (StartDate + 13 days)
+            
+            // EndDate is calculated in OnStartDateChanged
         }
 
         [ObservableProperty]
         private DateTime _startDate;
+        
+        partial void OnStartDateChanged(DateTime value)
+        {
+            // Fortnight run: StartDate + 13 days (Total 14 days)
+            EndDate = value.AddDays(13);
+        }
         
         [ObservableProperty]
         private DateTime _endDate;
