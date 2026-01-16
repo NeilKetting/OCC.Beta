@@ -78,7 +78,18 @@
 
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryGray}"/>
-				<DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+				<DataGridTemplateColumn Header="PRODUCT" Width="*">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding ProductName}" 
+									   TextWrapping="Wrap" 
+									   VerticalAlignment="Center" 
+									   Margin="12,8"
+									   FontWeight="SemiBold" 
+									   Foreground="{DynamicResource TextPrimaryDark}"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 				<DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				
