@@ -147,9 +147,10 @@ namespace OCC.API.Controllers
                     RecordId = id.ToString(),
                     Action = "Update Start",
                     Timestamp = DateTime.UtcNow,
-                    NewValues = $"Updating Task: {task.Name}, Percent: {task.PercentComplete}, Status: {task.Status}"
+                    NewValues = $"Task: {task.Name} | %: {task.PercentComplete} | Status: {task.Status} | Start: {task.StartDate:u} | End: {task.FinishDate:u}"
                 };
                 _context.AuditLogs.Add(logEntry);
+                await _context.SaveChangesAsync();
 
                 // Surgical Update: Copy scalar properties only to avoid EF navigation issues
                 existingTask.Name = task.Name;
@@ -188,12 +189,13 @@ namespace OCC.API.Controllers
                             Timestamp = DateTime.UtcNow,
                             NewValues = "Project moved to InProgress because task progress started."
                         });
-                        await _hubContext.Clients.All.SendAsync("EntityUpdate", "Project", "Update", project.Id);
+                        // Don't await SignalR here to keep it fast, but let context save it
                     }
                 }
 
                 await _context.SaveChangesAsync();
 
+                // Explicitly save Success Log
                 _context.AuditLogs.Add(new AuditLog
                 {
                     UserId = "System",
@@ -202,23 +204,41 @@ namespace OCC.API.Controllers
                     Action = "Update Success",
                     Timestamp = DateTime.UtcNow
                 });
+                await _context.SaveChangesAsync();
 
-                await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", id);
+                // Wrap SignalR in try-catch to avoid 500 if broadcast fails
+                try
+                {
+                    await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", id);
+                }
+                catch (Exception sigEx)
+                {
+                    _logger.LogWarning(sigEx, "SignalR broadcast failed for Task {Id}", id);
+                }
+
                 return NoContent();
             }
             catch (Exception ex)
             {
-                _context.AuditLogs.Add(new AuditLog
+                // Fatal error catch - try one last time to log it to DB
+                try
                 {
-                    UserId = "System",
-                    TableName = "ProjectTasks",
-                    RecordId = id.ToString(),
-                    Action = "Update Error",
-                    Timestamp = DateTime.UtcNow,
-                    NewValues = $"Error: {ex.Message} | Stack: {ex.StackTrace?.Substring(0, Math.Min(ex.StackTrace.Length, 500))}"
-                });
-                await _context.SaveChangesAsync();
-                throw; // Rethrow to let global handler catch or return 500
+                    _context.AuditLogs.Add(new AuditLog
+                    {
+                        UserId = "System",
+                        TableName = "ProjectTasks",
+                        RecordId = id.ToString(),
+                        Action = "Update Error",
+                        Timestamp = DateTime.UtcNow,
+                        NewValues = $"Error: {ex.Message} | Stack: {ex.StackTrace?.Substring(0, Math.Min(ex.StackTrace.Length, 500))}"
+                    });
+                    await _context.SaveChangesAsync();
+                }
+                catch 
+                {
+                    _logger.LogError(ex, "FATAL: Could not even log the update error to the database.");
+                }
+                throw; // Rethrow to let global handler return 500
             }
         }
 
