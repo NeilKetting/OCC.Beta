@@ -123,77 +123,99 @@ namespace OCC.API.Controllers
 
         // PUT: api/ProjectTasks/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutProjectTask(Guid id, ProjectTask task)
         {
-            if (id != task.Id) return BadRequest();
-            TaskHelper.EnsureUtcDates(task);
-            
+            if (id != task.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingTask = await _context.ProjectTasks.FindAsync(id);
+            if (existingTask == null)
+            {
+                return NotFound();
+            }
+
             try
             {
-                _logger.LogInformation("[ProjectTasks] Updating Task {Id} (Name: {Name})", id, task.Name);
-                
-                var existingTask = await _context.ProjectTasks.FindAsync(id);
-                if (existingTask == null) 
+                // DEBUG LOGGING TO AuditLog TABLE
+                var logEntry = new AuditLog
                 {
-                    _logger.LogWarning("[ProjectTasks] Task {Id} not found", id);
-                    return NotFound();
-                }
+                    UserId = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "System",
+                    TableName = "ProjectTasks",
+                    RecordId = id.ToString(),
+                    Action = "Update Start",
+                    Timestamp = DateTime.UtcNow,
+                    NewValues = $"Updating Task: {task.Name}, Percent: {task.PercentComplete}, Status: {task.Status}"
+                };
+                _context.AuditLogs.Add(logEntry);
 
-                // Explicit property update (Surgical)
-                _logger.LogDebug("[ProjectTasks] Applying surgical updates to Task {Id}", id);
+                // Surgical Update: Copy scalar properties only to avoid EF navigation issues
                 existingTask.Name = task.Name;
                 existingTask.Description = task.Description;
-                existingTask.Status = task.Status;
-                existingTask.Priority = task.Priority;
+                existingTask.StartDate = TaskHelper.EnsureUtc(task.StartDate);
+                existingTask.FinishDate = TaskHelper.EnsureUtc(task.FinishDate);
+                existingTask.ActualStartDate = TaskHelper.EnsureUtc(task.ActualStartDate);
+                existingTask.ActualCompleteDate = TaskHelper.EnsureUtc(task.ActualCompleteDate);
                 existingTask.PercentComplete = task.PercentComplete;
-                existingTask.IsOnHold = task.IsOnHold;
-                existingTask.Type = task.Type;
-                
-                existingTask.StartDate = task.StartDate;
-                existingTask.FinishDate = task.FinishDate;
-                existingTask.Duration = task.Duration;
-                
-                existingTask.ActualStartDate = task.ActualStartDate;
-                existingTask.ActualCompleteDate = task.ActualCompleteDate;
-                existingTask.PlanedDurationHours = task.PlanedDurationHours;
-                existingTask.ActualDuration = task.ActualDuration;
-                
-                existingTask.OrderIndex = task.OrderIndex;
-                existingTask.IndentLevel = task.IndentLevel;
-                existingTask.IsGroup = task.IsGroup;
-                existingTask.Predecessors = task.Predecessors ?? new List<string>();
+                existingTask.Priority = task.Priority;
+                existingTask.Status = task.Status;
+                existingTask.OriginalDuration = task.OriginalDuration;
+                existingTask.RemainingDuration = task.RemainingDuration;
+                existingTask.ProjectId = task.ProjectId;
+                existingTask.ParentTaskId = task.ParentTaskId;
+                existingTask.Cost = task.Cost;
+                existingTask.Tags = task.Tags;
 
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("[ProjectTasks] Task {Id} successfully saved to DB", id);
-                
-                // Automatic Project Status Update
+                // Signal automated project status if progress starts
                 if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
                 {
-                    _logger.LogInformation("[ProjectTasks] Task progress detected ({Percent}%). Checking Project status...", existingTask.PercentComplete);
                     var project = await _context.Projects.FindAsync(existingTask.ProjectId);
-                    if (project != null && (project.Status == "Active" || project.Status == "Planning"))
+                    if (project != null && project.Status == ProjectStatus.Planned)
                     {
-                        _logger.LogInformation("[ProjectTasks] Advancing Project {ProjectId} status to 'In Progress'", project.Id);
-                        project.Status = "In Progress";
-                        await _context.SaveChangesAsync();
+                        project.Status = ProjectStatus.InProgress;
+                        _context.AuditLogs.Add(new AuditLog
+                        {
+                            UserId = "System",
+                            TableName = "Projects",
+                            RecordId = project.Id.ToString(),
+                            Action = "Auto Status Update",
+                            Timestamp = DateTime.UtcNow,
+                            NewValues = "Project moved to InProgress because task progress started."
+                        });
                         await _hubContext.Clients.All.SendAsync("EntityUpdate", "Project", "Update", project.Id);
                     }
                 }
 
+                await _context.SaveChangesAsync();
+
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    UserId = "System",
+                    TableName = "ProjectTasks",
+                    RecordId = id.ToString(),
+                    Action = "Update Success",
+                    Timestamp = DateTime.UtcNow
+                });
+
                 await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", id);
-                _logger.LogDebug("[ProjectTasks] SignalR broadcast sent for Task {Id}", id);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProjectTaskExists(id)) return NotFound();
-                else throw;
+                return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating task {Id}", id);
-                return StatusCode(500, "Internal server error");
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    UserId = "System",
+                    TableName = "ProjectTasks",
+                    RecordId = id.ToString(),
+                    Action = "Update Error",
+                    Timestamp = DateTime.UtcNow,
+                    NewValues = $"Error: {ex.Message} | Stack: {ex.StackTrace?.Substring(0, Math.Min(ex.StackTrace.Length, 500))}"
+                });
+                await _context.SaveChangesAsync();
+                throw; // Rethrow to let global handler catch or return 500
             }
-            return NoContent();
         }
 
         // DELETE: api/ProjectTasks/5
