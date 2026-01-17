@@ -241,6 +241,21 @@ namespace OCC.API.Data
                 .HasMany(i => i.Photos)
                 .WithOne().HasForeignKey(p => p.IncidentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectTask>(entity =>
+            {
+                entity.Property(e => e.PlanedDurationHours)
+                    .HasConversion(
+                        v => v.HasValue ? v.Value.Ticks : (long?)null,
+                        v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null)
+                    .HasColumnType("bigint");
+
+                entity.Property(e => e.ActualDuration)
+                    .HasConversion(
+                        v => v.HasValue ? v.Value.Ticks : (long?)null,
+                        v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null)
+                    .HasColumnType("bigint");
+            });
         }
     }
 
