@@ -104,7 +104,7 @@ namespace OCC.Client.Data
             modelBuilder.Entity<TaskAssignment>()
                 .HasOne(ta => ta.ProjectTask)
                 .WithMany(t => t.Assignments)
-                .HasForeignKey(ta => ta.ProjectTaskId)
+                .HasForeignKey(ta => ta.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure TimeSpan to store as Ticks (bigint) to avoid overflow for >24h durations

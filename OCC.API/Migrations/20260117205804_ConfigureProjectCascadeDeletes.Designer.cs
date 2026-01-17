@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OCC.API.Data;
 
@@ -11,9 +12,11 @@ using OCC.API.Data;
 namespace OCC.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260117205804_ConfigureProjectCascadeDeletes")]
+    partial class ConfigureProjectCascadeDeletes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1339,79 +1342,79 @@ namespace OCC.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f6369c94-bd7e-4724-a35a-43664095d5ad"),
+                            Id = new Guid("411cde2d-ee0d-4210-9f43-0bae803d6974"),
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "New Year's Day"
                         },
                         new
                         {
-                            Id = new Guid("b0b57d5c-9c6f-49d4-b12d-994f6ed16f99"),
+                            Id = new Guid("f903b2f9-d7d3-449c-a47c-f76fb8db2be1"),
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Human Rights Day"
                         },
                         new
                         {
-                            Id = new Guid("0ebed69a-6623-4456-9b44-813335cf8a5c"),
+                            Id = new Guid("73c26498-698e-41f3-a24c-c6c5269c852b"),
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Good Friday"
                         },
                         new
                         {
-                            Id = new Guid("73d4a7ed-8824-4dcf-a5ec-5fac16ff5798"),
+                            Id = new Guid("ae358506-cb47-4b0b-aeff-6e9704350c79"),
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Family Day"
                         },
                         new
                         {
-                            Id = new Guid("6e22b3d6-d071-4d81-9eb8-f463e91674e1"),
+                            Id = new Guid("08e7a258-39a5-4a26-b92d-2f78d3181a96"),
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Freedom Day"
                         },
                         new
                         {
-                            Id = new Guid("d0d2e41f-3463-42c4-b630-82eb40728392"),
+                            Id = new Guid("0639347a-0b0c-476f-885b-89c21abd5cb8"),
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Workers' Day"
                         },
                         new
                         {
-                            Id = new Guid("7c756954-d9e8-4049-b320-3877ff53b27e"),
+                            Id = new Guid("3a213c9a-93a3-431f-a010-d2f161d20399"),
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Youth Day"
                         },
                         new
                         {
-                            Id = new Guid("d417207d-8d8c-4653-939f-50ab4765a7bc"),
+                            Id = new Guid("0027d17b-a7de-4d59-a050-3d432cb0bf45"),
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "National Women's Day"
                         },
                         new
                         {
-                            Id = new Guid("372cb7dc-64ee-497a-b40e-141694313164"),
+                            Id = new Guid("b54a7ae3-15b3-4f7a-81a9-c906c2834b5d"),
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Public Holiday"
                         },
                         new
                         {
-                            Id = new Guid("8e7ebfd0-822a-4928-b6c6-bf61ac9dfad4"),
+                            Id = new Guid("07094e7a-aed3-4084-a549-409306ecca88"),
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Heritage Day"
                         },
                         new
                         {
-                            Id = new Guid("018848a2-10f2-4086-8885-4498928f367e"),
+                            Id = new Guid("1075f628-a0bd-4f77-ac88-388b86d31be1"),
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Reconciliation"
                         },
                         new
                         {
-                            Id = new Guid("98a30b5f-9c9e-4de1-9d11-f84fb9983d0e"),
+                            Id = new Guid("edc1cc73-44dc-4734-a4b4-70578cca10e6"),
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Christmas Day"
                         },
                         new
                         {
-                            Id = new Guid("26192af2-d726-4c76-91df-2f898dddff9c"),
+                            Id = new Guid("c68d9c6e-041f-4ae4-8591-592624296676"),
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Goodwill"
                         });
@@ -1495,14 +1498,14 @@ namespace OCC.API.Migrations
                     b.Property<Guid>("ProjectTaskId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TaskId")
+                    b.Property<Guid>("ProjectTaskId1")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectTaskId");
 
-                    b.HasIndex("TaskId");
+                    b.HasIndex("ProjectTaskId1");
 
                     b.ToTable("TaskAssignments");
                 });
@@ -1887,15 +1890,15 @@ namespace OCC.API.Migrations
 
             modelBuilder.Entity("OCC.Shared.Models.TaskAssignment", b =>
                 {
-                    b.HasOne("OCC.Shared.Models.ProjectTask", "ProjectTask")
-                        .WithMany()
+                    b.HasOne("OCC.Shared.Models.ProjectTask", null)
+                        .WithMany("Assignments")
                         .HasForeignKey("ProjectTaskId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OCC.Shared.Models.ProjectTask", null)
-                        .WithMany("Assignments")
-                        .HasForeignKey("TaskId")
+                    b.HasOne("OCC.Shared.Models.ProjectTask", "ProjectTask")
+                        .WithMany()
+                        .HasForeignKey("ProjectTaskId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

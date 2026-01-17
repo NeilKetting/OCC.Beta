@@ -215,6 +215,11 @@
         <DataTemplate DataType="{x:Type vm:ProjectGanttViewModel}" x:DataType="vm:ProjectGanttViewModel">
              <proj:ProjectGanttView/>
         </DataTemplate>
+
+        <!-- Dashboard View Template -->
+        <DataTemplate DataType="{x:Type vm:ProjectDashboardViewModel}" x:DataType="vm:ProjectDashboardViewModel">
+            <proj:ProjectDashboardView/>
+        </DataTemplate>
         
         <!-- Task Detail View Template -->
         <DataTemplate DataType="{x:Type vm_tasks:TaskDetailViewModel}">

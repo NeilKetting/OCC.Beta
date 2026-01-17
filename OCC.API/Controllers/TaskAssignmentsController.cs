@@ -30,7 +30,7 @@ namespace OCC.API.Controllers
             try
             {
                 var query = _context.TaskAssignments.AsQueryable();
-                if (taskId.HasValue) query = query.Where(a => a.ProjectTaskId == taskId.Value);
+                if (taskId.HasValue) query = query.Where(a => a.TaskId == taskId.Value);
                 return await query.ToListAsync();
             }
             catch (Exception ex)

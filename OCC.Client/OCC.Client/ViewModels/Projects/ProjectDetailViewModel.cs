@@ -10,6 +10,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using OCC.Client.Messages;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +24,9 @@ namespace OCC.Client.ViewModels.Projects
 
         private readonly IProjectManager _projectManager;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IDialogService _dialogService;
+        private readonly IToastService _toastService;
+        private readonly System.Threading.CancellationTokenSource _cts = new();
         private readonly System.Threading.SemaphoreSlim _loadLock = new(1, 1);
         private List<ProjectTask> _rootTasks = new();
 
@@ -48,6 +52,9 @@ namespace OCC.Client.ViewModels.Projects
 
         [ObservableProperty]
         private ProjectGanttViewModel _ganttVM;
+
+        [ObservableProperty]
+        private ProjectDashboardViewModel _dashboardVM;
 
         [ObservableProperty]
         private ViewModels.Projects.Tasks.TaskDetailViewModel? _selectedTaskDetailVM;
@@ -108,9 +115,12 @@ namespace OCC.Client.ViewModels.Projects
         {
             _projectManager = null!;
             _serviceProvider = null!;
+            _dialogService = null!;
+            _toastService = null!;
             _topBar = new Shared.ProjectTopBarViewModel();
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel();
+            _dashboardVM = new ProjectDashboardViewModel();
             _currentView = _listVM;
         }
         
@@ -118,10 +128,14 @@ namespace OCC.Client.ViewModels.Projects
         {
             _projectManager = projectManager;
             _serviceProvider = serviceProvider;
+            _dialogService = serviceProvider.GetRequiredService<IDialogService>();
+            _toastService = serviceProvider.GetRequiredService<IToastService>();
+
             var permService = serviceProvider.GetRequiredService<IPermissionService>();
             _topBar = new Shared.ProjectTopBarViewModel(permService);
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
+            _dashboardVM = new ProjectDashboardViewModel();
 
             _currentView = _listVM;
 
@@ -129,6 +143,7 @@ namespace OCC.Client.ViewModels.Projects
             _listVM.ToggleExpandRequested += (s, e) => { RefreshDisplayList(); };
 
             _topBar.PropertyChanged += TopBar_PropertyChanged;
+            _topBar.DeleteProjectRequested += OnDeleteProjectRequested;
             
             WeakReferenceMessenger.Default.Register<ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
             {
@@ -308,6 +323,7 @@ namespace OCC.Client.ViewModels.Projects
                     _rootTasks = _projectManager.BuildTaskHierarchy(tasks);
                     RefreshDisplayList();
                     GanttVM.LoadTasks(projectId);
+                    DashboardVM.UpdateProjectData(project, tasks);
                 });
             }
             finally
@@ -334,6 +350,9 @@ namespace OCC.Client.ViewModels.Projects
                     case "Gantt":
                         CurrentView = GanttVM;
                         break;
+                    case "Dashboard":
+                        CurrentView = DashboardVM;
+                        break;
                 }
             }
         }
@@ -353,6 +372,35 @@ namespace OCC.Client.ViewModels.Projects
 
             FilteredSiteManagers.Clear();
             foreach (var m in filtered) FilteredSiteManagers.Add(m);
+        }
+
+        private async void OnDeleteProjectRequested(object? sender, EventArgs e)
+        {
+            if (CurrentProjectId == Guid.Empty) return;
+
+            var confirmed = await _dialogService.ShowConfirmationAsync(
+                "Delete Project",
+                $"Are you sure you want to delete '{TopBar.ProjectName}'? This will permanently remove all tasks, comments, and assignments. This action cannot be undone.");
+
+            if (confirmed)
+            {
+                try
+                {
+                    BusyText = "Deleting project...";
+                    IsBusy = true;
+                    await _projectManager.DeleteProjectAsync(CurrentProjectId);
+                    _toastService.ShowSuccess("Project Deleted", "The project has been successfully removed.");
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Projects")); 
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowAlertAsync("Deletion Failed", $"Could not delete project: {ex.Message}");
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
+            }
         }
 
         private string GetInitials(string? name)

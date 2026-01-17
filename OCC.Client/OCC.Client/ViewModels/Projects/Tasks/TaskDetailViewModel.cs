@@ -232,7 +232,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
              var assignment = new TaskAssignment
              {
-                 ProjectTaskId = _currentTaskId,
+                 TaskId = _currentTaskId,
                  AssigneeId = staff.Id,
                  AssigneeName = $"{staff.FirstName} {staff.LastName}",
                  AssigneeType = AssigneeType.Staff
@@ -388,7 +388,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private async Task LoadAssignments()
         {
              Assignments.Clear();
-             var assignments = await _assignmentRepository.FindAsync(a => a.ProjectTaskId == _currentTaskId);
+              var assignments = await _assignmentRepository.FindAsync(a => a.TaskId == _currentTaskId);
              foreach(var assign in assignments)
              {
                  Assignments.Add(assign);

@@ -17,7 +17,7 @@ namespace OCC.Shared.Models
         public Guid Id { get; set; } = Guid.NewGuid();
         
         /// <summary> Foreign Key to the <see cref="ProjectTask"/>. </summary>
-        public Guid ProjectTaskId { get; set; }
+        public Guid TaskId { get; set; }
 
         /// <summary> Navigation property to the assigned task. </summary>
         public ProjectTask ProjectTask { get; set; } = null!;

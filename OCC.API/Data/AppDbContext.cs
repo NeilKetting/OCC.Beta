@@ -268,7 +268,42 @@ namespace OCC.API.Data
                         v => v.HasValue ? v.Value.Ticks : (long?)null,
                         v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null)
                     .HasColumnType("bigint");
+
+                entity.HasMany(e => e.Children)
+                    .WithOne()
+                    .HasForeignKey(e => e.ParentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.Comments)
+                    .WithOne()
+                    .HasForeignKey(e => e.TaskId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.Assignments)
+                    .WithOne()
+                    .HasForeignKey(e => e.TaskId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
+
+            modelBuilder.Entity<Project>(entity =>
+            {
+                entity.HasMany(e => e.Tasks)
+                    .WithOne(e => e.Project)
+                    .HasForeignKey(e => e.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Order>()
+                .HasOne<Project>()
+                .WithMany()
+                .HasForeignKey(o => o.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<TimeRecord>()
+                .HasOne<Project>()
+                .WithMany()
+                .HasForeignKey(tr => tr.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 
