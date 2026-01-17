@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OCC.API.Data;
 using OCC.API.Hubs;
 using OCC.Shared.Models;
@@ -131,7 +132,9 @@ namespace OCC.API.Controllers
                 return BadRequest();
             }
 
-            var existingTask = await _context.ProjectTasks.FindAsync(id);
+            var existingTask = await _context.ProjectTasks
+                .Include(t => t.Children)
+                .FirstOrDefaultAsync(t => t.Id == id);
             if (existingTask == null)
             {
                 return NotFound();
@@ -172,6 +175,13 @@ namespace OCC.API.Controllers
                 existingTask.OrderIndex = task.OrderIndex;
                 existingTask.IndentLevel = task.IndentLevel;
                 existingTask.IsGroup = task.IsGroup;
+                
+                // Recursive Completion: If a parent is marked Completed, mark all children as Completed.
+                // This preserves DB integrity where parents can't be done if kids are active.
+                if (existingTask.Status == "Completed" || existingTask.PercentComplete == 100)
+                {
+                    await MarkChildrenCompleted(existingTask);
+                }
 
                 // Signal automated project status if progress starts
                 if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
@@ -220,25 +230,37 @@ namespace OCC.API.Controllers
             }
             catch (Exception ex)
             {
-                // Fatal error catch - try one last time to log it to DB
+                // Detailed logging for troubleshooting
+                string errorMessage = ex.Message;
+                if (ex.InnerException != null) errorMessage += " | Inner: " + ex.InnerException.Message;
+                
+                _logger.LogError(ex, "Update failed for ProjectTask {Id}: {Message}", id, errorMessage);
+
+                // Use a fresh scope to save the error log, as the current _context might be "poisoned" 
+                // and would try to re-save the failed entity along with the log.
                 try
                 {
-                    _context.AuditLogs.Add(new AuditLog
+                    using (var scope = HttpContext.RequestServices.GetRequiredService<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>().CreateScope())
                     {
-                        UserId = "System",
-                        TableName = "ProjectTasks",
-                        RecordId = id.ToString(),
-                        Action = "Update Error",
-                        Timestamp = DateTime.UtcNow,
-                        NewValues = $"Error: {ex.Message} | Stack: {ex.StackTrace?.Substring(0, Math.Min(ex.StackTrace.Length, 500))}"
-                    });
-                    await _context.SaveChangesAsync();
+                        var freshContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        freshContext.AuditLogs.Add(new AuditLog
+                        {
+                            UserId = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "System",
+                            TableName = "ProjectTasks",
+                            RecordId = id.ToString(),
+                            Action = "Update Error",
+                            Timestamp = DateTime.UtcNow,
+                            NewValues = $"Error: {errorMessage} | Stack: {ex.StackTrace?.Substring(0, Math.Min(ex.StackTrace.Length, 1000))}"
+                        });
+                        await freshContext.SaveChangesAsync();
+                    }
                 }
-                catch 
+                catch (Exception logEx)
                 {
-                    _logger.LogError(ex, "FATAL: Could not even log the update error to the database.");
+                    _logger.LogError(logEx, "FATAL: Could not even log the update error to the database via fresh context.");
                 }
-                throw; // Rethrow to let global handler return 500
+                
+                return StatusCode(500, $"Internal server error: {errorMessage}");
             }
         }
 
@@ -264,6 +286,26 @@ namespace OCC.API.Controllers
             }
         }
         
+        private async Task MarkChildrenCompleted(ProjectTask parent)
+        {
+            if (parent.Children == null || !parent.Children.Any()) return;
+
+            foreach (var child in parent.Children)
+            {
+                child.Status = "Completed";
+                child.PercentComplete = 100;
+                child.ActualCompleteDate = TaskHelper.EnsureUtc(DateTime.UtcNow);
+                
+                // Recursively load and mark grandchildren if this is a group
+                if (child.IsGroup)
+                {
+                    // Ensure children are loaded for the recursive call
+                    await _context.Entry(child).Collection(c => c.Children).LoadAsync();
+                    await MarkChildrenCompleted(child);
+                }
+            }
+        }
+
         private bool ProjectTaskExists(Guid id) => _context.ProjectTasks.Any(e => e.Id == id);
     }
     

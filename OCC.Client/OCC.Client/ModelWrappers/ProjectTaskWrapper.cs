@@ -193,10 +193,9 @@ namespace OCC.Client.ModelWrappers
             // Instead, we update the state that triggers completion.
             if (value)
             {
-                if (ActualCompleteDate == null) ActualCompleteDate = DateTime.Now; // Set first to satisfy server validation
+                if (ActualCompleteDate == null) ActualCompleteDate = DateTime.Now; 
                 PercentComplete = 100;
-                ProgressPercent = 100;
-                Status = "Completed"; // Set last
+                Status = "Completed"; 
             }
             else
             {
@@ -205,11 +204,16 @@ namespace OCC.Client.ModelWrappers
                 
                 if (PercentComplete == 100) 
                 {
-                    PercentComplete = 50; // Revert to some active state
+                    PercentComplete = 50; 
                     ProgressPercent = 50;
                 }
                 ActualCompleteDate = null;
             }
+            
+            // Sync to model immediately so CommitToModel is redundant but safe
+            _model.ActualCompleteDate = ActualCompleteDate;
+            _model.PercentComplete = PercentComplete;
+            _model.Status = Status;
         }
 
         partial void OnStatusChanged(string value)
@@ -257,6 +261,7 @@ namespace OCC.Client.ModelWrappers
 
         partial void OnStartDateChanged(DateTime? value)
         {
+            _model.StartDate = value ?? DateTime.MinValue;
             if (value.HasValue && FinishDate.HasValue)
             {
                  PlannedHours = CalculatePlannedHours(value.Value, FinishDate.Value);
@@ -266,6 +271,7 @@ namespace OCC.Client.ModelWrappers
 
         partial void OnFinishDateChanged(DateTime? value)
         {
+            _model.FinishDate = value ?? DateTime.MinValue;
             if (StartDate.HasValue && value.HasValue)
             {
                  PlannedHours = CalculatePlannedHours(StartDate.Value, value.Value);
@@ -273,8 +279,17 @@ namespace OCC.Client.ModelWrappers
             UpdatePlannedDurationText();
         }
 
-        partial void OnActualStartDateChanged(DateTime? value) => UpdateActualDurationText();
-        partial void OnActualCompleteDateChanged(DateTime? value) => UpdateActualDurationText();
+        partial void OnActualStartDateChanged(DateTime? value) 
+        {
+            _model.ActualStartDate = value;
+            UpdateActualDurationText();
+        }
+
+        partial void OnActualCompleteDateChanged(DateTime? value) 
+        {
+            _model.ActualCompleteDate = value;
+            UpdateActualDurationText();
+        }
 
         partial void OnPlannedHoursChanged(double? value)
         {

@@ -36,7 +36,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private readonly IAuthService _authService;
         
 
-        private SemaphoreSlim _updateLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _updateLock = new SemaphoreSlim(1, 1);
+        private bool _hasPendingUpdate = false;
+        private System.Threading.CancellationTokenSource? _debounceCts;
         private Guid _currentTaskId;
 
         [ObservableProperty]
@@ -423,8 +425,16 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// </summary>
         private async void Task_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (IsBusy) return;
-            await UpdateTask();
+            // Debounce the update call to avoid spamming the server during typing or rapid clicks
+            _debounceCts?.Cancel();
+            _debounceCts = new System.Threading.CancellationTokenSource();
+            
+            try 
+            {
+                await System.Threading.Tasks.Task.Delay(300, _debounceCts.Token);
+                await UpdateTask();
+            }
+            catch (TaskCanceledException) { }
         }
 
         /// <summary>
@@ -433,16 +443,26 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// </summary>
         public async System.Threading.Tasks.Task UpdateTask()
         {
-            if (IsBusy) return;
             if (_currentTaskId == Guid.Empty) return;
+
+            // If already busy, mark that we need another update once finished
+            if (IsBusy)
+            {
+                _hasPendingUpdate = true;
+                return;
+            }
 
             await _updateLock.WaitAsync();
             try
             {
-                BusyText = "Saving task changes...";
-                IsBusy = true;
-                // Sync Wrapper back to Model
-                Task.CommitToModel();
+                do
+                {
+                    _hasPendingUpdate = false;
+                    BusyText = "Saving task changes...";
+                    IsBusy = true;
+                    
+                    // Sync Wrapper back to Model
+                    Task.CommitToModel();
 
                 // Clean Update: Create a fresh object to send only necessary scalars.
                 // This avoids any issues with navigation properties, circular refs, or EF Core tracking.
@@ -488,19 +508,18 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Sending Update for {cleanModel.Id} (Project: {cleanModel.ProjectId}) Priority: {cleanModel.Priority}");
 
-                try 
-                {
+                
                     // Save to DB
                     await _projectTaskRepository.UpdateAsync(cleanModel);
                     
                     // Notify listeners
                     CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Update failed: {ex.Message}");
-                    await _dialogService.ShowAlertAsync("Update Failed", $"Could not save changes: {ex.Message}");
-                }
+                } while (_hasPendingUpdate);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Update failed: {ex.Message}");
+                await _dialogService.ShowAlertAsync("Update Failed", $"Could not save changes: {ex.Message}");
             }
             finally
             {
