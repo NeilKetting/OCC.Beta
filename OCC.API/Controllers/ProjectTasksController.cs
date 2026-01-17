@@ -130,21 +130,50 @@ namespace OCC.API.Controllers
             
             try
             {
+                _logger.LogInformation("[ProjectTasks] Updating Task {Id} (Name: {Name})", id, task.Name);
+                
                 var existingTask = await _context.ProjectTasks.FindAsync(id);
-                if (existingTask == null) return NotFound();
+                if (existingTask == null) 
+                {
+                    _logger.LogWarning("[ProjectTasks] Task {Id} not found", id);
+                    return NotFound();
+                }
 
-                // Update scalar properties only (SetValues ignores navigation properties)
-                _context.Entry(existingTask).CurrentValues.SetValues(task);
+                // Explicit property update (Surgical)
+                _logger.LogDebug("[ProjectTasks] Applying surgical updates to Task {Id}", id);
+                existingTask.Name = task.Name;
+                existingTask.Description = task.Description;
+                existingTask.Status = task.Status;
+                existingTask.Priority = task.Priority;
+                existingTask.PercentComplete = task.PercentComplete;
+                existingTask.IsOnHold = task.IsOnHold;
+                existingTask.Type = task.Type;
+                
+                existingTask.StartDate = task.StartDate;
+                existingTask.FinishDate = task.FinishDate;
+                existingTask.Duration = task.Duration;
+                
+                existingTask.ActualStartDate = task.ActualStartDate;
+                existingTask.ActualCompleteDate = task.ActualCompleteDate;
+                existingTask.PlanedDurationHours = task.PlanedDurationHours;
+                existingTask.ActualDuration = task.ActualDuration;
+                
+                existingTask.OrderIndex = task.OrderIndex;
+                existingTask.IndentLevel = task.IndentLevel;
+                existingTask.IsGroup = task.IsGroup;
+                existingTask.Predecessors = task.Predecessors ?? new List<string>();
 
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("[ProjectTasks] Task {Id} successfully saved to DB", id);
                 
                 // Automatic Project Status Update
-                // If this task has progress, ensure the project is "In Progress"
                 if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
                 {
+                    _logger.LogInformation("[ProjectTasks] Task progress detected ({Percent}%). Checking Project status...", existingTask.PercentComplete);
                     var project = await _context.Projects.FindAsync(existingTask.ProjectId);
                     if (project != null && (project.Status == "Active" || project.Status == "Planning"))
                     {
+                        _logger.LogInformation("[ProjectTasks] Advancing Project {ProjectId} status to 'In Progress'", project.Id);
                         project.Status = "In Progress";
                         await _context.SaveChangesAsync();
                         await _hubContext.Clients.All.SendAsync("EntityUpdate", "Project", "Update", project.Id);
@@ -152,6 +181,7 @@ namespace OCC.API.Controllers
                 }
 
                 await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", id);
+                _logger.LogDebug("[ProjectTasks] SignalR broadcast sent for Task {Id}", id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -197,6 +227,12 @@ namespace OCC.API.Controllers
         {
             if (task.StartDate.Kind == DateTimeKind.Local) task.StartDate = task.StartDate.ToUniversalTime();
             if (task.FinishDate.Kind == DateTimeKind.Local) task.FinishDate = task.FinishDate.ToUniversalTime();
+            
+            if (task.ActualStartDate.HasValue && task.ActualStartDate.Value.Kind == DateTimeKind.Local) 
+                task.ActualStartDate = task.ActualStartDate.Value.ToUniversalTime();
+                
+            if (task.ActualCompleteDate.HasValue && task.ActualCompleteDate.Value.Kind == DateTimeKind.Local) 
+                task.ActualCompleteDate = task.ActualCompleteDate.Value.ToUniversalTime();
         }
     }
 }
