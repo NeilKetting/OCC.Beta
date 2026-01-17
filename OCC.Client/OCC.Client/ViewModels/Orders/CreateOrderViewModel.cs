@@ -32,6 +32,7 @@ namespace OCC.Client.ViewModels.Orders
 
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
+        private readonly IAuthService _authService;
         private readonly OrderStateService _orderStateService;
         private readonly Guid _instanceId = Guid.NewGuid();
         private readonly ILogger<CreateOrderViewModel> _logger;
@@ -193,6 +194,7 @@ namespace OCC.Client.ViewModels.Orders
         public CreateOrderViewModel(
             IOrderManager orderManager,
             IDialogService dialogService,
+            IAuthService authService,
             ILogger<CreateOrderViewModel> logger,
             IPdfService pdfService,
             OrderStateService orderStateService,
@@ -200,6 +202,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
+            _authService = authService;
             _logger = logger;
             _pdfService = pdfService;
             _orderStateService = orderStateService;
@@ -216,6 +219,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             _orderManager = null!;
             _dialogService = null!;
+            _authService = null!;
             _logger = null!;
             _pdfService = null!;
             _orderStateService = null!;
@@ -611,6 +615,8 @@ namespace OCC.Client.ViewModels.Orders
                 EntityVatNo = CurrentOrder.EntityVatNo,
                 Attention = CurrentOrder.Attention,
                 DestinationType = CurrentOrder.DestinationType,
+                DeliveryInstructions = CurrentOrder.DeliveryInstructions, // Added
+                Branch = CurrentOrder.Branch, // Added
                 TaxRate = CurrentOrder.TaxRate,
                 Lines = new ObservableCollection<OrderLine>()
             };
@@ -623,6 +629,7 @@ namespace OCC.Client.ViewModels.Orders
 
             foreach(var lineWrapper in validLines)
             {
+                lineWrapper.CommitToModel();
                 cleanOrder.Lines.Add(lineWrapper.Model);
             }
 
@@ -632,7 +639,7 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Finalizes the order entry and persists it to the database.
         /// </summary>
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanSubmitOrder))]
         public async Task SubmitOrder()
         {
             if (IsBusy) return;
@@ -803,6 +810,41 @@ namespace OCC.Client.ViewModels.Orders
         #region Methods
 
         /// <summary>
+        /// Initializes the view model by triggering validation.
+        /// </summary>
+        private void Initialize()
+        {
+            // Subscribe to validation changes
+            ErrorsChanged -= OnErrorsChanged;
+            ErrorsChanged += OnErrorsChanged;
+            
+            CurrentOrder.ErrorsChanged -= OnCurrentOrderErrorsChanged;
+            CurrentOrder.ErrorsChanged += OnCurrentOrderErrorsChanged;
+            
+            // Force validation on all properties logic
+            ValidateAllProperties();
+            CurrentOrder.Validate();
+            
+            // Explicitly force Supplier validation if PO (sometimes Context validation is tricky on nulls if not Required)
+            if (IsPurchaseOrder) ValidateProperty(SelectedSupplier, nameof(SelectedSupplier));
+            
+            // Notify command
+            SubmitOrderCommand.NotifyCanExecuteChanged();
+        }
+
+        private void OnErrorsChanged(object? sender, System.ComponentModel.DataErrorsChangedEventArgs e)
+        {
+            SubmitOrderCommand.NotifyCanExecuteChanged();
+        }
+
+        private void OnCurrentOrderErrorsChanged(object? sender, System.ComponentModel.DataErrorsChangedEventArgs e)
+        {
+            SubmitOrderCommand.NotifyCanExecuteChanged();
+        }
+
+        public bool CanSubmitOrder => !HasErrors && !CurrentOrder.HasErrors;
+
+        /// <summary>
         /// Asynchronously loads necessary lookup data from the Order Manager.
         /// </summary>
         public async Task LoadData()
@@ -863,6 +905,14 @@ namespace OCC.Client.ViewModels.Orders
         public void Reset()
         {
             CurrentOrder = new OrderWrapper(_orderManager.CreateNewOrderTemplate());
+            CurrentOrder.ExpectedDeliveryDate = DateTime.Today;
+
+            // Default Branch to User's Branch if available (e.g. CPT)
+            if (_authService?.CurrentUser?.Branch != null)
+            {
+                CurrentOrder.Branch = _authService.CurrentUser.Branch.Value;
+            }
+
             IsOfficeDelivery = true;
             CurrentOrder.Attention = string.Empty;
             UpdateOrderTypeFlags();
@@ -872,6 +922,8 @@ namespace OCC.Client.ViewModels.Orders
             CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
             
             SetupLineListeners();
+            OrderMenu.ActiveTab = "New Order";
+            Initialize();
         }
 
         /// <summary>
@@ -918,6 +970,9 @@ namespace OCC.Client.ViewModels.Orders
                     CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
                     SetupLineListeners(); // Hook up all lines including the new one
                 }
+
+                OrderMenu.ActiveTab = "New Order";
+                Initialize();
 
                 OnPropertyChanged(nameof(CurrentOrder));
             }
@@ -1125,6 +1180,10 @@ namespace OCC.Client.ViewModels.Orders
                 CurrentOrder.EntityVatNo = value.VatNumber;
                 CurrentOrder.Attention = value.ContactPerson; 
                 OnPropertyChanged(nameof(CurrentOrder));
+                
+                // Force validation update
+                ValidateProperty(SelectedSupplier, nameof(SelectedSupplier));
+                SubmitOrderCommand.NotifyCanExecuteChanged();
             }
         }
         partial void OnSelectedCustomerChanged(Customer? value)

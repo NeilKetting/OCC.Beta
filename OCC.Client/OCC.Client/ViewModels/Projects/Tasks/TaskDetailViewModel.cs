@@ -478,7 +478,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                     IsGroup = Task.Model.IsGroup,
                     Predecessors = Task.Model.Predecessors ?? new List<string>(),
 
-                    // Empty Lists instead of null, to satisfy API if it expects collection
+                    // Empty Lists instead of null, to satisfy API/Model Binder
                     Children = new List<ProjectTask>(),
                     Assignments = new List<TaskAssignment>(),
                     Comments = new List<TaskComment>(),

@@ -33,6 +33,7 @@ namespace OCC.API.Controllers
                 var query = _context.ProjectTasks
                     .Include(t => t.Assignments)
                     .Include(t => t.Comments)
+                    .Include(t => t.Children)
                     .AsNoTracking()
                     .AsQueryable();
 
@@ -83,6 +84,7 @@ namespace OCC.API.Controllers
                 var task = await _context.ProjectTasks
                     .Include(t => t.Assignments)
                     .Include(t => t.Comments)
+                    .Include(t => t.Children)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -130,6 +132,19 @@ namespace OCC.API.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                
+                // Automatic Project Status Update
+                if (task.PercentComplete > 0 && task.PercentComplete < 100)
+                {
+                    var project = await _context.Projects.FindAsync(task.ProjectId);
+                    if (project != null && (project.Status == "Active" || project.Status == "Planning"))
+                    {
+                        project.Status = "In Progress";
+                        await _context.SaveChangesAsync();
+                        await _hubContext.Clients.All.SendAsync("EntityUpdate", "Project", "Update", project.Id);
+                    }
+                }
+
                 await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", id);
             }
             catch (DbUpdateConcurrencyException)

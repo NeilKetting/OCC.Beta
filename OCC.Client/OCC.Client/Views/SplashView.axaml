@@ -15,7 +15,7 @@
 		Topmost="True"
 		>
 
-	<Border Background="White" CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000">
+	<Border CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000" Background="{DynamicResource LoginBackgroundDark}">
 		<Grid RowDefinitions="*, Auto, Auto">
 
 			<!-- Logo area -->
@@ -27,7 +27,7 @@
 
 			<!-- Status -->
 			<StackPanel Grid.Row="1" Spacing="10" Margin="0,30,0,0">
-				<TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
+				<TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="#929292"/>
 				<ProgressBar IsIndeterminate="{Binding IsChecking}" Value="{Binding Progress}" Maximum="100" Height="4" Width="200" Foreground="{DynamicResource AccentOrange}"/>
 			</StackPanel>
 

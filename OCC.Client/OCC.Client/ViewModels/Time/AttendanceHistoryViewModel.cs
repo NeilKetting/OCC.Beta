@@ -18,7 +18,7 @@ namespace OCC.Client.ViewModels.Time
         #region Filter Properties
 
         [ObservableProperty]
-        private string _selectedRange = "This Week";
+        private string _selectedRange = "Today";
 
         public ObservableCollection<string> RangeOptions { get; } = new ObservableCollection<string>
         {
@@ -133,8 +133,8 @@ namespace OCC.Client.ViewModels.Time
              };
             _timer.Start();
 
-            // Set default range logic (This Week)
-            SetRange("This Week");
+            // Set default range logic
+            SetRange("Today");
             
             // Initial Load
             InitializeCommand.Execute(null);

@@ -151,10 +151,11 @@
 						<TextBlock Text="Developer" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
 					</StackPanel>
 				</Button>
+
 				<!-- Notifications Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
 					<StackPanel Orientation="Horizontal" Spacing="15">
-						<PathIcon Data="{StaticResource IconNotifications}" Classes="IconStyle" Foreground="{Binding NotificationIconColor}"/>
+						<PathIcon Data="{StaticResource IconNotifications}" Classes="IconStyle"/>
 						<TextBlock Text="Notifications" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
 						<!-- Red Notification Badge -->
 						<Border Background="Red" CornerRadius="10" MinWidth="20" Height="20"
@@ -166,26 +167,19 @@
 						</Border>
 					</StackPanel>
 				</Button>
+
 				<!-- 'New' Quick Actions Button with Popup -->
 				<Grid>
 					<Button x:Name="ActionsButton" Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding ToggleQuickActionsCommand}">
 						<StackPanel Classes="SidebarItem" Orientation="Horizontal">
 							<PathIcon Data="{StaticResource IconNew}" Classes="IconStyle"/>
-							<TextBlock Text="New" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+							<TextBlock Text="New" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
 					<Popup IsOpen="{Binding IsQuickActionsOpen, Mode=TwoWay}" PlacementTarget="{Binding ElementName=ActionsButton}" Placement="RightEdgeAlignedBottom" HorizontalOffset="10" IsLightDismissEnabled="True">
 						<menus:QuickActionsMenuView/>
 					</Popup>
 				</Grid>
-
-				<!-- Help Button -->
-				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
-					<StackPanel Classes="SidebarItem" Orientation="Horizontal">
-						<PathIcon Data="{StaticResource IconHelp}" Classes="IconStyle"/>
-						<TextBlock Text="Help" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
-					</StackPanel>
-				</Button>
 
 				<!-- Settings Navigation Button -->
 				<Grid>
@@ -199,6 +193,14 @@
 						<menus:SettingsMenuView/>
 					</Popup>
 				</Grid>
+
+				<!-- Help Button -->
+				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
+					<StackPanel Classes="SidebarItem" Orientation="Horizontal">
+						<PathIcon Data="{StaticResource IconHelp}" Classes="IconStyle"/>
+						<TextBlock Text="Help" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+					</StackPanel>
+				</Button>
 
 				<!-- User Profile Button with Settings Popup -->
 				<!-- User Profile Button with Preferences Popup -->

@@ -7,14 +7,18 @@ using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using OCC.Client.ViewModels.Projects.Dashboard;
+using OCC.Client.ViewModels.Messages;
 
 namespace OCC.Client.ViewModels.Projects
 {
-    public partial class ProjectListViewModel : ViewModelBase
+    public partial class ProjectListViewModel : ViewModelBase, 
+        IRecipient<TaskUpdatedMessage>, 
+        IRecipient<EntityUpdatedMessage>
     {
         private readonly IProjectManager _projectManager;
         private readonly IDialogService _dialogService;
@@ -34,6 +38,9 @@ namespace OCC.Client.ViewModels.Projects
         {
             _projectManager = projectManager;
             _dialogService = dialogService;
+
+            // Register for messages
+            WeakReferenceMessenger.Default.RegisterAll(this);
         }
 
         public ProjectListViewModel()
@@ -67,18 +74,36 @@ namespace OCC.Client.ViewModels.Projects
                 System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Projects...");
                 var projects = await _projectManager.GetProjectsAsync();
                 
-                // Transform to dashboard items
-                // This is a mockup transformation since we might not have all this data in the plain Project model yet
-                var dashboardItems = projects.Select(p => new ProjectDashboardItemViewModel
+                var dashboardItems = new System.Collections.Generic.List<ProjectDashboardItemViewModel>();
+
+                foreach (var p in projects)
                 {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Progress = 0, // Mockup
-                    ProjectManagerInitials = "OR", // Mockup
-                    Members = new() { "OR" }, // Mockup
-                    Status = "Planning", // Mockup
-                    LatestFinish = p.EndDate
-                });
+                    // Calculate Progress and Latest Finish
+                    var taskList = (await _projectManager.GetTasksForProjectAsync(p.Id))?.ToList() ?? new List<ProjectTask>();
+                    int progress = 0;
+                    DateTime? latestFinish = p.EndDate;
+                    
+                    if (taskList.Any())
+                    {
+                        progress = (int)Math.Round(taskList.Average(t => t.PercentComplete));
+                        
+                        var taskLatest = taskList.Max(t => t.FinishDate);
+                        if (taskLatest > DateTime.MinValue)
+                        {
+                            latestFinish = taskLatest;
+                        }
+                    }
+
+                    dashboardItems.Add(new ProjectDashboardItemViewModel
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Progress = progress,
+                        ProjectManagerInitials = !string.IsNullOrEmpty(p.ProjectManager) ? p.ProjectManager.Substring(0, Math.Min(2, p.ProjectManager.Length)).ToUpper() : "OR",
+                        Status = p.Status,
+                        LatestFinish = latestFinish
+                    });
+                }
 
                 Projects = new ObservableCollection<ProjectDashboardItemViewModel>(dashboardItems);
                 System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Load Projects Complete. Count: {Projects.Count}");
@@ -102,6 +127,21 @@ namespace OCC.Client.ViewModels.Projects
         private void NewProject()
         {
             // Logic to create new project (maybe navigate to wizard)
+        }
+
+        public void Receive(TaskUpdatedMessage message)
+        {
+            // Reload to update progress
+            // In a more optimized version, we would find the specific project and only re-calculate it.
+            _ = LoadProjects();
+        }
+
+        public void Receive(EntityUpdatedMessage message)
+        {
+            if (message.Value.EntityType == "ProjectTask" || message.Value.EntityType == "Task")
+            {
+                _ = LoadProjects();
+            }
         }
     }
 }

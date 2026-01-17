@@ -85,6 +85,9 @@ namespace OCC.Client.ModelWrappers
         private Branch _branch;
 
         [ObservableProperty]
+        private string _deliveryInstructions = string.Empty;
+
+        [ObservableProperty]
         private string _notes = string.Empty;
 
         // Totals
@@ -119,6 +122,7 @@ namespace OCC.Client.ModelWrappers
             EntityVatNo = _model.EntityVatNo;
             ProjectName = _model.ProjectName ?? string.Empty;
             Branch = _model.Branch;
+            DeliveryInstructions = _model.DeliveryInstructions ?? string.Empty;
             Attention = _model.Attention ?? string.Empty;
             Notes = _model.Notes ?? string.Empty;
 
@@ -151,6 +155,7 @@ namespace OCC.Client.ModelWrappers
             _model.EntityVatNo = EntityVatNo;
             _model.ProjectName = ProjectName;
             _model.Branch = Branch;
+            _model.DeliveryInstructions = DeliveryInstructions;
             _model.Attention = Attention;
             _model.Notes = Notes;
 
@@ -208,6 +213,8 @@ namespace OCC.Client.ModelWrappers
                 CalculateTotals();
             }
         }
+
+        public void Validate() => ValidateAllProperties();
 
         private void CalculateTotals()
         {

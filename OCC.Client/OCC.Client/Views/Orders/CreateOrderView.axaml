@@ -133,9 +133,7 @@
 		<vm:CreateOrderViewModel/>
 	</Design.DataContext>
 
-	<UserControl.KeyBindings>
-		<KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
-	</UserControl.KeyBindings>
+
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.FormInput">
@@ -298,7 +296,7 @@
 								<!-- Delivery Instructions Field -->
 								<StackPanel Spacing="5">
 									<TextBlock Text="Delivery Instructions:" Classes="Label"/>
-									<TextBox Text="{Binding CurrentOrder.Notes}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
+									<TextBox Text="{Binding CurrentOrder.DeliveryInstructions}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
 								</StackPanel>
 
 							</StackPanel>
