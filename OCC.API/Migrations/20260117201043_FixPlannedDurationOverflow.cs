@@ -78,23 +78,24 @@ namespace OCC.API.Migrations
                 keyColumn: "Id",
                 keyValue: new Guid("f5f9d6ef-ed7a-4a0b-84a5-cd4f3f08cffe"));
 
-            migrationBuilder.AlterColumn<long>(
-                name: "PlanedDurationHours",
-                table: "ProjectTasks",
-                type: "bigint",
-                nullable: true,
-                oldClrType: typeof(TimeSpan),
-                oldType: "time",
-                oldNullable: true);
+            // Manual Data Conversion: SQL Server cannot directly cast 'time' to 'bigint' (ticks).
+            // We use DATEDIFF_BIG to get nanoseconds and convert to ticks (1 tick = 100ns).
+            
+            // 1. Rename columns to temporary names
+            migrationBuilder.RenameColumn(name: "PlanedDurationHours", table: "ProjectTasks", newName: "OldPlanedDurationHours");
+            migrationBuilder.RenameColumn(name: "ActualDuration", table: "ProjectTasks", newName: "OldActualDuration");
 
-            migrationBuilder.AlterColumn<long>(
-                name: "ActualDuration",
-                table: "ProjectTasks",
-                type: "bigint",
-                nullable: true,
-                oldClrType: typeof(TimeSpan),
-                oldType: "time",
-                oldNullable: true);
+            // 2. Create new bigint columns
+            migrationBuilder.AddColumn<long>(name: "PlanedDurationHours", table: "ProjectTasks", type: "bigint", nullable: true);
+            migrationBuilder.AddColumn<long>(name: "ActualDuration", table: "ProjectTasks", type: "bigint", nullable: true);
+
+            // 3. Convert data (Ticks = Nanoseconds / 100)
+            migrationBuilder.Sql("UPDATE ProjectTasks SET PlanedDurationHours = DATEDIFF_BIG(nanosecond, '00:00:00', OldPlanedDurationHours) / 100 WHERE OldPlanedDurationHours IS NOT NULL");
+            migrationBuilder.Sql("UPDATE ProjectTasks SET ActualDuration = DATEDIFF_BIG(nanosecond, '00:00:00', OldActualDuration) / 100 WHERE OldActualDuration IS NOT NULL");
+
+            // 4. Drop the old columns
+            migrationBuilder.DropColumn(name: "OldPlanedDurationHours", table: "ProjectTasks");
+            migrationBuilder.DropColumn(name: "OldActualDuration", table: "ProjectTasks");
 
             migrationBuilder.InsertData(
                 table: "PublicHolidays",
@@ -115,6 +116,56 @@ namespace OCC.API.Migrations
                     { new Guid("eb1e6c7b-0e13-4155-a685-2df08f559a15"), new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), "Human Rights Day" },
                     { new Guid("ebd0fb7f-662d-4662-acf6-b757608c5acc"), new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified), "Christmas Day" }
                 });
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "ActualScore",
+                table: "HseqAudits",
+                type: "decimal(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)");
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "TargetScore",
+                table: "HseqAudits",
+                type: "decimal(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)");
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "ActualScore",
+                table: "HseqAuditSections",
+                type: "decimal(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)");
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "PossibleScore",
+                table: "HseqAuditSections",
+                type: "decimal(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)");
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "Price",
+                table: "InventoryItems",
+                type: "decimal(18,2)",
+                precision: 18,
+                scale: 2,
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)");
         }
 
         /// <inheritdoc />
@@ -222,6 +273,56 @@ namespace OCC.API.Migrations
                     { new Guid("d75c6961-c88b-4943-b804-0c886dd57a78"), new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified), "Human Rights Day" },
                     { new Guid("f5f9d6ef-ed7a-4a0b-84a5-cd4f3f08cffe"), new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified), "Freedom Day" }
                 });
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "ActualScore",
+                table: "HseqAudits",
+                type: "decimal(18,2)",
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)",
+                oldPrecision: 18,
+                oldScale: 2);
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "TargetScore",
+                table: "HseqAudits",
+                type: "decimal(18,2)",
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)",
+                oldPrecision: 18,
+                oldScale: 2);
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "ActualScore",
+                table: "HseqAuditSections",
+                type: "decimal(18,2)",
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)",
+                oldPrecision: 18,
+                oldScale: 2);
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "PossibleScore",
+                table: "HseqAuditSections",
+                type: "decimal(18,2)",
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)",
+                oldPrecision: 18,
+                oldScale: 2);
+
+            migrationBuilder.AlterColumn<decimal>(
+                name: "Price",
+                table: "InventoryItems",
+                type: "decimal(18,2)",
+                nullable: false,
+                oldClrType: typeof(decimal),
+                oldType: "decimal(18,2)",
+                oldPrecision: 18,
+                oldScale: 2);
         }
     }
 }

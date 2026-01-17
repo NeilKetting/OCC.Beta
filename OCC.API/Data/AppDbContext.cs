@@ -208,6 +208,7 @@ namespace OCC.API.Data
             modelBuilder.Entity<InventoryItem>(entity =>
             {
                 entity.Property(e => e.AverageCost).HasPrecision(18, 2);
+                entity.Property(e => e.Price).HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<AttendanceRecord>(entity =>
@@ -236,6 +237,18 @@ namespace OCC.API.Data
                 .HasMany(a => a.NonComplianceItems)
                 .WithOne().HasForeignKey(i => i.AuditId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HseqAudit>(entity =>
+            {
+                entity.Property(e => e.ActualScore).HasPrecision(18, 2);
+                entity.Property(e => e.TargetScore).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<HseqAuditSection>(entity =>
+            {
+                entity.Property(e => e.ActualScore).HasPrecision(18, 2);
+                entity.Property(e => e.PossibleScore).HasPrecision(18, 2);
+            });
 
             modelBuilder.Entity<Incident>()
                 .HasMany(i => i.Photos)
