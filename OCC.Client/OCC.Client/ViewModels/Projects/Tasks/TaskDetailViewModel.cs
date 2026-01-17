@@ -478,10 +478,11 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                     IsGroup = Task.Model.IsGroup,
                     Predecessors = Task.Model.Predecessors ?? new List<string>(),
 
-                    // Empty Lists instead of null, to satisfy API/Model Binder
-                    Children = new List<ProjectTask>(),
-                    Assignments = new List<TaskAssignment>(),
-                    Comments = new List<TaskComment>(),
+                    // Set to NULL to act as "Do Not Update" for navigation properties
+                    // Now safe as the Shared Model allows nulls for these collections.
+                    Children = null,
+                    Assignments = null,
+                    Comments = null,
                     Project = null
                 };
 

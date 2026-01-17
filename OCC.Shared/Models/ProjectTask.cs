@@ -63,10 +63,10 @@ namespace OCC.Shared.Models
         public TaskType Type { get; set; } = TaskType.Task;
 
         /// <summary> User comments and discussion thread attached to this task. </summary>
-        public List<TaskComment> Comments { get; set; } = new();
+        public List<TaskComment>? Comments { get; set; } = new();
 
         /// <summary> Resources (employees/teams) assigned to this task. </summary>
-        public ICollection<TaskAssignment> Assignments { get; set; } = new List<TaskAssignment>();
+        public ICollection<TaskAssignment>? Assignments { get; set; } = new List<TaskAssignment>();
         
         /// <summary> If true, work is temporarily suspended. </summary>
         public bool IsOnHold { get; set; }
@@ -81,7 +81,7 @@ namespace OCC.Shared.Models
         public Guid? ParentId { get; set; }
 
         /// <summary> Collection of sub-tasks. </summary>
-        public List<ProjectTask> Children { get; set; } = new();
+        public List<ProjectTask>? Children { get; set; } = new();
 
         /// <summary> List of dependency task IDs (Predecessors). </summary>
         public List<string> Predecessors { get; set; } = new();

@@ -127,16 +127,22 @@ namespace OCC.API.Controllers
         {
             if (id != task.Id) return BadRequest();
             TaskHelper.EnsureUtcDates(task);
-            _context.Entry(task).State = EntityState.Modified;
-
+            
             try
             {
+                var existingTask = await _context.ProjectTasks.FindAsync(id);
+                if (existingTask == null) return NotFound();
+
+                // Update scalar properties only (SetValues ignores navigation properties)
+                _context.Entry(existingTask).CurrentValues.SetValues(task);
+
                 await _context.SaveChangesAsync();
                 
                 // Automatic Project Status Update
-                if (task.PercentComplete > 0 && task.PercentComplete < 100)
+                // If this task has progress, ensure the project is "In Progress"
+                if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
                 {
-                    var project = await _context.Projects.FindAsync(task.ProjectId);
+                    var project = await _context.Projects.FindAsync(existingTask.ProjectId);
                     if (project != null && (project.Status == "Active" || project.Status == "Planning"))
                     {
                         project.Status = "In Progress";
