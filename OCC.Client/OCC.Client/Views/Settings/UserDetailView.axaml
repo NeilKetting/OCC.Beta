@@ -23,11 +23,10 @@
 
     <Border Background="{DynamicResource SurfaceWhite}"
             CornerRadius="0"
-            MinHeight="500"
-            MinWidth="800"
             BoxShadow="0 2 15 5 #292828"
-            VerticalAlignment="Center"
-            HorizontalAlignment="Center">
+            VerticalAlignment="Stretch"
+            HorizontalAlignment="Stretch"
+            MaxWidth="900">
         <Grid RowDefinitions="Auto, *, Auto, Auto">
 
             <!-- Header -->
@@ -51,8 +50,8 @@
             </Border>
 
             <!-- Scrollable Content -->
-            <ScrollViewer Grid.Row="1" Padding="25,10,25,25">
-                <StackPanel Spacing="20">
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="20" Margin="25,10,25,50">
                     <Grid ColumnDefinitions="*, 30, *, 30, *">
                         
                         <!-- Left Column: Personal Info -->

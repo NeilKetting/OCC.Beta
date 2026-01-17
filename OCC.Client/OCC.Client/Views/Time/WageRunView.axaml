@@ -11,38 +11,40 @@
 
 		<!-- Header / Controls -->
 		<Border Grid.Row="0" Background="{DynamicResource SurfaceBackground}" CornerRadius="8" Padding="15" Margin="0,0,0,15" BoxShadow="0 2 4 0 #15000000">
-			<StackPanel Spacing="15">
-				<TextBlock Text="New Wage Run" Classes="h2" FontWeight="Bold"/>
+			<Grid ColumnDefinitions="Auto, Auto, *, Auto" RowDefinitions="Auto, 15, Auto, 15, Auto">
+				<!-- Title -->
+				<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="New Wage Run" Classes="h2" FontWeight="Bold"/>
 
-				<StackPanel Orientation="Horizontal" Spacing="20">
-					<StackPanel Spacing="5">
-						<TextBlock Text="Start Date (Monday)" Classes="label"/>
-						<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
-					</StackPanel>
-
-					<StackPanel Spacing="5">
-						<TextBlock Text="End Date (Fortnight)" Classes="label"/>
-						<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150" IsEnabled="False" Opacity="0.7"/>
-					</StackPanel>
-
-					<StackPanel VerticalAlignment="Center" Margin="10,0,0,0">
-						<TextBlock Text="Note: Run covers 2 weeks (Week 1 = Actuals, Week 2 = Adv. Thu/Fri)." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
-						<TextBlock Text="Differences adjusted in next run." FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic"/>
-					</StackPanel>
-
-					<StackPanel Spacing="5" VerticalAlignment="Bottom">
-						<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="accent">
-							<StackPanel Orientation="Horizontal" Spacing="8">
-								<PathIcon Data="{StaticResource IconWagesDollar}" Foreground="White"/>
-								<TextBlock Text="Generate Draft Run"/>
-							</StackPanel>
-						</Button>
-					</StackPanel>
-
+				<!-- Date Pickers -->
+				<StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,20,0">
+					<TextBlock Text="Start Date (Monday)" Classes="label"/>
+					<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
 				</StackPanel>
 
-				<TextBox Watermark="Run Notes (Optional)" Text="{Binding Notes}" MaxWidth="400" HorizontalAlignment="Left"/>
-			</StackPanel>
+				<StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="0,0,20,0">
+					<TextBlock Text="End Date (Fortnight)" Classes="label"/>
+					<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150" IsEnabled="False" Opacity="0.7"/>
+				</StackPanel>
+
+				<!-- Info Note (Stretches) -->
+				<StackPanel Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,20,0">
+					<TextBlock Text="Note: Run covers 2 weeks (Week 1 = Actuals, Week 2 = Adv. Thu/Fri)." 
+							   FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic" TextWrapping="Wrap"/>
+					<TextBlock Text="Differences adjusted in next run." 
+							   FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic" TextWrapping="Wrap"/>
+				</StackPanel>
+
+				<!-- Action Button -->
+				<Button Grid.Row="2" Grid.Column="3" Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="accent" VerticalAlignment="Bottom">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<PathIcon Data="{StaticResource IconWagesDollar}" Foreground="White"/>
+						<TextBlock Text="Generate Draft"/>
+					</StackPanel>
+				</Button>
+
+				<!-- Run Notes -->
+				<TextBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Watermark="Run Notes (Optional)" Text="{Binding Notes}" MaxWidth="400" HorizontalAlignment="Left"/>
+			</Grid>
 		</Border>
 
 		<!-- Data Grid -->
@@ -51,7 +53,7 @@
 				  BorderThickness="1" BorderBrush="{DynamicResource BorderBrush}"
 				  Background="{DynamicResource SurfaceBackground}">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
+				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" MinWidth="250" Width="*"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
 
 				<DataGridTextColumn Header="Actual Hrs" Binding="{Binding NormalHours, StringFormat={}{0:F1}}" Width="Auto"/>

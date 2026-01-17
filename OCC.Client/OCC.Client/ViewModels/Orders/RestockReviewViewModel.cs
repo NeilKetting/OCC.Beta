@@ -161,7 +161,7 @@ namespace OCC.Client.ViewModels.Orders
                     {
                         InventoryItemId = item.Id,
                         ItemCode = item.Sku,
-                        Description = item.ProductName,
+                        Description = item.Description,
                         Category = item.Category,
                         UnitOfMeasure = item.UnitOfMeasure,
                         UnitPrice = item.AverageCost,

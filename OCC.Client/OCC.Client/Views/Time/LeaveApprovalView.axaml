@@ -10,10 +10,10 @@
     
     <Grid RowDefinitions="Auto, *">
         <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,20">
+        <Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
              <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Text="Leave Approvals" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
-                <Button Grid.Column="1" Command="{Binding LoadDataCommand}" Classes="SecondaryButton" Content="Refresh"/>
+                <TextBlock Text="Leave Approvals" Classes="H1" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Command="{Binding LoadDataCommand}" Classes="Secondary" Content="Refresh"/>
              </Grid>
         </Border>
 
@@ -24,7 +24,7 @@
                   GridLinesVisibility="Horizontal"
                   BorderThickness="1" BorderBrush="{DynamicResource BorderGray}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="*"/>
+                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="*" MinWidth="250"/>
                 <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat='d'}" Width="120"/>
                 <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat='d'}" Width="120"/>
                 <DataGridTextColumn Header="Days" Binding="{Binding NumberOfDays}" Width="80"/>

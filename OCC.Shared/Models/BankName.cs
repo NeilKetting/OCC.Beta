@@ -2,6 +2,10 @@ using System.ComponentModel;
 
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Enumeration of accepted South African banking institutions.
+    /// Used for referencing payment destinations for Suppliers and Employees.
+    /// </summary>
     public enum BankName
     {
         [Description("Select Bank")]

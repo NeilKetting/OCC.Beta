@@ -40,8 +40,8 @@
 				</StackPanel>
 
 				<!-- List -->
-				<ScrollViewer IsVisible="{Binding HasNotifications}">
-                    <ItemsControl ItemsSource="{Binding Notifications}" Margin="10">
+				<ScrollViewer IsVisible="{Binding HasNotifications}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Notifications}" Margin="10,10,10,50">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Padding="12" Margin="0,0,0,8" Background="{DynamicResource PageBackgroundBrush}" CornerRadius="8">

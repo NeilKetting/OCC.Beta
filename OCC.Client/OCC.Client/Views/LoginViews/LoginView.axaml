@@ -42,23 +42,7 @@
                 <Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png" 
 					   Width="300" 
 					   Stretch="Uniform"
-					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
-
-				<!--<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Top" Margin="20">
-					<Border Classes="LogoContainer">
-						<Grid>
-							<Ellipse Width="150" Height="150" Stroke="{DynamicResource AccentOrange}" StrokeThickness="8" Margin="0,0,0,0"/>
-
-							<TextBlock Text="OCC"
-									   FontSize="48"
-									   FontWeight="Bold" Foreground="{DynamicResource AccentOrange}"
-									   HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   />
-						</Grid>
-					</Border>
-					<TextBlock Classes="BrandName" Margin="15,0,0,0"><Span FontSize="26" Foreground="{DynamicResource AccentOrange}">O</Span>range <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>ircle <Span FontSize="26" Foreground="{DynamicResource AccentOrange}">C</Span>onstruction</TextBlock>
-				</StackPanel>-->
+					   RenderOptions.BitmapInterpolationMode="HighQuality"/>				
 			</Grid>
 		</Panel>
 
@@ -70,7 +54,7 @@
 				<Grid>
 					<StackPanel Spacing="40">
 						<!-- Login Card -->
-						<Border Classes="Card" Width="480" VerticalAlignment="Center" Margin="15"
+						<Border Classes="Card" Width="400" VerticalAlignment="Center" Margin="15"
 			  BorderBrush="{DynamicResource BorderGray}" BorderThickness="5"
 								BoxShadow="0 0 20 8 #000000">
 							<StackPanel Spacing="25">

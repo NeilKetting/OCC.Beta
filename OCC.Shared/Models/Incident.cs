@@ -4,29 +4,61 @@ using OCC.Shared.Enums;
 
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Represents an unplanned event or near-miss on a project site that requires investigation.
+    /// This includes injuries, property damage, or environmental incidents.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Persisted in the <c>Incidents</c> table.
+    /// <b>How:</b> Incidents are reported via the mobile or desktop apps, tracked by <see cref="Severity"/>, 
+    /// and should eventually have a <see cref="RootCause"/> and <see cref="CorrectiveAction"/> assigned.
+    /// </remarks>
     public class Incident : IEntity
     {
+        /// <summary> Unique primary key for the incident report. </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary> The date and time the incident occurred. </summary>
         public DateTime Date { get; set; } = DateTime.UtcNow;
+
+        /// <summary> The category of incident (e.g., Medical, Near Miss, Damaged Equipment). </summary>
         public IncidentType Type { get; set; }
+
+        /// <summary> The classification of impact (e.g., Minor, Medium, Major, Fatal). </summary>
         public IncidentSeverity Severity { get; set; }
+
+        /// <summary> Detailed location description where it occurred (e.g., "Site A, Sector 4"). </summary>
         public string Location { get; set; } = string.Empty;
+
+        /// <summary> A narrative description of what happened. </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary> Identification of the user who initially registered the report. </summary>
         public string ReportedByUserId { get; set; } = string.Empty;
+
+        /// <summary> Current administrative status (Open, Investigating, Closed). </summary>
         public IncidentStatus Status { get; set; } = IncidentStatus.Open;
         
-        // Investigator
+        /// <summary> Identification of the person assigned to handle the investigation. </summary>
         public string InvestigatorId { get; set; } = string.Empty;
 
-        // Findings
+        /// <summary> The underlying reason for the incident as determined by investigation. </summary>
         public string RootCause { get; set; } = string.Empty;
+
+        /// <summary> Steps taken or required to prevent recurrence. </summary>
         public string CorrectiveAction { get; set; } = string.Empty;
 
-        // Collections
+        /// <summary> Photographic evidence or relevant images attached to the incident. </summary>
         public List<IncidentPhoto> Photos { get; set; } = new();
 
+        /// <summary> Soft-delete flag. </summary>
         public bool IsDeleted { get; set; }
+
+        /// <summary> Incident creation timestamp. </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary> Last modification timestamp. </summary>
         public DateTime? UpdatedAt { get; set; }
     }
 }
+

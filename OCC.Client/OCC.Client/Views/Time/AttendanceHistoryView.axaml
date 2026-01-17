@@ -13,62 +13,65 @@
 	</Design.DataContext>
 
 	<Grid RowDefinitions="Auto, Auto, *">
-		<!-- Top Bar -->
+		<!-- Header Bar: Title & Actions -->
 		<Border Grid.Row="0" Padding="10" Background="{DynamicResource WeatheredCementGradient}">
-			<Grid  ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto" Margin="5" VerticalAlignment="Center">
-				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}" Margin="0,0,20,0"/>
+			<Grid ColumnDefinitions="*, Auto">
+				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}"/>
 
+				<!-- Actions -->
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					<Button Command="{Binding PrintReportCommand}" Classes="Secondary" ToolTip.Tip="Print Report">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<PathIcon Data="{StaticResource IconPrint}" Width="16" Height="16"/>
+							<TextBlock Text="Print" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+					<Button Command="{Binding ExportCsvCommand}" Classes="Secondary" ToolTip.Tip="Export CSV" Padding="10,8">
+						<PathIcon Data="{StaticResource IconDownload}" Width="16" Height="16"/>
+					</Button>
+					<Button Command="{Binding RefreshCommand}" Classes="Secondary" ToolTip.Tip="Refresh" Padding="10,8">
+						<PathIcon Data="{StaticResource IconHistory}" Width="16" Height="16"/>
+					</Button>
+				</StackPanel>
+			</Grid>
+		</Border>
+
+		<!-- Toolbar Bar: Filters & Summary Stats -->
+		<Border Grid.Row="1" Padding="10,5" Background="{DynamicResource WeatheredCementGradient}" Margin="0,0,0,5">
+			<Grid ColumnDefinitions="Auto, *, Auto">
 				<!-- Filters -->
-				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,0,10,0">
+				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
 					<ComboBox ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
-							  Width="150" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Range"/>
+							  Width="140" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Range"/>
 
 					<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}"
-							  Width="150" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Branch"/>
+							  Width="140" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Branch"/>
 
 					<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}"
-							  Width="120" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Pay Type"/>
+							  Width="110" Classes="FormInput" VerticalAlignment="Center" PlaceholderText="Pay Type"/>
+					
+					<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsCustomDateEnabled}">
+						<DatePicker SelectedDate="{Binding StartDate}" VerticalAlignment="Center"/>
+						<TextBlock Text="-" VerticalAlignment="Center"/>
+						<DatePicker SelectedDate="{Binding EndDate}" VerticalAlignment="Center"/>
+					</StackPanel>
 				</StackPanel>
 
-				<DatePicker Grid.Column="2" SelectedDate="{Binding StartDate}" IsEnabled="{Binding IsCustomDateEnabled}"
-							IsVisible="{Binding IsCustomDateEnabled}"
-							VerticalAlignment="Center" Margin="0,0,5,0"/>
-				<TextBlock Grid.Column="3" Text="-" VerticalAlignment="Center" Margin="0,0,5,0"
-						   IsVisible="{Binding IsCustomDateEnabled}"/>
-				<DatePicker Grid.Column="3" SelectedDate="{Binding EndDate}" IsEnabled="{Binding IsCustomDateEnabled}"
-							IsVisible="{Binding IsCustomDateEnabled}"
-							VerticalAlignment="Center" Margin="10,0,20,0"/>
-
 				<!-- Summary Cards -->
-				<StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="20" >
-					<Border Classes="Card" Padding="10,5" Width="150">
+				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+					<Border Classes="Card" Padding="10,3" Width="130">
 						<StackPanel>
-							<TextBlock Text="Total Hours" Classes="LabelText" HorizontalAlignment="Center"/>
-							<TextBlock Text="{Binding TotalHours, StringFormat='{}{0:F2}'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
+							<TextBlock Text="Total Hours" Classes="LabelText" HorizontalAlignment="Center" FontSize="10"/>
+							<TextBlock Text="{Binding TotalHours, StringFormat='{}{0:F2}'}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
 						</StackPanel>
 					</Border>
-					<Border Classes="Card" Padding="10,5" Width="150" Background="#E8F5E9" BorderBrush="#81C784"
-							IsVisible="{Binding IsWageVisible}"> <!-- Green tint -->
-							<StackPanel>
-								<TextBlock Text="Est. Wages" Classes="LabelText" HorizontalAlignment="Center" Foreground="#388E3C"/>
-								<TextBlock Text="{Binding TotalWages, StringFormat='{}{0:C}'}" FontSize="16" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
-							</StackPanel>
+					<Border Classes="Card" Padding="10,3" Width="130" Background="#E8F5E9" BorderBrush="#81C784"
+							IsVisible="{Binding IsWageVisible}">
+						<StackPanel>
+							<TextBlock Text="Est. Wages" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#388E3C"/>
+							<TextBlock Text="{Binding TotalWages, StringFormat='{}{0:C}'}" FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
+						</StackPanel>
 					</Border>
-					<!-- Actions -->
-					<StackPanel Orientation="Horizontal" Spacing="5" Margin="20,0,0,0">
-						<Button Command="{Binding PrintReportCommand}" Classes="Secondary" ToolTip.Tip="Print Report">
-							<StackPanel Orientation="Horizontal" Spacing="5">
-								<PathIcon Data="{StaticResource IconPrint}" Width="16" Height="16"/>
-								<TextBlock Text="Print"/>
-							</StackPanel>
-						</Button>
-						<Button Command="{Binding ExportCsvCommand}" Classes="Secondary" ToolTip.Tip="Export CSV">
-							<PathIcon Data="{StaticResource IconDownload}" Width="16" Height="16"/>
-						</Button>
-						<Button Command="{Binding RefreshCommand}" Classes="Secondary" ToolTip.Tip="Refresh">
-							<PathIcon Data="{StaticResource IconHistory}" Width="16" Height="16"/>
-						</Button>
-					</StackPanel>
 				</StackPanel>
 			</Grid>
 		</Border>
@@ -104,7 +107,7 @@
             </DataGrid.Styles>
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
-				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
+				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="250"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
 				<DataGridTextColumn Header="Pay Type" Binding="{Binding PayType}" Width="Auto"/>
 				<DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>

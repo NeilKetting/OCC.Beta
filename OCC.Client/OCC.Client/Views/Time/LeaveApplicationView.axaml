@@ -9,8 +9,8 @@
 			 x:Class="OCC.Client.Views.Time.LeaveApplicationView"
 			 x:DataType="vm:LeaveApplicationViewModel">
 
-	<ScrollViewer>
-		<Grid RowDefinitions="Auto, *">
+	<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+		<Grid RowDefinitions="Auto, *" Margin="0,0,15,50">
 			<!-- Header -->
 			<Border Grid.Row="0" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader" Margin="5">
 				<StackPanel Spacing="5">

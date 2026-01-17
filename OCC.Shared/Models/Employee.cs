@@ -3,15 +3,18 @@ using System;
 namespace OCC.Shared.Models
 {
     /// <summary>
-    /// Represents an employee in the system.
+    /// Represents an individual employee within the OCC system.
+    /// This model is the central point for managing human resources, payroll data, and identity linking.
     /// </summary>
-    /// <summary>
-    /// Represents an employee in the system.
-    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> This entity is persisted in the <c>Employees</c> table in the database and is used across the API and Client applications.
+    /// <b>How:</b> It can be linked to a system login via <see cref="LinkedUserId"/>, allowing employees to access the mobile or desktop apps.
+    /// It also tracks leave balances, accrual start dates, and shift patterns used by the attendance and wage run systems.
+    /// </remarks>
     public class Employee : IEntity
     {
         /// <summary>
-        /// Unique identifier for the employee.
+        /// The unique primary key for the employee record.
         /// </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -29,12 +32,28 @@ namespace OCC.Shared.Models
         /// Hourly pay rate in local currency.
         /// </summary>
         public double HourlyRate { get; set; } // Current Rate
+        /// <summary>
+        /// The employee's South African Revenue Service (SARS) tax registration number.
+        /// </summary>
         public string TaxNumber { get; set; } = string.Empty;
         
-        // Leave Balances (BCEA)
-        public double AnnualLeaveBalance { get; set; } // Accrues 1 day per 17 days worked
-        public double SickLeaveBalance { get; set; } = 30; // 30 days per 36-month cycle
-        public DateTime? LeaveCycleStartDate { get; set; } // To track the 3-year cycle
+        /// <summary>
+        /// Current accrued annual leave days.
+        /// Usually accrues at a rate of 1 day per 17 days worked or as per BCEA guidelines.
+        /// </summary>
+        public double AnnualLeaveBalance { get; set; }
+
+        /// <summary>
+        /// Remaining sick leave days for the current 36-month cycle.
+        /// Defaults to 30 days per cycle for full-time employees.
+        /// </summary>
+        public double SickLeaveBalance { get; set; } = 30;
+
+        /// <summary>
+        /// The date from which leave cycles are calculated. 
+        /// Important for resetting sick leave balances every 3 years.
+        /// </summary>
+        public DateTime? LeaveCycleStartDate { get; set; }
 
         /// <summary>
         /// Employee's first name.
@@ -126,9 +145,24 @@ namespace OCC.Shared.Models
         public TimeSpan? ShiftEndTime { get; set; } = new TimeSpan(16, 45, 0);
 
         // Banking Details
+        /// <summary>
+        /// Name of the bank where the employee's salary is paid.
+        /// </summary>
         public string? BankName { get; set; }
+
+        /// <summary>
+        /// The employee's bank account number.
+        /// </summary>
         public string? AccountNumber { get; set; }
+
+        /// <summary>
+        /// The branch code for the employee's bank.
+        /// </summary>
         public string? BranchCode { get; set; }
+
+        /// <summary>
+        /// The type of account (e.g., Savings, Cheque).
+        /// </summary>
         public string? AccountType { get; set; }
 
         /// <summary>

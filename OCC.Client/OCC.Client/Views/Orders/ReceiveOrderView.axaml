@@ -13,9 +13,8 @@
         <conv:MathConverter x:Key="MathConverter" />
     </UserControl.Resources>
 
-    <Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
-            MaxHeight="{Binding $parent[Window].ClientSize.Height, Converter={StaticResource MathConverter}, ConverterParameter=60}" 
-            VerticalAlignment="Center" HorizontalAlignment="Center">
+    <Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20,10,40,20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
+            VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MaxWidth="1000">
         <Grid RowDefinitions="Auto, *, Auto">
 
             <!-- Header -->
@@ -36,8 +35,8 @@
             </Border>
 
             <!-- Content -->
-            <ScrollViewer Grid.Row="1" Padding="20">
-                <StackPanel Spacing="20">
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="20" Margin="20,20,20,50">
                     <Border Background="#FFF7ED" BorderBrush="#FDBA74" BorderThickness="1" CornerRadius="4" Padding="15">
                         <Grid ColumnDefinitions="Auto, *">
                              <PathIcon Grid.Column="0" Data="{StaticResource IconInfo}" Foreground="#EA580C" Width="20" VerticalAlignment="Center"/>

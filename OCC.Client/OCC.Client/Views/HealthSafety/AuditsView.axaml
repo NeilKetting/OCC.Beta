@@ -12,17 +12,29 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" RowDefinitions="Auto, *">
-            <!-- Header -->
-            <Border Grid.Row="0" Margin="24">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="AUDITS &amp; INSPECTIONS" Classes="H1"/>
-                    <TextBlock Text="Track compliance and deviations across sites" Classes="TextSecondary"/>
-                </StackPanel>
+        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *">
+            <!-- Header Bar: Title & Actions -->
+            <Border Grid.Row="0" Margin="10" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="AUDITS &amp; INSPECTIONS" Classes="H1"/>
+                        <TextBlock Text="Track compliance and deviations across sites" Classes="TextSecondary"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Toolbar Bar: Filters -->
+            <Border Grid.Row="1" Margin="10,0,10,10" Padding="10,5" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                        <!-- Placeholder for future filters -->
+                        <TextBlock Text="Filters area" VerticalAlignment="Center" IsVisible="False"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Loading Overlay -->
-            <Border Grid.RowSpan="2" IsVisible="{Binding IsBusy}" Background="#80000000" ZIndex="100">
+            <Border Grid.RowSpan="3" IsVisible="{Binding IsBusy}" Background="#80000000" ZIndex="100">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
                    <ProgressBar Classes="Circular" IsIndeterminate="True"/>
                    <TextBlock Text="{Binding BusyText}" Foreground="White" FontWeight="SemiBold"/>
@@ -36,7 +48,7 @@
             </Interaction.Behaviors>
 
             <!-- Data Table -->
-            <Border Grid.Row="1" Classes="Card" Margin="24,0,24,24" Padding="0">
+            <Border Grid.Row="2" Classes="Card" Margin="10,0,10,10" Padding="0">
                 <DataGrid ItemsSource="{Binding Audits}"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
@@ -44,10 +56,10 @@
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="100"/>
-                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="120"/>
-                        <DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="*"/>
-                        <DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="150"/>
+                        <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="Auto"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="*" MinWidth="250"/>
+                        <DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="Auto"/>
                         
                         <!-- Scores -->
                         <DataGridTemplateColumn Header="Score" Width="140">

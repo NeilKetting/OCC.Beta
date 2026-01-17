@@ -1,36 +1,38 @@
-/// <summary>
-/// Represents a record of a user dismissing a specific notification/entity.
-/// Used to prevent reappearance of "active" notifications (like pending approvals) 
-/// that the user has chosen to ignore.
-/// </summary>
 using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Represents a record of a user dismissing a specific notification or suggested action.
+    /// Used to persistently suppress recurring alerts (e.g., pending approvals or birthday reminders) 
+    /// that the user has explicitly chosen to ignore.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Persisted in the <c>NotificationDismissals</c> table.
+    /// <b>How:</b> Queries check this table before generating dynamic notifications to ensure dismissed items are skipped.
+    /// </remarks>
     public class NotificationDismissal
     {
+        /// <summary> Unique primary key for the dismissal record. </summary>
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        /// <summary>
-        /// The ID of the User who dismissed the notification.
-        /// </summary>
+        /// <summary> The ID of the <see cref="User"/> who performed the dismissal. </summary>
         public Guid UserId { get; set; }
 
         /// <summary>
-        /// The unique ID of the entity associated with the notification (e.g., UserId for registration, RequestId for Leave).
+        /// The unique ID of the target entity associated with the notification 
+        /// (e.g., UserId for registration requests, RequestId for Leave, or EmployeeId for Birthdays).
         /// </summary>
         public Guid EntityId { get; set; }
 
         /// <summary>
-        /// The type of notification/entity (e.g., "UserRegistration", "LeaveRequest", "Birthday").
+        /// A string identifier for the category of notification (e.g., "UserRegistration", "LeaveRequest", "Birthday").
         /// </summary>
         public string NotificationType { get; set; } = string.Empty;
 
-        /// <summary>
-        /// When the dismissal occurred.
-        /// </summary>
+        /// <summary> The timestamp when the dismissal action occurred. </summary>
         public DateTime DismissedAt { get; set; } = DateTime.UtcNow;
     }
 }

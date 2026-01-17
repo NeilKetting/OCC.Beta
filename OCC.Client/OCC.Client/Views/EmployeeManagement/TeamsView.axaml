@@ -8,39 +8,40 @@
 			 x:Class="OCC.Client.Views.EmployeeManagement.TeamsView"
 			 x:DataType="vm:TeamManagementViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, *">
-		<!-- Toolbar -->
-		<Border Grid.Row="0" Margin="0,0,0,20" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+	<Grid RowDefinitions="Auto, Auto, Auto, *">
+		<!-- Header Bar: Title & Primary Actions -->
+		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="0,0,0,5">
 			<Grid ColumnDefinitions="*, Auto">
-				<StackPanel Orientation="Horizontal" Spacing="10">
-					<StackPanel Grid.Column="0" Spacing="5">
-						<TextBlock Text="Teams List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
-						<TextBlock Text="Create teams for group task assignments" Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />
-					</StackPanel>
-					<!-- Stats -->
-					<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-						<StackPanel Classes="Stat" HorizontalAlignment="Stretch">
-							<TextBlock Text="Teams" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-							<TextBlock Text="{Binding Teams.Count, FallbackValue=1, StringFormat='({0})'}"  HorizontalAlignment="Center"/>
-						</StackPanel>
-					</StackPanel>
+				<StackPanel Spacing="5">
+					<TextBlock Text="Teams List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
+					<TextBlock Text="Create teams for group task assignments" Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />
 				</StackPanel>
 
-				<Button Grid.Column="1" Command="{Binding AddTeamCommand}" Classes="Primary">
-					<StackPanel Orientation="Horizontal" Spacing="5">
+				<Button Grid.Column="1" Command="{Binding AddTeamCommand}" Classes="Primary" Padding="15,8" VerticalAlignment="Center">
+					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconAddUser}" Width="16" Height="16"/>
-						<TextBlock Text="Create Team"/>
+						<TextBlock Text="Create Team" FontWeight="SemiBold"/>
 					</StackPanel>
 				</Button>
 			</Grid>
 		</Border>
 
+		<!-- Toolbar Bar: Stats -->
+		<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="0,0,0,10" Padding="10,5">
+			<Grid ColumnDefinitions="*, Auto">
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+					<TextBlock Text="TOTAL TEAMS:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding Teams.Count}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Grid>
+		</Border>
+
 		<!-- Error Message -->
-		<TextBlock Grid.Row="1" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,0,0,10"
+		<TextBlock Grid.Row="2" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,0,0,10"
 				   IsVisible="{Binding !!ErrorMessage}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
 
 		<!-- Grid -->
-		<DataGrid Grid.Row="2" ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}"
+		<DataGrid Grid.Row="3" ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}"
 				  AutoGenerateColumns="False" IsReadOnly="True"
 				  HeadersVisibility="Column" GridLinesVisibility="Horizontal" Background="White"
 				  DoubleTapped="DataGrid_DoubleTapped">
@@ -56,7 +57,7 @@
 				</Style>
 			</DataGrid.Styles>
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+				<DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*" MinWidth="200"/>
 				<DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="2*"/>
 
 				<DataGridTemplateColumn Width="Auto">
@@ -72,7 +73,7 @@
 		</DataGrid>
 
 		<!-- Loading -->
-		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+		<StackPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
 			<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
 			<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
 		</StackPanel>

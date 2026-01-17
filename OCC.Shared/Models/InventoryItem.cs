@@ -2,25 +2,70 @@ using System;
 
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Represents a stock item or material in the warehouse inventory.
+    /// Used for tracking stock levels, reorder points, and costs across different branches.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Persisted in the <c>InventoryItems</c> table.
+    /// <b>How:</b> Integrated with the Ordering system. When <see cref="QuantityOnHand"/> falls below <see cref="ReorderPoint"/>, 
+    /// the item is flagged as "Low Stock" in the dashboard.
+    /// </remarks>
     public class InventoryItem
     {
+        /// <summary>
+        /// Unique identifier for the inventory item.
+        /// </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
         
-        public string ProductName { get; set; } = string.Empty;
-        public string Category { get; set; } = "General";
+        /// <summary>
+        /// Detailed description of the product (e.g., "Cement 50kg").
+        /// This property was previously named <c>ProductName</c>.
+        /// </summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The primary supplier for this item (stored as string).
+        /// </summary>
         public string Supplier { get; set; } = string.Empty;
-        public string Location { get; set; } = "Warehouse"; // Rack A, Shelf 1
-        
+
+        /// <summary>
+        /// Category of the inventory item (e.g., "General", "Building").
+        /// </summary>
+        public string Category { get; set; } = "General";
+
+        /// <summary>
+        /// Physical location in the warehouse.
+        /// </summary>
+        public string Location { get; set; } = "Warehouse"; // Rack A, Shelf 1        
+        /// <summary> Stock level specifically at the Johannesburg branch. </summary>
         public double JhbQuantity { get; set; }
+
+        /// <summary> Stock level specifically at the Cape Town branch. </summary>
         public double CptQuantity { get; set; }
-        public double QuantityOnHand { get; set; } // Aggregate or total stock
+
+        /// <summary> Total aggregate quantity across all branches. </summary>
+        public double QuantityOnHand { get; set; }
+
+        /// <summary> The stock level threshold at which a restock should be triggered. </summary>
         public double ReorderPoint { get; set; }
+
+        /// <summary> The unit in which the item is measured (e.g., "ea", "kg", "m"). </summary>
         public string UnitOfMeasure { get; set; } = "ea";
         
+        /// <summary> Stock Keeping Unit - unique alphanumeric ID for the product type. </summary>
         public string Sku { get; set; } = string.Empty;
+
+        /// <summary> The calculated average cost of purchasing this item over time. </summary>
         public decimal AverageCost { get; set; }
+
+        /// <summary> The standard internal or retail price. </summary>
         public decimal Price { get; set; }
+
+        /// <summary> If true, system provides alerts when stock falls below reorder point. </summary>
         public bool TrackLowStock { get; set; } = true;
+
+        /// <summary> If true, this is a tangible item tracking quantity. </summary>
         public bool IsStockItem { get; set; } = true;
 
         // Status

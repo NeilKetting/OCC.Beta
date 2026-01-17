@@ -1,5 +1,16 @@
+using System.Collections.Generic;
+
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Static-like class containing hardcoded company information for Orange Circle Construction.
+    /// Used for populating invoices, reports, and UI footers.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Not persisted in a standard database table (usually just one shared instance or hardcoded config).
+    /// <b>How:</b> Provides properties for Company Name, Reg No, VAT No, and details per <see cref="Branch"/>.
+    /// Backward compatibility properties (like <see cref="Email"/>, <see cref="Phone"/>) default to the JHB branch.
+    /// </remarks>
     public class CompanyDetails
     {
         public string CompanyName { get; set; } = "Orange Circle Construction (PTY) Ltd";
@@ -7,43 +18,53 @@ namespace OCC.Shared.Models
         public string VatNumber { get; set; } = "4510254610";
         public string Website { get; set; } = string.Empty;
 
+        // --- Backwards Compatibility Wrappers (Default to JHB) ---
+
+        /// <summary> Default department emails (defaults to JHB). </summary>
         public List<DepartmentEmail> DepartmentEmails 
         { 
             get => Branches.ContainsKey(Branch.JHB) ? Branches[Branch.JHB].DepartmentEmails : new List<DepartmentEmail>(); 
             set { if (Branches.ContainsKey(Branch.JHB)) Branches[Branch.JHB].DepartmentEmails = value; } 
         }
 
+        /// <summary> Default company email address (defaults to JHB). </summary>
         public string Email
         {
             get => Branches.ContainsKey(Branch.JHB) ? Branches[Branch.JHB].Email : string.Empty;
             set { if (Branches.ContainsKey(Branch.JHB)) Branches[Branch.JHB].Email = value; }
         }
 
+        /// <summary> Default company phone number (defaults to JHB). </summary>
         public string Phone
         {
             get => Branches.ContainsKey(Branch.JHB) ? Branches[Branch.JHB].Phone : string.Empty;
             set { if (Branches.ContainsKey(Branch.JHB)) Branches[Branch.JHB].Phone = value; }
         }
 
+        /// <summary> Default company fax number (defaults to JHB). </summary>
         public string Fax
         {
             get => Branches.ContainsKey(Branch.JHB) ? Branches[Branch.JHB].Fax : string.Empty;
             set { if (Branches.ContainsKey(Branch.JHB)) Branches[Branch.JHB].Fax = value; }
         }
 
+        /// <summary> Single line address string (defaults to JHB). </summary>
         public string Address
         {
             get => Branches.ContainsKey(Branch.JHB) ? $"{Branches[Branch.JHB].AddressLine1}, {Branches[Branch.JHB].City}, {Branches[Branch.JHB].PostalCode}" : string.Empty;
         }
 
+        /// <summary> Alias for Address. </summary>
         public string FullAddress => Address;
 
+        // --- Banking Details ---
         public string BankName { get; set; } = "FNB";
         public string AccountName { get; set; } = "Orange Circle Construction";
         public string AccountNumber { get; set; } = "62123456789";
         public string BranchCode { get; set; } = "250655";
         public string AccountType { get; set; } = "Business Account";
 
+        // --- Address Component Wrappers (Default to JHB) ---
         public string AddressLine1
         {
             get => Branches.ContainsKey(Branch.JHB) ? Branches[Branch.JHB].AddressLine1 : string.Empty;
@@ -68,6 +89,9 @@ namespace OCC.Shared.Models
             set { if (Branches.ContainsKey(Branch.JHB)) Branches[Branch.JHB].PostalCode = value; }
         }
 
+        /// <summary>
+        /// Dictionary storing details for each supported branch (JHB, CPT, etc.).
+        /// </summary>
         public Dictionary<Branch, BranchDetails> Branches { get; set; } = new()
         {
             { 
@@ -107,6 +131,9 @@ namespace OCC.Shared.Models
         };
     }
 
+    /// <summary>
+    /// Details specific to a physical branch office.
+    /// </summary>
     public class BranchDetails
     {
         public string Phone { get; set; } = string.Empty;
@@ -123,6 +150,9 @@ namespace OCC.Shared.Models
         public string FullAddress => $"{AddressLine1}, {City}, {PostalCode}";
     }
 
+    /// <summary>
+    /// Maps a department name to a specific email address.
+    /// </summary>
     public class DepartmentEmail
     {
         public string Department { get; set; } = string.Empty;

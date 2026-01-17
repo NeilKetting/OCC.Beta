@@ -47,16 +47,16 @@ namespace OCC.Client.Services
                 
                 // Get existing items to check for duplicates? Logic "Don't duplicate" requested by user.
                 var existingItems = await _inventoryService.GetInventoryAsync();
-                var existingProductNames = existingItems.Select(i => i.ProductName.ToLower().Trim()).ToHashSet();
+                var existingDescriptions = existingItems.Select(i => i.Description.ToLower().Trim()).ToHashSet();
 
                 foreach (var row in records)
                 {
-                    if (string.IsNullOrWhiteSpace(row.ProductName))
+                    if (string.IsNullOrWhiteSpace(row.Description))
                         continue;
 
-                    if (existingProductNames.Contains(row.ProductName.ToLower().Trim()))
+                    if (existingDescriptions.Contains(row.Description.ToLower().Trim()))
                     {
-                        errors.Add($"Skipped '{row.ProductName}' - already exists.");
+                        errors.Add($"Skipped '{row.Description}' - already exists.");
                         failureCount++;
                         continue;
                     }
@@ -71,8 +71,8 @@ namespace OCC.Client.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to import item {Name}", row.ProductName);
-                        errors.Add($"Failed '{row.ProductName}': {ex.Message}");
+                        _logger.LogError(ex, "Failed to import item {Name}", row.Description);
+                        errors.Add($"Failed '{row.Description}': {ex.Message}");
                         failureCount++;
                     }
                 }
@@ -90,7 +90,7 @@ namespace OCC.Client.Services
         {
             // Extract UOM from Description or Name
             // Searching for pattern like "20kg", "50m", "5l" etc.
-            var uom = ExtractUom(row.SalesDescription) ?? ExtractUom(row.ProductName) ?? "ea";
+            var uom = ExtractUom(row.SalesDescription) ?? ExtractUom(row.Description) ?? "ea";
 
             // Parse Quantity
             double qty = 0;
@@ -124,7 +124,7 @@ namespace OCC.Client.Services
             // Mapping Logic per User Instruction: "Product/Service = SKU"
 
             // 1. SKU: Always use "Product/Service Name"
-            var effectiveSku = row.ProductName?.Trim() ?? string.Empty;
+            var effectiveSku = row.Description?.Trim() ?? string.Empty;
             
             // 2. Product Name: Use "Sales Description". Fallback to SKU if empty.
             var rawDesc = row.SalesDescription?.Trim();
@@ -133,7 +133,7 @@ namespace OCC.Client.Services
             return new InventoryItem
             {
                 Id = Guid.NewGuid(),
-                ProductName = effectiveName,
+                Description = effectiveName,
                 Category = string.IsNullOrWhiteSpace(row.Category) ? "General" : row.Category.Trim(),
                 Supplier = string.Empty, // Not in CSV
                 Location = "Warehouse", // Default
@@ -183,7 +183,7 @@ namespace OCC.Client.Services
         private class InventoryImportRow
         {
             [Name("Product/Service Name")]
-            public string ProductName { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
 
             [Name("Quantity on hand")]
             public string QuantityOnHand { get; set; } = "0";

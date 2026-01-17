@@ -11,11 +11,14 @@
     <Grid Background="{DynamicResource AppBackgroundSlate}">
         <Grid RowDefinitions="Auto, *">
             <!-- Header -->
-            <Border Grid.Row="0" Classes="TopHeader" Margin="10,10,10,0">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <PathIcon Data="{StaticResource IconManageEmployees}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
-                    <TextBlock Text="Training Matrix" Classes="H1" VerticalAlignment="Center"/>
-                </StackPanel>
+            <!-- Header Bar: Title -->
+            <Border Grid.Row="0" Margin="10" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
+                <Grid ColumnDefinitions="*, Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <PathIcon Data="{StaticResource IconManageEmployees}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
+                        <TextBlock Text="Training Matrix" Classes="H1" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Data Table -->
@@ -38,16 +41,13 @@
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*"/>
-                        <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="*"/>
-                        <DataGridTextColumn Header="Topic" Binding="{Binding TrainingTopic}" Width="2*"/>
-                        <DataGridTextColumn Header="Completed" Binding="{Binding DateCompleted, StringFormat='d MMM yyyy'}" Width="*"/>
-                        
-                        <!-- Validity with Conditional Formatting Logic would go here (using Converter for color) -->
-                        <DataGridTextColumn Header="Valid Until" Binding="{Binding ValidUntil, StringFormat='d MMM yyyy'}" Width="*"/>
-                        
-                        <DataGridTextColumn Header="Trainer" Binding="{Binding Trainer}" Width="*"/>
-                        
+                        <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="180"/>
+                        <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
+                        <DataGridTextColumn Header="Topic" Binding="{Binding TrainingTopic}" Width="*" MinWidth="250"/>
+                        <DataGridTextColumn Header="Completed" Binding="{Binding DateCompleted, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Valid Until" Binding="{Binding ValidUntil, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Trainer" Binding="{Binding Trainer}" Width="Auto"/>
+
                         <!-- Actions -->
                         <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>

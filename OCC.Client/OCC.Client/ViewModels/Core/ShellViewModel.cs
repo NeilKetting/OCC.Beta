@@ -557,7 +557,7 @@ namespace OCC.Client.ViewModels.Core
                     
                     vm.Load(null); // Clear/New
                     if (isSku) vm.Sku = searchTerm;
-                    else vm.ProductName = searchTerm;
+                    else vm.Description = searchTerm;
                 }
                 
                 CurrentPage = vm;

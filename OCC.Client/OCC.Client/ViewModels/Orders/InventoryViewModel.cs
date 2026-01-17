@@ -142,12 +142,12 @@ namespace OCC.Client.ViewModels.Orders
                         {
                             var newSku = await _dialogService.ShowInputAsync(
                                 "Missing SKU", 
-                                $"Item '{item.ProductName}' is missing a SKU.\n\nPlease enter a SKU to import this item, or Cancel to skip it.", 
-                                item.ProductName);
+                                $"Item '{item.Description}' is missing a SKU.\n\nPlease enter a SKU to import this item, or Cancel to skip it.", 
+                                item.Description);
 
                             if (string.IsNullOrWhiteSpace(newSku))
                             {
-                                errors.Add($"Skipped '{item.ProductName}': No SKU provided.");
+                                errors.Add($"Skipped '{item.Description}': No SKU provided.");
                                 failed++;
                                 continue;
                             }
@@ -155,9 +155,9 @@ namespace OCC.Client.ViewModels.Orders
                         }
 
                         // Double check name if it was empty (unlikely with our mapping)
-                        if (string.IsNullOrWhiteSpace(item.ProductName))
+                        if (string.IsNullOrWhiteSpace(item.Description))
                         {
-                             item.ProductName = "Unknown Product"; 
+                             item.Description = "Unknown Product"; 
                         }
 
                         try
@@ -167,7 +167,7 @@ namespace OCC.Client.ViewModels.Orders
                         }
                         catch (Exception ex)
                         {
-                            errors.Add($"Failed to save '{item.ProductName}': {ex.Message}");
+                            errors.Add($"Failed to save '{item.Description}': {ex.Message}");
                             failed++;
                         }
                     }
@@ -270,7 +270,7 @@ namespace OCC.Client.ViewModels.Orders
             InventoryItems.Clear();
             var filtered = string.IsNullOrWhiteSpace(SearchQuery) 
                 ? _allItems 
-                : _allItems.Where(i => i.ProductName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+                : _allItems.Where(i => i.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
 
             foreach (var item in filtered)
             {

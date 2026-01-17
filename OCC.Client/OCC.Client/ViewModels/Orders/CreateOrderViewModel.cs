@@ -134,7 +134,7 @@ namespace OCC.Client.ViewModels.Orders
         private bool _isAddingNewProduct;
         
         [ObservableProperty]
-        private string _newProductName = string.Empty;
+        private string _newDescription = string.Empty;
 
         [ObservableProperty]
         private string _newProductUOM = "ea";
@@ -420,7 +420,7 @@ namespace OCC.Client.ViewModels.Orders
             // Update model
             line.InventoryItemId = item.Id;
             line.ItemCode = item.Sku;
-            line.Description = item.ProductName;
+            line.Description = item.Description;
             line.UnitOfMeasure = string.IsNullOrEmpty(item.UnitOfMeasure) ? "ea" : item.UnitOfMeasure;
             line.UnitPrice = item.AverageCost; 
             
@@ -445,7 +445,7 @@ namespace OCC.Client.ViewModels.Orders
             IsAddingNewProduct = !IsAddingNewProduct;
             if (IsAddingNewProduct)
             {
-                NewProductName = "";
+                NewDescription = "";
                 NewProductUOM = "ea";
                 NewProductCategory = "General";
                 IsInputtingNewCategory = false;
@@ -478,11 +478,11 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public async Task QuickCreateProduct()
         {
-            if (string.IsNullOrWhiteSpace(NewProductName)) return;
+            if (string.IsNullOrWhiteSpace(NewDescription)) return;
             
             try
             {
-                var created = await _orderManager.QuickCreateProductAsync(NewProductName, NewProductUOM, NewProductCategory, SelectedSupplier?.Name ?? string.Empty);
+                var created = await _orderManager.QuickCreateProductAsync(NewDescription, NewProductUOM, NewProductCategory, SelectedSupplier?.Name ?? string.Empty);
                 InventoryItems.Add(created);
                 if (!ProductCategories.Contains(created.Category)) ProductCategories.Add(created.Category);
                 SelectedInventoryItem = created;
@@ -751,7 +751,7 @@ namespace OCC.Client.ViewModels.Orders
         {
              if (string.IsNullOrWhiteSpace(searchText)) return;
              
-             var exists = InventoryItems.Any(i => i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+             var exists = InventoryItems.Any(i => i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || i.Description.Equals(searchText, StringComparison.OrdinalIgnoreCase));
                   
              if (!exists && SelectedInventoryItem == null)
              {
@@ -946,7 +946,7 @@ namespace OCC.Client.ViewModels.Orders
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                    // Try finding by exact match first (case-insensitive)
-                   var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.ProductName.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
+                   var match = InventoryItems.FirstOrDefault(i => i.Sku.Equals(searchTerm, StringComparison.OrdinalIgnoreCase) || i.Description.Equals(searchTerm, StringComparison.OrdinalIgnoreCase));
                    
                    // If not found, it might be the NEW item we just created.
                    // Since we just reloaded InventoryItems in LoadData, it SHOULD be there if it was saved.
@@ -1059,14 +1059,14 @@ namespace OCC.Client.ViewModels.Orders
              
              // Weighted Search: Exact Match > StartsWith > Contains
              var filtered = InventoryItems
-                 .Where(i => (i.ProductName != null && i.ProductName.Contains(search, StringComparison.OrdinalIgnoreCase)) || 
+                 .Where(i => (i.Description != null && i.Description.Contains(search, StringComparison.OrdinalIgnoreCase)) || 
                              (i.Sku != null && i.Sku.Contains(search, StringComparison.OrdinalIgnoreCase)))
                  .GroupBy(i => (i.Sku ?? "").ToLower()).Select(g => g.First()) // Deduplicate by SKU (defensive against data dupes)
                  .OrderByDescending(i => i.Sku != null && i.Sku.Equals(search, StringComparison.OrdinalIgnoreCase)) // 1. Exact SKU
-                 .ThenByDescending(i => i.ProductName != null && i.ProductName.Equals(search, StringComparison.OrdinalIgnoreCase)) // 2. Exact Name
+                 .ThenByDescending(i => i.Description != null && i.Description.Equals(search, StringComparison.OrdinalIgnoreCase)) // 2. Exact Name
                  .ThenByDescending(i => i.Sku != null && i.Sku.StartsWith(search, StringComparison.OrdinalIgnoreCase)) // 3. StartsWith SKU (New)
-                 .ThenByDescending(i => i.ProductName != null && i.ProductName.StartsWith(search, StringComparison.OrdinalIgnoreCase)) // 4. StartsWith Name
-                 .ThenBy(i => i.ProductName) // 5. Alphabetical
+                 .ThenByDescending(i => i.Description != null && i.Description.StartsWith(search, StringComparison.OrdinalIgnoreCase)) // 4. StartsWith Name
+                 .ThenBy(i => i.Description) // 5. Alphabetical
                  .ToList();
 
              FilteredInventoryItemsByName.Clear();
@@ -1101,11 +1101,11 @@ namespace OCC.Client.ViewModels.Orders
             {
                 _isUpdatingSearchText = true;
                 SkuSearchText = value.Sku ?? "";
-                ProductSearchText = value.ProductName ?? "";
+                ProductSearchText = value.Description ?? "";
                 IsSkuDropDownOpen = false;
                 IsProductDropDownOpen = false;
                 _isUpdatingSearchText = false;
-                NewLine = new OrderLineWrapper(new OrderLine { InventoryItemId = value.Id, Description = value.ProductName ?? "", ItemCode = value.Sku ?? "", UnitOfMeasure = value.UnitOfMeasure ?? "", UnitPrice = value.AverageCost });
+                NewLine = new OrderLineWrapper(new OrderLine { InventoryItemId = value.Id, Description = value.Description ?? "", ItemCode = value.Sku ?? "", UnitOfMeasure = value.UnitOfMeasure ?? "", UnitPrice = value.AverageCost });
                 OnPropertyChanged(nameof(NewLine));
                 if (SelectedSupplier == null && !string.IsNullOrWhiteSpace(value.Supplier))
                 {

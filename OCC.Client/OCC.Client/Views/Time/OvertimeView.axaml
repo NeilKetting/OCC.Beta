@@ -9,8 +9,8 @@
 
     <Grid ColumnDefinitions="*, 30, *">
         <!-- Form -->
-        <ScrollViewer Grid.Column="0">
-            <StackPanel Spacing="20" Margin="20">
+        <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20" Margin="20,20,20,50">
                 <TextBlock Text="Request Overtime" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
 
                 <!-- Employee -->

@@ -68,7 +68,7 @@
                                                     
                                                     <!-- Item Info -->
                                                     <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding Item.ProductName}" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Item.Description}" FontWeight="SemiBold"/>
                                                         <TextBlock Text="{Binding Item.Sku}" Classes="Caption"/>
                                                     </StackPanel>
 

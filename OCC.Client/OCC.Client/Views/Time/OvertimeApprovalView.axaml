@@ -10,10 +10,10 @@
     
     <Grid RowDefinitions="Auto, *">
         <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,20">
+        <Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
              <Grid ColumnDefinitions="*, Auto">
-                <TextBlock Text="Overtime Approvals" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
-                <Button Grid.Column="1" Command="{Binding LoadDataCommand}" Classes="SecondaryButton" Content="Refresh"/>
+                <TextBlock Text="Overtime Approvals" Classes="H1" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Command="{Binding LoadDataCommand}" Classes="Secondary" Content="Refresh"/>
              </Grid>
         </Border>
 
@@ -24,12 +24,12 @@
                   GridLinesVisibility="Horizontal"
                   BorderThickness="1" BorderBrush="{DynamicResource BorderGray}">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="Auto"/>
+                <DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="*" MinWidth="250"/>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='d'}" Width="Auto"/>
                 <DataGridTextColumn Header="Start" Binding="{Binding StartTime}" Width="Auto"/>
                 <DataGridTextColumn Header="End" Binding="{Binding EndTime}" Width="Auto"/>
                 <DataGridTextColumn Header="Hours" Binding="{Binding DurationHours, StringFormat='N1'}" Width="Auto"/>
-                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
+                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*" MinWidth="200"/>
                 <DataGridTemplateColumn Header="Actions" Width="Auto">
                    <DataGridTemplateColumn.CellTemplate>
                        <DataTemplate>

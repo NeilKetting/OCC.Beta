@@ -172,7 +172,7 @@
 								<Border Margin="0,0,0,10" Padding="15" BorderBrush="Gray" BorderThickness="0,0,0,0">
 									<StackPanel Spacing="5">
 										<StackPanel Spacing="5">
-											<TextBlock Text="{Binding ProductName}" FontWeight="Bold" />
+											<TextBlock Text="{Binding Description}" FontWeight="Bold" />
 											<TextBlock Text="{Binding Location}" FontSize="11" Foreground="{DynamicResource ThemeForegroundLow}" Margin="0"/>
 										</StackPanel>
 										<StackPanel Grid.Row="1" Spacing="5">

@@ -31,7 +31,7 @@ namespace OCC.API.Controllers
             try
             {
                 var items = await _context.InventoryItems
-                    .OrderBy(i => i.ProductName)
+                    .OrderBy(i => i.Description)
                     .ToListAsync();
 
                 return Ok(items);
@@ -74,7 +74,7 @@ namespace OCC.API.Controllers
                 _context.InventoryItems.Add(item);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Inventory item {ProductName} created by {User}", item.ProductName, User.FindFirst(ClaimTypes.Name)?.Value);
+                _logger.LogInformation("Inventory item {Description} created by {User}", item.Description, User.FindFirst(ClaimTypes.Name)?.Value);
 
                 // Notify clients
                 await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemCreated");
@@ -83,7 +83,7 @@ namespace OCC.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while creating inventory item {ProductName}", item?.ProductName);
+                _logger.LogError(ex, "Error occurred while creating inventory item {Description}", item?.Description);
                 return StatusCode(500, "An error occurred while creating the inventory item.");
             }
         }
@@ -99,7 +99,7 @@ namespace OCC.API.Controllers
                 _context.Entry(item).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Inventory item {ProductName} updated by {User}", item.ProductName, User.FindFirst(ClaimTypes.Name)?.Value);
+                _logger.LogInformation("Inventory item {Description} updated by {User}", item.Description, User.FindFirst(ClaimTypes.Name)?.Value);
 
                 // Notify clients
                 await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemUpdated");
@@ -141,7 +141,7 @@ namespace OCC.API.Controllers
                 _context.InventoryItems.Remove(item);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Inventory item {ProductName} deleted by {User}", item.ProductName, User.FindFirst(ClaimTypes.Name)?.Value);
+                _logger.LogInformation("Inventory item {Description} deleted by {User}", item.Description, User.FindFirst(ClaimTypes.Name)?.Value);
                 await _hubContext.Clients.All.SendAsync("ReceiveInventoryUpdate", "ItemDeleted");
 
                 return NoContent();

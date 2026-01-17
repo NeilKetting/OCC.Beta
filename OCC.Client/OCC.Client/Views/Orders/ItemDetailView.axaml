@@ -35,10 +35,9 @@
 	<Border Background="{DynamicResource SurfaceWhite}"
 			CornerRadius="0"
 			BoxShadow="0 2 15 5 #292828"
-			VerticalAlignment="Center"
-			HorizontalAlignment="Center"
-            Height="680"
-            Width="930">
+			VerticalAlignment="Stretch"
+			HorizontalAlignment="Stretch"
+			MaxWidth="1000">
 		<Grid RowDefinitions="Auto, *, Auto, Auto">
 
 			<!-- Header -->
@@ -61,8 +60,8 @@
 			</Border>
 
 			<!-- Content -->
-			<ScrollViewer Grid.Row="1" Padding="30">
-				<Grid ColumnDefinitions="*, 30, *">
+			<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+				<Grid ColumnDefinitions="*, 30, *" Margin="30,30,30,50">
 					<!-- Left Column -->
 					<StackPanel Grid.Column="0" Spacing="10">
 
@@ -75,8 +74,8 @@
 						</StackPanel>
 
 						<StackPanel Spacing="10">
-							<TextBlock Text="Product Name" Classes="FormLabel"/>
-							<TextBox Text="{Binding ProductName}" Classes="FormInput" Watermark="e.g. Cement 50kg" 
+							<TextBlock Text="Description" Classes="FormLabel"/>
+							<TextBox Text="{Binding Description}" Classes="FormInput" Watermark="e.g. Cement 50kg" 
 									 Height="NaN" MinHeight="22" AcceptsReturn="True" TextWrapping="Wrap"/>
 						</StackPanel>
 

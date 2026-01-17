@@ -52,11 +52,11 @@
 
 	</UserControl.Styles>
 
-	<Border Background="#F1F5F9" CornerRadius="8" BoxShadow="0 10 30 0 #40000000" Width="420" Height="550">
+	<Border Background="#F1F5F9" CornerRadius="8" BoxShadow="0 10 30 0 #40000000" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MaxWidth="500">
 		<Grid RowDefinitions="*, Auto">
 
-			<ScrollViewer Grid.Row="0">
-				<StackPanel Margin="20">
+			<ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+				<StackPanel Margin="20,20,20,50">
 					
 					<!-- Header / Profile Picture -->
 					<Grid ColumnDefinitions="Auto, *" Margin="0,0,0,20">

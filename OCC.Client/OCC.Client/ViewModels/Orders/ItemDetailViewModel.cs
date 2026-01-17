@@ -39,10 +39,10 @@ namespace OCC.Client.ViewModels.Orders
         private string _sku = string.Empty;
 
         /// <summary>
-        /// Gets or sets the name of the product.
+        /// Gets or sets the description of the product.
         /// </summary>
         [ObservableProperty]
-        private string _productName = string.Empty;
+        private string _description = string.Empty;
 
         /// <summary>
         /// Gets or sets the category the item belongs to.
@@ -170,9 +170,9 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public async Task Save()
         {
-            if (string.IsNullOrWhiteSpace(ProductName))
+            if (string.IsNullOrWhiteSpace(Description))
             {
-                await _dialogService.ShowAlertAsync("Validation", "Product Name is required to save the item.");
+                await _dialogService.ShowAlertAsync("Validation", "Description is required to save the item.");
                 return;
             }
 
@@ -185,7 +185,7 @@ namespace OCC.Client.ViewModels.Orders
                 {
                     Id = IsEditMode ? _editingId : Guid.NewGuid(),
                     Sku = Sku,
-                    ProductName = ProductName,
+                    Description = Description,
                     Category = Category,
                     Supplier = SupplierName ?? string.Empty,
                     Location = Location,
@@ -259,7 +259,7 @@ namespace OCC.Client.ViewModels.Orders
                 IsEditMode = false;
                 Title = "Add New Item";
                 Sku = "";
-                ProductName = "";
+                Description = "";
                 Category = "General";
                 SupplierName = "";
                 Location = "Warehouse";
@@ -274,9 +274,9 @@ namespace OCC.Client.ViewModels.Orders
             {
                 IsEditMode = true;
                 _editingId = item.Id;
-                Title = $"Edit {item.ProductName}";
+                Title = $"Edit {item.Description}";
                 Sku = item.Sku;
-                ProductName = item.ProductName;
+                Description = item.Description;
                 Category = item.Category;
                 SupplierName = item.Supplier;
                 Location = item.Location;

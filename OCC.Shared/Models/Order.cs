@@ -4,6 +4,15 @@ using System.Linq;
 
 namespace OCC.Shared.Models
 {
+    /// <summary>
+    /// Represents a commercial order within the OCC system (Purchase Order or Sales Order).
+    /// Tracks the movement of materials between suppliers, inventory, and project sites.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Persisted in the <c>Orders</c> table.
+    /// <b>How:</b> Orders contain multiple <see cref="OrderLine"/> items. They can be for procurement (<see cref="OrderType.PurchaseOrder"/>) 
+    /// or for project-specific allocation (<see cref="OrderType.SalesOrder"/>).
+    /// </remarks>
     public class Order
     {
         public Guid Id { get; set; }

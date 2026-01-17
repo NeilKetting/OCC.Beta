@@ -9,11 +9,12 @@
              x:DataType="vm:CompanySettingsViewModel">
 
     <Border Background="{DynamicResource SurfaceWhite}"
-            CornerRadius="0"
-            BoxShadow="0 2 15 5 #292828"
-            Margin="20"
+            CornerRadius="8"
+            BoxShadow="0 20 50 5 #40000000"
+            Margin="20,10,40,20"
             VerticalAlignment="Stretch"
-            HorizontalAlignment="Stretch">
+            HorizontalAlignment="Stretch"
+            MaxWidth="1150">
         <Grid RowDefinitions="Auto, *, Auto, Auto">
 
             <!-- Header -->
@@ -34,11 +35,11 @@
             </Border>
 
             <!-- Scrollable Content -->
-            <ScrollViewer Grid.Row="1" Padding="40,30">
-                <Grid ColumnDefinitions="*, 50, *, 50, *">
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <Grid ColumnDefinitions="1*, 40, 1*, 40, 1*" Margin="40,30,40,50">
                     
                     <!-- Left Column: General Info -->
-                    <StackPanel Grid.Column="0" Spacing="20">
+                    <StackPanel Grid.Column="0" Spacing="20" MinWidth="300" MaxWidth="350">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <PathIcon Data="{StaticResource IconSettings}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
                             <TextBlock Text="General Information" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
@@ -104,7 +105,7 @@
 
 
                     <!-- Middle Column: Address & Banking -->
-                    <StackPanel Grid.Column="2" Spacing="20">
+                    <StackPanel Grid.Column="2" Spacing="20" MinWidth="300" MaxWidth="350">
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                              <PathIcon Data="{StaticResource IconHome}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
                              <TextBlock Text="Location &amp; Banking" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
@@ -174,7 +175,7 @@
                     </StackPanel>
 
                     <!-- Right Column: Departments -->
-                    <StackPanel Grid.Column="4" Spacing="20">
+                    <StackPanel Grid.Column="4" Spacing="20" MinWidth="300" MaxWidth="350">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <PathIcon Data="{StaticResource IconEmail}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/> 
                             <TextBlock Text="Department Emails" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>

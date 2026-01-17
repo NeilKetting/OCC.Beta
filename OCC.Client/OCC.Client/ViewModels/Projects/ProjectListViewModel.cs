@@ -25,6 +25,9 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private ProjectDashboardItemViewModel? _selectedProject;
 
+        [ObservableProperty]
+        private string _searchQuery = string.Empty;
+
 
 
         public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService)

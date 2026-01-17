@@ -1,36 +1,104 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
 namespace OCC.Shared.Models
 {
-    public class ProjectTask : IEntity, System.ComponentModel.INotifyPropertyChanged
+    /// <summary>
+    /// Represents a specific unit of work or activity within a <see cref="Project"/>.
+    /// Supports hierarchical structures (Gantt chart style), dependencies, and resource assignment.
+    /// </summary>
+    /// <remarks>
+    /// <b>Where:</b> Persisted in the <c>ProjectTasks</c> table.
+    /// <b>How:</b> Tasks belong to a <see cref="Project"/> and can be grouped via <see cref="ParentId"/> / <see cref="Children"/>.
+    /// Time tracked against tasks feeds into project costing.
+    /// </remarks>
+    public class ProjectTask : IEntity, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary> Unique primary key for the task. </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string? LegacyId { get; set; } // For MSP or other string IDs
+
+        /// <summary> Optional ID from external systems like MS Project or Gantt exports. </summary>
+        public string? LegacyId { get; set; }
+
+        /// <summary> The name or title of the task. </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary> Scheduled start date. </summary>
         public DateTime StartDate { get; set; }
+
+        /// <summary> Scheduled completion date. </summary>
         public DateTime FinishDate { get; set; }
+        
+        /// <summary> Textual representation of duration (e.g., "5 days"). </summary>
         public string Duration { get; set; } = string.Empty;
+
+        /// <summary> Progress percentage (0-100). </summary>
         public int PercentComplete { get; set; }
+
+        /// <summary> Priority level (Low, Medium, High, Critical). Default is "Medium". </summary>
         public string Priority { get; set; } = "Medium";
+
+        /// <summary> Status string (e.g., "To Do", "In Progress", "Completed"). </summary>
         public string Status { get; set; } = "To Do";
+
+        /// <summary> Helper property indicating if the task is finished. </summary>
         public bool IsComplete => Status == "Completed" || PercentComplete == 100;
+
+        /// <summary> Legacy text field for assignment (Deprecated in favor of <see cref="Assignments"/>). </summary>
         public string AssignedTo { get; set; } = "UN"; // Unassigned
+
+        /// <summary> Detailed description or instructions for the task. </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary> The category of the activity (Task vs Meeting). </summary>
         public TaskType Type { get; set; } = TaskType.Task;
+
+        /// <summary> User comments and discussion thread attached to this task. </summary>
         public List<TaskComment> Comments { get; set; } = new();
+
+        /// <summary> Resources (employees/teams) assigned to this task. </summary>
         public ICollection<TaskAssignment> Assignments { get; set; } = new List<TaskAssignment>();
+        
+        /// <summary> If true, work is temporarily suspended. </summary>
         public bool IsOnHold { get; set; }
 
+        /// <summary> Foreign Key to the parent <see cref="Models.Project"/>. </summary>
         public Guid ProjectId { get; set; }
+        
+        /// <summary> Navigation property to the parent Project. </summary>
         public virtual Project? Project { get; set; }
         
+        /// <summary> Optional Foreign Key to a parent task (for nested sub-tasks). </summary>
         public Guid? ParentId { get; set; }
+
+        /// <summary> Collection of sub-tasks. </summary>
         public List<ProjectTask> Children { get; set; } = new();
+
+        /// <summary> List of dependency task IDs (Predecessors). </summary>
         public List<string> Predecessors { get; set; } = new();
+
+        /// <summary> The visual sort order index for display. </summary>
         public int OrderIndex { get; set; }
+
+        /// <summary> visual indentation level for hierarchical display (0 is root). </summary>
         public int IndentLevel { get; set; }
-        public bool IsGroup { get; set; } // Renamed from IsSummary to avoid confusion with MSP Summary property if exists
+
+        /// <summary> If true, this is a summary/container task with children. </summary>
+        public bool IsGroup { get; set; }
         
         // UI Helpers
         private bool _isExpanded = true;
+        
+        /// <summary> UI State: whether the sub-tasks are visible. </summary>
         public bool IsExpanded 
         { 
             get => _isExpanded; 
@@ -44,33 +112,36 @@ namespace OCC.Shared.Models
             }
         }
         
+        /// <summary> Helper to check if the task is a parent node. </summary>
         public bool HasChildren => Children != null && Children.Any();
 
-        /// <summary>
-        /// Gets or sets the actual date and time when the task was completed.
-        /// </summary>
         #region Actuals
+        /// <summary> The actual date work commenced. </summary>
         public DateTime? ActualStartDate { get; set; }
+        /// <summary> The actual date work was completed. </summary>
         public DateTime? ActualCompleteDate { get; set; }
+        /// <summary> The actual time taken to complete the task. </summary>
         public TimeSpan? ActualDuration { get; set; }
-        public TimeSpan? PlanedDurationHours { get; set; } // Added for compatibility with TaskItem logic
+        /// <summary> Planned duration in hours (stored as nullable TimeSpan). </summary>
+        public TimeSpan? PlanedDurationHours { get; set; }
         #endregion
 
         #region Geofencing
+        /// <summary> GPS Latitude for verifying task location (if applicable). </summary>
         public double? Latitude { get; set; }
+        /// <summary> GPS Longitude for verifying task location (if applicable). </summary>
         public double? Longitude { get; set; }
         #endregion
-
-        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-        }
     }
 
+    /// <summary>
+    /// Differentiates between standard work tasks and scheduled meetings.
+    /// </summary>
     public enum TaskType
     {
+        /// <summary> A standard work activity. </summary>
         Task,
+        /// <summary> A scheduled meeting or consultation. </summary>
         Meeting
     }
 }

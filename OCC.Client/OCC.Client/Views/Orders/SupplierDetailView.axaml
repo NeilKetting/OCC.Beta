@@ -44,8 +44,8 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="White" Width="700" Height="450" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
-			VerticalAlignment="Center" HorizontalAlignment="Center">
+	<Border Background="White" CornerRadius="8" BoxShadow="0 4 15 0 #40000000" Margin="20,10,40,20" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1"
+			VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MaxWidth="800">
 		<Grid RowDefinitions="Auto, *, Auto">
 
 			<!-- Header -->
@@ -60,8 +60,8 @@
 			</Border>
 
 			<!-- Form -->
-			<ScrollViewer Grid.Row="1" Padding="20">
-				<Grid ColumnDefinitions="*, 20, *, 20, *">
+			<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+				<Grid ColumnDefinitions="*, 20, *, 20, *" Margin="20,20,20,50">
 
 					<!-- Left Column: Company Info -->
 					<StackPanel Grid.Column="0" Spacing="15">

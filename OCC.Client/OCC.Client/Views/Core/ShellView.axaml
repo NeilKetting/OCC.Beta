@@ -62,7 +62,7 @@
                     </Button.Styles>
                 </Button>
                 
-                <ContentControl Content="{Binding CurrentProfile}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ContentControl Content="{Binding CurrentProfile}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                      <ContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vmShared:ProfileViewModel}">
                              <viewsShared:ProfileView/>

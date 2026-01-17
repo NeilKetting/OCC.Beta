@@ -138,7 +138,7 @@ namespace OCC.Client.Services.Managers
         {
             var item = new InventoryItem
             {
-                ProductName = name,
+                Description = name,
                 UnitOfMeasure = uom,
                 Category = string.IsNullOrWhiteSpace(category) ? "General" : category,
                 Supplier = supplierName
@@ -311,7 +311,7 @@ namespace OCC.Client.Services.Managers
                     OrderId = order.Id,
                     InventoryItemId = item.Id,
                     ItemCode = item.Sku,
-                    Description = item.ProductName,
+                    Description = item.Description,
                     Category = item.Category,
                     UnitOfMeasure = item.UnitOfMeasure,
                     UnitPrice = unitPrice,

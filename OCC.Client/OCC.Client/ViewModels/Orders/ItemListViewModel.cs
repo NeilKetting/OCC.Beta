@@ -158,12 +158,12 @@ namespace OCC.Client.ViewModels.Orders
         {
              if (item == null) return;
 
-             var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Are you sure you want to permanently delete item '{item.ProductName}'? This action cannot be reversed.");
+             var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Are you sure you want to permanently delete item '{item.Description}'? This action cannot be reversed.");
              if (!confirm) return;
 
              try 
              {
-                 BusyText = $"Deleting '{item.ProductName}'...";
+                 BusyText = $"Deleting '{item.Description}'...";
                  IsBusy = true;
                  
                  await _orderManager.DeleteItemAsync(item.Id);
@@ -175,7 +175,7 @@ namespace OCC.Client.ViewModels.Orders
              }
              catch(Exception ex)
              {
-                 _logger.LogError(ex, "Failed to delete item {ItemName}", item.ProductName);
+                 _logger.LogError(ex, "Failed to delete item {ItemName}", item.Description);
                  await _dialogService.ShowAlertAsync("Error", $"An unexpected error occurred while deleting: {ex.Message}");
              }
              finally
@@ -221,7 +221,7 @@ namespace OCC.Client.ViewModels.Orders
             var filtered = string.IsNullOrWhiteSpace(SearchQuery) 
                 ? _allItems 
                 : _allItems.Where(i => 
-                    i.ProductName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    i.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
                     (i.Supplier != null && i.Supplier.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)) ||
                     (i.Category != null && i.Category.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
                   );

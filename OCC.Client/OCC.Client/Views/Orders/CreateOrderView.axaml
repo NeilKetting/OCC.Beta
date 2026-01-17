@@ -5,7 +5,7 @@
 			 xmlns:vm="using:OCC.Client.ViewModels.Orders"
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:wrappers="using:OCC.Client.ModelWrappers"
-             xmlns:client="using:OCC.Client"
+			 xmlns:client="using:OCC.Client"
 			 mc:Ignorable="d"
 			 d:DesignWidth="1200" d:DesignHeight="800"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
@@ -18,115 +18,115 @@
 		<conv:BoolToTextConverter x:Key="BoolToTextConverter" />
 		<conv:ZeroToEmptyStringConverter x:Key="ZeroToEmptyStringConverter" />
 
-        <DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <Grid ColumnDefinitions="*, Auto">
-                <AutoCompleteBox Grid.Column="0"
-                                 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
-                                 Text="{Binding ItemCode, Mode=TwoWay}"
-                                 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
-                                 Watermark="Search..."
-                                 FilterMode="None"
-                                 MinimumPrefixLength="0"
-                                 KeyUp="ProductBox_KeyUp"
-                                 GotFocus="AutoCompleteBox_GotFocus"
-                                 SelectionChanged="GridProductBox_SelectionChanged"
-                                 BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"
-                                 ContextMenu="{x:Null}"
-                                 x:Name="GridProductBox">
-                    <AutoCompleteBox.ItemTemplate>
-                        <DataTemplate x:DataType="models:InventoryItem">
-                            <Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
-                                <TextBlock Grid.Column="0" Text="{Binding Sku}" FontWeight="Bold" FontSize="11"/>
-                                <TextBlock Grid.Column="2" Text="{Binding ProductName}" TextTrimming="CharacterEllipsis" FontSize="11"/>
-                                <TextBlock Grid.Column="4" Text="{Binding Category}" FontStyle="Italic" Foreground="Gray" FontSize="11"/>
-                            </Grid>
-                        </DataTemplate>
-                    </AutoCompleteBox.ItemTemplate>
-                </AutoCompleteBox>
-                <Button Grid.Column="1"
-                        Content="&#xE70D;"
-                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" 
-                        FontSize="8"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Padding="0"
-                        Margin="0"
-                        Width="20"
-                        IsTabStop="False"
-                        Click="ToggleProductDropdown"
-                        Cursor="Hand"/>
-            </Grid>
-        </DataTemplate>
+		<DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<Grid ColumnDefinitions="*, Auto">
+				<AutoCompleteBox Grid.Column="0"
+								 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
+								 Text="{Binding ItemCode, Mode=TwoWay}"
+								 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+								 Watermark="Search..."
+								 FilterMode="None"
+								 MinimumPrefixLength="0"
+								 KeyUp="ProductBox_KeyUp"
+								 GotFocus="AutoCompleteBox_GotFocus"
+								 SelectionChanged="GridProductBox_SelectionChanged"
+								 BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"
+								 ContextMenu="{x:Null}"
+								 x:Name="GridProductBox">
+					<AutoCompleteBox.ItemTemplate>
+						<DataTemplate x:DataType="models:InventoryItem">
+							<Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
+								<TextBlock Grid.Column="0" Text="{Binding Sku}" FontWeight="Bold" FontSize="11"/>
+								<TextBlock Grid.Column="2" Text="{Binding Description}" TextTrimming="CharacterEllipsis" FontSize="11"/>
+								<TextBlock Grid.Column="4" Text="{Binding Category}" FontStyle="Italic" Foreground="Gray" FontSize="11"/>
+							</Grid>
+						</DataTemplate>
+					</AutoCompleteBox.ItemTemplate>
+				</AutoCompleteBox>
+				<Button Grid.Column="1"
+						Content="&#xE70D;"
+						FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+						FontSize="8"
+						Background="Transparent"
+						BorderThickness="0"
+						Padding="0"
+						Margin="0"
+						Width="20"
+						IsTabStop="False"
+						Click="ToggleProductDropdown"
+						Cursor="Hand"/>
+			</Grid>
+		</DataTemplate>
 
-        <DataTemplate x:Key="DescriptionTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <TextBox Text="{Binding Description, Mode=TwoWay}"
-                     GotFocus="TextBox_GotFocus"
-                     Watermark="Description"
-                     ContextMenu="{x:Null}"
-                     BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" VerticalContentAlignment="Center"/>
-        </DataTemplate>
+		<DataTemplate x:Key="DescriptionTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<TextBox Text="{Binding Description, Mode=TwoWay}"
+					 GotFocus="TextBox_GotFocus"
+					 Watermark="Description"
+					 ContextMenu="{x:Null}"
+					 BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" VerticalContentAlignment="Center"/>
+		</DataTemplate>
 
-        <DataTemplate x:Key="QtyTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <NumericUpDown Value="{Binding QuantityOrdered}"
-                           Minimum="0"
-                           Increment="1"
-                           FormatString="0.##"
-                           GotFocus="TextBox_GotFocus"
-                           ContextMenu="{x:Null}"
-                           BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                           ShowButtonSpinner="False"/>
-        </DataTemplate>
+		<DataTemplate x:Key="QtyTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<NumericUpDown Value="{Binding QuantityOrdered}"
+						   Minimum="0"
+						   Increment="1"
+						   FormatString="0.##"
+						   GotFocus="TextBox_GotFocus"
+						   ContextMenu="{x:Null}"
+						   BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+						   ShowButtonSpinner="False"/>
+		</DataTemplate>
 
-        <DataTemplate x:Key="UnitTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <Button Content="{Binding UnitOfMeasure}"
-                    Background="Transparent" 
-                    BorderThickness="0" 
-                    CornerRadius="0"
-                    Padding="5,0" 
-                    Margin="0" 
-                    HorizontalAlignment="Stretch" 
-                    VerticalAlignment="Stretch" 
-                    HorizontalContentAlignment="Left"
-                    FontSize="11"
-                    Cursor="Hand">
-                <Button.Flyout>
-                    <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient">
-                        <ListBox ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).AvailableUOMs}"
-                                 SelectedItem="{Binding UnitOfMeasure, Mode=TwoWay}"
-                                 SelectionChanged="UOM_SelectionChanged"
-                                 Background="White"
-                                 BorderThickness="0"
-                                 Padding="0"
-                                 Margin="0"
-                                 MaxHeight="200">
-                            <ListBox.Styles>
-                                 <Style Selector="ListBoxItem">
-                                     <Setter Property="Padding" Value="10,5"/>
-                                     <Setter Property="FontSize" Value="12"/>
-                                 </Style>
-                            </ListBox.Styles>
-                        </ListBox>
-                    </Flyout>
-                </Button.Flyout>
-            </Button>
-        </DataTemplate>
+		<DataTemplate x:Key="UnitTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<Button Content="{Binding UnitOfMeasure}"
+					Background="Transparent"
+					BorderThickness="0"
+					CornerRadius="0"
+					Padding="5,0"
+					Margin="0"
+					HorizontalAlignment="Stretch"
+					VerticalAlignment="Stretch"
+					HorizontalContentAlignment="Left"
+					FontSize="11"
+					Cursor="Hand">
+				<Button.Flyout>
+					<Flyout Placement="BottomEdgeAlignedLeft" ShowMode="Transient">
+						<ListBox ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).AvailableUOMs}"
+								 SelectedItem="{Binding UnitOfMeasure, Mode=TwoWay}"
+								 SelectionChanged="UOM_SelectionChanged"
+								 Background="White"
+								 BorderThickness="0"
+								 Padding="0"
+								 Margin="0"
+								 MaxHeight="200">
+							<ListBox.Styles>
+								<Style Selector="ListBoxItem">
+									<Setter Property="Padding" Value="10,5"/>
+									<Setter Property="FontSize" Value="12"/>
+								</Style>
+							</ListBox.Styles>
+						</ListBox>
+					</Flyout>
+				</Button.Flyout>
+			</Button>
+		</DataTemplate>
 
-        <DataTemplate x:Key="PriceTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <NumericUpDown Value="{Binding UnitPrice}"
-                           Minimum="0"
-                           Increment="0.01"
-                           FormatString="N2"
-                           GotFocus="TextBox_GotFocus"
-                           ContextMenu="{x:Null}"
-                           BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
-                           ShowButtonSpinner="False"/>
-        </DataTemplate>
+		<DataTemplate x:Key="PriceTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<NumericUpDown Value="{Binding UnitPrice}"
+						   Minimum="0"
+						   Increment="0.01"
+						   FormatString="N2"
+						   GotFocus="TextBox_GotFocus"
+						   ContextMenu="{x:Null}"
+						   BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11" Padding="4,0" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"
+						   ShowButtonSpinner="False"/>
+		</DataTemplate>
 
-        <DataTemplate x:Key="TotalTemplate" x:DataType="wrappers:OrderLineWrapper">
-            <TextBlock Text="{Binding LineTotal, StringFormat='{}{0:N2}'}"
-                     Focusable="False"
-                     Padding="10,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
-        </DataTemplate>
+		<DataTemplate x:Key="TotalTemplate" x:DataType="wrappers:OrderLineWrapper">
+			<TextBlock Text="{Binding LineTotal, StringFormat='{}{0:N2}'}"
+					   Focusable="False"
+					   Padding="10,0" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="11"/>
+		</DataTemplate>
 	</UserControl.Resources>
 
 	<Design.DataContext>
@@ -208,41 +208,43 @@
 			</Border>
 
 			<!-- Form -->
-			<Grid Grid.Row="2" Margin="20, 10, 20, 0" IsEnabled="{Binding !IsReadOnly}">
+			<Grid Grid.Row="2" Margin="20, 5, 20, 0" IsEnabled="{Binding !IsReadOnly}">
 				<Grid RowDefinitions="Auto, *, Auto">
-                    <!-- Top Section: Inputs & Headers -->
-                    <StackPanel Grid.Row="0" Spacing="5">
+					<!-- Top Section: Inputs & Headers -->
+					<StackPanel Grid.Row="0" Spacing="5">
 
-					<!-- Order Meta Info -->
-					<Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-						<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
-							<RadioButton GroupName="Type" Content="Purchase Order"
-										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
-										 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
-							<RadioButton GroupName="Type" Content="Sales Order"
-										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
-										 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
-							<RadioButton GroupName="Type" Content="Inventory Return"
-										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
-										 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
-						</StackPanel>
+						<!-- Order Meta Info -->
+						<Grid ColumnDefinitions="*, Auto" Margin="0,0,0,5">
+							<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+								<RadioButton GroupName="Type" Content="Purchase Order"
+											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
+											 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
+								<RadioButton GroupName="Type" Content="Sales Order"
+											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
+											 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
+								<RadioButton GroupName="Type" Content="Inventory Return"
+											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
+											 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
+							</StackPanel>
 
-						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-							<TextBlock Text="Branch:" VerticalAlignment="Center" Classes="Label" Margin="0,0,5,0"/>
-							<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding CurrentOrder.Branch}" Width="100"/>
-						</StackPanel>
-					</Grid>
+							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+								<TextBlock Text="Branch:" VerticalAlignment="Center" Classes="Label" Margin="0,0,5,0"/>
+								<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding CurrentOrder.Branch}" Width="100"/>
+							</StackPanel>
+						</Grid>
 
-					<!-- Entity Details -->
-					<Grid ColumnDefinitions="*, 30, *, 30,*">
-						<!-- Left Column -->
-						<StackPanel Grid.Column="0" Spacing="10">
-							<!-- Supplier (PO Only) -->
-							<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
-								<TextBlock Text="Supplier" Classes="Label"/>
-								<Grid ColumnDefinitions="*, Auto">
-									<ComboBox Grid.Column="0" ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
-											  HorizontalAlignment="Stretch" PlaceholderText="Select Supplier"
+						<!-- Entity Details -->
+						<Grid ColumnDefinitions="*, 30, *, 30,*">
+							<!-- Left Column -->
+							<StackPanel Grid.Column="0" Spacing="5">
+								<!-- Supplier (PO Only) -->
+								<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
+									<TextBlock Text="Supplier" Classes="Label"/>
+									<ComboBox Grid.Column="0"
+											  ItemsSource="{Binding Suppliers}"
+											  SelectedItem="{Binding SelectedSupplier}"
+											  HorizontalAlignment="Stretch"
+											  PlaceholderText="Select Supplier"
 											  IsTextSearchEnabled="True">
 										<ComboBox.ItemTemplate>
 											<DataTemplate>
@@ -250,94 +252,95 @@
 											</DataTemplate>
 										</ComboBox.ItemTemplate>
 									</ComboBox>
-									<Button Grid.Column="1" Content="+" FontWeight="Bold" Width="32" Height="32"
-											Command="{Binding ToggleQuickAddSupplierCommand}" Classes="Secondary" Margin="5,0,0,0" ToolTip.Tip="Quick Add Supplier"/>
+								</StackPanel>
+
+								<!-- Customer (SO Only) - Now Project Binding -->
+								<StackPanel Spacing="5" IsVisible="{Binding IsSalesOrder}">
+									<TextBlock Text="Project / Site" Classes="Label"/>
+									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
+											  HorizontalAlignment="Stretch" PlaceholderText="Select Project"
+											  IsTextSearchEnabled="True">
+										<ComboBox.ItemTemplate>
+											<DataTemplate>
+												<TextBlock Text="{Binding Name}"/>
+											</DataTemplate>
+										</ComboBox.ItemTemplate>
+									</ComboBox>
+								</StackPanel>
+
+								<!-- Return Project (Return Only) -->
+								<StackPanel Spacing="5" IsVisible="{Binding IsReturnOrder}">
+									<TextBlock Text="Returning From Project" Classes="Label"/>
+									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding CurrentOrder.ProjectName}" HorizontalAlignment="Stretch" PlaceholderText="Select Project"/>
+								</StackPanel>
+
+								<!-- Attention Field -->
+								<StackPanel Spacing="5">
+									<TextBlock Text="Attention:" Classes="Label"/>
+									<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
+								</StackPanel>
+							</StackPanel>
+
+							<!-- Middle Column -->
+							<StackPanel Grid.Column="2" Spacing="5">
+								<Grid ColumnDefinitions="*, 15, *">
+									<StackPanel Grid.Column="0" Spacing="5">
+										<TextBlock Text="Order Date" Classes="Label"/>
+										<CalendarDatePicker SelectedDate="{Binding CurrentOrder.OrderDate}" HorizontalAlignment="Stretch"/>
+									</StackPanel>
+									<StackPanel Grid.Column="2" Spacing="5">
+										<TextBlock Text="Expected Delivery" Classes="Label"/>
+										<CalendarDatePicker SelectedDate="{Binding CurrentOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+									</StackPanel>
 								</Grid>
-							</StackPanel>
 
-							<!-- Customer (SO Only) - Now Project Binding -->
-							<StackPanel Spacing="5" IsVisible="{Binding IsSalesOrder}">
-								<TextBlock Text="Project / Site" Classes="Label"/>
-								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
-										  HorizontalAlignment="Stretch" PlaceholderText="Select Project"
-										  IsTextSearchEnabled="True">
-									<ComboBox.ItemTemplate>
-										<DataTemplate>
-											<TextBlock Text="{Binding Name}"/>
-										</DataTemplate>
-									</ComboBox.ItemTemplate>
-								</ComboBox>
-							</StackPanel>
 
-							<!-- Return Project (Return Only) -->
-							<StackPanel Spacing="5" IsVisible="{Binding IsReturnOrder}">
-								<TextBlock Text="Returning From Project" Classes="Label"/>
-								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding CurrentOrder.ProjectName}" HorizontalAlignment="Stretch" PlaceholderText="Select Project"/>
-							</StackPanel>
-
-							<!-- Attention Field -->
-							<StackPanel Spacing="5">
-								<TextBlock Text="Attention:" Classes="Label"/>
-								<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
-							</StackPanel>
-
-							<!-- Delivery Instructions Field -->
-							<StackPanel Spacing="5">
-								<TextBlock Text="Delivery Instructions:" Classes="Label"/>
-								<TextBox Text="{Binding CurrentOrder.Notes}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
-							</StackPanel>
-						</StackPanel>
-						<!-- Middle Column -->
-						<StackPanel Grid.Column="2" Spacing="20">
-							<Grid ColumnDefinitions="*, 15, *">
-								<StackPanel Grid.Column="0" Spacing="5">
-									<TextBlock Text="Order Date" Classes="Label"/>
-									<CalendarDatePicker SelectedDate="{Binding CurrentOrder.OrderDate}" HorizontalAlignment="Stretch"/>
+								<!-- Delivery Instructions Field -->
+								<StackPanel Spacing="5">
+									<TextBlock Text="Delivery Instructions:" Classes="Label"/>
+									<TextBox Text="{Binding CurrentOrder.Notes}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
 								</StackPanel>
-								<StackPanel Grid.Column="2" Spacing="5">
-									<TextBlock Text="Expected Delivery" Classes="Label"/>
-									<CalendarDatePicker SelectedDate="{Binding CurrentOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
-								</StackPanel>
-							</Grid>
 
-							<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
-								<TextBlock Text="Destination" Classes="Label"/>
-								<StackPanel Orientation="Horizontal" Spacing="15">
-									<RadioButton GroupName="Dest" Content="Office Stock" IsChecked="{Binding IsOfficeDelivery}"/>
-									<RadioButton GroupName="Dest" Content="Site Delivery" IsChecked="{Binding IsSiteDelivery}"/>
+							</StackPanel>
+							<!-- Right Column -->
+							<StackPanel Grid.Column="4" Spacing="20">
+
+								<!-- Delivery Destination -->
+								<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
+									<TextBlock Text="Destination" Classes="Label"/>
+									<StackPanel Orientation="Horizontal" Spacing="15">
+										<RadioButton GroupName="Dest" Content="Office Stock" IsChecked="{Binding IsOfficeDelivery}"/>
+										<RadioButton GroupName="Dest" Content="Site Delivery" IsChecked="{Binding IsSiteDelivery}"/>
+									</StackPanel>
+								</StackPanel>
+
+								<!-- Project Link (Site Delivery Only) -->
+								<StackPanel Spacing="5" IsVisible="{Binding IsSiteDelivery}">
+									<TextBlock Text="Project Reference" Classes="Label"/>
+									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
+											  HorizontalAlignment="Stretch" PlaceholderText="Link to Project" IsTextSearchEnabled="True"/>
+
+									<!-- Address Verification -->
+									<StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" IsVisible="{Binding SelectedProject, Converter={x:Static ObjectConverters.IsNotNull}}">
+										<PathIcon Data="{StaticResource IconLocation}" Width="14" Height="14" Foreground="{DynamicResource ThemeForegroundLow}"/>
+										<TextBlock Text="{Binding CurrentOrder.EntityAddress, TargetNullValue='No address on file'}"
+												   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+												   Classes="Caption" Foreground="{DynamicResource ThemeForegroundLow}" TextWrapping="Wrap" MaxWidth="300"/>
+										<TextBlock Text="No address on file for this project."
+												   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+												   Classes="Caption" Foreground="Red" FontStyle="Italic"/>
+									</StackPanel>
 								</StackPanel>
 							</StackPanel>
+						</Grid>
 
+						<Separator Background="{DynamicResource ThemeBorderLow}" Height="1"/>
 
-						</StackPanel>
-						<!-- Right Column -->
-						<StackPanel Grid.Column="4" Spacing="20">
-							<StackPanel Spacing="5" IsVisible="{Binding IsSiteDelivery}">
-								<TextBlock Text="Project Reference" Classes="Label"/>
-								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
-										  HorizontalAlignment="Stretch" PlaceholderText="Link to Project" IsTextSearchEnabled="True"/>
-
-								<!-- Address Verification -->
-								<StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" IsVisible="{Binding SelectedProject, Converter={x:Static ObjectConverters.IsNotNull}}">
-									<PathIcon Data="{StaticResource IconLocation}" Width="14" Height="14" Foreground="{DynamicResource ThemeForegroundLow}"/>
-									<TextBlock Text="{Binding CurrentOrder.EntityAddress, TargetNullValue='No address on file'}"
-											   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-											   Classes="Caption" Foreground="{DynamicResource ThemeForegroundLow}" TextWrapping="Wrap" MaxWidth="300"/>
-									<TextBlock Text="No address on file for this project."
-											   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-											   Classes="Caption" Foreground="Red" FontStyle="Italic"/>
-								</StackPanel>
-							</StackPanel>
-						</StackPanel>
-					</Grid>
-
-					<Separator Background="{DynamicResource ThemeBorderLow}" Height="1"/>
-
-					<!-- Line Items -->
-					<Grid ColumnDefinitions="*, Auto">
-						<TextBlock Text="Order Items" FontSize="16" FontWeight="SemiBold"/>
-					</Grid>
-                    </StackPanel>
+						<!-- Line Items -->
+						<Grid ColumnDefinitions="*, Auto">
+							<TextBlock Text="Order Items" FontSize="14" FontWeight="SemiBold"/>
+						</Grid>
+					</StackPanel>
 
 					<!-- Invoice DataGrid (Standard Implementation) -->
 					<DataGrid Grid.Row="1" ItemsSource="{Binding CurrentOrder.Lines}" Margin="0,10,0,0"
@@ -345,35 +348,35 @@
 							  CanUserSortColumns="False"
 							  GridLinesVisibility="All"
 							  RowHeight="30"
-                              RowBackground="White"
+							  RowBackground="White"
 							  BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderLow}"
-                              KeyboardNavigation.TabNavigation="Cycle">
+							  KeyboardNavigation.TabNavigation="Cycle">
 						<DataGrid.Styles>
-                            <Style Selector="DataGridRow:nth-child(2n)">
-                                <Setter Property="Background" Value="#F9F9F9"/> 
-                            </Style>
-                            <Style Selector="DataGridRow" x:DataType="wrappers:OrderLineWrapper">
-                                <Setter Property="ContextMenu">
-                                    <Setter.Value>
-                                        <ContextMenu>
-                                            <MenuItem Header="Insert Row"
-                                                      Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).InsertLineCommand}"
-                                                      CommandParameter="{Binding}">
-                                                <MenuItem.Icon>
-                                                    <PathIcon Data="{StaticResource IconAdd}" Foreground="Green"/>
-                                                </MenuItem.Icon>
-                                            </MenuItem>
-                                            <MenuItem Header="Delete Row"
-                                                      Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).RemoveLineCommand}"
-                                                      CommandParameter="{Binding}">
-                                                <MenuItem.Icon>
-                                                    <PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
-                                                </MenuItem.Icon>
-                                            </MenuItem>
-                                        </ContextMenu>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
+							<Style Selector="DataGridRow:nth-child(2n)">
+								<Setter Property="Background" Value="#F9F9F9"/>
+							</Style>
+							<Style Selector="DataGridRow" x:DataType="wrappers:OrderLineWrapper">
+								<Setter Property="ContextMenu">
+									<Setter.Value>
+										<ContextMenu>
+											<MenuItem Header="Insert Row"
+													  Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).InsertLineCommand}"
+													  CommandParameter="{Binding}">
+												<MenuItem.Icon>
+													<PathIcon Data="{StaticResource IconAdd}" Foreground="Green"/>
+												</MenuItem.Icon>
+											</MenuItem>
+											<MenuItem Header="Delete Row"
+													  Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).RemoveLineCommand}"
+													  CommandParameter="{Binding}">
+												<MenuItem.Icon>
+													<PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
+												</MenuItem.Icon>
+											</MenuItem>
+										</ContextMenu>
+									</Setter.Value>
+								</Setter>
+							</Style>
 						</DataGrid.Styles>
 						<DataGrid.Columns>
 							<DataGridTemplateColumn Header="ITEM" Width="2*" CellTemplate="{StaticResource ItemTemplate}"/>
@@ -406,8 +409,8 @@
 							</Grid>
 						</StackPanel>
 					</Grid>
-					</Grid>
 				</Grid>
+			</Grid>
 
 
 			<!-- Footer Actions -->
@@ -456,8 +459,8 @@
 					<StackPanel Spacing="15">
 						<TextBlock Text="Quick Add Product" FontWeight="Bold" FontSize="16"/>
 						<StackPanel Spacing="5">
-							<TextBlock Text="Product Name" Classes="Label"/>
-							<TextBox Text="{Binding NewProductName}" Watermark="e.g. Cement 50kg" Classes="FormInput"/>
+							<TextBlock Text="Description" Classes="Label"/>
+							<TextBox Text="{Binding NewDescription}" Watermark="e.g. Cement 50kg" Classes="FormInput"/>
 						</StackPanel>
 
 						<StackPanel Spacing="5">
@@ -532,11 +535,11 @@
 				</Border>
 			</Grid>
 
-        <!-- Saving -->
-        <StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
-            <ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
-            <TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
-        </StackPanel>
+			<!-- Saving -->
+			<StackPanel Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+				<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+			</StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

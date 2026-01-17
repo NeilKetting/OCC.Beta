@@ -20,21 +20,10 @@
 				<!-- Dark Overlay -->
 				<Rectangle Grid.Column="1" Fill="{DynamicResource LoginBackgroundDark}" Opacity="0.75" />
 				<!-- logo -->
-				<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Top" Margin="20">
-					<Border Classes="LogoContainer">
-						<Grid>
-                    <Ellipse Width="150" Height="150" Stroke="{DynamicResource AccentOrange}" StrokeThickness="8" Margin="0,0,0,0"/>
-
-						<TextBlock Text="OCC"
-								   FontSize="48"
-								   FontWeight="Bold" Foreground="{DynamicResource AccentOrange}"
-								   HorizontalAlignment="Center"
-								   VerticalAlignment="Center"
-								   />
-						</Grid>
-					</Border>
-					<TextBlock Classes="BrandName" Margin="15,0,0,0"><Span Foreground="{DynamicResource AccentOrange}">O</Span>range <Span Foreground="{DynamicResource AccentOrange}">C</Span>ircle <Span Foreground="{DynamicResource AccentOrange}">C</Span>onstruction</TextBlock>
-				</StackPanel>
+				<Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png" 
+					   Width="300" 
+					   Stretch="Uniform"
+					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 			</Grid>
 		</Panel>
 
@@ -45,7 +34,7 @@
 					<StackPanel Spacing="40">
 
 						<!-- Registration Card -->
-						<Border Classes="Card" Width="480">
+						<Border Classes="Card" Width="400">
 							<StackPanel Spacing="15">
 								<TextBlock Text="Register your account"
 										   HorizontalAlignment="Center"

@@ -14,7 +14,7 @@
         <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
     </UserControl.KeyBindings>
 
-	<Border Background="White" CornerRadius="8" Padding="0" BoxShadow="0 4 10 0 #40000000" Width="800" Height="600">
+	<Border Background="White" CornerRadius="8" Padding="0" BoxShadow="0 4 10 0 #40000000" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MaxWidth="900">
 		<Grid RowDefinitions="Auto, Auto, *, Auto">
 
 			<!-- Header -->
@@ -26,7 +26,8 @@
 			</Border>
 
 			<!-- Inputs Section -->
-			<Border Grid.Row="1" Padding="20">
+			<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+				<Border Padding="20,20,20,10">
 				<StackPanel Spacing="15">
 					<!-- Team Name -->
 					<StackPanel Spacing="5">
@@ -72,6 +73,7 @@
 					</StackPanel>
 				</StackPanel>
 			</Border>
+			</ScrollViewer>
 
 			<!-- Member List (DataGrid) - Occupies Row 2 (Remaining Space) -->
 			<DataGrid Grid.Row="2" ItemsSource="{Binding Members}" Margin="20,0,20,0"

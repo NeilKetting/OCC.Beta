@@ -7,7 +7,7 @@
 			 xmlns:local="clr-namespace:OCC.Client.Views.Shared"
 			 xmlns:menus="clr-namespace:OCC.Client.Views.Core.PopupMenus;assembly=OCC.Client"
 			 xmlns:converters="using:Avalonia.Data.Converters"
-			 mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="800"
+			 mc:Ignorable="d" d:DesignHeight="800"
 			 x:Class="OCC.Client.Views.Core.SideMenuView"
 			 x:DataType="vm:SideMenuViewModel"
 			 Focusable="True"
@@ -81,11 +81,6 @@
 							Background="Transparent">
 					<Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png"
 						   Stretch="Uniform"/>
-					<!--<Ellipse Width="40" Height="40" Stroke="{DynamicResource AccentOrange}" StrokeThickness="5"/>
-					<StackPanel VerticalAlignment="Center" IsVisible="{Binding !IsCollapsed}">
-					<TextBlock Text="Orange Circle" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-					<TextBlock Text="Construction" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" HorizontalAlignment="Center"/>
-					</StackPanel>-->
 				</StackPanel>
 			</Grid>
 
