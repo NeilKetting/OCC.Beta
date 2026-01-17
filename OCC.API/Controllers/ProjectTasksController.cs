@@ -161,20 +161,24 @@ namespace OCC.API.Controllers
                 existingTask.PercentComplete = task.PercentComplete;
                 existingTask.Priority = task.Priority;
                 existingTask.Status = task.Status;
-                existingTask.OriginalDuration = task.OriginalDuration;
-                existingTask.RemainingDuration = task.RemainingDuration;
+                existingTask.Duration = task.Duration;
+                existingTask.PlanedDurationHours = task.PlanedDurationHours;
+                existingTask.ActualDuration = task.ActualDuration;
                 existingTask.ProjectId = task.ProjectId;
-                existingTask.ParentTaskId = task.ParentTaskId;
-                existingTask.Cost = task.Cost;
-                existingTask.Tags = task.Tags;
+                existingTask.ParentId = task.ParentId;
+                existingTask.Type = task.Type;
+                existingTask.IsOnHold = task.IsOnHold;
+                existingTask.OrderIndex = task.OrderIndex;
+                existingTask.IndentLevel = task.IndentLevel;
+                existingTask.IsGroup = task.IsGroup;
 
                 // Signal automated project status if progress starts
                 if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
                 {
                     var project = await _context.Projects.FindAsync(existingTask.ProjectId);
-                    if (project != null && project.Status == ProjectStatus.Planned)
+                    if (project != null && (project.Status == "Planned" || project.Status == "Planning"))
                     {
-                        project.Status = ProjectStatus.InProgress;
+                        project.Status = "In Progress";
                         _context.AuditLogs.Add(new AuditLog
                         {
                             UserId = "System",
@@ -245,16 +249,25 @@ namespace OCC.API.Controllers
     
     public static class TaskHelper
     {
+        public static DateTime EnsureUtc(DateTime date)
+        {
+            if (date.Kind == DateTimeKind.Unspecified) return DateTime.SpecifyKind(date, DateTimeKind.Utc);
+            return date.Kind == DateTimeKind.Local ? date.ToUniversalTime() : date;
+        }
+
+        public static DateTime? EnsureUtc(DateTime? date)
+        {
+            if (!date.HasValue) return null;
+            if (date.Value.Kind == DateTimeKind.Unspecified) return DateTime.SpecifyKind(date.Value, DateTimeKind.Utc);
+            return date.Value.Kind == DateTimeKind.Local ? date.Value.ToUniversalTime() : date.Value;
+        }
+
         public static void EnsureUtcDates(ProjectTask task)
         {
-            if (task.StartDate.Kind == DateTimeKind.Local) task.StartDate = task.StartDate.ToUniversalTime();
-            if (task.FinishDate.Kind == DateTimeKind.Local) task.FinishDate = task.FinishDate.ToUniversalTime();
-            
-            if (task.ActualStartDate.HasValue && task.ActualStartDate.Value.Kind == DateTimeKind.Local) 
-                task.ActualStartDate = task.ActualStartDate.Value.ToUniversalTime();
-                
-            if (task.ActualCompleteDate.HasValue && task.ActualCompleteDate.Value.Kind == DateTimeKind.Local) 
-                task.ActualCompleteDate = task.ActualCompleteDate.Value.ToUniversalTime();
+            task.StartDate = EnsureUtc(task.StartDate);
+            task.FinishDate = EnsureUtc(task.FinishDate);
+            task.ActualStartDate = EnsureUtc(task.ActualStartDate);
+            task.ActualCompleteDate = EnsureUtc(task.ActualCompleteDate);
         }
     }
 }
