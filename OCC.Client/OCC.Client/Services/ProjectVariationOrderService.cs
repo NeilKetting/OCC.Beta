@@ -11,14 +11,26 @@ namespace OCC.Client.Services
     public class ProjectVariationOrderService : IProjectVariationOrderService
     {
         private readonly HttpClient _httpClient;
+        private readonly IAuthService _authService;
 
-        public ProjectVariationOrderService(HttpClient httpClient)
+        public ProjectVariationOrderService(HttpClient httpClient, IAuthService authService)
         {
             _httpClient = httpClient;
+            _authService = authService;
+        }
+
+        private void EnsureAuthorization()
+        {
+            var token = _authService.AuthToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         public async Task<IEnumerable<ProjectVariationOrder>> GetVariationOrdersAsync(Guid? projectId = null)
         {
+            EnsureAuthorization();
             var url = "api/ProjectVariationOrders";
             if (projectId.HasValue)
             {
@@ -29,11 +41,13 @@ namespace OCC.Client.Services
 
         public async Task<ProjectVariationOrder> GetVariationOrderAsync(Guid id)
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<ProjectVariationOrder>($"api/ProjectVariationOrders/{id}") ?? throw new Exception("Variation order not found");
         }
 
         public async Task<ProjectVariationOrder> CreateVariationOrderAsync(ProjectVariationOrder variationOrder)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/ProjectVariationOrders", variationOrder);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<ProjectVariationOrder>() ?? throw new Exception("Failed to deserialize created variation order");
@@ -41,12 +55,14 @@ namespace OCC.Client.Services
 
         public async Task UpdateVariationOrderAsync(ProjectVariationOrder variationOrder)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PutAsJsonAsync($"api/ProjectVariationOrders/{variationOrder.Id}", variationOrder);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteVariationOrderAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/ProjectVariationOrders/{id}");
             response.EnsureSuccessStatusCode();
         }
