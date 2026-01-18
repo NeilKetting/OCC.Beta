@@ -179,19 +179,19 @@ namespace OCC.API.Data
 
             // Seed SA Public Holidays 2026
             modelBuilder.Entity<PublicHoliday>().HasData(
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 1, 1), Name = "New Year's Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 3, 21), Name = "Human Rights Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 4, 3), Name = "Good Friday" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 4, 6), Name = "Family Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 4, 27), Name = "Freedom Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 5, 1), Name = "Workers' Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 6, 16), Name = "Youth Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 8, 9), Name = "National Women's Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 8, 10), Name = "Public Holiday" }, // Observed
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 9, 24), Name = "Heritage Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 12, 16), Name = "Day of Reconciliation" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 12, 25), Name = "Christmas Day" },
-                new PublicHoliday { Id = Guid.NewGuid(), Date = new DateTime(2026, 12, 26), Name = "Day of Goodwill" }
+                new PublicHoliday { Id = new Guid("b862c2f5-9fe1-4228-9946-4d0aa0fdb12a"), Date = new DateTime(2026, 1, 1), Name = "New Year's Day" },
+                new PublicHoliday { Id = new Guid("a1e140e8-e1a8-4acf-b5e0-715ed41c7af3"), Date = new DateTime(2026, 3, 21), Name = "Human Rights Day" },
+                new PublicHoliday { Id = new Guid("2d50946b-c807-4e9f-a74d-a6c5493b3c94"), Date = new DateTime(2026, 4, 3), Name = "Good Friday" },
+                new PublicHoliday { Id = new Guid("e91fa4f6-1b80-423b-8755-c8e133c34670"), Date = new DateTime(2026, 4, 6), Name = "Family Day" },
+                new PublicHoliday { Id = new Guid("3e473dfe-4182-4c81-8ba8-f5c33a9e1ed1"), Date = new DateTime(2026, 4, 27), Name = "Freedom Day" },
+                new PublicHoliday { Id = new Guid("80ce73e9-fd26-47db-b79f-57165ba68111"), Date = new DateTime(2026, 5, 1), Name = "Workers' Day" },
+                new PublicHoliday { Id = new Guid("7f422560-941b-4fe4-80ef-b22adeddfbee"), Date = new DateTime(2026, 6, 16), Name = "Youth Day" },
+                new PublicHoliday { Id = new Guid("e226a941-9246-4dd5-91ec-7dff8a5a96ca"), Date = new DateTime(2026, 8, 9), Name = "National Women's Day" },
+                new PublicHoliday { Id = new Guid("0dc5e6d5-2530-40d7-8301-9d41f44c879b"), Date = new DateTime(2026, 8, 10), Name = "Public Holiday" }, // Observed
+                new PublicHoliday { Id = new Guid("5eb30cce-ad23-43a9-9ca2-50236232dccf"), Date = new DateTime(2026, 9, 24), Name = "Heritage Day" },
+                new PublicHoliday { Id = new Guid("b5b21171-4284-4f14-bfa4-e8bd0cdb3264"), Date = new DateTime(2026, 12, 16), Name = "Day of Reconciliation" },
+                new PublicHoliday { Id = new Guid("496a7469-aa27-435d-899c-1a7c540f5187"), Date = new DateTime(2026, 12, 25), Name = "Christmas Day" },
+                new PublicHoliday { Id = new Guid("fcc99eac-4678-49da-9e2e-f1026fe7c867"), Date = new DateTime(2026, 12, 26), Name = "Day of Goodwill" }
             );
 
             modelBuilder.Entity<OrderLine>(entity =>
@@ -280,7 +280,7 @@ namespace OCC.API.Data
                     .HasColumnType("bigint");
 
                 entity.HasMany(e => e.Comments)
-                    .WithOne()
+                    .WithOne(e => e.ProjectTask)
                     .HasForeignKey(e => e.TaskId)
                     .OnDelete(DeleteBehavior.Cascade);
 
