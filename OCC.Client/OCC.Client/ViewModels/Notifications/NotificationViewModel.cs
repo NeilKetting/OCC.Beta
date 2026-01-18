@@ -17,6 +17,8 @@ using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.ViewModels.Messages;
 
+using OCC.Client.Infrastructure;
+
 namespace OCC.Client.ViewModels.Notifications
 {
     public partial class NotificationViewModel : ViewModelBase
@@ -149,7 +151,7 @@ namespace OCC.Client.ViewModels.Notifications
                                 Message = $"New user awaiting approval: {user.FirstName} {user.LastName} ({user.Email})",
                                 Timestamp = DateTime.Now, 
                                 IsRead = false,
-                                TargetAction = "UserRegistration",
+                                TargetAction = NavigationRoutes.Feature_UserRegistration,
                                 UserId = user.Id
                             });
                         }
@@ -183,7 +185,7 @@ namespace OCC.Client.ViewModels.Notifications
                                 Message = msg,
                                 Timestamp = req.StartDate, 
                                 IsRead = false,
-                                TargetAction = "LeaveRequest",
+                                TargetAction = NavigationRoutes.Feature_LeaveApproval,
                                 UserId = req.Id // Storing RequestId
                             });
                          }
@@ -213,7 +215,7 @@ namespace OCC.Client.ViewModels.Notifications
                                 Message = msg,
                                 Timestamp = req.Date,
                                 IsRead = false,
-                                TargetAction = "OvertimeRequest",
+                                TargetAction = NavigationRoutes.Feature_OvertimeRequest,
                                 UserId = req.Id // Storing RequestId
                             });
                          }
@@ -250,7 +252,7 @@ namespace OCC.Client.ViewModels.Notifications
                 if (isRegistration)
                 {
                     title = "New Registration";
-                    targetAction = "UserRegistration";
+                    targetAction = NavigationRoutes.Feature_UserRegistration;
                     
                     try 
                     {
@@ -291,7 +293,7 @@ namespace OCC.Client.ViewModels.Notifications
                      // "Update on Bug Report: Description... (For: ReporterName)"
                      // We can try to extract basic info or just set action
                      title = "Bug Report Update";
-                     targetAction = "BugReports";
+                     targetAction = NavigationRoutes.Feature_BugReports;
                      // We don't have the ID easily unless we encoded it in message or look it up.
                      // The backend message: "Update on Bug Report: {Desc} (For: {Name})"
                      // The requirement is just to navigate to list view.
@@ -409,25 +411,25 @@ namespace OCC.Client.ViewModels.Notifications
         [RelayCommand]
         private void Navigate(Notification notification)
         {
-             if (notification.TargetAction == "UserRegistration" && notification.UserId.HasValue)
+             if (notification.TargetAction == NavigationRoutes.Feature_UserRegistration && notification.UserId.HasValue)
              {
                  WeakReferenceMessenger.Default.Send(new OpenManageUsersMessage(notification.UserId.Value));
              }
-             else if (notification.TargetAction == "LeaveRequest")
-             {
-                 WeakReferenceMessenger.Default.Send(new SwitchTabMessage("LeaveApprovals"));
-             }
-             else if (notification.TargetAction == "OvertimeRequest")
-             {
-                 WeakReferenceMessenger.Default.Send(new SwitchTabMessage("OvertimeApproval"));
-             }
-             else if (notification.TargetAction == "BugReports")
-             {
-                 // Go to Bug List
-                 WeakReferenceMessenger.Default.Send(new SwitchTabMessage("BugReports"));
-                 // Optionally pass ID if we had it, but list is fine for now as requested.
-                 WeakReferenceMessenger.Default.Send(new OpenBugReportMessage(null));
-             }
+              else if (notification.TargetAction == NavigationRoutes.Feature_LeaveApproval)
+              {
+                  WeakReferenceMessenger.Default.Send(new SwitchTabMessage(NavigationRoutes.Feature_LeaveApproval));
+              }
+              else if (notification.TargetAction == NavigationRoutes.Feature_OvertimeRequest)
+              {
+                  WeakReferenceMessenger.Default.Send(new SwitchTabMessage(NavigationRoutes.Feature_OvertimeApproval));
+              }
+              else if (notification.TargetAction == NavigationRoutes.Feature_BugReports)
+              {
+                  // Go to Bug List
+                  WeakReferenceMessenger.Default.Send(new SwitchTabMessage(NavigationRoutes.Feature_BugReports));
+                  // Optionally pass ID if we had it, but list is fine for now as requested.
+                  WeakReferenceMessenger.Default.Send(new OpenBugReportMessage(null));
+              }
         }
 
         // Kept for fallback

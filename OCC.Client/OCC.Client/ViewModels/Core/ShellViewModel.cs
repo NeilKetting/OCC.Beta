@@ -21,6 +21,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
+using OCC.Client.Infrastructure;
 using OCC.Client.Messages; // NEW
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Core;
@@ -353,11 +354,28 @@ namespace OCC.Client.ViewModels.Core
                 if (CurrentPage is ViewModels.Projects.ProjectsViewModel projectsVM && projectsVM.CurrentView != null)
                 {
                     viewName = projectsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    
+                    // Drill down into ProjectList overlays
+                    if (projectsVM.CurrentView is ViewModels.Projects.ProjectListViewModel listVM && listVM.IsCreateProjectVisible)
+                    {
+                        viewName = "CreateProjectView";
+                    }
+                    // Drill down into ProjectDetail overlays
+                    else if (projectsVM.CurrentView is ViewModels.Projects.ProjectDetailViewModel detailVM)
+                    {
+                        if (detailVM.IsEditProjectVisible) viewName = "EditProjectView";
+                        else if (detailVM.IsTaskDetailOpen) viewName = "TaskDetailView";
+                    }
                 }
                 else if (CurrentPage is ViewModels.EmployeeManagement.EmployeeManagementViewModel empVM)
                 {
                     if (empVM.IsAddEmployeePopupVisible) viewName = "EmployeeDetailView";
                     else if (empVM.IsAddTeamPopupVisible) viewName = "TeamDetailView";
+                    
+                    // EmployeeDetail might have permissions popup
+                    // Wait, empVM.IsAddEmployeePopupVisible usually shows EmployeeDetailView
+                    // We need to check if that view has its own overlay if possible
+                    // However, empVM often holds the instances.
                 }
                 else if (CurrentPage is ViewModels.Settings.UserManagementViewModel userVM && userVM.IsUserPopupVisible)
                 {
@@ -368,7 +386,14 @@ namespace OCC.Client.ViewModels.Core
                     if (orderVM.IsOrderDetailVisible) viewName = "OrderDetailView";
                     else if (orderVM.IsReceiveOrderVisible) viewName = "ReceiveOrderView";
                     else if (orderVM.IsSupplierDetailVisible) viewName = "SupplierDetailView";
-                    else if (orderVM.CurrentView != null) viewName = orderVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    else if (orderVM.CurrentView is ViewModels.Orders.InventoryViewModel inventoryVM && inventoryVM.IsDetailVisible)
+                    {
+                        viewName = "ItemDetailView";
+                    }
+                    else if (orderVM.CurrentView != null) 
+                    {
+                        viewName = orderVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    }
                 }
                 else if (CurrentPage is ViewModels.Orders.ItemListViewModel itemListVM && itemListVM.IsDetailVisible)
                 {
@@ -377,6 +402,16 @@ namespace OCC.Client.ViewModels.Core
                 else if (CurrentPage is ViewModels.Home.Calendar.CalendarViewModel calVM && calVM.IsCreatePopupVisible)
                 {
                     viewName = "CreateTaskPopupView";
+                }
+                else if (CurrentPage is HomeViewModel homeVM)
+                {
+                    if (homeVM.IsTaskDetailVisible) viewName = "TaskDetailView";
+                    else if (homeVM.IsNewTaskPopupVisible) viewName = "NewTaskPopupView";
+                    else if (homeVM.IsCreateProjectVisible) viewName = "CreateProjectView";
+                    else if (homeVM.CurrentView != null)
+                    {
+                        viewName = homeVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    }
                 }
                 else if (CurrentPage is ViewModels.Time.TimeAttendanceViewModel timeVM)
                 {
@@ -389,9 +424,14 @@ namespace OCC.Client.ViewModels.Core
                 {
                     viewName = "DailyTimesheetView";
                 }
-                else if (CurrentPage is ViewModels.Home.HomeViewModel)
+                else if (CurrentPage is ViewModels.HealthSafety.HealthSafetyViewModel hsVM && hsVM.CurrentView != null)
                 {
-                     viewName = "Dashboard";
+                    viewName = hsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
+                    
+                    if (hsVM.CurrentView is ViewModels.HealthSafety.AuditsViewModel auditVM && auditVM.IsDeviationsOpen)
+                    {
+                        viewName = "AuditDetailView"; // This view shows deviations
+                    }
                 }
             }
             
@@ -441,40 +481,41 @@ namespace OCC.Client.ViewModels.Core
 
             if (!_permissionService.CanAccess(section))
             {
-                if (section != Infrastructure.NavigationRoutes.Home)
-                {
-                    NavigateTo(Infrastructure.NavigationRoutes.Home);
-                }
+                if (section == NavigationRoutes.Home) return; // Should always have home, but safety check
+
+                var deniedVM = _serviceProvider.GetRequiredService<AccessDeniedViewModel>();
+                deniedVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
+                CurrentPage = deniedVM;
                 return;
             }
 
             switch (section)
             {
-                case Infrastructure.NavigationRoutes.Home:
+                case NavigationRoutes.Home:
                     CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
                     break;
-                case Infrastructure.NavigationRoutes.StaffManagement:
+                case NavigationRoutes.StaffManagement:
                     CurrentPage = _serviceProvider.GetRequiredService<EmployeeManagementViewModel>();
                     break;
-                case Infrastructure.NavigationRoutes.Projects:
+                case NavigationRoutes.Projects:
                     CurrentPage = _serviceProvider.GetRequiredService<ProjectsViewModel>();
                     break;
-                case Infrastructure.NavigationRoutes.Time:
+                case NavigationRoutes.Time:
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Time.TimeAttendanceViewModel>();
                     break;
-                case Infrastructure.NavigationRoutes.Calendar: 
+                case NavigationRoutes.Calendar: 
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Home.Calendar.CalendarViewModel>();
                     break;
-                case "UserManagement":
+                case NavigationRoutes.UserManagement:
                     CurrentPage = _serviceProvider.GetRequiredService<UserManagementViewModel>();
                     break;
                 case "MyProfile":
                     Receive(new OpenProfileMessage());
                     break;
-                case "HealthSafety":
+                case NavigationRoutes.HealthSafety:
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
                     break;
-                case "Orders":
+                case NavigationRoutes.Feature_OrderManagement:
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
                     break;
                 case "OrderList":
@@ -502,21 +543,21 @@ namespace OCC.Client.ViewModels.Core
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
                      CurrentPage = releaseNotesVM;
                      break;
-                case "AuditLog":
+                case NavigationRoutes.AuditLog:
                     CurrentPage = _serviceProvider.GetRequiredService<AuditLogViewModel>();
                     break;
-                case "CompanySettings":
+                case NavigationRoutes.CompanySettings:
                     CurrentPage = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
                     break;
-                case "UserPreferences":
+                case NavigationRoutes.UserPreferences:
                     var userPrefsVM = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
                     userPrefsVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
                     CurrentPage = userPrefsVM;
                     break;
-                case "BugList":
+                case NavigationRoutes.Feature_BugReports:
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
                     break;
-                case "Developer":
+                case NavigationRoutes.Developer:
                     CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
                     break;
                  default:

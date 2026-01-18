@@ -91,19 +91,18 @@
 			<ScrollViewer Grid.Row="2">
 				<StackPanel Margin="-2">
 					<!-- Home Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Home" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Home'}" HorizontalAlignment="Stretch">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Home" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Home'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewDashboard}">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconHome}" Classes="IconStyle"/>
 							<TextBlock Grid.Column="1" Text="Home" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
 						</StackPanel>
 					</Button>
-
+ 
 					<!-- Time & Attendance Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Time" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Time'}" HorizontalAlignment="Stretch">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Time" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Time'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewTime}">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconTime}" Classes="IconStyle"/>
 							<TextBlock Text="Time &amp; Attendance" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
-
 						</StackPanel>
 					</Button>
 
@@ -116,7 +115,7 @@
 					</Button>
 
 					<!-- Projects Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Portfolio" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Portfolio'}" HorizontalAlignment="Stretch">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Portfolio" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Portfolio'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewProjects}">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconPortfolio}" Classes="IconStyle"/>
 							<TextBlock Text="Projects" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>

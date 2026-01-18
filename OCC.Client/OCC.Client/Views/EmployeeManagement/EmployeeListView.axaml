@@ -10,7 +10,7 @@
 			 x:Class="OCC.Client.Views.EmployeeManagement.EmployeeListView"
 			 x:DataType="vm:EmployeeManagementViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, Auto, *">
+	<Grid RowDefinitions="Auto, Auto, *">
 		<!-- Header Bar: Title & Primary Actions -->
 		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">
 			<Grid ColumnDefinitions="*, Auto">
@@ -84,12 +84,8 @@
 			</Grid>
 		</Border>
 
-		<!-- Error Message -->
-		<TextBlock Grid.Row="2" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,5,0,5"
-				   IsVisible="{Binding !!ErrorMessage}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-
 		<!-- Employee Grid -->
-		<DataGrid Grid.Row="3"
+		<DataGrid Grid.Row="2"
 				  ItemsSource="{Binding Employees}"
 				  SelectedItem="{Binding SelectedEmployee}"
 				  AutoGenerateColumns="False"
@@ -99,7 +95,6 @@
 				  Background="White"
 				  BorderThickness="0"
 				  DoubleTapped="DataGrid_DoubleTapped">
-
 			<DataGrid.Styles>
 				<Style Selector="DataGridRow" x:DataType="models:Employee">
 					<Setter Property="ContextMenu">
@@ -140,6 +135,10 @@
 				</DataGridTemplateColumn>
 			</DataGrid.Columns>
 		</DataGrid>
+
+		<!-- Error Message -->
+		<TextBlock Grid.Row="2" Text="{Binding ErrorMessage}" Foreground="Red" Margin="0,5,0,5"
+				   IsVisible="{Binding !!ErrorMessage}" TextWrapping="Wrap" HorizontalAlignment="Center"/>
 
 		<!-- Loading -->
 		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">

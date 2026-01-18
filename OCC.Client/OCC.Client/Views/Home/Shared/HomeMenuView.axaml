@@ -23,12 +23,6 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Project Summary" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Project Summary'}">
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<PathIcon Data="{StaticResource IconPortfolio}" Classes="IconStyle" Width="16" Height="16"/>
-						<TextBlock Text="PROJECT SUMMARY" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
 
 				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="List" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='List'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">

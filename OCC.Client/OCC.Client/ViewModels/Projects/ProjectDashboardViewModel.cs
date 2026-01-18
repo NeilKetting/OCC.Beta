@@ -52,7 +52,13 @@ namespace OCC.Client.ViewModels.Projects
         private string _etaDateString = "N/A";
 
         [ObservableProperty]
-        private string _etaStatus = "Calculating...";
+        private string _etaStatus = "ON TRACK";
+
+        [ObservableProperty]
+        private string _streetLine1 = string.Empty;
+
+        [ObservableProperty]
+        private string _cityStatePostal = string.Empty;
 
         #endregion
 
@@ -86,6 +92,17 @@ namespace OCC.Client.ViewModels.Projects
             CalculateStats();
             UpdateCharts();
             CalculateETA();
+
+            if (_project != null)
+            {
+                StreetLine1 = _project.StreetLine1 ?? string.Empty;
+                CityStatePostal = $"{_project.City}, {_project.PostalCode}";
+            }
+            else
+            {
+                StreetLine1 = string.Empty;
+                CityStatePostal = string.Empty;
+            }
         }
 
         private void InitializeCharts()

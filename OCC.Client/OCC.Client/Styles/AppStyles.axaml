@@ -382,6 +382,14 @@
 		<Setter Property="BorderThickness" Value="2"/>
 	</Style>
 
+	<!-- AutoCompleteBox specific error state -->
+	<Style Selector="AutoCompleteBox:error /template/ TextBox /template/ Border#PART_BorderElement,
+                   ComboBox:error /template/ Border#PART_ButtonBorder,
+                   CalendarDatePicker:error /template/ Border#PART_RootBorder">
+		<Setter Property="BorderBrush" Value="Red"/>
+		<Setter Property="BorderThickness" Value="2"/>
+	</Style>
+
 	<!-- Specific Input Overrides -->
 	<Style Selector="TextBox">
 		<Setter Property="Padding" Value="12,6" />

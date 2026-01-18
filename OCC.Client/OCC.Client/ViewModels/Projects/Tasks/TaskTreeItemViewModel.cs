@@ -4,6 +4,7 @@ using OCC.Client.ViewModels;
 using OCC.Shared.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using OCC.Client.ViewModels.Core;
 
@@ -57,8 +58,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             Status = task.Status;
             Priority = task.Priority;
             IsCompleted = task.IsComplete;
-            AssigneeInitials = !string.IsNullOrEmpty(task.AssignedTo) && task.AssignedTo.Length >= 2 
-                ? task.AssignedTo.Substring(0, 2).ToUpper() : "??";
+            AssigneeInitials = task.Assignments?.FirstOrDefault()?.AssigneeName?.Substring(0, Math.Min(2, task.Assignments.FirstOrDefault().AssigneeName.Length)).ToUpper() ?? "UN";
             
             CommentsCount = task.Comments?.Count ?? 0;
             AttachmentsCount = 0; // Placeholder

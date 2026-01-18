@@ -790,9 +790,9 @@ namespace OCC.Client.ViewModels.Orders
                  var project = await _orderManager.GetProjectByIdAsync(SelectedProject.Id);
                  if (project != null)
                  {
-                     project.Location = NewProjectAddress;
+                     project.StreetLine1 = NewProjectAddress;
                      await _orderManager.UpdateProjectAsync(project);
-                     SelectedProject.Location = NewProjectAddress;
+                     SelectedProject.StreetLine1 = NewProjectAddress;
                      CurrentOrder.EntityAddress = NewProjectAddress;
                      OnPropertyChanged(nameof(CurrentOrder));
                      IsAddingProjectAddress = false;
@@ -1066,15 +1066,15 @@ namespace OCC.Client.ViewModels.Orders
 
         partial void OnCurrentOrderChanged(OrderWrapper value) => UpdateOrderTypeFlags();
         partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
-        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.Location; } }
+        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.FullAddress; } }
         partial void OnSelectedProjectChanged(Project? value)
         {
              if (value != null)
              {
                  CurrentOrder.ProjectId = value.Id;
                  CurrentOrder.ProjectName = value.Name;
-                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.Location; }
-                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.Location;
+                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.FullAddress; }
+                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.FullAddress;
                  OnPropertyChanged(nameof(CurrentOrder));
              }
         }

@@ -18,7 +18,6 @@ using OCC.Client.ViewModels.HealthSafety;
 using OCC.Client.ViewModels.Home;
 using OCC.Client.ViewModels.Home.Calendar;
 using OCC.Client.ViewModels.Home.Dashboard;
-using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Home.Shared;
 using OCC.Client.ViewModels.Login; // Added
 using OCC.Client.ViewModels.Notifications; // Added
@@ -194,6 +193,7 @@ namespace OCC.Client
             services.AddSingleton(ConnectionSettings.Instance);
             services.AddTransient<ILeaveService, LeaveService>();
             services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<IInventoryService, InventoryService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
@@ -210,6 +210,7 @@ namespace OCC.Client
             services.AddTransient<WageRunViewModel>();
             services.AddSingleton<IPdfService, PdfService>();
             services.AddSingleton<IToastService, ToastService>();
+            services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>();
             services.AddSingleton<IProjectManager, ProjectManager>();
             services.AddSingleton<IExportService, ExportService>();
             services.AddSingleton<ISupplierImportService, SupplierImportService>();
@@ -224,6 +225,7 @@ namespace OCC.Client
             services.AddTransient<ShellViewModel>();
             services.AddTransient<MainViewModel>();
             services.AddSingleton<SideMenuViewModel>();
+            services.AddTransient<AccessDeniedViewModel>();
 
             // Login and Registration
 
@@ -245,13 +247,16 @@ namespace OCC.Client
 
 
 
-            services.AddTransient<ProjectSummaryViewModel>();
             services.AddTransient<TaskListViewModel>();
             services.AddTransient<ProjectListViewModel>();
             services.AddTransient<ProjectReportViewModel>();
             services.AddTransient<ProjectDetailViewModel>();
+            services.AddTransient<CreateProjectViewModel>();
+            services.AddTransient<EditProjectViewModel>();
 
             services.AddTransient<ProjectGanttViewModel>();
+            services.AddTransient<ProjectCalendarViewModel>();
+            services.AddTransient<ProjectVariationOrderListViewModel>();
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<ManageUsersViewModel>();
             services.AddTransient<AuditLogViewModel>();
@@ -270,7 +275,7 @@ namespace OCC.Client
             services.AddTransient<OvertimeViewModel>();
             services.AddTransient<OvertimeApprovalViewModel>();
             services.AddTransient<CalendarViewModel>();
-            services.AddTransient<GlobalCalendarViewModel>();
+            services.AddTransient<LeaveCalendarViewModel>();
             // services.AddTransient<TeamsViewModel>(); // Removed
             services.AddTransient<TeamManagementViewModel>();
             services.AddTransient<TeamDetailViewModel>();

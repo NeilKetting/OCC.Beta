@@ -5,9 +5,14 @@
              xmlns:vm="clr-namespace:OCC.Client.ViewModels.Projects;assembly=OCC.Client"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+             xmlns:proj="clr-namespace:OCC.Client.Views.Projects"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="OCC.Client.Views.Projects.ProjectListView"
              x:DataType="vm:ProjectListViewModel">
+
+    <Design.DataContext>
+		<vm:ProjectListViewModel/>
+    </Design.DataContext>
 
     <Interaction.Behaviors>
         <EventTriggerBehavior EventName="Loaded">
@@ -183,5 +188,17 @@
                      IsVisible="{Binding !Projects.Count}">
              <TextBlock Text="No projects found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
          </StackPanel>
+
+        <!-- Create Project Overlay Layer -->
+        <Grid Grid.RowSpan="3" IsVisible="{Binding IsCreateProjectVisible}"
+              Background="#40000000">
+            <Border Width="1100" 
+                    MaxHeight="900"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    BoxShadow="0 8 30 0 #40000000">
+                <proj:CreateProjectView DataContext="{Binding CreateProjectVM}"/>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

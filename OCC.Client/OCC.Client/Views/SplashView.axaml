@@ -15,7 +15,9 @@
 		Topmost="True"
 		>
 
-	<Border CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000" Background="{DynamicResource LoginBackgroundDark}">
+	<Border CornerRadius="12" BorderBrush="{DynamicResource BorderGray}" 
+		 BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000" 
+		 Background="{DynamicResource SurfaceLightGray}">
 		<Grid RowDefinitions="*, Auto, Auto">
 
 			<!-- Logo area -->

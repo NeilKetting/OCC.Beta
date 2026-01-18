@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Core;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Messages;
 using OCC.Shared.Models;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -12,7 +14,7 @@ using System.Linq;
 
 namespace OCC.Client.ViewModels.Time
 {
-    public partial class OvertimeApprovalViewModel : ViewModelBase
+    public partial class OvertimeApprovalViewModel : ViewModelBase, IRecipient<EntityChangedMessage<OvertimeRequest>>
     {
         private readonly IRepository<OvertimeRequest> _overtimeRepository;
         private readonly IAuthService _authService;
@@ -38,7 +40,17 @@ namespace OCC.Client.ViewModels.Time
             _authService = authService;
             _notificationService = notificationService;
             
+            WeakReferenceMessenger.Default.Register(this);
+
             LoadDataCommand.Execute(null);
+        }
+
+        public void Receive(EntityChangedMessage<OvertimeRequest> message)
+        {
+            if (message.ChangeType == EntityChangeType.Created)
+            {
+                _ = LoadDataAsync();
+            }
         }
 
         public OvertimeApprovalViewModel()

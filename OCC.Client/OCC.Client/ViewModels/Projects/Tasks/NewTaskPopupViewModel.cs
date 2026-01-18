@@ -79,7 +79,6 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 StartDate = DateTime.Now,
                 FinishDate = DateTime.Now.AddDays(1),
                 ProjectId = SelectedProject?.Id ?? Guid.Empty, // Should force validation really
-                AssignedTo = AssignedUser?.DisplayName ?? "UN",
                 Status = "To Do",
                 Priority = "Medium"
             };

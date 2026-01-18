@@ -57,6 +57,12 @@ namespace OCC.Client.ViewModels.Projects
         private ProjectDashboardViewModel _dashboardVM;
 
         [ObservableProperty]
+        private ProjectCalendarViewModel _calendarVM;
+        
+        [ObservableProperty]
+        private ProjectVariationOrderListViewModel _variationOrderVM;
+
+        [ObservableProperty]
         private ViewModels.Projects.Tasks.TaskDetailViewModel? _selectedTaskDetailVM;
 
         [ObservableProperty]
@@ -64,6 +70,12 @@ namespace OCC.Client.ViewModels.Projects
 
         [ObservableProperty]
         private bool _isPinned;
+
+        [ObservableProperty]
+        private EditProjectViewModel? _editProjectVM;
+
+        [ObservableProperty]
+        private bool _isEditProjectVisible;
 
         [ObservableProperty]
         private Guid _currentProjectId;
@@ -111,6 +123,9 @@ namespace OCC.Client.ViewModels.Projects
 
         #region Constructors
 
+        /// <summary>
+        /// Design-time constructor
+        /// </summary>
         public ProjectDetailViewModel()
         {
             _projectManager = null!;
@@ -121,6 +136,8 @@ namespace OCC.Client.ViewModels.Projects
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel();
             _dashboardVM = new ProjectDashboardViewModel();
+            _calendarVM = new ProjectCalendarViewModel();
+            _variationOrderVM = new ProjectVariationOrderListViewModel();
             _currentView = _listVM;
         }
         
@@ -136,6 +153,8 @@ namespace OCC.Client.ViewModels.Projects
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
             _dashboardVM = new ProjectDashboardViewModel();
+            _calendarVM = new ProjectCalendarViewModel(serviceProvider.GetRequiredService<IHolidayService>(), _projectManager);
+            _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
 
             _currentView = _listVM;
 
@@ -144,6 +163,7 @@ namespace OCC.Client.ViewModels.Projects
 
             _topBar.PropertyChanged += TopBar_PropertyChanged;
             _topBar.DeleteProjectRequested += OnDeleteProjectRequested;
+            _topBar.EditProjectRequested += OnEditProjectRequested;
             
             WeakReferenceMessenger.Default.Register<ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
             {
@@ -275,6 +295,22 @@ namespace OCC.Client.ViewModels.Projects
             RefreshDisplayList();
         }
 
+        private async void OnEditProjectRequested(object? sender, EventArgs e)
+        {
+            if (CurrentProjectId == Guid.Empty) return;
+
+            var project = await _projectManager.GetProjectByIdAsync(CurrentProjectId);
+            if (project == null) return;
+
+            EditProjectVM = _serviceProvider.GetRequiredService<EditProjectViewModel>();
+
+            EditProjectVM.LoadProject(project);
+            EditProjectVM.CloseRequested += (s, ev) => IsEditProjectVisible = false;
+            EditProjectVM.ProjectUpdated += (s, ev) => LoadTasks(CurrentProjectId);
+
+            IsEditProjectVisible = true;
+        }
+
         #endregion
 
         #region Methods
@@ -298,6 +334,7 @@ namespace OCC.Client.ViewModels.Projects
                     {
                         TopBar.ProjectName = project.Name;
                         TopBar.ProjectId = project.Id;
+                        TopBar.ProjectAddress = project.FullAddress;
                         TopBar.ProjectIconInitials = GetInitials(project.Name);
 
                         if (project.SiteManager != null)
@@ -324,6 +361,8 @@ namespace OCC.Client.ViewModels.Projects
                     RefreshDisplayList();
                     GanttVM.LoadTasks(projectId);
                     DashboardVM.UpdateProjectData(project, tasks);
+                    CalendarVM.LoadProject(projectId);
+                    VariationOrderVM.LoadProject(projectId);
                 });
             }
             finally
@@ -352,6 +391,12 @@ namespace OCC.Client.ViewModels.Projects
                         break;
                     case "Dashboard":
                         CurrentView = DashboardVM;
+                        break;
+                    case "Calendar":
+                        CurrentView = CalendarVM;
+                        break;
+                    case "Sheet":
+                        CurrentView = VariationOrderVM;
                         break;
                 }
             }

@@ -53,20 +53,22 @@ namespace OCC.Shared.Models
         /// <summary> Helper property indicating if the task is finished. </summary>
         public bool IsComplete => Status == "Completed" || PercentComplete == 100;
 
-        /// <summary> Legacy text field for assignment (Deprecated in favor of <see cref="Assignments"/>). </summary>
-        public string AssignedTo { get; set; } = "UN"; // Unassigned
-
         /// <summary> Detailed description or instructions for the task. </summary>
         public string Description { get; set; } = string.Empty;
 
         /// <summary> The category of the activity (Task vs Meeting). </summary>
         public TaskType Type { get; set; } = TaskType.Task;
 
+        /// <summary> Gets a comma-separated string of initials for all assigned staff. </summary>
+        public string AssigneeInitials => Assignments == null || !Assignments.Any() 
+            ? "--" 
+            : string.Join(", ", Assignments.Select(a => string.Concat(a.AssigneeName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s[0]))).Select(s => s.ToUpper()));
+
         /// <summary> User comments and discussion thread attached to this task. </summary>
-        public List<TaskComment>? Comments { get; set; } = new();
+        public List<TaskComment> Comments { get; set; } = new();
 
         /// <summary> Resources (employees/teams) assigned to this task. </summary>
-        public ICollection<TaskAssignment>? Assignments { get; set; } = new List<TaskAssignment>();
+        public ICollection<TaskAssignment> Assignments { get; set; } = new List<TaskAssignment>();
         
         /// <summary> If true, work is temporarily suspended. </summary>
         public bool IsOnHold { get; set; }
@@ -77,11 +79,14 @@ namespace OCC.Shared.Models
         /// <summary> Navigation property to the parent Project. </summary>
         public virtual Project? Project { get; set; }
         
+        /// <summary> Navigation property to the parent task (if any). </summary>
+        public virtual ProjectTask? ParentTask { get; set; }
+
         /// <summary> Optional Foreign Key to a parent task (for nested sub-tasks). </summary>
         public Guid? ParentId { get; set; }
 
         /// <summary> Collection of sub-tasks. </summary>
-        public List<ProjectTask>? Children { get; set; } = new();
+        public List<ProjectTask> Children { get; set; } = new();
 
         /// <summary> List of dependency task IDs (Predecessors). </summary>
         public List<string> Predecessors { get; set; } = new();
@@ -123,7 +128,7 @@ namespace OCC.Shared.Models
         /// <summary> The actual time taken to complete the task. </summary>
         public TimeSpan? ActualDuration { get; set; }
         /// <summary> Planned duration in hours (stored as nullable TimeSpan). </summary>
-        public TimeSpan? PlanedDurationHours { get; set; }
+        public TimeSpan? PlannedDurationHours { get; set; }
         #endregion
 
         #region Geofencing

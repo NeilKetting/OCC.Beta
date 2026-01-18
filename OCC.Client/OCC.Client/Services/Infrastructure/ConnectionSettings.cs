@@ -41,7 +41,26 @@ namespace OCC.Client.Services.Infrastructure
             }
         }
 
-        private ConnectionSettings() { }
+        private string _googleApiKey = "AIzaSyCnU8_bP_FTksXDd4qgTspUZuRp_zb-Bsk";
+        public string GoogleApiKey
+        {
+            get => _googleApiKey;
+            set
+            {
+                if (_googleApiKey != value)
+                {
+                    _googleApiKey = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private ConnectionSettings() 
+        { 
+#if DEBUG
+            _apiBaseUrl = "http://localhost:5237/";
+#endif
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

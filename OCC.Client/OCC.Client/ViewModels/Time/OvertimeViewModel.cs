@@ -1,14 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Client.ViewModels.Core;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Messages;
 using OCC.Shared.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Time
@@ -40,7 +42,7 @@ namespace OCC.Client.ViewModels.Time
         private bool _isTeamRequest;
 
         [ObservableProperty]
-        private DateTimeOffset? _date = DateTime.Today;
+        private DateTime? _date = DateTime.Today;
 
         [ObservableProperty]
         private TimeSpan _startTime = new TimeSpan(17, 0, 0); // 5 PM
@@ -66,6 +68,7 @@ namespace OCC.Client.ViewModels.Time
             _teamRepository = teamRepository;
             _teamMemberRepository = teamMemberRepository;
             _notificationService = notificationService;
+             
              
             LoadDataCommand.Execute(null);
         }
@@ -220,6 +223,9 @@ namespace OCC.Client.ViewModels.Time
                     }
                     
                     await _notificationService.SendReminderAsync("Success", $"Overtime Requested for {count} team members.");
+                    
+                    // Notify approvals to refresh
+                    WeakReferenceMessenger.Default.Send(new EntityChangedMessage<OvertimeRequest>(new OvertimeRequest(), EntityChangeType.Created));
                 }
                 else if (SelectedEmployee != null)
                 {
@@ -236,6 +242,9 @@ namespace OCC.Client.ViewModels.Time
 
                     await _overtimeRepository.AddAsync(request);
                     await _notificationService.SendReminderAsync("Success", "Overtime Requested Successfully.");
+
+                    // Notify approvals to refresh
+                    WeakReferenceMessenger.Default.Send(new EntityChangedMessage<OvertimeRequest>(request, EntityChangeType.Created));
                 }
                 
                 Reason = string.Empty;

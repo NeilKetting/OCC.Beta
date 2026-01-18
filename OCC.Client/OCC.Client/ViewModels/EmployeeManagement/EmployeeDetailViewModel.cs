@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ModelWrappers;
 using OCC.Client.ViewModels.Core;
 
 namespace OCC.Client.ViewModels.EmployeeManagement
@@ -41,142 +42,20 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Observables
 
         [ObservableProperty]
-        private string _employeeNumber = string.Empty;
-
-        [ObservableProperty]
-        private string _firstName = string.Empty;
-
-        [ObservableProperty]
-        private string _lastName = string.Empty;
-
-        [ObservableProperty]
-        private string _idNumber = string.Empty;
-
-        [ObservableProperty]
-        private string _permitNumber = string.Empty;
-
-        [ObservableProperty]
-        private IdType _selectedIdType = IdType.RSAId;
-
-        [ObservableProperty]
-        private string _phone = string.Empty; 
-
-        [ObservableProperty]
-        private string _email = string.Empty;
-
-        [ObservableProperty]
-        private EmployeeRole _selectedSkill = EmployeeRole.GeneralWorker;
-
-        [ObservableProperty]
-        private double _hourlyRate;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(EmploymentDateDateTime))]
-        private DateTimeOffset _employmentDate = DateTimeOffset.Now;
-
-        public DateTime? EmploymentDateDateTime
-        {
-            get => EmploymentDate.DateTime;
-            set 
-            {
-                if (value.HasValue && value.Value != EmploymentDate.DateTime)
-                {
-                    EmploymentDate = value.Value;
-                    _ = RefreshBalanceAsync();
-                }
-            }
-        }
-
-        [ObservableProperty]
-        private EmploymentType _selectedEmploymentType = EmploymentType.Permanent;
-
-        [ObservableProperty]
-        private string _contractDuration = string.Empty;
-        
-        // Title Removed
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private EmployeeWrapper _wrapper = null!;
 
         [ObservableProperty]
         private string _saveButtonText = "Add Employee";
 
         [ObservableProperty]
-        private string _branch = "Johannesburg";
-        
-        // ...
-        
-
-
-        [ObservableProperty]
-        private TimeSpan? _shiftStartTime = new TimeSpan(7, 0, 0);
-
-        [ObservableProperty]
-        private TimeSpan? _shiftEndTime = new TimeSpan(16, 45, 0);
-
-        // Banking Details
-
-
-        [ObservableProperty]
-        private string _accountNumber = string.Empty;
-
-        [ObservableProperty]
-        private string _taxNumber = string.Empty;
-
-        [ObservableProperty]
-        private string _branchCode = string.Empty;
-
-        [ObservableProperty]
-        private string _accountType = "Select Account Type";
-
-        public List<string> AccountTypes { get; } = new() { "Select Account Type", "Savings", "Cheque", "Transmission" };
-
-
-
-        [ObservableProperty]
-        private RateType _selectedRateType = RateType.Hourly;
-
-        // Leave Balances
-        [ObservableProperty]
-        private double _annualLeaveBalance;
+        private List<string> _availableAccountTypes = new() { "Select Account Type", "Savings", "Cheque", "Transmission" };
 
         [ObservableProperty]
         private double _currentAnnualLeaveBalance;
 
         [ObservableProperty]
-        private double _sickLeaveBalance = 30; // Default SA Limit
-
-        [ObservableProperty]
         private string _sickLeaveCycleEndDisplay = "N/A";
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(SickLeaveCycleEndDisplay))]
-        private DateTime? _leaveCycleStartDate;
-
-        partial void OnLeaveCycleStartDateChanged(DateTime? value)
-        {
-            if (value.HasValue && value.Value > new DateTime(1900, 1, 1))
-            {
-                // SA BCEA: Sick leave cycle is 36 months (3 years) from start of employment or cycle
-                var endDate = value.Value.AddMonths(36).AddDays(-1);
-                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
-            }
-            else
-            {
-                SickLeaveCycleEndDisplay = "N/A";
-            }
-            
-            // Trigger balance refresh as this might affect calculations later
-             _ = RefreshBalanceAsync();
-        }
-
-        [ObservableProperty]
-        private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
-
-        [ObservableProperty]
-        private bool _isShowingAllSubtasks;
-
-
-
-        [ObservableProperty]
-        private Guid? _linkedUserId;
 
         [ObservableProperty]
         private List<User> _availableUsers = new();
@@ -193,7 +72,22 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private bool _showPermissionsButton;
 
-        public bool HasLinkedUser => LinkedUserId.HasValue;
+        public bool HasLinkedUser => Wrapper.LinkedUserId.HasValue;
+
+        [ObservableProperty]
+        private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
+
+        [ObservableProperty]
+        private BankName _selectedBank = OCC.Shared.Models.BankName.None;
+
+        [ObservableProperty]
+        private string _customBankName = string.Empty;
+
+        public bool IsOtherBankSelected => SelectedBank == BankName.Other;
+
+        public BankName[] AvailableBanks { get; } = Enum.GetValues<BankName>();
+
+        partial void OnSelectedBankChanged(BankName value) => OnPropertyChanged(nameof(IsOtherBankSelected));
 
         #endregion
 
@@ -201,10 +95,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsHourly
         {
-            get => SelectedRateType == RateType.Hourly;
+            get => Wrapper.RateType == RateType.Hourly;
             set
             {
-                if (value) SelectedRateType = RateType.Hourly;
+                if (value) Wrapper.RateType = RateType.Hourly;
                 OnPropertyChanged(nameof(IsHourly));
                 OnPropertyChanged(nameof(IsSalary));
             }
@@ -212,10 +106,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsSalary
         {
-            get => SelectedRateType == RateType.MonthlySalary;
+            get => Wrapper.RateType == RateType.MonthlySalary;
             set
             {
-                if (value) SelectedRateType = RateType.MonthlySalary;
+                if (value) Wrapper.RateType = RateType.MonthlySalary;
                 OnPropertyChanged(nameof(IsHourly));
                 OnPropertyChanged(nameof(IsSalary));
             }
@@ -223,10 +117,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         
         public bool IsRsaId
         {
-            get => SelectedIdType == IdType.RSAId;
+            get => Wrapper.IdType == IdType.RSAId;
             set
             {
-                if (value) SelectedIdType = IdType.RSAId;
+                if (value) Wrapper.IdType = IdType.RSAId;
                 OnPropertyChanged(nameof(IsRsaId));
                 OnPropertyChanged(nameof(IsPassport));
             }
@@ -234,10 +128,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsPassport
         {
-            get => SelectedIdType == IdType.Passport;
+            get => Wrapper.IdType == IdType.Passport;
             set
             {
-                if (value) SelectedIdType = IdType.Passport;
+                if (value) Wrapper.IdType = IdType.Passport;
                 OnPropertyChanged(nameof(IsRsaId));
                 OnPropertyChanged(nameof(IsPassport));
             }
@@ -245,10 +139,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsPermanent
         {
-            get => SelectedEmploymentType == EmploymentType.Permanent;
+            get => Wrapper.EmploymentType == EmploymentType.Permanent;
             set
             {
-                if (value) SelectedEmploymentType = EmploymentType.Permanent;
+                if (value) Wrapper.EmploymentType = EmploymentType.Permanent;
                 OnPropertyChanged(nameof(IsPermanent));
                 OnPropertyChanged(nameof(IsContract));
                 OnPropertyChanged(nameof(IsContractVisible));
@@ -257,10 +151,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsContract
         {
-            get => SelectedEmploymentType == EmploymentType.Contract;
+            get => Wrapper.EmploymentType == EmploymentType.Contract;
             set
             {
-                if (value) SelectedEmploymentType = EmploymentType.Contract;
+                if (value) Wrapper.EmploymentType = EmploymentType.Contract;
                 OnPropertyChanged(nameof(IsPermanent));
                 OnPropertyChanged(nameof(IsContract));
                 OnPropertyChanged(nameof(IsContractVisible));
@@ -278,11 +172,11 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(FirstName) && string.IsNullOrWhiteSpace(LastName))
+                if (string.IsNullOrWhiteSpace(Wrapper.FirstName) && string.IsNullOrWhiteSpace(Wrapper.LastName))
                 {
                     return _existingStaffId.HasValue ? "Edit Employee" : "New Employee";
                 }
-                return $"{FirstName}, {LastName}".Trim();
+                return $"{Wrapper.FirstName}, {Wrapper.LastName}".Trim();
             }
         }
 
@@ -297,6 +191,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _dialogService = dialogService;
             _authService = authService;
             _leaveService = leaveService;
+            
+            // Ensure the initial wrapper is set via the property so OnWrapperChanged is called
+            Wrapper = new EmployeeWrapper(new Employee());
             
             _ = InitializeAsync();
         }
@@ -328,123 +225,59 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Commands
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanSave))]
         private async Task Save()
         {
-            // 1. Mandatory Fields Validation
-            if (string.IsNullOrWhiteSpace(FirstName))
-            {
-                await _dialogService.ShowAlertAsync("Validation Error", "First Name is required.");
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(LastName))
-            {
-                await _dialogService.ShowAlertAsync("Validation Error", "Last Name is required.");
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(IdNumber) && IsRsaId)
-            {
-                await _dialogService.ShowAlertAsync("Validation Error", "ID Number is required.");
-                return;
-            }
-
-            // 2. Duplicate Checks
-            // We need to fetch existing employees to check for duplicates.
-            // Ideally Repository has unique check methods, but we'll fetch all or use Find.
-            // _staffRepository.GetAllAsync() might be heavy if lots of users, but sufficient for now.
+            // 1. Duplicate Checks
             var allStaff = await _staffRepository.GetAllAsync();
-            
-            // Filter out current user if editing
             var otherStaff = _existingStaffId.HasValue 
                 ? allStaff.Where(s => s.Id != _existingStaffId.Value).ToList() 
                 : allStaff.ToList();
 
-            // Check ID Number
-            if (!string.IsNullOrWhiteSpace(IdNumber) && otherStaff.Any(s => s.IdNumber == IdNumber))
+            if (!string.IsNullOrWhiteSpace(Wrapper.IdNumber) && otherStaff.Any(s => s.IdNumber == Wrapper.IdNumber))
             {
-                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with ID Number '{IdNumber}' already exists.");
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with ID Number '{Wrapper.IdNumber}' already exists.");
                  return;
             }
 
-            // Check Employee Number
-            if (!string.IsNullOrWhiteSpace(EmployeeNumber) && otherStaff.Any(s => s.EmployeeNumber == EmployeeNumber))
+            if (!string.IsNullOrWhiteSpace(Wrapper.EmployeeNumber) && otherStaff.Any(s => s.EmployeeNumber == Wrapper.EmployeeNumber))
             {
-                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Number '{EmployeeNumber}' already exists.");
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Number '{Wrapper.EmployeeNumber}' already exists.");
                  return;
             }
 
-            // Check Email
-            if (!string.IsNullOrWhiteSpace(Email) && otherStaff.Any(s => s.Email != null && s.Email.Equals(Email, StringComparison.OrdinalIgnoreCase)))
+            if (!string.IsNullOrWhiteSpace(Wrapper.Email) && otherStaff.Any(s => s.Email != null && s.Email.Equals(Wrapper.Email, StringComparison.OrdinalIgnoreCase)))
             {
-                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Email '{Email}' already exists.");
+                 await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Email '{Wrapper.Email}' already exists.");
                  return;
             }
 
-            Employee staff;
-
-            if (_existingStaffId.HasValue)
-            {
-                // Update existing
-                staff = await _staffRepository.GetByIdAsync(_existingStaffId.Value) ?? new Employee { Id = _existingStaffId.Value };
-            }
-            else
-            {
-                // Create new
-                staff = new Employee();
-            }
-
-            // Map properties
-            staff.EmployeeNumber = EmployeeNumber;
-            staff.FirstName = FirstName;
-            staff.LastName = LastName;
-            staff.IdNumber = IdNumber;
-            staff.PermitNumber = PermitNumber;
-            staff.IdType = SelectedIdType;
-            staff.Email = Email;
-            staff.Phone = Phone;
-            staff.Role = SelectedSkill;
-            staff.HourlyRate = HourlyRate;
-            staff.EmploymentType = SelectedEmploymentType;
-            staff.DoB = _calculatedDoB;
-            staff.EmploymentDate = EmploymentDate.DateTime;
-            staff.ContractDuration = ContractDuration;
-            staff.Branch = Branch;
-            staff.ShiftStartTime = ShiftStartTime;
-            staff.Branch = Branch; // Redundant line in original, kept to match structure or remove
-            staff.ShiftStartTime = ShiftStartTime; // Redundant
-            staff.ShiftEndTime = ShiftEndTime;
-            // Removed redundant assignments for cleanliness
+            // 2. Sync UI-Only properties to the Wrapper/Model
+            Wrapper.DoB = _calculatedDoB;
             
-            // Leave Balances
-            staff.AnnualLeaveBalance = AnnualLeaveBalance;
-            staff.SickLeaveBalance = SickLeaveBalance;
-            staff.LeaveCycleStartDate = LeaveCycleStartDate;
-            
-            // Banking
-            // Map "Select Bank" (None) to null/empty
+            // Sync Banking details from ViewModel properties to Wrapper
             if (SelectedBank == OCC.Shared.Models.BankName.None)
             {
-                 staff.BankName = null;
+                 Wrapper.BankName = null;
             }
             else
             {
-                 staff.BankName = IsOtherBankSelected ? CustomBankName : GetEnumDescription(SelectedBank);
+                 Wrapper.BankName = IsOtherBankSelected ? CustomBankName : GetEnumDescription(SelectedBank);
             }
 
-            staff.AccountNumber = AccountNumber;
-            staff.TaxNumber = TaxNumber;
-            staff.BranchCode = BranchCode;
-            
-            // Map "Select Account Type" to null
-            staff.AccountType = (AccountType == "Select Account Type") ? null : AccountType;
-            
-            staff.RateType = SelectedRateType;
-            staff.LinkedUserId = LinkedUserId;
+            // Sync Account Type
+            Wrapper.AccountType = (Wrapper.AccountType == "Select Account Type") ? null : Wrapper.AccountType;
 
-            // Permissions are saved directly to the USER object, so we handle that if linked
-            if (LinkedUserId.HasValue)
+            // 3. Commit ALL changes from Wrapper to the underlying Model
+            Wrapper.CommitToModel();
+            
+            // The model to save is the one inside the wrapper
+            var staffToSave = Wrapper.Model;
+
+            // 4. Permissions Sync
+            if (Wrapper.LinkedUserId.HasValue)
             {
-                var user = await _userRepository.GetByIdAsync(LinkedUserId.Value);
+                var user = await _userRepository.GetByIdAsync(Wrapper.LinkedUserId.Value);
                 if (user != null)
                 {
                     user.Permissions = CurrentPermissions;
@@ -452,35 +285,35 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 }
             }
 
-            if (_staffRepository != null)
+            // 5. Persist to Repository
+            try 
             {
-                try 
+                BusyText = "Saving employee details...";
+                IsBusy = true;
+                
+                if (_existingStaffId.HasValue)
                 {
-                    BusyText = "Saving employee details...";
-                    IsBusy = true; // Added IsBusy
-                    if (_existingStaffId.HasValue)
-                    {
-                        await _staffRepository.UpdateAsync(staff);
-                    }
-                    else
-                    {
-                        await _staffRepository.AddAsync(staff);
-                    }
+                    await _staffRepository.UpdateAsync(staffToSave);
                 }
-                catch (Exception ex)
+                else
                 {
-                    await _dialogService.ShowAlertAsync("Error", $"Failed to save employee: {ex.Message}");
-                    return;
+                    await _staffRepository.AddAsync(staffToSave);
                 }
-                finally
-                {
-                    IsBusy = false; // Added IsBusy
-                }
+                
+                EmployeeAdded?.Invoke(this, EventArgs.Empty);
+                CloseRequested?.Invoke(this, EventArgs.Empty);
             }
-            
-            EmployeeAdded?.Invoke(this, EventArgs.Empty);
-            CloseRequested?.Invoke(this, EventArgs.Empty);
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to save employee: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
+
+        private bool CanSave() => Wrapper != null && !Wrapper.HasErrors;
 
         [RelayCommand]
         private void Cancel()
@@ -505,30 +338,24 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             try 
             {
                 IsBusy = true;
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Loading Employee: {staff.Id}");
-
                 _existingStaffId = staff.Id;
                 Title = "Edit Employee";
                 SaveButtonText = "Save Changes";
 
-                EmployeeNumber = staff.EmployeeNumber;
-                FirstName = staff.FirstName;
-                LastName = staff.LastName;
-                IdNumber = staff.IdNumber;
-                PermitNumber = staff.PermitNumber ?? string.Empty;
-                SelectedIdType = staff.IdType;
-                Email = staff.Email;
-                Phone = staff.Phone ?? string.Empty;
-                LinkedUserId = staff.LinkedUserId;
-                
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Basic Info Loaded");
-
-                if (LinkedUserId.HasValue)
+                Wrapper = new EmployeeWrapper(staff);
+                Wrapper.PropertyChanged += (s, e) => 
                 {
-                    // Fetch user to get current permissions
+                    if (e.PropertyName == nameof(EmployeeWrapper.FirstName) || e.PropertyName == nameof(EmployeeWrapper.LastName))
+                        OnPropertyChanged(nameof(DisplayName));
+                    
+                    SaveCommand.NotifyCanExecuteChanged();
+                };
+
+                if (Wrapper.LinkedUserId.HasValue)
+                {
                     Task.Run(async () => 
                     {
-                        var user = await _userRepository.GetByIdAsync(LinkedUserId.Value);
+                        var user = await _userRepository.GetByIdAsync(Wrapper.LinkedUserId.Value);
                         if (user != null)
                         {
                             Avalonia.Threading.Dispatcher.UIThread.Post(() => CurrentPermissions = user.Permissions);
@@ -538,102 +365,19 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 
                 UpdatePermissionsButtonVisibility();
 
-                SelectedSkill = staff.Role;
-                HourlyRate = staff.HourlyRate;
-                SelectedEmploymentType = staff.EmploymentType;
-                
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Setting Employment Date: {staff.EmploymentDate}");
-                
-                // Sanitize EmploymentDate
-                if (staff.EmploymentDate < new DateTime(1900, 1, 1) || staff.EmploymentDate == DateTime.MinValue)
+                // Sanitize Leave Dates
+                if (Wrapper.LeaveCycleStartDate.HasValue && Wrapper.LeaveCycleStartDate.Value < new DateTime(1900, 1, 1))
                 {
-                     System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] INVALID/MIN EmploymentDate detected: {staff.EmploymentDate}. Defaulting to Now.");
-                     EmploymentDate = DateTimeOffset.Now;
-                }
-                else
-                {
-                    EmploymentDate = staff.EmploymentDate;
+                     Wrapper.LeaveCycleStartDate = null;
                 }
 
-                ContractDuration = staff.ContractDuration ?? string.Empty;
-                Branch = staff.Branch;
-                
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Setting Shift Times");
-                ShiftStartTime = staff.ShiftStartTime;
-                ShiftEndTime = staff.ShiftEndTime;
-
-                // Leave Balances
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Setting Leave Balances");
-                AnnualLeaveBalance = staff.AnnualLeaveBalance;
-                SickLeaveBalance = staff.SickLeaveBalance;
-                
-                // Calculate Current Balance asynchronously
                 _ = RefreshBalanceAsync();
                 
-                // Sanitize LeaveCycleStartDate
-                if (staff.LeaveCycleStartDate.HasValue && 
-                   (staff.LeaveCycleStartDate.Value < new DateTime(1900, 1, 1) || staff.LeaveCycleStartDate.Value == DateTime.MinValue))
-                {
-                     System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] INVALID/MIN LeaveCycleStartDate detected. Setting to null.");
-                     LeaveCycleStartDate = null;
-                }
-                else
-                {
-                    LeaveCycleStartDate = staff.LeaveCycleStartDate;
-                }
-
-                // Set Initial Rule Text
-                if (SelectedEmploymentType == EmploymentType.Contract)
-                {
-                     LeaveAccrualRule = "Accural: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
-                }
-                else
-                {
-                     LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
-                }
-
-                // Banking
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Setting Banking Details");
-                AccountNumber = staff.AccountNumber ?? string.Empty;
-                TaxNumber = staff.TaxNumber ?? string.Empty;
-                BranchCode = staff.BranchCode ?? string.Empty;
-                AccountType = string.IsNullOrEmpty(staff.AccountType) ? "Select Account Type" : staff.AccountType;
-                SelectedRateType = staff.RateType;
-
-                // Bank Selection Logic
-                var dbBankName = staff.BankName;
-                var matched = false;
+                UpdateAccrualRule();
                 
-                if (!string.IsNullOrEmpty(dbBankName))
-                {
-                    foreach (var bank in AvailableBanks)
-                    {
-                        // Skip None/Other during standard matching if desired, but here we just match description
-                        if (bank == OCC.Shared.Models.BankName.None || bank == OCC.Shared.Models.BankName.Other) continue;
+                // Banking Logic
+                LoadBankInfo(staff.BankName);
 
-                        if (GetEnumDescription(bank).Equals(dbBankName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            SelectedBank = bank;
-                            matched = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!matched && !string.IsNullOrEmpty(dbBankName))
-                {
-                    // Custom bank
-                    SelectedBank = OCC.Shared.Models.BankName.Other;
-                    CustomBankName = dbBankName;
-                }
-                else if (!matched)
-                {
-                    // Default to None (Placeholder)
-                    SelectedBank = OCC.Shared.Models.BankName.None;
-                    CustomBankName = string.Empty;
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Triggering Property Changes");
                 OnPropertyChanged(nameof(IsRsaId));
                 OnPropertyChanged(nameof(IsPassport));
                 OnPropertyChanged(nameof(IsHourly));
@@ -644,18 +388,40 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 OnPropertyChanged(nameof(IsOtherBankSelected));
                 
                 IsBusy = false;
-
-                // Single, final refresh after all properties are set
-                _ = RefreshBalanceAsync();
-
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Load Complete");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] CRASH in Load: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[EmployeeDetailViewModel] Stack: {ex.StackTrace}");
                 IsBusy = false;
                 throw;
+            }
+        }
+
+        private void LoadBankInfo(string? dbBankName)
+        {
+            var matched = false;
+            if (!string.IsNullOrEmpty(dbBankName))
+            {
+                foreach (var bank in AvailableBanks)
+                {
+                    if (bank == BankName.None || bank == BankName.Other) continue;
+                    if (GetEnumDescription(bank).Equals(dbBankName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        SelectedBank = bank;
+                        matched = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!matched && !string.IsNullOrEmpty(dbBankName))
+            {
+                SelectedBank = BankName.Other;
+                CustomBankName = dbBankName;
+            }
+            else if (!matched)
+            {
+                SelectedBank = BankName.None;
+                CustomBankName = string.Empty;
             }
         }
 
@@ -666,98 +432,128 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             return attribute?.Description ?? value.ToString();
         }
 
-        #endregion
-
-        #region Helper Methods
-
-        partial void OnIdNumberChanged(string value)
+        partial void OnWrapperChanged(EmployeeWrapper value)
         {
-            if (SelectedIdType == IdType.RSAId && value.Length >= 6)
+            if (value != null)
             {
-                CalculateDoBFromRsaId(value);
-            }
-        }
-
-        partial void OnSelectedIdTypeChanged(IdType value)
-        {
-             if (value == IdType.RSAId && IdNumber.Length >= 6)
-            {
-                CalculateDoBFromRsaId(IdNumber);
-            }
-        }
-
-
-        [ObservableProperty]
-        private BankName _selectedBank = OCC.Shared.Models.BankName.None;
-
-        [ObservableProperty]
-        private string _customBankName = string.Empty;
-
-        public bool IsOtherBankSelected => SelectedBank == OCC.Shared.Models.BankName.Other;
-
-        // Expose Bank Enum
-        public OCC.Shared.Models.BankName[] AvailableBanks { get; } = Enum.GetValues<OCC.Shared.Models.BankName>();
-
-        partial void OnSelectedBankChanged(BankName value)
-        {
-             OnPropertyChanged(nameof(IsOtherBankSelected));
-        }
-
-        partial void OnBranchChanged(string value)
-        {
-            // Default Times
-            var jhbStart = new TimeSpan(7, 0, 0);
-            var jhbEnd = new TimeSpan(16, 45, 0);
-            var cptStart = new TimeSpan(7, 0, 0);
-            var cptEnd = new TimeSpan(16, 30, 0);
-
-            // Helper to check if time is a "known default" or null
-            bool IsDefaultOrNull(TimeSpan? t) 
-            {
-                if (!t.HasValue) return true;
-                return t.Value == jhbStart || t.Value == jhbEnd || t.Value == cptStart || t.Value == cptEnd;
-            }
-
-            // Only update if current times are standard defaults or null
-            if (IsDefaultOrNull(ShiftStartTime) && IsDefaultOrNull(ShiftEndTime))
-            {
-                if (string.Equals(value, "Johannesburg", StringComparison.OrdinalIgnoreCase))
+                value.PropertyChanged += (s, e) => 
                 {
-                    ShiftStartTime = jhbStart;
-                    ShiftEndTime = jhbEnd;
-                }
-                else if (string.Equals(value, "Cape Town", StringComparison.OrdinalIgnoreCase))
+                    if (e.PropertyName == nameof(EmployeeWrapper.IdNumber))
+                    {
+                         if (Wrapper.IdType == IdType.RSAId && Wrapper.IdNumber.Length >= 6)
+                            CalculateDoBFromRsaId(Wrapper.IdNumber);
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.IdType))
+                    {
+                        if (Wrapper.IdType == IdType.RSAId && Wrapper.IdNumber.Length >= 6)
+                            CalculateDoBFromRsaId(Wrapper.IdNumber);
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.Branch))
+                    {
+                        UpdateShiftTimes();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.Role))
+                    {
+                         UpdatePermissionsButtonVisibility();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.EmploymentType))
+                    {
+                        UpdateAccrualRule();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.LeaveCycleStartDate))
+                    {
+                        UpdateSickLeaveCycleEnd();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.FirstName) || e.PropertyName == nameof(EmployeeWrapper.LastName))
+                    {
+                         OnPropertyChanged(nameof(DisplayName));
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.LinkedUserId))
+                    {
+                         OnPropertyChanged(nameof(HasLinkedUser));
+                         HandleLinkedUserChange(Wrapper.LinkedUserId);
+                         UpdatePermissionsButtonVisibility();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeWrapper.AnnualLeaveBalance) || e.PropertyName == nameof(EmployeeWrapper.EmploymentDate))
+                    {
+                         _ = RefreshBalanceAsync();
+                    }
+                    
+                    SaveCommand.NotifyCanExecuteChanged();
+                };
+            }
+        }
+
+        private void HandleLinkedUserChange(Guid? userId)
+        {
+            if (userId.HasValue)
+            {
+                var selectedUser = AvailableUsers.FirstOrDefault(u => u.Id == userId.Value);
+                if (selectedUser != null)
                 {
-                    ShiftStartTime = cptStart;
-                    ShiftEndTime = cptEnd;
+                    // Update wrapper with user info if it's currently empty or we want to sync
+                    if (string.IsNullOrWhiteSpace(Wrapper.FirstName)) Wrapper.FirstName = selectedUser.FirstName;
+                    if (string.IsNullOrWhiteSpace(Wrapper.LastName)) Wrapper.LastName = selectedUser.LastName;
+                    if (string.IsNullOrWhiteSpace(Wrapper.Email)) Wrapper.Email = selectedUser.Email;
+                    if (string.IsNullOrWhiteSpace(Wrapper.Phone)) Wrapper.Phone = selectedUser.Phone ?? string.Empty;
+                    
+                    CurrentPermissions = selectedUser.Permissions;
                 }
             }
         }
 
-        partial void OnFirstNameChanged(string value) => OnPropertyChanged(nameof(DisplayName));
-        partial void OnLastNameChanged(string value) => OnPropertyChanged(nameof(DisplayName));
-
-        partial void OnSelectedEmploymentTypeChanged(EmploymentType value)
+        private void UpdateAccrualRule()
         {
-            if (value == EmploymentType.Contract)
+            if (Wrapper.EmploymentType == EmploymentType.Contract)
             {
                 LeaveAccrualRule = "Accural: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
-                // Suggest 0 defaults for new contract
-                if (!_existingStaffId.HasValue) 
+                if (!_existingStaffId.HasValue && Wrapper.AnnualLeaveBalance == 0) 
                 {
-                    AnnualLeaveBalance = 0;
-                    SickLeaveBalance = 0;
+                    Wrapper.AnnualLeaveBalance = 0;
+                    Wrapper.SickLeaveBalance = 0;
                 }
             }
             else
             {
                 LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
-                 // Suggest defaults for new permanent if they were 0
-                if (!_existingStaffId.HasValue && AnnualLeaveBalance == 0 && SickLeaveBalance == 0)
+                if (!_existingStaffId.HasValue && Wrapper.AnnualLeaveBalance == 0)
                 {
-                    AnnualLeaveBalance = 0; // Usually accumulate but start 0 too? Or pro-rata. Let's keep 0 safe or 1.25.
-                    SickLeaveBalance = 30; // Standard cycle
+                    Wrapper.SickLeaveBalance = 30;
                 }
+            }
+            _ = RefreshBalanceAsync();
+        }
+
+        private void UpdateSickLeaveCycleEnd()
+        {
+            if (Wrapper.LeaveCycleStartDate.HasValue && Wrapper.LeaveCycleStartDate.Value > new DateTime(1900, 1, 1))
+            {
+                var endDate = Wrapper.LeaveCycleStartDate.Value.AddMonths(36).AddDays(-1);
+                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
+            }
+            else
+            {
+                SickLeaveCycleEndDisplay = "N/A";
+            }
+            _ = RefreshBalanceAsync();
+        }
+
+        private void UpdateShiftTimes()
+        {
+            var jhbStart = new TimeSpan(7, 0, 0);
+            var jhbEnd = new TimeSpan(16, 45, 0);
+            var cptStart = new TimeSpan(7, 0, 0);
+            var cptEnd = new TimeSpan(16, 30, 0);
+
+            if (string.Equals(Wrapper.Branch, "Johannesburg", StringComparison.OrdinalIgnoreCase))
+            {
+                Wrapper.ShiftStartTime = jhbStart;
+                Wrapper.ShiftEndTime = jhbEnd;
+            }
+            else if (string.Equals(Wrapper.Branch, "Cape Town", StringComparison.OrdinalIgnoreCase))
+            {
+                Wrapper.ShiftStartTime = cptStart;
+                Wrapper.ShiftEndTime = cptEnd;
             }
         }
 
@@ -777,11 +573,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 return;
             }
 
-            var vm = new EmployeePermissionsViewModel(DisplayName, CurrentPermissions, AvailableUsers, LinkedUserId);
-            vm.OnSaved = (p, userId) => 
+            var linkedUser = AvailableUsers.FirstOrDefault(u => u.Id == Wrapper.LinkedUserId);
+            var role = linkedUser?.UserRole ?? UserRole.Guest;
+
+            var vm = new EmployeePermissionsViewModel(DisplayName, CurrentPermissions, role);
+            vm.OnSaved = (p) => 
             {
                 CurrentPermissions = p;
-                LinkedUserId = userId;
                 IsPermissionsPopupVisible = false;
             };
 
@@ -798,33 +596,20 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 return;
             }
 
-            // Only show for Office and SiteManager roles
-            ShowPermissionsButton = SelectedSkill == EmployeeRole.Office || 
-                                   SelectedSkill == EmployeeRole.SiteManager;
-        }
-
-        partial void OnSelectedSkillChanged(EmployeeRole value)
-        {
-            UpdatePermissionsButtonVisibility();
-        }
-
-        partial void OnLinkedUserIdChanged(Guid? value)
-        {
-            OnPropertyChanged(nameof(HasLinkedUser));
+            // Only show for the Office employee role. 
+            // SiteManagers are granted full access via direct role checks and don't need toggles.
+            bool isRoleManaged = Wrapper.Role == EmployeeRole.Office;
             
-            if (value.HasValue)
+            // Check if the linked user (if any) is an Admin. If so, hide permissions button.
+            bool isLinkedAdmin = false;
+            if (Wrapper.LinkedUserId.HasValue)
             {
-                var selectedUser = AvailableUsers.FirstOrDefault(u => u.Id == value.Value);
-                if (selectedUser != null)
-                {
-                    // Auto-fill from user
-                    FirstName = selectedUser.FirstName;
-                    LastName = selectedUser.LastName;
-                    Email = selectedUser.Email;
-                    Phone = selectedUser.Phone ?? string.Empty;
-                    CurrentPermissions = selectedUser.Permissions;
-                }
+                var linkedUser = AvailableUsers.FirstOrDefault(u => u.Id == Wrapper.LinkedUserId.Value);
+                // Treat SiteManager as Admin for button visibility too, as they have full access for now
+                isLinkedAdmin = linkedUser?.UserRole == UserRole.Admin || linkedUser?.UserRole == UserRole.SiteManager;
             }
+
+            ShowPermissionsButton = isRoleManaged && !isLinkedAdmin;
         }
 
         private void CalculateDoBFromRsaId(string id)
@@ -835,11 +620,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             if (DateTime.TryParseExact(datePart, "yyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dob))
             {
                 _calculatedDoB = dob;
+                Wrapper.DoB = dob;
             }
         }
-
-        partial void OnAnnualLeaveBalanceChanged(double value) => _ = RefreshBalanceAsync();
-        partial void OnEmploymentDateChanged(DateTimeOffset value) => _ = RefreshBalanceAsync();
 
         private async Task RefreshBalanceAsync()
         {
@@ -851,8 +634,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 var tempEmployee = new Employee
                 {
                     Id = _existingStaffId ?? Guid.Empty,
-                    AnnualLeaveBalance = AnnualLeaveBalance,
-                    EmploymentDate = EmploymentDate.DateTime
+                    AnnualLeaveBalance = Wrapper.AnnualLeaveBalance,
+                    EmploymentDate = Wrapper.EmploymentDate
                 };
 
                 var balance = await _leaveService.CalculateCurrentLeaveBalanceAsync(tempEmployee);

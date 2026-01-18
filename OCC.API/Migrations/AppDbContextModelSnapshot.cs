@@ -1154,6 +1154,14 @@ namespace OCC.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Customer")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1171,10 +1179,6 @@ namespace OCC.API.Migrations
                     b.Property<double?>("Latitude")
                         .HasColumnType("float");
 
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double?>("Longitude")
                         .HasColumnType("float");
 
@@ -1182,6 +1186,10 @@ namespace OCC.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1203,8 +1211,19 @@ namespace OCC.API.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("StateOrProvince")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetLine1")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetLine2")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<TimeSpan>("WorkEndTime")
@@ -1236,10 +1255,6 @@ namespace OCC.API.Migrations
 
                     b.Property<DateTime?>("ActualStartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("AssignedTo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -1286,7 +1301,7 @@ namespace OCC.API.Migrations
                     b.Property<int>("PercentComplete")
                         .HasColumnType("int");
 
-                    b.Property<long?>("PlanedDurationHours")
+                    b.Property<long?>("PlannedDurationHours")
                         .HasColumnType("bigint");
 
                     b.PrimitiveCollection<string>("Predecessors")
@@ -1319,6 +1334,44 @@ namespace OCC.API.Migrations
                     b.ToTable("ProjectTasks");
                 });
 
+            modelBuilder.Entity("OCC.Shared.Models.ProjectVariationOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdditionalComments")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApprovedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsInvoiced")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectVariationOrders");
+                });
+
             modelBuilder.Entity("OCC.Shared.Models.PublicHoliday", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1339,79 +1392,79 @@ namespace OCC.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("f6369c94-bd7e-4724-a35a-43664095d5ad"),
+                            Id = new Guid("b862c2f5-9fe1-4228-9946-4d0aa0fdb12a"),
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "New Year's Day"
                         },
                         new
                         {
-                            Id = new Guid("b0b57d5c-9c6f-49d4-b12d-994f6ed16f99"),
+                            Id = new Guid("a1e140e8-e1a8-4acf-b5e0-715ed41c7af3"),
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Human Rights Day"
                         },
                         new
                         {
-                            Id = new Guid("0ebed69a-6623-4456-9b44-813335cf8a5c"),
+                            Id = new Guid("2d50946b-c807-4e9f-a74d-a6c5493b3c94"),
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Good Friday"
                         },
                         new
                         {
-                            Id = new Guid("73d4a7ed-8824-4dcf-a5ec-5fac16ff5798"),
+                            Id = new Guid("e91fa4f6-1b80-423b-8755-c8e133c34670"),
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Family Day"
                         },
                         new
                         {
-                            Id = new Guid("6e22b3d6-d071-4d81-9eb8-f463e91674e1"),
+                            Id = new Guid("3e473dfe-4182-4c81-8ba8-f5c33a9e1ed1"),
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Freedom Day"
                         },
                         new
                         {
-                            Id = new Guid("d0d2e41f-3463-42c4-b630-82eb40728392"),
+                            Id = new Guid("80ce73e9-fd26-47db-b79f-57165ba68111"),
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Workers' Day"
                         },
                         new
                         {
-                            Id = new Guid("7c756954-d9e8-4049-b320-3877ff53b27e"),
+                            Id = new Guid("7f422560-941b-4fe4-80ef-b22adeddfbee"),
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Youth Day"
                         },
                         new
                         {
-                            Id = new Guid("d417207d-8d8c-4653-939f-50ab4765a7bc"),
+                            Id = new Guid("e226a941-9246-4dd5-91ec-7dff8a5a96ca"),
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "National Women's Day"
                         },
                         new
                         {
-                            Id = new Guid("372cb7dc-64ee-497a-b40e-141694313164"),
+                            Id = new Guid("17ca9900-521b-4829-9ac3-5590f3727467"),
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Public Holiday"
                         },
                         new
                         {
-                            Id = new Guid("8e7ebfd0-822a-4928-b6c6-bf61ac9dfad4"),
+                            Id = new Guid("5eb30cce-ad23-43a9-9ca2-50236232dccf"),
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Heritage Day"
                         },
                         new
                         {
-                            Id = new Guid("018848a2-10f2-4086-8885-4498928f367e"),
+                            Id = new Guid("b5b21171-4284-4f14-bfa4-e8bd0cdb3264"),
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Reconciliation"
                         },
                         new
                         {
-                            Id = new Guid("98a30b5f-9c9e-4de1-9d11-f84fb9983d0e"),
+                            Id = new Guid("0dc5e6d5-2530-40d7-8301-9d41f44c879b"),
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Christmas Day"
                         },
                         new
                         {
-                            Id = new Guid("26192af2-d726-4c76-91df-2f898dddff9c"),
+                            Id = new Guid("fcc99eac-4678-49da-9e2e-f1026fe7c867"),
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Name = "Day of Goodwill"
                         });
@@ -1492,15 +1545,10 @@ namespace OCC.API.Migrations
                     b.Property<int>("AssigneeType")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("ProjectTaskId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProjectTaskId");
 
                     b.HasIndex("TaskId");
 
@@ -1617,6 +1665,8 @@ namespace OCC.API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("TaskId");
 
                     b.ToTable("TimeRecords");
                 });
@@ -1871,13 +1921,26 @@ namespace OCC.API.Migrations
 
             modelBuilder.Entity("OCC.Shared.Models.ProjectTask", b =>
                 {
-                    b.HasOne("OCC.Shared.Models.ProjectTask", null)
+                    b.HasOne("OCC.Shared.Models.ProjectTask", "ParentTask")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OCC.Shared.Models.Project", "Project")
                         .WithMany("Tasks")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentTask");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.ProjectVariationOrder", b =>
+                {
+                    b.HasOne("OCC.Shared.Models.Project", "Project")
+                        .WithMany("VariationOrders")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1888,15 +1951,9 @@ namespace OCC.API.Migrations
             modelBuilder.Entity("OCC.Shared.Models.TaskAssignment", b =>
                 {
                     b.HasOne("OCC.Shared.Models.ProjectTask", "ProjectTask")
-                        .WithMany()
-                        .HasForeignKey("ProjectTaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OCC.Shared.Models.ProjectTask", null)
                         .WithMany("Assignments")
                         .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ProjectTask");
@@ -1931,7 +1988,13 @@ namespace OCC.API.Migrations
                     b.HasOne("OCC.Shared.Models.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OCC.Shared.Models.ProjectTask", null)
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -1971,6 +2034,8 @@ namespace OCC.API.Migrations
             modelBuilder.Entity("OCC.Shared.Models.Project", b =>
                 {
                     b.Navigation("Tasks");
+
+                    b.Navigation("VariationOrders");
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.ProjectTask", b =>

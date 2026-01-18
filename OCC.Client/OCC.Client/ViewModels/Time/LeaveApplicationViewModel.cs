@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Messages;
 using OCC.Shared.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -173,7 +174,7 @@ namespace OCC.Client.ViewModels.Time
             IsSubmitting = true;
             try
             {
-                await _leaveService.SubmitRequestAsync(new LeaveRequest
+                var request = new LeaveRequest
                 {
                     EmployeeId = SelectedEmployee.Id,
                     StartDate = StartDate.Value.Date,
@@ -181,9 +182,14 @@ namespace OCC.Client.ViewModels.Time
                     LeaveType = SelectedLeaveType,
                     Reason = Reason,
                     IsUnpaid = HasBalanceWarning // Assuming IsUnpaid is determined by HasBalanceWarning
-                });
+                };
+
+                await _leaveService.SubmitRequestAsync(request);
 
                 await _notificationService.SendReminderAsync("Success", "Leave Request Submitted Successfully.");
+                
+                // Notify approvals to refresh
+                WeakReferenceMessenger.Default.Send(new EntityChangedMessage<LeaveRequest>(request, EntityChangeType.Created));
                 
                 // Reset form
                 Reason = string.Empty;

@@ -61,19 +61,19 @@
 
 		<!-- Popup Overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsAddEmployeePopupVisible}">
-			<Grid Background="#50000000">
+			<Grid Background="#20000000">
 				<views:EmployeeDetailView x:Name="DetailView" DataContext="{Binding AddEmployeePopup}"
-										  HorizontalAlignment="Stretch"
-										  VerticalAlignment="Stretch"/>
+										  HorizontalAlignment="Center"
+										  VerticalAlignment="Center"/>
 			</Grid>
 		</Grid>
 
 		<!-- Team Popup Overlay -->
 		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsAddTeamPopupVisible}">
-			<Grid Background="#50000000">
+			<Grid Background="#20000000">
 				<views:TeamDetailView x:Name="TeamDetailView" DataContext="{Binding TeamDetailPopup}"
-									  HorizontalAlignment="Stretch"
-									  VerticalAlignment="Stretch"/>
+									  HorizontalAlignment="Center"
+									  VerticalAlignment="Center"/>
 			</Grid>
 		</Grid>
 	</Grid>

@@ -139,13 +139,6 @@ namespace OCC.Client.Services.Infrastructure
                     // Format duration (PT8H0M0S -> 1 day approx or keep string)
                     string durationDisplay = FormatDuration(durationStr);
                     
-                    // Get Assigned Resources
-                    string assignedTo = "";
-                    if (!string.IsNullOrEmpty(xmlUid) && taskResourceMap.TryGetValue(xmlUid, out var rList))
-                    {
-                        assignedTo = string.Join(", ", rList);
-                    }
-
                     var task = new ProjectTask
                     {
                         Id = newGuid, // Assign the new Guid
@@ -155,8 +148,7 @@ namespace OCC.Client.Services.Infrastructure
                         FinishDate = finish,
                         Duration = durationDisplay,
                         PercentComplete = percent,
-                        Priority = FormatPriority(priorityStr),
-                        AssignedTo = assignedTo
+                        Priority = FormatPriority(priorityStr)
                     };
 
                     // Capture Predecessors (XML UIDs)

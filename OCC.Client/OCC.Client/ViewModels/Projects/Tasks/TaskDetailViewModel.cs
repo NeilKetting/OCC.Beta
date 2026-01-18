@@ -486,10 +486,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                     
                     ActualStartDate = Task.Model.ActualStartDate,
                     ActualCompleteDate = Task.Model.ActualCompleteDate,
-                    PlanedDurationHours = Task.Model.PlanedDurationHours,
+                    PlannedDurationHours = Task.Model.PlannedDurationHours,
                     ActualDuration = Task.Model.ActualDuration,
-                    
-                    AssignedTo = Task.Model.AssignedTo,
                     
                     // Structural Properties (Critical for Tree)
                     ParentId = Task.Model.ParentId,

@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services;
 using OCC.Client.ViewModels.Home.Dashboard;
-using OCC.Client.ViewModels.Home.ProjectSummary;
 using OCC.Client.ViewModels.Home.MySummary;
 using OCC.Client.ViewModels.Home.Shared;
 using OCC.Client.ViewModels.Projects.Tasks;
@@ -16,6 +15,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace OCC.Client.ViewModels.Home
 {
@@ -36,6 +36,7 @@ namespace OCC.Client.ViewModels.Home
         private readonly IRepository<User> _userRepository;
         private readonly IDialogService _dialogService;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IServiceProvider _serviceProvider;
 
         #endregion
 
@@ -50,8 +51,6 @@ namespace OCC.Client.ViewModels.Home
         [ObservableProperty]
         private MySummaryPageViewModel _mySummaryPage;
 
-        [ObservableProperty]
-        private ProjectSummaryPageViewModel _projectSummaryPage;
 
         [ObservableProperty]
         private Calendar.CalendarViewModel _calendar;
@@ -99,7 +98,6 @@ namespace OCC.Client.ViewModels.Home
             Greeting = "Good day, User";
             _homeMenu = null!;
             _mySummaryPage = null!;
-            _projectSummaryPage = null!;
             _calendar = null!;
             _taskList = null!;
             _currentView = null!;
@@ -116,13 +114,13 @@ namespace OCC.Client.ViewModels.Home
             _userRepository = null!;
             _dialogService = null!;
             _loggerFactory = null!;
+            _serviceProvider = null!;
         }
 
         public HomeViewModel(HomeMenuViewModel homeMenu,
                              SummaryViewModel mySummary,
                              TasksWidgetViewModel myTasks,
                              PulseViewModel projectPulse,
-                             ProjectSummaryViewModel projectSummary,
                              IAuthService authService,
                              ITimeService timeService,
                              IProjectTaskRepository projectTaskRepository,
@@ -135,7 +133,8 @@ namespace OCC.Client.ViewModels.Home
                              IRepository<TaskComment> commentRepository,
                              IRepository<User> userRepository,
                              IDialogService dialogService,
-                             ILoggerFactory loggerFactory)
+                             ILoggerFactory loggerFactory,
+                             IServiceProvider serviceProvider)
         {
             _authService = authService;
             _currentView = null!; // Silence warning, set in Initialize()
@@ -144,6 +143,7 @@ namespace OCC.Client.ViewModels.Home
             _projectRepository = projectRepository;
             _customerRepository = customerRepository;
             _projectTaskModelRepository = projectTaskModelRepository;
+            _serviceProvider = serviceProvider;
             _appSettingsRepository = appSettingsRepository;
             _staffRepository = staffRepository;
             _taskAssignmentRepository = taskAssignmentRepository;
@@ -156,7 +156,6 @@ namespace OCC.Client.ViewModels.Home
             
             // Initialize Pages
             MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks, projectPulse);
-            ProjectSummaryPage = new ProjectSummaryPageViewModel(projectSummary, new TeamSummaryViewModel());
             Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
             TaskList.MyTasksOnly = true;
@@ -222,25 +221,6 @@ namespace OCC.Client.ViewModels.Home
         {
             switch (HomeMenu.ActiveTab)
             {
-                case "Portfolio Summary":
-                case "Project Summary":
-                    CurrentView = ProjectSummaryPage;
-                    break;
-                case "Team Summary":
-                     // Currently mapped to ProjectSummaryPage as well or needs its own?
-                     // Based on previous logic, TeamSummary was a separate boolean.
-                     // But I put TeamSummary INSIDE ProjectSummaryPage.
-                     // IMPORTANT: If they are different tabs, showing BOTH on one page is confusing if they are separate tabs.
-                     // The user request said "Reorganizing... MySummary, ProjectSummary, List, Calendar".
-                     // It didn't mention Portfolio Summary or Team Summary explicitly as top level folders, but logically they might be.
-                     // For now, I'll map Team Summary to ProjectSummaryPage too, or create a specific one.
-                     // Actually, in the old logic, IsTeamSummaryVisible was separate.
-                     // If I put TeamSummaryViewModel inside ProjectSummaryPageViewModel, then ProjectSummaryPageView shows BOTH.
-                     // If the user clicks "Team Summary", they expect to see Team Summary.
-                     // Logic: If active tab is Team Summary, maybe show ProjectSummaryPage but scroll to Team Summary? Or just show it.
-                     // Let's stick to ProjectSummaryPage for now.
-                    CurrentView = ProjectSummaryPage; 
-                    break;
                 case "Calendar": 
                     CurrentView = Calendar;
                     break;
@@ -292,7 +272,7 @@ namespace OCC.Client.ViewModels.Home
 
         private void OpenCreateProject()
         {
-            CreateProjectVM = new CreateProjectViewModel(_projectRepository, _customerRepository, _projectTaskModelRepository, _appSettingsRepository, _staffRepository);
+            CreateProjectVM = _serviceProvider.GetRequiredService<CreateProjectViewModel>();
             CreateProjectVM.CloseRequested += (s, e) => CloseCreateProject();
             CreateProjectVM.ProjectCreated += ProjectCreatedHandler;
             IsCreateProjectVisible = true;

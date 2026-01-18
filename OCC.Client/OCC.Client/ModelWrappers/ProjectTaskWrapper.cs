@@ -126,7 +126,7 @@ namespace OCC.Client.ModelWrappers
             
             // Initialize Duration
             // Prioritize model's stored duration. If missing, attempt to calculate from dates.
-            var modelPlannedHours = _model.PlanedDurationHours?.TotalHours;
+            var modelPlannedHours = _model.PlannedDurationHours?.TotalHours;
             if (modelPlannedHours.HasValue)
             {
                 PlannedHours = modelPlannedHours;
@@ -172,9 +172,9 @@ namespace OCC.Client.ModelWrappers
             _model.ActualCompleteDate = ActualCompleteDate;
 
             if (PlannedHours.HasValue)
-                _model.PlanedDurationHours = TimeSpan.FromHours(PlannedHours.Value);
+                _model.PlannedDurationHours = TimeSpan.FromHours(PlannedHours.Value);
             else
-                _model.PlanedDurationHours = null;
+                _model.PlannedDurationHours = null;
 
             if (ActualHours.HasValue)
                 _model.ActualDuration = TimeSpan.FromHours(ActualHours.Value);

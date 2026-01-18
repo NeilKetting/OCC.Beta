@@ -62,6 +62,7 @@ namespace OCC.API.Data
         public DbSet<HseqDocument> HseqDocuments { get; set; }
         
         public DbSet<NotificationDismissal> NotificationDismissals { get; set; }
+        public DbSet<ProjectVariationOrder> ProjectVariationOrders { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
@@ -222,6 +223,10 @@ namespace OCC.API.Data
                 entity.Property(e => e.TotalWage).HasPrecision(18, 2);
             });
 
+            modelBuilder.Entity<ProjectVariationOrder>(entity =>
+            {
+            });
+
             // HSEQ Configurations
             modelBuilder.Entity<HseqAudit>()
                 .HasMany(a => a.Sections)
@@ -257,11 +262,16 @@ namespace OCC.API.Data
 
             modelBuilder.Entity<ProjectTask>(entity =>
             {
-                entity.Property(e => e.PlanedDurationHours)
+                entity.Property(e => e.PlannedDurationHours)
                     .HasConversion(
                         v => v.HasValue ? v.Value.Ticks : (long?)null,
                         v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null)
                     .HasColumnType("bigint");
+
+                entity.HasOne(d => d.ParentTask)
+                    .WithMany(p => p.Children)
+                    .HasForeignKey(d => d.ParentId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.Property(e => e.ActualDuration)
                     .HasConversion(
@@ -269,25 +279,25 @@ namespace OCC.API.Data
                         v => v.HasValue ? TimeSpan.FromTicks(v.Value) : (TimeSpan?)null)
                     .HasColumnType("bigint");
 
-                entity.HasMany(e => e.Children)
-                    .WithOne()
-                    .HasForeignKey(e => e.ParentId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
                 entity.HasMany(e => e.Comments)
                     .WithOne()
                     .HasForeignKey(e => e.TaskId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(e => e.Assignments)
-                    .WithOne()
-                    .HasForeignKey(e => e.TaskId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .WithOne(a => a.ProjectTask)
+                    .HasForeignKey(a => a.TaskId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Project>(entity =>
             {
                 entity.HasMany(e => e.Tasks)
+                    .WithOne(e => e.Project)
+                    .HasForeignKey(e => e.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.VariationOrders)
                     .WithOne(e => e.Project)
                     .HasForeignKey(e => e.ProjectId)
                     .OnDelete(DeleteBehavior.Cascade);
@@ -303,7 +313,13 @@ namespace OCC.API.Data
                 .HasOne<Project>()
                 .WithMany()
                 .HasForeignKey(tr => tr.ProjectId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TimeRecord>()
+                .HasOne<ProjectTask>()
+                .WithMany()
+                .HasForeignKey(tr => tr.TaskId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 

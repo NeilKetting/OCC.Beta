@@ -103,6 +103,7 @@ namespace OCC.API.Controllers
 
         // POST: api/Projects
         [HttpPost]
+        [Authorize(Roles = "Admin, Office, SiteManager")]
         public async Task<ActionResult<Project>> PostProject(Project project)
         {
             try
@@ -124,6 +125,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/Projects/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, Office, SiteManager")]
         public async Task<IActionResult> PutProject(Guid id, Project project)
         {
             if (id != project.Id) return BadRequest();
@@ -149,6 +151,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/Projects/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProject(Guid id)
         {
             try

@@ -410,7 +410,7 @@ namespace OCC.Client.ViewModels.Projects
             IsAlternate = index % 2 != 0;
             IndentMargin = new Avalonia.Thickness(task.IndentLevel * 15, 0, 0, 0);
             
-            string resources = string.IsNullOrEmpty(task.AssignedTo) ? "" : task.AssignedTo;
+            string resources = string.Join(", ", task.Assignments?.Select(a => a.AssigneeName) ?? Enumerable.Empty<string>());
             LabelText = $"{task.Name}  {task.PercentComplete}%  {resources}";
             
             var startOffset = (task.StartDate - projectStart).TotalDays;

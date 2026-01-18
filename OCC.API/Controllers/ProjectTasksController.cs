@@ -166,7 +166,7 @@ namespace OCC.API.Controllers
                 existingTask.Priority = task.Priority;
                 existingTask.Status = task.Status;
                 existingTask.Duration = task.Duration;
-                existingTask.PlanedDurationHours = task.PlanedDurationHours;
+                existingTask.PlannedDurationHours = task.PlannedDurationHours;
                 existingTask.ActualDuration = task.ActualDuration;
                 existingTask.ProjectId = task.ProjectId;
                 existingTask.ParentId = task.ParentId;

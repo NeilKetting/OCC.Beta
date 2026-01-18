@@ -38,6 +38,7 @@ namespace OCC.Client.ViewModels.Core
         private readonly IServiceProvider _serviceProvider;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<SideMenuViewModel> _logger;
+        private readonly IToastService _toastService;
 
         #endregion
 
@@ -109,7 +110,7 @@ namespace OCC.Client.ViewModels.Core
         /// <summary>
         /// Gets whether the current user has permission to manage users.
         /// </summary>
-        public bool CanManageUsers => _permissionService.CanAccess("UserManagement");
+        public bool CanManageUsers => _permissionService.CanAccess(NavigationRoutes.UserManagement);
 
         [ObservableProperty]
         private bool _isDarkMode;
@@ -117,23 +118,23 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private string _themeToggleText = "Enable Dark Mode";
 
-        /// <summary>
-        /// Gets whether the current user has permission to view staff management.
-        /// </summary>
-        /// <summary>
-        /// Gets whether the current user has permission to view staff management.
-        /// </summary>
         public bool CanViewStaff => _permissionService.CanAccess(NavigationRoutes.StaffManagement);
-
-        public bool CanAccessOrders => _permissionService.CanAccess("Orders");
-        public bool CanAccessCompanySettings => _permissionService.CanAccess("CompanySettings");
+        public bool CanAccessOrders => _permissionService.CanAccess(NavigationRoutes.Feature_OrderManagement);
+        public bool CanAccessCompanySettings => _permissionService.CanAccess(NavigationRoutes.CompanySettings);
+        public bool CanViewProjects => _permissionService.CanAccess(NavigationRoutes.Projects);
+        public bool CanViewDashboard => _permissionService.CanAccess(NavigationRoutes.Home);
+        public bool CanViewTime => _permissionService.CanAccess(NavigationRoutes.Time);
+        public bool CanAccessUserPreferences => _permissionService.CanAccess(NavigationRoutes.UserPreferences);
+        public bool CanAccessAlerts => _permissionService.CanAccess(NavigationRoutes.Alerts);
         
         // Critical Security Fixes
-        public bool CanAccessBugs => _permissionService.CanAccess("BugList");
-        public bool CanAccessAuditLog => _permissionService.CanAccess("AuditLog");
-        public bool CanAccessHealthSafety => _permissionService.CanAccess("HealthSafety");
+        public bool CanAccessBugs => _permissionService.CanAccess(NavigationRoutes.Feature_BugReports);
+        public bool CanAccessAuditLog => _permissionService.CanAccess(NavigationRoutes.AuditLog);
+        public bool CanAccessHealthSafety => _permissionService.CanAccess(NavigationRoutes.HealthSafety);
 
-        public bool IsDeveloper => UserEmail?.Equals("neil@mdk.co.za", StringComparison.OrdinalIgnoreCase) ?? false;
+        public bool IsDeveloper => _permissionService.IsDev;
+        
+        public bool CanCreateProject => _permissionService.CanAccess(NavigationRoutes.Feature_ProjectCreation);
 
         #endregion
 
@@ -150,6 +151,7 @@ namespace OCC.Client.ViewModels.Core
             _permissionService = null!;
             _logger = null!;
             _notificationViewModel = null!;
+            _toastService = null!;
         }
 
         /// <summary>
@@ -164,7 +166,8 @@ namespace OCC.Client.ViewModels.Core
             IServiceProvider serviceProvider, 
             IPermissionService permissionService, 
             ILogger<SideMenuViewModel> logger,
-            NotificationViewModel notificationViewModel)
+            NotificationViewModel notificationViewModel,
+            IToastService toastService)
         {
             _authService = authService;
             _updateService = updateService;
@@ -172,6 +175,7 @@ namespace OCC.Client.ViewModels.Core
             _permissionService = permissionService;
             _logger = logger;
             _notificationViewModel = notificationViewModel;
+            _toastService = toastService;
 
             // Register for messages
             WeakReferenceMessenger.Default.RegisterAll(this);
@@ -404,7 +408,7 @@ namespace OCC.Client.ViewModels.Core
         {
              IsQuickActionsOpen = false;
              IsSettingsOpen = false;
-             ActiveSection = "UserManagement";
+             ActiveSection = NavigationRoutes.UserManagement;
             LastActionMessage = "Navigating to Manage Users";
              UpdateLastActionMessage("Navigating to Manage Users");
         }
@@ -419,8 +423,7 @@ namespace OCC.Client.ViewModels.Core
         {
             IsQuickActionsOpen = false;
             IsSettingsOpen = false;
-            ActiveSection = "AuditLog";
-            ActiveSection = "AuditLog";
+            ActiveSection = NavigationRoutes.AuditLog;
             UpdateLastActionMessage("Navigating to Audit Log");
         }
 
@@ -429,7 +432,7 @@ namespace OCC.Client.ViewModels.Core
         {
             IsQuickActionsOpen = false;
             IsSettingsOpen = false;
-            ActiveSection = "BugList";
+            ActiveSection = NavigationRoutes.Feature_BugReports;
             UpdateLastActionMessage("Navigating to Bug Reports");
         }
 
@@ -438,7 +441,7 @@ namespace OCC.Client.ViewModels.Core
         {
             IsQuickActionsOpen = false;
             IsSettingsOpen = false;
-            ActiveSection = "CompanySettings";
+            ActiveSection = NavigationRoutes.CompanySettings;
             UpdateLastActionMessage("Navigating to Company Settings");
         }
 
@@ -448,7 +451,7 @@ namespace OCC.Client.ViewModels.Core
             IsQuickActionsOpen = false;
             IsSettingsOpen = false;
             IsPreferencesOpen = false;
-            ActiveSection = "UserPreferences";
+            ActiveSection = NavigationRoutes.UserPreferences;
             UpdateLastActionMessage("Navigating to User Preferences");
         }
 
@@ -488,6 +491,13 @@ namespace OCC.Client.ViewModels.Core
         public void NewProject() 
         { 
             IsQuickActionsOpen = false;
+
+            if (!CanCreateProject)
+            {
+                _toastService.ShowWarning("Permission Denied", "You do not have permission to create new projects.");
+                return;
+            }
+
             ActiveSection = NavigationRoutes.Home; // Ensure we are on Home View
             UpdateLastActionMessage("Action Triggered: New Project (p)");
             WeakReferenceMessenger.Default.Send(new CreateProjectMessage());
@@ -502,6 +512,11 @@ namespace OCC.Client.ViewModels.Core
         [RelayCommand]
         public void InviteUser() 
         { 
+            if (!CanManageUsers)
+            {
+                _toastService.ShowWarning("Permission Denied", "You do not have permission to invite new users.");
+                return;
+            }
             UpdateLastActionMessage("Action Triggered: Invite User (i)");
         }
 

@@ -113,7 +113,7 @@ namespace OCC.Client.Data
                 v => TimeSpan.FromTicks(v));
 
             modelBuilder.Entity<ProjectTask>()
-                .Property(nameof(ProjectTask.PlanedDurationHours))
+                .Property(nameof(ProjectTask.PlannedDurationHours))
                 .HasConversion(timeSpanConverter);
 
             modelBuilder.Entity<ProjectTask>()

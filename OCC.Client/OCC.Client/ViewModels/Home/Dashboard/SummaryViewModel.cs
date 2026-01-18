@@ -180,8 +180,8 @@ namespace OCC.Client.ViewModels.Home.Dashboard
 
             foreach (var t in allTasks)
             {
-                if (t.PlanedDurationHours.HasValue)
-                    planned += t.PlanedDurationHours.Value.TotalHours;
+                if (t.PlannedDurationHours.HasValue)
+                    planned += t.PlannedDurationHours.Value.TotalHours;
 
                 if (t.ActualDuration.HasValue)
                     actual += t.ActualDuration.Value.TotalHours;

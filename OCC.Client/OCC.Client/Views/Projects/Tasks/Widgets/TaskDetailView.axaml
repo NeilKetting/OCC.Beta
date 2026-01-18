@@ -486,7 +486,7 @@
 															<TextBlock FontSize="12" Foreground="{DynamicResource TextSecondaryGray}">
 																<Run Text="{Binding ActualDuration, Converter={StaticResource TimeSpanToHoursConverter}, Mode=OneWay, StringFormat='{}{0:0}'}" Foreground="{DynamicResource TextSecondaryGray}"/>
 																<Run Text="/"/>
-																<Run Text="{Binding PlanedDurationHours, Converter={StaticResource TimeSpanToHoursConverter}, Mode=OneWay, TargetNullValue=0, StringFormat='{}{0:0}'}"/>
+																<Run Text="{Binding PlannedDurationHours, Converter={StaticResource TimeSpanToHoursConverter}, Mode=OneWay, TargetNullValue=0, StringFormat='{}{0:0}'}"/>
 																<Run Text=" hours"/>
 															</TextBlock>
 														</StackPanel>
@@ -502,8 +502,8 @@
 														<Border Width="2" Height="2" CornerRadius="1" Background="{DynamicResource TextSecondaryGray}" VerticalAlignment="Center"/>
 
 														<!-- Assignee Avatar -->
-														<Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource TextSecondaryGray}" ToolTip.Tip="{Binding AssignedTo}">
-															<TextBlock Text="{Binding AssignedTo, Converter={StaticResource NameToInitialsConverter}}" FontSize="9" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+														<Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource TextSecondaryGray}">
+															<TextBlock Text="{Binding AssigneeInitials}" FontSize="9" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 														</Border>
 
 														<!-- Add Assignee Plus Button -->

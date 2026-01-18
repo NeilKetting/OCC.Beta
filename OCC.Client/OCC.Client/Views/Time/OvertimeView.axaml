@@ -50,19 +50,49 @@
                 <!-- Date -->
                 <StackPanel Spacing="5">
                     <TextBlock Text="Date" FontWeight="Medium"/>
-                    <DatePicker SelectedDate="{Binding Date}" HorizontalAlignment="Stretch"/>
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBox Grid.Column="0" Text="{Binding Date, StringFormat='dd MMM yyyy'}" IsReadOnly="True" Classes="FormInput"/>
+                        <Button Grid.Column="1" Classes="IconButton" Margin="5,0,0,0" ToolTip.Tip="Select Date">
+                            <PathIcon Data="{StaticResource IconCalendar}" Width="16" Height="16"/>
+                            <Button.Flyout>
+                                <Flyout Placement="Bottom">
+                                    <Calendar SelectedDate="{Binding Date}" SelectionMode="SingleDate"/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </Grid>
                 </StackPanel>
 
                 <!-- Time Range -->
                 <Grid ColumnDefinitions="*, 10, *">
                     <StackPanel Grid.Column="0" Spacing="5">
                         <TextBlock Text="Start Time" FontWeight="Medium"/>
-                        <TimePicker SelectedTime="{Binding StartTime}" HorizontalAlignment="Stretch"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox Grid.Column="0" Text="{Binding StartTime, StringFormat='hh:mm tt'}" IsReadOnly="True" Classes="FormInput"/>
+                            <Button Grid.Column="1" Classes="IconButton" Margin="5,0,0,0" ToolTip.Tip="Select Start Time">
+                                <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16"/>
+                                <Button.Flyout>
+                                    <Flyout Placement="Bottom">
+                                        <TimePicker SelectedTime="{Binding StartTime}" MinuteIncrement="15" ClockIdentifier="24HourClock"/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                     
                     <StackPanel Grid.Column="2" Spacing="5">
                         <TextBlock Text="End Time" FontWeight="Medium"/>
-                        <TimePicker SelectedTime="{Binding EndTime}" HorizontalAlignment="Stretch"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBox Grid.Column="0" Text="{Binding EndTime, StringFormat='hh:mm tt'}" IsReadOnly="True" Classes="FormInput"/>
+                            <Button Grid.Column="1" Classes="IconButton" Margin="5,0,0,0" ToolTip.Tip="Select End Time">
+                                <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16"/>
+                                <Button.Flyout>
+                                    <Flyout Placement="Bottom">
+                                        <TimePicker SelectedTime="{Binding EndTime}" MinuteIncrement="15" ClockIdentifier="24HourClock"/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </Grid>
 

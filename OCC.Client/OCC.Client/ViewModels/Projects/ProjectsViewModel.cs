@@ -3,14 +3,12 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.ViewModels.Messages;
 using OCC.Client.ViewModels.Projects.Shared;
-using OCC.Client.ViewModels.Home.ProjectSummary;
 
 namespace OCC.Client.ViewModels.Projects
 {
     public partial class ProjectsViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ProjectSelectedMessage>
     {
         private readonly ProjectDetailViewModel _projectDetailVM;
-        private readonly ProjectSummaryViewModel _projectSummaryVM;
         private readonly ProjectListViewModel _projectListVM;
 
         private readonly ProjectReportViewModel _projectReportVM;
@@ -25,13 +23,11 @@ namespace OCC.Client.ViewModels.Projects
             ProjectMainMenuViewModel projectMenu, 
             ProjectListViewModel projectsListVM,
             ProjectDetailViewModel projectDetailVM,
-            ProjectSummaryViewModel projectSummaryVM,
             ProjectReportViewModel projectReportVM) 
         {
             ProjectMainMenu = projectMenu;
             _projectListVM = projectsListVM;
             _projectDetailVM = projectDetailVM;
-            _projectSummaryVM = projectSummaryVM;
             _projectReportVM = projectReportVM;
 
             // Default
@@ -55,9 +51,6 @@ namespace OCC.Client.ViewModels.Projects
         {
             switch (ProjectMainMenu.ActiveTab)
             {
-                case "Dashboard":
-                    CurrentView = _projectSummaryVM;
-                    break;
                 case "Reports":
                     CurrentView = _projectReportVM; // Use the new Report View
                     break;

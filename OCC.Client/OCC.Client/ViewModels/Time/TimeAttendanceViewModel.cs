@@ -8,6 +8,8 @@ using OCC.Shared.Models;
 using System;
 using Microsoft.Extensions.Logging;
 
+using OCC.Client.Infrastructure;
+
 namespace OCC.Client.ViewModels.Time
 {
     public partial class TimeAttendanceViewModel : ViewModelBase
@@ -34,7 +36,7 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
-        [ObservableProperty] private GlobalCalendarViewModel _globalCalendarVM; // Added
+        [ObservableProperty] private LeaveCalendarViewModel _leaveCalendarVM; // Renamed
         [ObservableProperty] private WageRunViewModel _wageRunVM; // Added
 
         [ObservableProperty]
@@ -58,7 +60,7 @@ namespace OCC.Client.ViewModels.Time
             _leaveApprovalVM = null!;
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
-            _globalCalendarVM = null!; // Added
+            _leaveCalendarVM = null!; // Renamed
             _wageRunVM = null!;
             _currentView = null!;
 
@@ -74,7 +76,7 @@ namespace OCC.Client.ViewModels.Time
             LeaveApprovalViewModel leaveApprovalViewModel,
             OvertimeViewModel overtimeViewModel, // Kept one
             OvertimeApprovalViewModel overtimeApprovalViewModel, // Kept one
-            GlobalCalendarViewModel globalCalendarViewModel, // Added
+            LeaveCalendarViewModel leaveCalendarViewModel, // Renamed
             WageRunViewModel wageRunViewModel,
             IAuthService authService)
         {
@@ -86,7 +88,7 @@ namespace OCC.Client.ViewModels.Time
             _leaveApprovalVM = leaveApprovalViewModel;
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
-            _globalCalendarVM = globalCalendarViewModel; // Added
+            _leaveCalendarVM = leaveCalendarViewModel; // Renamed
             _wageRunVM = wageRunViewModel;
             _authService = authService;
             
@@ -138,11 +140,11 @@ namespace OCC.Client.ViewModels.Time
                 case "Leave Application":
                     CurrentView = LeaveApplicationView;
                     break;
-                case "LeaveApprovals":
+                case NavigationRoutes.Feature_LeaveApproval:
                     CurrentView = LeaveApprovalVM;
                     break;
-                case "Calendar": // Added
-                    CurrentView = GlobalCalendarVM;
+                case NavigationRoutes.Calendar: // Added
+                    CurrentView = LeaveCalendarVM;
                     break;
                 case "WageRun":
                     CurrentView = WageRunVM;
@@ -150,9 +152,10 @@ namespace OCC.Client.ViewModels.Time
                 case "Overtime":
                     CurrentView = OvertimeVM;
                     break;
-                case "OvertimeApproval":
+                case NavigationRoutes.Feature_OvertimeApproval:
                     CurrentView = OvertimeApprovalVM;
                     break;
+                case NavigationRoutes.Home:
                 case "Live":
                 default:
                     CurrentView = LiveView;

@@ -7,6 +7,8 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 
+using OCC.Client.Infrastructure;
+
 namespace OCC.Client.ViewModels.Time
 {
     public partial class TimeMenuViewModel : ViewModelBase, IRecipient<SwitchTabMessage>
@@ -31,10 +33,10 @@ namespace OCC.Client.ViewModels.Time
 
         private readonly IPermissionService _permissionService;
 
-        public bool CanApproveLeave => _permissionService.CanAccess("LeaveApprovals");
-        public bool CanRequestOvertime => _permissionService.CanAccess("OvertimeRequest");
-        public bool CanApproveOvertime => _permissionService.CanAccess("OvertimeApproval");
-        public bool CanAccessCalendar => _permissionService.CanAccess("Calendar");
+        public bool CanApproveLeave => _permissionService.CanAccess(NavigationRoutes.Feature_LeaveApproval);
+        public bool CanRequestOvertime => _permissionService.CanAccess(NavigationRoutes.Feature_OvertimeRequest);
+        public bool CanApproveOvertime => _permissionService.CanAccess(NavigationRoutes.Feature_OvertimeApproval);
+        public bool CanAccessCalendar => _permissionService.CanAccess(NavigationRoutes.Calendar);
 
         public TimeMenuViewModel(IPermissionService permissionService)
         {

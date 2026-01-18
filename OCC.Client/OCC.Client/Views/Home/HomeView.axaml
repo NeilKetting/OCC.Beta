@@ -4,11 +4,9 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Home"
 			 xmlns:vmMySummary="clr-namespace:OCC.Client.ViewModels.Home.MySummary"
-			 xmlns:vmProjectSummary="clr-namespace:OCC.Client.ViewModels.Home.ProjectSummary"
 			 xmlns:vmTasks="clr-namespace:OCC.Client.ViewModels.Projects.Tasks"
 			 xmlns:vmCal="clr-namespace:OCC.Client.ViewModels.Home.Calendar"
 			 xmlns:viewMySummary="clr-namespace:OCC.Client.Views.Home.MySummary"
-			 xmlns:viewProjectSummary="clr-namespace:OCC.Client.Views.Home.ProjectSummary"
 			 xmlns:viewList="clr-namespace:OCC.Client.Views.Projects.Tasks"
 			 xmlns:viewCal="clr-namespace:OCC.Client.Views.Home.Calendar"
 			 xmlns:viewWidgets="clr-namespace:OCC.Client.Views.Projects.Tasks.Widgets"
@@ -26,9 +24,6 @@
 	<UserControl.DataTemplates>
 		<DataTemplate DataType="{x:Type vmMySummary:MySummaryPageViewModel}">
 			<viewMySummary:MySummaryPageView/>
-		</DataTemplate>
-		<DataTemplate DataType="{x:Type vmProjectSummary:ProjectSummaryPageViewModel}">
-			<viewProjectSummary:ProjectSummaryPageView/>
 		</DataTemplate>
 		<DataTemplate DataType="{x:Type vmTasks:TaskListViewModel}">
 			<viewList:TaskListView/>

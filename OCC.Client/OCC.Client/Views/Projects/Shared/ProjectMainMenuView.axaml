@@ -23,14 +23,7 @@
 					</StackPanel>
 				</Button>
 
-				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Dashboard'}">
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
-						<TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
 
-				<Separator Background="{DynamicResource BorderGray}" Width="1" Height="24" VerticalAlignment="Center" Margin="5,0"/>
 
 				<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Reports" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Reports'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">

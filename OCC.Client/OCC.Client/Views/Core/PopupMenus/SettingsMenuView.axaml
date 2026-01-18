@@ -36,14 +36,14 @@
                 </StackPanel>
             </Button>
             
-            <Button Classes="PopupMenuButton" Command="{Binding UserPreferencesCommand}">
+            <Button Classes="PopupMenuButton" Command="{Binding UserPreferencesCommand}" IsVisible="{Binding CanAccessUserPreferences}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     <TextBlock Text="User Preferences" VerticalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Button>
             
-            <Button Classes="PopupMenuButton" Command="{Binding AlertsCommand}">
+            <Button Classes="PopupMenuButton" Command="{Binding AlertsCommand}" IsVisible="{Binding CanAccessAlerts}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     <TextBlock Text="Alerts" VerticalAlignment="Center" FontSize="14"/>

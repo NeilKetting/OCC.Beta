@@ -22,6 +22,7 @@ namespace OCC.Client.ViewModels.Projects
     {
         private readonly IProjectManager _projectManager;
         private readonly IDialogService _dialogService;
+        private readonly IServiceProvider _serviceProvider;
 
         [ObservableProperty]
         private ObservableCollection<ProjectDashboardItemViewModel> _projects = new();
@@ -32,28 +33,37 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private string _searchQuery = string.Empty;
 
+        [ObservableProperty]
+        private CreateProjectViewModel? _createProjectVM;
 
-
-        public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService)
-        {
-            _projectManager = projectManager;
-            _dialogService = dialogService;
-
-            // Register for messages
-            WeakReferenceMessenger.Default.RegisterAll(this);
-        }
+        [ObservableProperty]
+        private bool _isCreateProjectVisible;
 
         public ProjectListViewModel()
         {
             // Design-time
             _projectManager = null!;
             _dialogService = null!;
+            _serviceProvider = null!;
+            IsCreateProjectVisible = false;
             Projects = new ObservableCollection<ProjectDashboardItemViewModel>
             {
                 new ProjectDashboardItemViewModel { Name = "Construction Schedule", Progress = 7, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2026, 7, 13) },
                 new ProjectDashboardItemViewModel { Name = "Engen", Progress = 97, ProjectManagerInitials = "OR", Members = new() { "OR" }, Status = "Deleted", LatestFinish = new DateTime(2025, 11, 6) }
             };
         }
+
+
+        public ProjectListViewModel(IProjectManager projectManager, IDialogService dialogService, IServiceProvider serviceProvider)
+        {
+            _projectManager = projectManager;
+            _dialogService = dialogService;
+            _serviceProvider = serviceProvider;
+
+            // Register for messages
+            WeakReferenceMessenger.Default.RegisterAll(this);
+        }
+
 
         [RelayCommand]
         private void OpenProject(ProjectDashboardItemViewModel project)
@@ -126,7 +136,14 @@ namespace OCC.Client.ViewModels.Projects
         [RelayCommand]
         private void NewProject()
         {
-            // Logic to create new project (maybe navigate to wizard)
+            CreateProjectVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<CreateProjectViewModel>(_serviceProvider);
+            CreateProjectVM.CloseRequested += (s, e) => IsCreateProjectVisible = false;
+            CreateProjectVM.ProjectCreated += (s, id) => 
+            {
+                IsCreateProjectVisible = false;
+                _ = LoadProjects();
+            };
+            IsCreateProjectVisible = true;
         }
 
         public void Receive(TaskUpdatedMessage message)

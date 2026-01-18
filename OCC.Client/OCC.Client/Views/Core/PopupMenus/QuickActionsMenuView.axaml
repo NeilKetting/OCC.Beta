@@ -38,7 +38,7 @@
             </Button>
             <Separator Classes="MenuSeparator" Margin="15,0"/>
 
-            <Button Classes="PopupMenuButton" Command="{Binding NewProjectCommand}">
+            <Button Classes="PopupMenuButton" Command="{Binding NewProjectCommand}" IsVisible="{Binding CanCreateProject}">
                 <Grid ColumnDefinitions="*, Auto">
                     <TextBlock Text="Project" VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
                     <Border Grid.Column="1" Classes="ActionHotkey">
@@ -46,9 +46,9 @@
                     </Border>
                 </Grid>
             </Button>
-            <Separator Classes="MenuSeparator" Margin="15,0"/>
+            <Separator Classes="MenuSeparator" Margin="15,0" IsVisible="{Binding CanCreateProject}"/>
 
-            <Button Classes="PopupMenuButton" Command="{Binding InviteUserCommand}">
+            <Button Classes="PopupMenuButton" Command="{Binding InviteUserCommand}" IsVisible="{Binding CanManageUsers}">
                 <Grid ColumnDefinitions="*, Auto">
                     <TextBlock Text="Invite" VerticalAlignment="Center" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
                     <Border Grid.Column="1" Classes="ActionHotkey">

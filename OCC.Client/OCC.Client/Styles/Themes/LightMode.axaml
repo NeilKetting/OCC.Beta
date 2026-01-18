@@ -6,7 +6,7 @@
     <SolidColorBrush x:Key="PrimaryTeal">#00b5ad</SolidColorBrush>
     <SolidColorBrush x:Key="PrimaryTealHover">#00a39c</SolidColorBrush>
     <SolidColorBrush x:Key="PrimaryTealLight">#e0f2f1</SolidColorBrush>
-    <SolidColorBrush x:Key="AccentOrange">#F78936</SolidColorBrush>
+    <SolidColorBrush x:Key="AccentOrange">#F97637</SolidColorBrush>
 
     <!-- Background & Surface Colors -->
     <SolidColorBrush x:Key="AppBackgroundSlate">#f8fafc</SolidColorBrush>

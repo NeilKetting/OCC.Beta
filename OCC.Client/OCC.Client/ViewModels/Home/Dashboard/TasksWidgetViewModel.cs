@@ -74,7 +74,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
                         DueDate = task.FinishDate,
                         Status = task.Status,
                         Priority = task.Priority,
-                        AssigneeInitials = string.IsNullOrEmpty(task.AssignedTo) ? "UN" : task.AssignedTo.Substring(0, Math.Min(2, task.AssignedTo.Length)).ToUpper()
+                        AssigneeInitials = task.Assignments?.FirstOrDefault()?.AssigneeName?.Substring(0, Math.Min(2, task.Assignments.FirstOrDefault().AssigneeName.Length)).ToUpper() ?? "UN"
                     });
                 }
             }

@@ -37,9 +37,34 @@
         public DateTime EndDate { get; set; }
 
         /// <summary>
-        /// Physical address or location description of the site.
+        /// House number and street name.
         /// </summary>
-        public string Location { get; set; } = string.Empty;
+        public string StreetLine1 { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Apartment, unit, suite, complex, etc.
+        /// </summary>
+        public string? StreetLine2 { get; set; }
+
+        /// <summary>
+        /// City or town.
+        /// </summary>
+        public string City { get; set; } = string.Empty;
+
+        /// <summary>
+        /// State, province, or region.
+        /// </summary>
+        public string StateOrProvince { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Postal or ZIP code.
+        /// </summary>
+        public string PostalCode { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The country (e.g., "South Africa").
+        /// </summary>
+        public string Country { get; set; } = string.Empty;
 
         /// <summary>
         /// GPS Latitude coordinate for navigation and geo-fencing.
@@ -52,9 +77,9 @@
         public double? Longitude { get; set; }
 
         /// <summary>
-        /// Current lifecycle status (e.g., "Active", "Completed", "OnHold").
+        /// Current lifecycle status (e.g., "Planning", "Active", "Completed", "OnHold").
         /// </summary>
-        public string Status { get; set; } = "Active";
+        public string Status { get; set; } = "Planning";
 
         /// <summary>
         /// Name of the overall project manager (often office-based).
@@ -112,8 +137,18 @@
         public Guid? CustomerId { get; set; }
 
         /// <summary>
+        /// Gets a human-readable formatted address string.
+        /// </summary>
+        public string FullAddress => string.Join(", ", new[] { StreetLine1, StreetLine2, City, StateOrProvince, PostalCode, Country }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        /// <summary>
         /// Navigation property to the associated Customer entity.
         /// </summary>
         public virtual Customer? CustomerEntity { get; set; }
+
+        /// <summary>
+        /// Collection of variation orders for this project.
+        /// </summary>
+        public virtual ICollection<ProjectVariationOrder> VariationOrders { get; set; } = new List<ProjectVariationOrder>();
     }
 }

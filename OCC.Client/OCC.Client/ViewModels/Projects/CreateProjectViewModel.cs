@@ -1,20 +1,17 @@
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OCC.Shared.Models;
-using OCC.Client.Services;
-
 using CommunityToolkit.Mvvm.Messaging;
-using OCC.Client.ViewModels.Messages;
-using System.Linq;
-
-using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ModelWrappers;
+using OCC.Client.Services.External;
 using OCC.Client.Services.Infrastructure;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using OCC.Client.ViewModels.Messages;
+using OCC.Shared.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Projects
 {
@@ -27,6 +24,8 @@ namespace OCC.Client.ViewModels.Projects
         private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<AppSetting> _appSettingsRepository;
         private readonly IRepository<Employee> _staffRepository;
+        private readonly IGoogleMapsService _googleMapsService;
+        private string _sessionToken = Guid.NewGuid().ToString();
 
         #endregion
 
@@ -40,9 +39,13 @@ namespace OCC.Client.ViewModels.Projects
         #region Observables
 
         [ObservableProperty]
-        private string _projectName = string.Empty;
+        private ProjectWrapper _project;
 
-        // Share Options
+        // UI State
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ModalWidth))]
+        private bool _isSettingsVisible = true;
+
         [ObservableProperty]
         private bool _isJustMe = true;
 
@@ -55,35 +58,11 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private bool _isTemplate = false;
 
-        // Settings Expansion
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(ModalWidth))]
-        private bool _isSettingsVisible;
-
-        // Extended Properties
-        [ObservableProperty]
-        private string _description = string.Empty;
-
-        [ObservableProperty]
-        private DateTimeOffset? _targetDate;
-
-        [ObservableProperty]
-        private string _projectManager;
-
         [ObservableProperty]
         private Employee? _siteManager;
 
         [ObservableProperty]
         private Customer? _customer;
-
-        [ObservableProperty]
-        private string _status = "Planning";
-
-        [ObservableProperty]
-        private string _priority = "Medium";
-
-        [ObservableProperty]
-        private string _shortName = string.Empty;
 
         // Import State
         [ObservableProperty]
@@ -95,19 +74,29 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private bool _showImportComplete;
 
+        [ObservableProperty]
+        private bool _isAddressMissing;
+
+        [ObservableProperty]
+        private string _validationMessage = string.Empty;
+
+        [ObservableProperty]
+        private AddressSuggestion? _selectedAddressSuggestion;
+
         private List<ProjectTask>? _importedTasks;
 
         #endregion
 
         #region Properties
 
-        public double ModalWidth => IsSettingsVisible ? 1000 : 700;
+        public double ModalWidth => IsSettingsVisible ? 1100 : 700;
         
         // Collections
         public string[] ProjectManagers { get; } = new[] { "Origize63@Gmail.Com (Owner)", "John Doe", "Jane Smith" };
 
         public System.Collections.ObjectModel.ObservableCollection<Employee> SiteManagers { get; } = new();
         public System.Collections.ObjectModel.ObservableCollection<Customer> Customers { get; } = new();
+        public System.Collections.ObjectModel.ObservableCollection<AddressSuggestion> AddressSuggestions { get; } = new();
         public string[] Statuses { get; } = new[] { "Planning", "In Progress", "On Hold", "Completed" };
         public string[] Priorities { get; } = new[] { "low", "Medium", "Important", "Critical" };
 
@@ -123,7 +112,8 @@ namespace OCC.Client.ViewModels.Projects
             _taskRepository = null!;
             _appSettingsRepository = null!;
             _staffRepository = null!;
-            _projectManager = string.Empty;
+            _googleMapsService = null!;
+            _project = new ProjectWrapper(new Project());
         }
         
         public CreateProjectViewModel(
@@ -131,18 +121,111 @@ namespace OCC.Client.ViewModels.Projects
             IRepository<Customer> customerRepository, 
             IRepository<ProjectTask> taskRepository,
             IRepository<AppSetting> appSettingsRepository,
-            IRepository<Employee> staffRepository)
+            IRepository<Employee> staffRepository,
+            IGoogleMapsService googleMapsService)
         {
             _projectRepository = projectRepository;
             _customerRepository = customerRepository;
             _taskRepository = taskRepository;
             _appSettingsRepository = appSettingsRepository;
             _staffRepository = staffRepository;
-
-            ProjectManager = ProjectManagers[0];
+            _googleMapsService = googleMapsService;
+            Project = new ProjectWrapper(new Project());
+            Project.ProjectManager = ProjectManagers[0];
             
             LoadCustomers();
             LoadSiteManagers();
+
+            // Trigger geofencing warning on start
+            IsAddressMissing = true;
+            ValidationMessage = "Geofencing requires a site address. Please search for and select the project location.";
+
+            Project.PropertyChanged += Project_PropertyChanged;
+        }
+
+        private async void Project_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ProjectWrapper.StreetLine1))
+            {
+                // Only update suggestions if this wasn't a manual change from a selection
+                await UpdateAddressSuggestions();
+            }
+
+            if (e.PropertyName == nameof(ProjectWrapper.Latitude) || e.PropertyName == nameof(ProjectWrapper.Longitude))
+            {
+                if (Project.Latitude.HasValue && Project.Longitude.HasValue)
+                {
+                    IsAddressMissing = false;
+                    ValidationMessage = string.Empty;
+                }
+            }
+        }
+
+        partial void OnSelectedAddressSuggestionChanged(AddressSuggestion? value)
+        {
+            if (value != null)
+            {
+                _ = HandleAddressSelection(value);
+            }
+        }
+
+        private async Task UpdateAddressSuggestions()
+        {
+            // If we're currently processing a selection, don't update suggestions
+            if (SelectedAddressSuggestion != null && Project.StreetLine1 == SelectedAddressSuggestion.Description)
+                return;
+
+            if (string.IsNullOrWhiteSpace(Project.StreetLine1) || Project.StreetLine1.Length < 3)
+            {
+                AddressSuggestions.Clear();
+                return;
+            }
+
+            var suggestions = await _googleMapsService.GetAddressSuggestionsAsync(Project.StreetLine1, _sessionToken);
+            AddressSuggestions.Clear();
+            foreach (var s in suggestions) AddressSuggestions.Add(s);
+        }
+
+        public async Task HandleAddressSelection(AddressSuggestion suggestion)
+        {
+            if (suggestion == null) return;
+
+            System.Diagnostics.Debug.WriteLine($"[CreateProjectViewModel] Handling selection: {suggestion.Description}");
+
+            var details = await _googleMapsService.GetPlaceDetailsAsync(suggestion.PlaceId, _sessionToken);
+            if (details != null)
+            {
+                // Set the fields. We don't need a delay if we're careful about the property change logic.
+                Project.StreetLine1 = details.StreetLine1;
+                Project.StreetLine2 = details.StreetLine2;
+                Project.City = details.City;
+                Project.StateOrProvince = details.StateOrProvince;
+                Project.PostalCode = details.PostalCode;
+                Project.Country = details.Country;
+                Project.Latitude = details.Latitude;
+                Project.Longitude = details.Longitude;
+                
+                AddressSuggestions.Clear();
+                SelectedAddressSuggestion = null;
+
+                // Reset session token for next address search
+                _sessionToken = Guid.NewGuid().ToString();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[CreateProjectViewModel] Failed to get place details");
+            }
+        }
+
+        partial void OnSiteManagerChanged(Employee? value)
+        {
+            Project.SiteManagerId = value?.Id;
+        }
+
+        partial void OnCustomerChanged(Customer? value)
+        {
+            Project.CustomerId = value?.Id;
+            Project.Customer = value?.Name ?? string.Empty;
         }
 
         #endregion
@@ -152,23 +235,30 @@ namespace OCC.Client.ViewModels.Projects
         [RelayCommand]
         private async Task CreateProject()
         {
-            if (string.IsNullOrWhiteSpace(ProjectName)) return;
-
-            var newProjectId = Guid.NewGuid();
-            var newProject = new Project
+            Project.Validate();
+            if (Project.HasErrors)
             {
-                Id = newProjectId,
-                Name = ProjectName,
-                Description = Description,
-                StartDate = DateTime.Now,
-                EndDate = TargetDate?.DateTime ?? DateTime.Now.AddMonths(1),
-                Status = Status,
-                ProjectManager = ProjectManager,
-                SiteManagerId = SiteManager?.Id,
-                Customer = Customer?.Name ?? string.Empty, 
-                Priority = Priority,
-                ShortName = string.IsNullOrWhiteSpace(ShortName) ? ProjectName.Substring(0, Math.Min(3, ProjectName.Length)).ToUpper() : ShortName
-            };
+                IsAddressMissing = true;
+                ValidationMessage = "Please fix the validation errors before saving.";
+                IsSettingsVisible = true;
+                return;
+            }
+
+            IsAddressMissing = false;
+            ValidationMessage = string.Empty;
+
+            Project.CommitToModel();
+            var newProject = Project.Model;
+
+            if (string.IsNullOrWhiteSpace(newProject.ShortName))
+            {
+                newProject.ShortName = newProject.Name.Substring(0, Math.Min(3, newProject.Name.Length)).ToUpper();
+            }
+
+            // Map UI selection to model if not already set (ProjectWrapper properties)
+            newProject.SiteManagerId = Project.SiteManagerId;
+            newProject.Customer = Project.Customer;
+            newProject.CustomerId = Project.CustomerId;
 
             // Snapshot Global Work Hours
             try 
@@ -203,7 +293,7 @@ namespace OCC.Client.ViewModels.Projects
                 foreach (var task in allTasks)
                 {
                     task.OrderIndex = orderCounter++;
-                    task.ProjectId = newProjectId;
+                    task.ProjectId = newProject.Id;
                     // Ensure Id is set
                     if (task.Id == Guid.Empty) task.Id = Guid.NewGuid();
                 }
@@ -224,7 +314,19 @@ namespace OCC.Client.ViewModels.Projects
         private void ConfirmImportSave()
         {
             ShowImportComplete = false;
-            CreateProjectCommand.Execute(null);
+            
+            // If we have coordinates, we can proceed to save
+            if (Project.Latitude.HasValue && Project.Longitude.HasValue)
+            {
+                CreateProjectCommand.Execute(null);
+            }
+            else
+            {
+                // If missing coordinates, force "Review" mode to show the address form
+                IsAddressMissing = true;
+                ValidationMessage = "Project imported, but geofencing requires a site address. Please search for and select the project location.";
+                IsSettingsVisible = true;
+            }
         }
 
         [RelayCommand]
@@ -240,11 +342,6 @@ namespace OCC.Client.ViewModels.Projects
             // Placeholder
         }
 
-        [RelayCommand]
-        private void ToggleSettings()
-        {
-             IsSettingsVisible = !IsSettingsVisible;
-        }
 
         [RelayCommand]
         private void Close()
@@ -271,7 +368,7 @@ namespace OCC.Client.ViewModels.Projects
                 
                 if (!string.IsNullOrEmpty(result.ProjectName))
                 {
-                    ProjectName = result.ProjectName;
+                    Project.Name = result.ProjectName;
                 }
 
                 if (result.Tasks.Count > 0)
@@ -282,7 +379,16 @@ namespace OCC.Client.ViewModels.Projects
                 _importedTasks = result.Tasks;
                 
                 ImportProgressMessage = "Import Complete!";
+                
+                if (!Project.Latitude.HasValue || !Project.Longitude.HasValue)
+                {
+                    IsAddressMissing = true;
+                    ValidationMessage = "Project imported successfully, but please select the site address to enable geofencing.";
+                    IsSettingsVisible = true;
+                }
+
                 await Task.Delay(500); // UI delay
+                Project.Validate(); // Show validation errors in results
                 ShowImportComplete = true;
             }
             catch (Exception ex)

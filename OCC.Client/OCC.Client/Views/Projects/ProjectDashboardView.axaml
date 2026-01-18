@@ -12,8 +12,8 @@
         <ScrollViewer Padding="30">
             <StackPanel Spacing="30">
                 
-                <!-- 1. Top Section: Health & ETA Cards -->
-                <Grid ColumnDefinitions="*, 30, *, 30, *">
+                <!-- 1. Top Section: Health, Location, Progress & ETA Cards -->
+                <Grid ColumnDefinitions="*, 30, *, 30, *, 30, *">
                     <!-- Project Health -->
                     <Border Grid.Column="0" Classes="CardMedium">
                         <StackPanel Spacing="10">
@@ -26,8 +26,19 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Progress Gauge -->
+                    <!-- Site Location / Address -->
                     <Border Grid.Column="2" Classes="CardMedium">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="SITE LOCATION" Classes="LabelSmall"/>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding StreetLine1}" FontWeight="SemiBold" FontSize="16"/>
+                                <TextBlock Text="{Binding CityStatePostal}" FontSize="13" Foreground="{DynamicResource TextSecondaryGray}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Progress Gauge -->
+                    <Border Grid.Column="4" Classes="CardMedium">
                         <Grid ColumnDefinitions="*, Auto">
                             <StackPanel Spacing="10">
                                 <TextBlock Text="OVERALL PROGRESS" Classes="LabelSmall"/>
@@ -46,7 +57,7 @@
                     </Border>
 
                     <!-- ETA Card -->
-                    <Border Grid.Column="4" Classes="CardMedium" Background="{DynamicResource WeatheredCementGradient}">
+                    <Border Grid.Column="6" Classes="CardMedium" Background="{DynamicResource WeatheredCementGradient}">
                         <StackPanel Spacing="10">
                             <TextBlock Text="PREDICTED COMPLETION (ETA)" Classes="LabelSmall" Foreground="{DynamicResource TextSecondaryDark}"/>
                             <TextBlock Text="{Binding EtaDateString}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource OCCOrange}"/>

@@ -44,76 +44,64 @@ namespace OCC.Client.Services
             var user = _authService.CurrentUser;
             if (user == null) return false;
 
-            // Dev has access to everything
-            if (IsDev) return true;
+            // 1. Dev & Admin & SiteManager (Temp) bypass everything
+            if (IsDev || user.UserRole == UserRole.Admin || user.UserRole == UserRole.SiteManager) 
+                return true;
 
-            // Admin access
-            if (user.UserRole == UserRole.Admin) return true;
-
-            // Special Check for Wage Visibility
-            if (route == "WageViewing")
+            // 2. Core Features (Always Allowed for All Roles)
+            if (route == NavigationRoutes.Feature_BugReports || 
+                route == NavigationRoutes.Home || 
+                route == NavigationRoutes.Calendar || 
+                route == NavigationRoutes.Notifications || 
+                route == NavigationRoutes.UserPreferences || 
+                route == NavigationRoutes.Alerts)
             {
-                // Only Admin can see wages
+                return true;
+            }
+
+            // 3. Sensitive/Restricted Features (Always Restricted except for bypassed roles above)
+            if (route == NavigationRoutes.AuditLog || 
+                route == NavigationRoutes.CompanySettings || 
+                route == NavigationRoutes.UserManagement || 
+                route == NavigationRoutes.Feature_UserManagement || 
+                route == NavigationRoutes.Feature_UserRegistration ||
+                route == NavigationRoutes.Feature_WageViewing)
+            {
                 return false;
             }
 
-            // Dynamic Permission Check for Office and SiteManager
-            if (user.UserRole == UserRole.Office || user.UserRole == UserRole.SiteManager)
+            // 4. Toggleable Role-Based Access (Office)
+            if (user.UserRole == UserRole.Office)
             {
-                // If permissions are explicitly set (not null), we enforce STRICT access control.
-                // Even if the string is empty (user.Permissions == ""), it means the user has 0 permissions.
-                // We do NOT fall back to default role permissions in this case.
-                if (user.Permissions != null)
+                // These are the only things Office users can toggle
+                var toggleableModules = new[] 
+                { 
+                    NavigationRoutes.Time, 
+                    NavigationRoutes.StaffManagement, 
+                    NavigationRoutes.Projects, 
+                    NavigationRoutes.Feature_OrderManagement, 
+                    NavigationRoutes.HealthSafety 
+                };
+
+                if (toggleableModules.Contains(route))
                 {
+                    if (string.IsNullOrEmpty(user.Permissions)) return false;
+                    
                     var allowedRoutes = user.Permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     return allowedRoutes.Contains(route, StringComparer.OrdinalIgnoreCase);
                 }
 
-                // Fallback to defaults ONLY if user.Permissions is NULL (i.e., permissions have never been configured for this user)
-                if (user.UserRole == UserRole.Office)
-                {
-                    return route switch
-                    {
-                        "Home" => true,
-                        "Time" => true,
-                        "HealthSafety" => true,
-                        "LeaveApproval" => true,
-                        "OvertimeRequest" => true,
-                        "OvertimeApproval" => true,
-                        "Orders" => true,
-                        _ => false
-                    };
-                }
-
-                if (user.UserRole == UserRole.SiteManager)
-                {
-                    return route switch
-                    {
-                        "Home" => true,
-                        "Time" => true,
-                        "HealthSafety" => true,
-                        "RollCall" => true,
-                        "ClockOut" => true,
-                        "LeaveApproval" => true,
-                        "OvertimeRequest" => true,
-                        "OvertimeApproval" => true,
-                        "Teams" => true,
-                        _ => false
-                    };
-                }
+                // Default for Office for any other feature not explicitly handled above
+                return true;
             }
 
-            // Contractor/Guest Access
-            // ... (No change needed, valid logic)
+            // 5. Contractor/Guest Access (Fallback)
             if (user.UserRole == UserRole.ExternalContractor || user.UserRole == UserRole.Guest)
             {
                  return route switch
                 {
-                    NavigationRoutes.Home => true,
                     NavigationRoutes.Projects => true, 
                     NavigationRoutes.Time => true, 
-                    NavigationRoutes.Calendar => true,
-                    NavigationRoutes.Notifications => true,
                     _ => false
                 };
             }

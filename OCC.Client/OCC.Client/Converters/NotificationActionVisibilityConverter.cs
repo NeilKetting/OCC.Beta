@@ -3,6 +3,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 
+using OCC.Client.Infrastructure;
+
 namespace OCC.Client.Converters
 {
     public class NotificationActionVisibilityConverter : IValueConverter
@@ -16,15 +18,15 @@ namespace OCC.Client.Converters
                 {
                     case "Approve":
                     case "Deny":
-                        return targetAction == "UserRegistration" || 
-                               targetAction == "LeaveRequest" || 
-                               targetAction == "OvertimeRequest";
+                        return targetAction == NavigationRoutes.Feature_UserRegistration || 
+                               targetAction == NavigationRoutes.Feature_LeaveApproval || 
+                               targetAction == NavigationRoutes.Feature_OvertimeRequest;
                     
                     case "View":
-                        return targetAction == "UserRegistration" || 
-                               targetAction == "LeaveRequest" || 
-                               targetAction == "OvertimeRequest" || 
-                               targetAction == "BugReports";
+                        return targetAction == NavigationRoutes.Feature_UserRegistration || 
+                               targetAction == NavigationRoutes.Feature_LeaveApproval || 
+                               targetAction == NavigationRoutes.Feature_OvertimeRequest || 
+                               targetAction == NavigationRoutes.Feature_BugReports;
                                
                     default:
                         return true;

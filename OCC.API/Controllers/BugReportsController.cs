@@ -159,7 +159,7 @@ namespace OCC.API.Controllers
             }
             if (string.IsNullOrEmpty(comment.AuthorEmail))
             {
-                comment.AuthorEmail = currentUserEmail;
+                comment.AuthorEmail = currentUserEmail ?? string.Empty;
             }
 
             _context.BugComments.Add(comment);
