@@ -34,12 +34,12 @@
                     </StackPanel>
                     <Button.Flyout>
                         <MenuFlyout Placement="Bottom">
-                            <MenuItem Header="Daily Timesheet" Command="{Binding SetActiveTabCommand}" CommandParameter="Timesheet">
+                            <MenuItem Header="Clock In / Out" Command="{Binding SetActiveTabCommand}" CommandParameter="Timesheet">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconDailyRollCall}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Header="Attendance History" Command="{Binding SetActiveTabCommand}" CommandParameter="History">
+                            <MenuItem Header="Clock History" Command="{Binding SetActiveTabCommand}" CommandParameter="History">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconHistory}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>

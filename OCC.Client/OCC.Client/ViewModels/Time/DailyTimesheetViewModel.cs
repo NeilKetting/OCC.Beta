@@ -47,6 +47,28 @@ namespace OCC.Client.ViewModels.Time
 
         [ObservableProperty]
         private bool _isManualMode;
+        
+        [ObservableProperty]
+        private bool _isAllSelected = true;
+
+        [ObservableProperty]
+        private bool _isAllLoggedSelected = true;
+
+        partial void OnIsAllSelectedChanged(bool value)
+        {
+            foreach (var staff in PendingStaff)
+            {
+                staff.IsSelected = value;
+            }
+        }
+
+        partial void OnIsAllLoggedSelectedChanged(bool value)
+        {
+            foreach (var staff in LoggedStaff)
+            {
+                staff.IsSelected = value;
+            }
+        }
 
         #endregion
 
@@ -351,6 +373,150 @@ namespace OCC.Client.ViewModels.Time
             finally
             {
                 _isProcessingAction = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClockInSelected()
+        {
+            var toClockIn = PendingStaff.Where(s => s.IsSelected).ToList();
+            if (!toClockIn.Any())
+            {
+                await _dialogService.ShowAlertAsync("Selection Required", "Please select at least one employee to clock in.");
+                return;
+            }
+
+            DateTime checkInTime = DateTime.Now;
+
+            if (IsManualMode)
+            {
+                // Typical start time (use first item or default)
+                var first = toClockIn.First();
+                TimeSpan defaultStart = first.Staff.ShiftStartTime ?? new TimeSpan(7, 0, 0);
+
+                var result = await _dialogService.ShowEditAttendanceAsync(defaultStart, null, showIn: true, showOut: false);
+                if (!result.Confirmed || !result.InTime.HasValue) return;
+                
+                checkInTime = Date.Date.Add(result.InTime.Value);
+            }
+            else
+            {
+                var confirm = await _dialogService.ShowConfirmationAsync("Bulk Clock In", $"Clock in {toClockIn.Count} employees as Present?");
+                if (!confirm) return;
+            }
+
+            IsSaving = true;
+            try
+            {
+                int count = 0;
+                foreach (var item in toClockIn)
+                {
+                    if (item.IsOnLeave) continue; 
+
+                    var record = new AttendanceRecord
+                    {
+                        Id = Guid.NewGuid(),
+                        EmployeeId = item.EmployeeId,
+                        Date = Date,
+                        Branch = item.Branch,
+                        Status = AttendanceStatus.Present,
+                        CheckInTime = checkInTime,
+                        ClockInTime = checkInTime.TimeOfDay,
+                        CheckOutTime = null, 
+                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
+                    };
+
+                    await _timeService.SaveAttendanceRecordAsync(record);
+                    
+                    item.Id = record.Id;
+                    item.Status = AttendanceStatus.Present;
+                    item.ClockInTime = record.ClockInTime;
+                    item.ClockOutTime = null;
+                    count++;
+                }
+
+                foreach (var item in toClockIn.Where(x => x.Id != Guid.Empty))
+                {
+                    MoveToLogged(item);
+                }
+
+                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{count} staff members clocked in."));
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Bulk clock-in failed: {ex.Message}");
+            }
+            finally
+            {
+                IsSaving = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClockOutSelected()
+        {
+            // Only clock out staff who are currently active (CheckOutTime is null)
+            var toClockOut = LoggedStaff.Where(s => s.IsSelected && s.ClockOutTime == null).ToList();
+            if (!toClockOut.Any())
+            {
+                await _dialogService.ShowAlertAsync("Selection Required", "Please select at least one active employee to clock out.");
+                return;
+            }
+
+            DateTime checkOutTime = DateTime.Now;
+
+            if (IsManualMode)
+            {
+                // Typical end time
+                string branch = toClockOut.First().Branch ?? "Johannesburg";
+                TimeSpan defaultEnd = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
+                    ? new TimeSpan(16, 30, 0) 
+                    : new TimeSpan(16, 45, 0);
+
+                var result = await _dialogService.ShowEditAttendanceAsync(null, defaultEnd, showIn: false, showOut: true);
+                if (!result.Confirmed || !result.OutTime.HasValue) return;
+                
+                checkOutTime = Date.Date.Add(result.OutTime.Value);
+            }
+            else
+            {
+                var confirm = await _dialogService.ShowConfirmationAsync("Bulk Clock Out", $"Clock out {toClockOut.Count} employees?");
+                if (!confirm) return;
+            }
+
+            IsSaving = true;
+            try
+            {
+                int count = 0;
+                foreach (var item in toClockOut)
+                {
+                    var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
+                    if (record != null)
+                    {
+                        record.CheckOutTime = checkOutTime;
+                        await _timeService.SaveAttendanceRecordAsync(record);
+                        
+                        item.ClockOutTime = checkOutTime.TimeOfDay;
+                        item.Status = record.Status;
+                        count++;
+                    }
+                }
+
+                // Refresh the items in the collection
+                foreach (var item in toClockOut)
+                {
+                    MoveToPending(item);
+                }
+
+                WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{count} staff members clocked out."));
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Bulk clock-out failed: {ex.Message}");
+            }
+            finally
+            {
+                IsSaving = false;
             }
         }
 

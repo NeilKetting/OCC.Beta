@@ -12,8 +12,19 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>BugReports</c> table.
     /// <b>How:</b> Often captured via the "Report Bug" feature in the UI, which may auto-populate context like <see cref="ViewName"/>.
     /// </remarks>
+    public enum BugReportType
+    {
+        Bug,
+        Suggestion,
+        Question,
+        Other
+    }
+
     public class BugReport
     {
+        /// <summary> The category of the report. </summary>
+        public BugReportType Type { get; set; } = BugReportType.Bug;
+
         /// <summary> Unique primary key for the bug report. </summary>
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();

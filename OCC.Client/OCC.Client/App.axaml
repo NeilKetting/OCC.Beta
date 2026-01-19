@@ -17,6 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <conv:StatusColorConverter x:Key="StatusToColorConverter"/>
+            <conv:TypeToColorConverter x:Key="TypeToColorConverter"/>
 
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">8</x:Double>

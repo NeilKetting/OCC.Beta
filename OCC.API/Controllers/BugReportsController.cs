@@ -89,6 +89,20 @@ namespace OCC.API.Controllers
             _context.BugReports.Add(bugReport);
             await _context.SaveChangesAsync();
 
+            // Notify Dev (Neil) about new feedback
+            try
+            {
+                var prefix = bugReport.Type switch {
+                    BugReportType.Bug => "🚨 New BUG",
+                    BugReportType.Suggestion => "💡 New SUGGESTION",
+                    BugReportType.Question => "❓ New QUESTION",
+                    _ => "📝 New FEEDBACK"
+                };
+                string message = $"{prefix} from {bugReport.ReporterName} on {bugReport.ViewName}";
+                await _hubContext.Clients.All.SendAsync("ReceiveNotification", message);
+            }
+            catch { /* Ignore notification errors */ }
+
             return CreatedAtAction("GetBugReport", new { id = bugReport.Id }, bugReport);
         }
 
@@ -194,7 +208,13 @@ namespace OCC.API.Controllers
 
                 if (!string.IsNullOrEmpty(message))
                 {
-                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", message);
+                    var typeIcon = bugReport.Type switch {
+                        BugReportType.Bug => "🐞",
+                        BugReportType.Suggestion => "💡",
+                        BugReportType.Question => "❓",
+                        _ => "💬"
+                    };
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", $"{typeIcon} {message}");
                 }
             }
             catch (Exception ex)

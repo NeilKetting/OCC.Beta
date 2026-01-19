@@ -31,7 +31,7 @@ namespace OCC.Shared.Models
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
         public Guid OrderId { get; set; }
         
-        /// <summary> Optional link to the specific <see cref="InventoryItem"/> if it exists in the catalogue. </summary>
+        /// <summary> Link to the specific <see cref="InventoryItem"/>. Mandatory for all orders. </summary>
         public Guid? InventoryItemId { get; set; }
         
         /// <summary> SKU or code identifying the item (copied from InventoryItem or entered manually). </summary>

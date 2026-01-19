@@ -57,8 +57,10 @@
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
 
 				<DataGridTextColumn Header="Actual Hrs" Binding="{Binding NormalHours, StringFormat={}{0:F1}}" Width="Auto"/>
-				<DataGridTextColumn Header="Overtime" Binding="{Binding OvertimeHours, StringFormat={}{0:F1}}" Width="Auto"/>
-				<DataGridTextColumn Header="Adv. Pay (Thu-Fri)" Binding="{Binding ProjectedHours, StringFormat={}{0:F1}}" Width="Auto"/>
+				<DataGridTextColumn Header="Lunch" Binding="{Binding LunchDeductionHours, StringFormat={}{0:F1}}" Width="Auto" Foreground="#EF4444"/>
+				<DataGridTextColumn Header="OT 1.5x" Binding="{Binding Overtime15Hours, StringFormat={}{0:F1}}" Width="Auto"/>
+				<DataGridTextColumn Header="OT 2.0x" Binding="{Binding Overtime20Hours, StringFormat={}{0:F1}}" Width="Auto"/>
+				<DataGridTextColumn Header="Adv. Pay" Binding="{Binding ProjectedHours, StringFormat={}{0:F1}}" Width="Auto"/>
 
 				<DataGridTemplateColumn Header="Prev. Adj." Width="Auto">
 					<DataGridTemplateColumn.CellTemplate>
@@ -75,6 +77,7 @@
 				<DataGridTextColumn Header="Total Paid Hrs" Binding="{Binding TotalPaidHours, StringFormat={}{0:F1}}" Width="Auto" FontWeight="Bold"/>
 				<DataGridTextColumn Header="Rate" Binding="{Binding HourlyRate, StringFormat={}{0:C}}" Width="Auto"/>
 				<DataGridTextColumn Header="Total Wage" Binding="{Binding TotalWage, StringFormat={}{0:C}}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
+				<DataGridTextColumn Header="Notes" Binding="{Binding Model.VarianceNotes}" Width="*"/>
 			</DataGrid.Columns>
 		</DataGrid>
 

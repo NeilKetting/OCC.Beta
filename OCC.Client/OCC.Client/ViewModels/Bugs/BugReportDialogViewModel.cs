@@ -27,6 +27,11 @@ namespace OCC.Client.ViewModels.Bugs
         [ObservableProperty]
         private string? _screenshotBase64;
 
+        [ObservableProperty]
+        private BugReportType _selectedType = BugReportType.Bug;
+
+        public BugReportType[] AvailableTypes { get; } = (BugReportType[])Enum.GetValues(typeof(BugReportType));
+
         public BugReportDialogViewModel(
             IBugReportService bugService, 
             IAuthService authService,
@@ -60,6 +65,7 @@ namespace OCC.Client.ViewModels.Bugs
                     ReportedDate = DateTime.UtcNow,
                     ViewName = ViewName,
                     Description = Description,
+                    Type = SelectedType,
                     Status = "Open",
                     ScreenshotBase64 = ScreenshotBase64
                 };

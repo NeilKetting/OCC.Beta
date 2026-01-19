@@ -677,13 +677,34 @@ namespace OCC.Client.ViewModels.Orders
 
 
 
-            // 2. Filter Empty Rows
-            // With Wrapper, lines are added explicitly, so NewOrder.Lines usually implies added lines.
-            // If you allow editing in the grid that creates blank lines, this logic might need adjustment.
-            // Assuming Lines collection in wrapper is the source of truth.
+            // 2. Validate Lines
             if (!CurrentOrder.Lines.Any())
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please add at least one line item.");
+                return;
+            }
+
+            // Strict Field Validation for each line
+            var invalidLines = CurrentOrder.Lines.Where(l => 
+                l.InventoryItemId == null || 
+                string.IsNullOrWhiteSpace(l.Description) || 
+                l.QuantityOrdered <= 0 || 
+                l.UnitPrice <= 0 || 
+                string.IsNullOrWhiteSpace(l.UnitOfMeasure))
+                .ToList();
+
+            if (invalidLines.Any())
+            {
+                var firstInvalid = invalidLines.First();
+                string missing = "";
+                if (firstInvalid.InventoryItemId == null) missing = "Inventory Item";
+                else if (string.IsNullOrWhiteSpace(firstInvalid.Description)) missing = "Description";
+                else if (firstInvalid.QuantityOrdered <= 0) missing = "Quantity";
+                else if (firstInvalid.UnitPrice <= 0) missing = "Unit Price";
+                else if (string.IsNullOrWhiteSpace(firstInvalid.UnitOfMeasure)) missing = "Unit of Measure";
+
+                await _dialogService.ShowAlertAsync("Validation Error", 
+                    $"Some items are incomplete. Every line must have an Inventory Item, Description, Quantity, UOM and Unit Price.\n\nFirst issue found: Missing {missing}.");
                 return;
             }
 

@@ -31,8 +31,11 @@ namespace OCC.Shared.Models
         /// <summary> Total standard working hours verified for this period. </summary>
         public double NormalHours { get; set; }
 
-        /// <summary> Total authorized overtime hours. </summary>
-        public double OvertimeHours { get; set; }
+        /// <summary> Total authorized overtime hours (Saturday or Weekday Late @ 1.5x). </summary>
+        public double Overtime15Hours { get; set; }
+        
+        /// <summary> Total authorized overtime hours (Sunday or Public Holiday @ 2.0x). </summary>
+        public double Overtime20Hours { get; set; }
         
         /// <summary> 
         /// Hours estimated for future work within this pay cycle (used for Advance Payments).
@@ -45,6 +48,9 @@ namespace OCC.Shared.Models
         /// e.g., If an employee was paid for 9 projected hours last week but was absent, this will be negative to recoup costs.
         /// </summary>
         public double VarianceHours { get; set; } 
+
+        /// <summary> Total unpaid lunch hours deducted during the period (12:00-13:00 slot). </summary>
+        public double LunchDeductionHours { get; set; } 
         
         /// <summary> Explanation for any <see cref="VarianceHours"/> applied. </summary>
         public string VarianceNotes { get; set; } = string.Empty;

@@ -19,9 +19,11 @@ namespace OCC.Client.ViewModels.Time
         public string Branch => Model.Branch;
         
         public double NormalHours => Model.NormalHours;
-        public double OvertimeHours => Model.OvertimeHours;
+        public double Overtime15Hours => Model.Overtime15Hours;
+        public double Overtime20Hours => Model.Overtime20Hours;
         public double ProjectedHours => Model.ProjectedHours;
         public double VarianceHours => Model.VarianceHours;
+        public double LunchDeductionHours => Model.LunchDeductionHours;
         
         public string VarianceNotes => Model.VarianceNotes;
 

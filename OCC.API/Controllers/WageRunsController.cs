@@ -107,7 +107,14 @@ namespace OCC.API.Controllers
                     // Basic Calc matching ViewModel logic
                     var hours = CalculateHours(record, emp);
                     line.NormalHours += hours.Normal;
-                    line.OvertimeHours += hours.Overtime;
+                    line.Overtime15Hours += hours.Overtime15;
+                    line.Overtime20Hours += hours.Overtime20;
+                    line.LunchDeductionHours += hours.Lunch;
+                    
+                    if (record.Status == AttendanceStatus.Absent)
+                    {
+                        line.VarianceNotes += $"{record.Date:dd/MM}: Absent; ";
+                    }
                 }
 
                 // B. Calculate Projected Hours (RunDate+1 -> EndDate)
@@ -119,8 +126,8 @@ namespace OCC.API.Controllers
                     for (var d = projectedStart; d <= projectedEnd; d = d.AddDays(1))
                     {
                         var dow = d.DayOfWeek;
-                        // Skip Weekend
-                        if (dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday) continue;
+                        // Skip Weekend or Public Holiday
+                        if (dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday || OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(d)) continue;
 
                         // Add Standard Shift (e.g. 9 hours or ShiftDiff)
                         double dailyHours = 9.0;
@@ -159,7 +166,7 @@ namespace OCC.API.Controllers
                             foreach(var r in pastActualRecords)
                             {
                                 var h = CalculateHours(r, emp);
-                                actualHoursInProjectedWindow += (h.Normal + h.Overtime); // Sum all valid work
+                                actualHoursInProjectedWindow += (h.Normal + h.Overtime15 + h.Overtime20); // Sum all valid work
                             }
 
                             // Variance = Actual - Projected
@@ -179,29 +186,11 @@ namespace OCC.API.Controllers
                 }
 
                 // D. Total Wage
-                // Simple Multiplier: (Normal + Variance + Projected) * Rate + (Overtime * Rate * 1.5)
-                // Note: Variance might be negative, so it reduces Normal pay.
-                // Note: Overtime Rate logic (1.5x vs 2.0x) is simplified here. Ideally we store Weighted OT Hours.
-                // Let's assume input 'OvertimeHours' is "Normal Equivalent"? No, usually it's "Clock Hours".
-                // We need to apply the specific multipliers.
+                // Formula: ((Normal + Projected + Variance) * Rate) + (OT15 * Rate * 1.5) + (OT20 * Rate * 2.0)
                 
-                // Refinment: CalculateHours returns "CostAwareHours"?
-                // Let's keep it simple: Normal * 1.0, and we track OT separately.
-                // But OT has different rates (1.5 Sat, 2.0 Sun).
-                // API should probably return Weighted Hours?
-                
-                // Correction: The stored OvertimeHours in the Line should probably be "Weighted Overtime Hours" to make the math easy?
-                // Or we separate OT1.5 and OT2.0.
-                // For MVP, let's convert everything to "Normal Hours Equivalent" for the TotalWage calculation?
-                // No, UI needs to show "OT Hours: 5" not "7.5".
-                
-                // Let's approximate: OT is 1.5x average.
-                decimal otMultiplier = 1.5m;
-                
-                line.TotalWage = (decimal)line.NormalHours * line.HourlyRate +
-                                 (decimal)line.ProjectedHours * line.HourlyRate +
-                                 (decimal)line.VarianceHours * line.HourlyRate +
-                                 (decimal)line.OvertimeHours * line.HourlyRate * otMultiplier;
+                line.TotalWage = (decimal)(line.NormalHours + line.ProjectedHours + line.VarianceHours) * line.HourlyRate +
+                                 (decimal)line.Overtime15Hours * line.HourlyRate * 1.5m +
+                                 (decimal)line.Overtime20Hours * line.HourlyRate * 2.0m;
 
                 draftRun.Lines.Add(line);
             }
@@ -242,52 +231,56 @@ namespace OCC.API.Controllers
         }
 
         // Helper: Calculate Hours
-        private (double Normal, double Overtime) CalculateHours(AttendanceRecord r, Employee e)
+        private (double Normal, double Overtime15, double Overtime20, double Lunch) CalculateHours(AttendanceRecord r, Employee e)
         {
-            if (r.CheckInTime == null) return (0, 0);
+            if (r.CheckInTime == null || r.Status == AttendanceStatus.Absent) return (0, 0, 0, 0);
             
             DateTime start = r.CheckInTime.Value;
-            DateTime end = r.CheckOutTime ?? r.CheckInTime.Value; // If active, 0 hours? Or 'Now'?
-            if (r.CheckOutTime == null) 
+            DateTime end = r.CheckOutTime ?? r.CheckInTime.Value; 
+            if (r.CheckOutTime == null) return (0, 0, 0, 0);
+
+            // 1. Calculate Standard Lunch Deduction (12:00 - 13:00)
+            double lunchDeduction = 0;
+            DateTime lunchStart = r.Date.Date.AddHours(12);
+            DateTime lunchEnd = r.Date.Date.AddHours(13);
+
+            // Find intersection of [start, end] and [lunchStart, lunchEnd]
+            var intersectStart = start > lunchStart ? start : lunchStart;
+            var intersectEnd = end < lunchEnd ? end : lunchEnd;
+
+            if (intersectStart < intersectEnd)
             {
-                 // If processing a past date that is still open, assume 0 or shift end?
-                 // Safer to assume 0 until they clock out.
-                 return (0, 0);
+                lunchDeduction = (intersectEnd - intersectStart).TotalHours;
             }
 
             var totalDuration = (end - start).TotalHours;
-            if (totalDuration <= 0) return (0, 0);
+            if (totalDuration <= 0) return (0, 0, 0, 0);
 
-            // Determine if Multiplier Applies (Weekend/Holiday)
+            // Determine Multiplier
             var dow = r.Date.DayOfWeek;
-            bool isWeekend = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
-            // Public Holiday Check omitted for brevity (Need PublicHoliday Service/Db access)
+            bool isSunday = dow == DayOfWeek.Sunday;
+            bool isSaturday = dow == DayOfWeek.Saturday;
+            bool isHoliday = OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(r.Date);
             
-            if (isWeekend)
+            if (isSunday || isHoliday)
             {
-                // All hours are OT
-                return (0, totalDuration);
+                // Lunch deduction applies as per "not paying for those"
+                return (0, 0, totalDuration - lunchDeduction, lunchDeduction);
+            }
+            
+            if (isSaturday)
+            {
+                return (0, totalDuration - lunchDeduction, 0, lunchDeduction);
             }
             
             // Weekday: Check Shift Bounds
             TimeSpan shiftStart = e.ShiftStartTime ?? new TimeSpan(7, 0, 0);
             TimeSpan shiftEnd = e.ShiftEndTime ?? new TimeSpan(16, 0, 0);
             
-            // This is complex to exact match ViewModel.
-            // Simplified: Anything > 9 hours is OT?
-            // Or: Anything outside 7am-4pm is OT.
-            
-            // Let's use the exact VM logic logic:
-            // Intersect [Start, End] with [ShiftStart, ShiftEnd] is Normal.
-            // Rest is OT.
-            
-            // Normalize dates to same day for comparison
             DateTime shiftStartDt = r.Date.Date.Add(shiftStart);
             DateTime shiftEndDt = r.Date.Date.Add(shiftEnd);
             
-            // Clamp shift end if < start (overnight?) - assume day shifts
-            
-            // Overlap
+            // Normal (Shift Overlap)
             var overlapStart = start > shiftStartDt ? start : shiftStartDt;
             var overlapEnd = end < shiftEndDt ? end : shiftEndDt;
             
@@ -295,14 +288,21 @@ namespace OCC.API.Controllers
             if (overlapStart < overlapEnd)
             {
                 normal = (overlapEnd - overlapStart).TotalHours;
+                
+                // Deduct lunch from normal hours if it overlaps the shift
+                var normalLunchStart = overlapStart > lunchStart ? overlapStart : lunchStart;
+                var normalLunchEnd = overlapEnd < lunchEnd ? overlapEnd : lunchEnd;
+                
+                if (normalLunchStart < normalLunchEnd)
+                {
+                    normal -= (normalLunchEnd - normalLunchStart).TotalHours;
+                }
             }
             
-            double ot = totalDuration - normal;
-            if (ot < 0) ot = 0; // Floating point safety
+            double totalOT = totalDuration - (normal + lunchDeduction);
+            if (totalOT < 0) totalOT = 0; 
             
-            // Hack fix: If 'Overtime' status was manually set?
-            
-            return (normal, ot);
+            return (normal, totalOT, 0, lunchDeduction);
         }
     }
 }

@@ -13,14 +13,20 @@
             <Grid RowDefinitions="Auto, *">
                 <!-- List Header / Filter -->
                 <Border Padding="20,15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="Bug Reports" Classes="H1" FontSize="20"/>
+                    <StackPanel Spacing="12">
                         <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="{Binding Bugs.Count, StringFormat='{}{0} Issues'}" Classes="LabelXSM"/>
-                            <Button Grid.Column="1" Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center">
+                            <TextBlock Text="Bug Reports" Classes="H1" FontSize="20"/>
+                            <Button Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center">
                                 <PathIcon Data="{StaticResource IconHistory}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
                             </Button>
                         </Grid>
+                        
+                        <!-- Filters -->
+                        <TextBox Text="{Binding SearchText}" Watermark="Search issues..." Classes="FormInput"/>
+                        <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" 
+                                  HorizontalAlignment="Stretch"/>
+
+                        <TextBlock Text="{Binding Bugs.Count, StringFormat='{}{0} Issues'}" Classes="LabelXSM"/>
                     </StackPanel>
                 </Border>
 
@@ -31,9 +37,14 @@
                         <DataTemplate>
                             <Border Padding="15,12" Background="Transparent">
                                 <StackPanel Spacing="8">
-                                    <Grid ColumnDefinitions="*, Auto">
+                                    <Grid ColumnDefinitions="*, Auto, Auto">
                                         <TextBlock Text="{Binding ReporterName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding ReportedDate, StringFormat='{}{0:MMM dd}'}" 
+                                        <Border Grid.Column="1" HorizontalAlignment="Right" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
+                                                Background="{Binding Type, Converter={StaticResource TypeToColorConverter}, FallbackValue='#64748B'}"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Type}" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                        </Border>
+                                        <TextBlock Grid.Column="2" Text="{Binding ReportedDate, StringFormat='{}{0:MMM dd}'}" 
                                                    Classes="LabelXSM" VerticalAlignment="Center"/>
                                     </Grid>
                                     <TextBlock Text="{Binding ViewName}" Classes="LabelXSM" Foreground="{DynamicResource PrimaryTeal}"/>
@@ -82,6 +93,10 @@
                                     <PathIcon Data="{StaticResource IconTime}" Width="12" Height="12" Foreground="{DynamicResource TextTertiarySlate}"/>
                                     <TextBlock Text="{Binding SelectedBug.ReportedDate, StringFormat='{}{0:MMM dd, yyyy HH:mm}'}" Classes="LabelSmall"/>
                                 </StackPanel>
+                                <Border VerticalAlignment="Center" CornerRadius="4" Padding="8,2" 
+                                        Background="{Binding SelectedBug.Type, Converter={StaticResource TypeToColorConverter}, FallbackValue='#64748B'}">
+                                    <TextBlock Text="{Binding SelectedBug.Type}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                </Border>
                             </StackPanel>
                         </StackPanel>
 
@@ -104,11 +119,13 @@
 
                             <!-- Screenshot Section -->
                             <StackPanel Spacing="10" IsVisible="{Binding SelectedBugScreenshot, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                <TextBlock Text="ATTACHED SCREENSHOT" Classes="LabelXSM" LetterSpacing="1"/>
-                                <Border CornerRadius="8" ClipToBounds="True" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1"
-                                        HorizontalAlignment="Left" MaxWidth="600">
-                                    <Image Source="{Binding SelectedBugScreenshot}" Stretch="Uniform"/>
-                                </Border>
+                                <TextBlock Text="ATTACHED SCREENSHOT (Click to enlarge)" Classes="LabelXSM" LetterSpacing="1"/>
+                                <Button Command="{Binding ToggleImageZoomCommand}" Background="Transparent" Padding="0" BorderThickness="0">
+                                    <Border CornerRadius="8" ClipToBounds="True" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1"
+                                            HorizontalAlignment="Left" MaxWidth="600">
+                                        <Image Source="{Binding SelectedBugScreenshot}" Stretch="Uniform"/>
+                                    </Border>
+                                </Button>
                             </StackPanel>
 
                             <!-- Comments Section -->
@@ -219,6 +236,21 @@
                     </StackPanel>
                 </Border>
             </Grid>
+        </Grid>
+
+        <!-- IMAGE ZOOM OVERLAY -->
+        <Grid Grid.ColumnSpan="2" Background="#CC000000" IsVisible="{Binding IsImageZoomed}">
+            <Button Command="{Binding ToggleImageZoomCommand}" Background="Transparent" 
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid>
+                    <Image Source="{Binding SelectedBugScreenshot}" Stretch="Uniform" Margin="40"/>
+                    <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="20"
+                            Background="White" CornerRadius="20" Width="40" Height="40">
+                         <PathIcon Data="{StaticResource IconX}" Width="20" Height="20" Foreground="Black"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Button>
         </Grid>
     </Grid>
 </UserControl>

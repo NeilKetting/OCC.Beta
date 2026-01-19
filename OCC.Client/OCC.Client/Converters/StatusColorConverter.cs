@@ -38,6 +38,7 @@ namespace OCC.Client.Converters
                 return statusStr switch
                 {
                     "Open" => Brushes.IndianRed,
+                    "Fixed" => Brushes.DodgerBlue,
                     "Waiting for Client" => Brushes.Orange,
                     "Resolved" => Brushes.MediumSeaGreen,
                     "Closed" => Brushes.Gray,

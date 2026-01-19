@@ -80,9 +80,21 @@ namespace OCC.API.Controllers
                 order.Id = Guid.NewGuid();
                 order.OrderDate = DateTime.UtcNow; // Or keep client date if intended, but safety dictates UTC server time usually
 
-                // Ensure lines have IDs
+                // Ensure lines are valid and have IDs
                 foreach (var line in order.Lines)
                 {
+                    if (line.InventoryItemId == null || line.InventoryItemId == Guid.Empty)
+                        return BadRequest("All line items must be linked to an Inventory Item.");
+
+                    if (string.IsNullOrWhiteSpace(line.Description))
+                        return BadRequest("All line items must have a description.");
+
+                    if (line.QuantityOrdered <= 0)
+                        return BadRequest("All line items must have a quantity greater than zero.");
+
+                    if (line.UnitPrice <= 0)
+                        return BadRequest("All line items must have a unit price greater than zero.");
+
                     line.Id = Guid.NewGuid();
                     line.OrderId = order.Id;
                 }
@@ -132,6 +144,18 @@ namespace OCC.API.Controllers
                 // 3. Reconcile Lines (Smart Merge)
                 foreach (var line in order.Lines)
                 {
+                    if (line.InventoryItemId == null || line.InventoryItemId == Guid.Empty)
+                        return BadRequest("All line items must be linked to an Inventory Item.");
+
+                    if (string.IsNullOrWhiteSpace(line.Description))
+                        return BadRequest("All line items must have a description.");
+
+                    if (line.QuantityOrdered <= 0)
+                        return BadRequest("All line items must have a quantity greater than zero.");
+
+                    if (line.UnitPrice <= 0)
+                        return BadRequest("All line items must have a unit price greater than zero.");
+
                     var existingLine = existingOrder.Lines.FirstOrDefault(l => l.Id == line.Id);
                     if (existingLine != null)
                     {
@@ -248,35 +272,29 @@ namespace OCC.API.Controllers
                         var inventoryItem = await _context.InventoryItems.FindAsync(originalLine.InventoryItemId.Value);
                         if (inventoryItem != null)
                         {
-                            // Only track stock if it's a stock item
-                            if (inventoryItem.IsStockItem)
+                            if (delta > 0)
                             {
-                                // Adjust Average Cost (Weighted Average)
-                                // Only valid if adding stock (delta > 0)
-                                if (delta > 0)
-                                {
-                                    decimal currentTotalValue = (decimal)(inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) * inventoryItem.AverageCost;
-                                    decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
-                                    double newTotalQty = (inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) + delta;
+                                decimal currentTotalValue = (decimal)(inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) * inventoryItem.AverageCost;
+                                decimal receivedTotalValue = (decimal)delta * originalLine.UnitPrice;
+                                double newTotalQty = (inventoryItem.QuantityOnHand > 0 ? inventoryItem.QuantityOnHand : 0) + delta;
 
-                                    if (newTotalQty > 0)
-                                    {
-                                        inventoryItem.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
-                                    }
-                                    else if (inventoryItem.QuantityOnHand <= 0) 
-                                    {
-                                         // Initial stock
-                                         inventoryItem.AverageCost = originalLine.UnitPrice;
-                                    }
+                                if (newTotalQty > 0)
+                                {
+                                    inventoryItem.AverageCost = (currentTotalValue + receivedTotalValue) / (decimal)newTotalQty;
                                 }
+                                else if (inventoryItem.QuantityOnHand <= 0) 
+                                {
+                                     // Initial stock
+                                     inventoryItem.AverageCost = originalLine.UnitPrice;
+                                }
+                            }
                                 
                                 // Update Branch-Specific Quantity
                                 if (order.Branch == Branch.JHB) inventoryItem.JhbQuantity += delta;
                                 else if (order.Branch == Branch.CPT) inventoryItem.CptQuantity += delta;
 
-                                // Update Total Stock Quantity
-                                inventoryItem.QuantityOnHand += delta;
-                            }
+                            // Update Total Stock Quantity
+                            inventoryItem.QuantityOnHand += delta;
                         }
                     }
                 }

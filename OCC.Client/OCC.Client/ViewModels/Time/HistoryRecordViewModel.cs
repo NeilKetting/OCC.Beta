@@ -114,7 +114,6 @@ namespace OCC.Client.ViewModels.Time
                 return 0;
             }
         }
-        
         private decimal CalculateAccurateWage()
         {
              // 1. Get Start and End Times
@@ -122,25 +121,22 @@ namespace OCC.Client.ViewModels.Time
              if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
              else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
              else return 0;
-
+ 
              DateTime end;
              if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
-             else end = DateTime.Now; // Live calculation currently
-
-             if (start >= end) return 0;
-
+             else end = DateTime.Now; 
+ 
+             if (start >= end || _attendance.Status == AttendanceStatus.Absent) return 0;
+ 
              decimal totalWage = 0;
-             // Fix: Cast double to decimal for the fallback so ?? works
              decimal rateToUse = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
              double hourlyRate = (double)rateToUse;
              string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
              
-             // 2. Iterate through time in small chunks (e.g. 15 mins) or analyze spans.
-             // For precision and handling "cross-midnight" easily, let's step through.
-             // Optimization: Step by 30 mins or calculate span intersections.
-             // Given the requirements, a span intersect approach is better but complex to write inline.
-             // Let's use a "Chunking" loop (15 min intervals).
-             
+             // UNPAID LUNCH WINDOW (12:00 - 13:00)
+             DateTime lunchStart = start.Date.AddHours(12);
+             DateTime lunchEnd = start.Date.AddHours(13);
+
              var current = start;
              var interval = TimeSpan.FromMinutes(15);
              
@@ -150,15 +146,58 @@ namespace OCC.Client.ViewModels.Time
                  if (next > end) next = end;
                  
                  var durationHours = (next - current).TotalHours;
-                 var multiplier = GetMultiplier(current, branch);
                  
-                 totalWage += (decimal)(durationHours * hourlyRate * multiplier);
+                 // Check if this interval overlaps lunch
+                 var intersectStart = current > lunchStart ? current : lunchStart;
+                 var intersectEnd = next < lunchEnd ? next : lunchEnd;
+                 
+                 if (intersectStart < intersectEnd)
+                 {
+                     // Skip this chunk of time for pay
+                     // We could subtract just the intersection but chunking makes it simpler
+                     durationHours -= (intersectEnd - intersectStart).TotalHours;
+                 }
+
+                 if (durationHours > 0)
+                 {
+                    var multiplier = GetMultiplier(current, branch);
+                    totalWage += (decimal)(durationHours * hourlyRate * multiplier);
+                 }
                  
                  current = next;
              }
              
              return totalWage;
         }
+
+        public double LunchDeduction
+        {
+            get
+            {
+                DateTime start;
+                if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
+                else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
+                else return 0;
+
+                DateTime end;
+                if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
+                else end = DateTime.Now;
+
+                DateTime lunchStart = start.Date.AddHours(12);
+                DateTime lunchEnd = start.Date.AddHours(13);
+
+                var intersectStart = start > lunchStart ? start : lunchStart;
+                var intersectEnd = end < lunchEnd ? end : lunchEnd;
+
+                if (intersectStart < intersectEnd)
+                {
+                    return (intersectEnd - intersectStart).TotalHours;
+                }
+                return 0;
+            }
+        }
+        
+        public string LunchDeductionDisplay => LunchDeduction > 0 ? $"{LunchDeduction:F2}h" : "-";
 
         public double OvertimeHours
         {
@@ -175,30 +214,44 @@ namespace OCC.Client.ViewModels.Time
                  if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
                  else end = DateTime.Now; 
     
-                 if (start >= end) return 0;
-    
-                 double overtimeHours = 0;
-                 string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
-                 
-                 var current = start;
-                 var interval = TimeSpan.FromMinutes(15);
-                 
-                 while (current < end)
-                 {
-                     var next = current.Add(interval);
-                     if (next > end) next = end;
-                     
-                     var durationHours = (next - current).TotalHours;
-                     var multiplier = GetMultiplier(current, branch);
-                     
-                     if (multiplier > 1.0)
-                     {
-                        overtimeHours += durationHours;
-                     }
-                     
-                     current = next;
-                 }
-                 return overtimeHours;
+                  if (start >= end || _attendance.Status == AttendanceStatus.Absent) return 0;
+     
+                  double overtimeHours = 0;
+                  string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
+                  
+                  DateTime lunchStart = start.Date.AddHours(12);
+                  DateTime lunchEnd = start.Date.AddHours(13);
+
+                  var current = start;
+                  var interval = TimeSpan.FromMinutes(15);
+                  
+                  while (current < end)
+                  {
+                      var next = current.Add(interval);
+                      if (next > end) next = end;
+                      
+                      var durationHours = (next - current).TotalHours;
+                      
+                      // Check lunch
+                      var intersectStart = current > lunchStart ? current : lunchStart;
+                      var intersectEnd = next < lunchEnd ? next : lunchEnd;
+                      if (intersectStart < intersectEnd)
+                      {
+                          durationHours -= (intersectEnd - intersectStart).TotalHours;
+                      }
+
+                      if (durationHours > 0)
+                      {
+                          var multiplier = GetMultiplier(current, branch);
+                          if (multiplier > 1.0)
+                          {
+                             overtimeHours += durationHours;
+                          }
+                      }
+                      
+                      current = next;
+                  }
+                  return overtimeHours;
             }
         }
         
@@ -210,7 +263,7 @@ namespace OCC.Client.ViewModels.Time
             if (_isPublicHoliday) return 2.0;
 
             // 1. Sundays = 2.0x
-            if (time.DayOfWeek == DayOfWeek.Sunday) return 2.0;
+            if (time.DayOfWeek == DayOfWeek.Sunday || OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(time)) return 2.0;
 
             // 2. Saturdays = 1.5x
             if (time.DayOfWeek == DayOfWeek.Saturday) return 1.5;

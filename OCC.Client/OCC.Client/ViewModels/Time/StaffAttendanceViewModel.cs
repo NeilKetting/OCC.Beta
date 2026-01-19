@@ -46,6 +46,9 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private string _leaveType = string.Empty;
 
+        [ObservableProperty]
+        private bool _isSelected = true;
+
         #endregion
 
         #region Properties

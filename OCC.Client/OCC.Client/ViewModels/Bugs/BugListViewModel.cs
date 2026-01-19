@@ -47,6 +47,20 @@ namespace OCC.Client.ViewModels.Bugs
         [ObservableProperty]
         private Avalonia.Media.Imaging.Bitmap? _selectedBugScreenshot;
 
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        [ObservableProperty]
+        private string _statusFilter = "All"; // All, Open, Fixed, Resolved, Closed, Waiting for Client
+
+        [ObservableProperty]
+        private bool _isImageZoomed;
+
+        public ObservableCollection<string> StatusFilters { get; } = new() 
+        { 
+            "All", "Open", "Fixed", "Resolved", "Closed", "Waiting for Client" 
+        };
+
         #endregion
 
         #region Constructor
@@ -71,6 +85,19 @@ namespace OCC.Client.ViewModels.Bugs
         #endregion
 
         #region Methods
+
+        partial void OnSearchTextChanged(string value) => ApplyFilters();
+        partial void OnStatusFilterChanged(string value) => ApplyFilters();
+
+        private void ApplyFilters()
+        {
+            if (Bugs == null) return;
+            
+            // We'll reload from service to get fresh data or just filter locally if we have all data.
+            // Requirement says "Refresh" shouldn't close the view, so let's filter locally if possible
+            // but LoadBugs already fetches from service. Let's make LoadBugs smarter.
+            _ = LoadBugs();
+        }
 
         partial void OnSelectedBugChanged(BugReport? value)
         {
@@ -100,14 +127,52 @@ namespace OCC.Client.ViewModels.Bugs
         [RelayCommand]
         private async Task LoadBugs()
         {
+            if (IsBusy) return;
             IsBusy = true;
             try
             {
+                var previousId = SelectedBug?.Id;
                 var list = await _bugService.GetBugReportsAsync();
-                Bugs = new ObservableCollection<BugReport>(list.OrderByDescending(x => x.ReportedDate));
-                if (SelectedBug != null)
+                
+                // Sort Priority
+                Func<string, int> getPriority = (s) => s switch {
+                    "Open" => 0,
+                    "Fixed" => 1,
+                    "Waiting for Client" => 2,
+                    "Resolved" => 3,
+                    "Closed" => 4,
+                    _ => 5
+                };
+
+                var filteredList = list.AsEnumerable();
+
+                if (!string.IsNullOrWhiteSpace(SearchText))
                 {
-                    SelectedBug = Bugs.FirstOrDefault(x => x.Id == SelectedBug.Id) ?? Bugs.FirstOrDefault();
+                    filteredList = filteredList.Where(x => 
+                        x.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
+                        x.ViewName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                        x.ReporterName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (StatusFilter != "All")
+                {
+                    filteredList = filteredList.Where(x => x.Status == StatusFilter);
+                }
+
+                var sortedList = filteredList
+                    .OrderBy(x => getPriority(x.Status))
+                    .ThenByDescending(x => x.ReportedDate);
+
+                Bugs = new ObservableCollection<BugReport>(sortedList);
+                
+                if (previousId.HasValue)
+                {
+                    SelectedBug = Bugs.FirstOrDefault(x => x.Id == previousId.Value);
+                }
+                
+                if (SelectedBug == null && Bugs.Any() && !previousId.HasValue)
+                {
+                    SelectedBug = Bugs.First();
                 }
             }
             catch (Exception ex)
@@ -157,8 +222,8 @@ namespace OCC.Client.ViewModels.Bugs
         private async Task MarkFixed()
         {
             if (SelectedBug == null || !IsDev) return;
-            var text = "Developer marked this issue as Resolved.";
-            await _bugService.AddCommentAsync(SelectedBug.Id, text, "Resolved");
+            var text = "Developer marked this issue as Fixed. Please verify and mark as Resolved.";
+            await _bugService.AddCommentAsync(SelectedBug.Id, text, "Fixed");
             await LoadBugs();
         }
 
@@ -209,6 +274,12 @@ namespace OCC.Client.ViewModels.Bugs
             var text = $"{_authService.CurrentUser?.FirstName ?? "Reporter"} marked this issue as Still Broken.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Open");
             await LoadBugs();
+        }
+
+        [RelayCommand]
+        private void ToggleImageZoom()
+        {
+            IsImageZoomed = !IsImageZoomed;
         }
 
         #endregion
