@@ -275,6 +275,9 @@ namespace OCC.Client.ViewModels.Orders
 
             // Menu Interactions
             OrderMenu.TabSelected += (s, tab) => SetTab(tab);
+
+            // Dashboard Interactions
+            DashboardVM.OrderSelected += (s, o) => OpenViewOrder(o);
         }
 
         /// <summary>

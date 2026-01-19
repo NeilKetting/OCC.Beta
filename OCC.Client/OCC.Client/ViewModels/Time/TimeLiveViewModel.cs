@@ -128,9 +128,9 @@ namespace OCC.Client.ViewModels.Time
                 var activeAttendance = await _timeService.GetActiveAttendanceAsync();
                 
                 var mergedAttendance = todayAttendance.Concat(activeAttendance)
-                                                      .Where(x => x.CheckOutTime == null) // LIVE ONLY: Must be currently clocked in
-                                                      .GroupBy(x => x.EmployeeId)         // GROUP: By Person
-                                                      .Select(g => g.OrderByDescending(r => r.CheckInTime).First()) // TAKE: Latest only
+                                                      .Where(x => (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue) && x.Date.Date == today)
+                                                      .GroupBy(x => x.EmployeeId)
+                                                      .Select(g => g.OrderByDescending(r => r.CheckInTime ?? r.Date.Add(r.ClockInTime ?? TimeSpan.Zero)).First())
                                                       .ToList();
 
                 // === NEW: Monthly Hours Calculation ===

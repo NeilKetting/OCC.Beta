@@ -450,7 +450,7 @@
 
 					<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15">
 						<Button Command="{Binding CancelCommand}" Content="{Binding IsReadOnly, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Close|Cancel'}" Classes="Cancel" />
-						<Button Command="{Binding SubmitOrderCommand}" Content="CREATE ORDER" Classes="Primary" IsVisible="{Binding !IsReadOnly}" />
+						<Button Command="{Binding SubmitOrderCommand}" Content="{Binding SubmitButtonText}" Classes="Primary" IsVisible="{Binding !IsReadOnly}" />
 					</StackPanel>
 
 

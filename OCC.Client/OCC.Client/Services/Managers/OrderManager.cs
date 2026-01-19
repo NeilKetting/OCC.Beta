@@ -167,10 +167,16 @@ namespace OCC.Client.Services.Managers
         #region Dashboard & Analytics
 
         /// <inheritdoc/>
-        public async Task<OrderDashboardStats> GetDashboardStatsAsync()
+        public async Task<OrderDashboardStats> GetDashboardStatsAsync(Branch? branch = null)
         {
             var allOrders = (await _orderService.GetOrdersAsync()).ToList();
             var inventory = (await _inventoryService.GetInventoryAsync()).ToList();
+
+            // Filter orders by branch if requested
+            if (branch.HasValue)
+            {
+                allOrders = allOrders.Where(o => o.Branch == branch.Value).ToList();
+            }
 
             var now = DateTime.Now;
             var startOfMonth = new DateTime(now.Year, now.Month, 1);
@@ -227,7 +233,12 @@ namespace OCC.Client.Services.Managers
             }
 
             var recentOrders = allOrders.OrderByDescending(o => o.OrderDate).Take(5).ToList();
-            var lowStockItems = inventory.Where(i => i.TrackLowStock && i.QuantityOnHand <= i.ReorderPoint).ToList();
+            
+            // Branch-aware low stock
+            var lowStockItems = inventory.Where(i => i.TrackLowStock && 
+                ((!branch.HasValue && (i.JhbQuantity <= i.JhbReorderPoint || i.CptQuantity <= i.CptReorderPoint)) ||
+                 (branch == Branch.JHB && i.JhbQuantity <= i.JhbReorderPoint) ||
+                 (branch == Branch.CPT && i.CptQuantity <= i.CptReorderPoint))).ToList();
 
             return new OrderDashboardStats(
                 ordersThisMonthCount,
@@ -242,10 +253,11 @@ namespace OCC.Client.Services.Managers
         }
 
         /// <inheritdoc/>
+        /// <inheritdoc/>
         public async Task<Order> GetRestockOrderTemplateAsync()
         {
             var inventory = await _inventoryService.GetInventoryAsync();
-            var lowStockItems = inventory.Where(i => i.TrackLowStock && i.QuantityOnHand <= i.ReorderPoint).ToList();
+            var lowStockItems = inventory.Where(i => i.TrackLowStock && (i.JhbQuantity <= i.JhbReorderPoint || i.CptQuantity <= i.CptReorderPoint)).ToList();
 
             if (!lowStockItems.Any()) return CreateNewOrderTemplate(OrderType.PurchaseOrder);
 
@@ -300,8 +312,16 @@ namespace OCC.Client.Services.Managers
                 // QtyToOrder = Target - QtyOnHand.
                 // Min Qty = 1.
                 
-                double target = item.ReorderPoint * 2; 
-                double needed = target - item.QuantityOnHand;
+                double target = item.JhbReorderPoint * 2; 
+                double needed = target - item.JhbQuantity;
+                
+                // If JHB is fine, check CPT
+                if (needed <= 0)
+                {
+                    target = item.CptReorderPoint * 2;
+                    needed = target - item.CptQuantity;
+                }
+
                 if (needed < 1) needed = 1;
 
                 decimal unitPrice = lastPrices[item.Id];
@@ -325,7 +345,7 @@ namespace OCC.Client.Services.Managers
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync()
+        public async Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync(Branch? branch = null)
         {
             var inventory = await _inventoryService.GetInventoryAsync();
             var orders = await _orderService.GetOrdersAsync();
@@ -334,10 +354,8 @@ namespace OCC.Client.Services.Managers
             var activePOs = orders.Where(o => o.OrderType == OrderType.PurchaseOrder && 
                                               (o.Status == OrderStatus.Ordered || o.Status == OrderStatus.PartialDelivery));
 
-            // Flatten lines to map: InventoryId -> QuantityRemaining
-            // Note: OrderLine has RemainingQuantity property but it is calculated.
-            // We need to match by InventoryItemId.
-            var pendingQuantities = new Dictionary<Guid, double>();
+            // Flatten lines to map: (InventoryId, Branch) -> QuantityRemaining
+            var pendingQuantities = new Dictionary<(Guid, Branch), double>();
             
             foreach (var order in activePOs)
             {
@@ -345,10 +363,11 @@ namespace OCC.Client.Services.Managers
                 {
                     if (line.InventoryItemId.HasValue)
                     {
-                        if (!pendingQuantities.ContainsKey(line.InventoryItemId.Value))
-                            pendingQuantities[line.InventoryItemId.Value] = 0;
+                        var key = (line.InventoryItemId.Value, order.Branch);
+                        if (!pendingQuantities.ContainsKey(key))
+                            pendingQuantities[key] = 0;
                         
-                        pendingQuantities[line.InventoryItemId.Value] += line.RemainingQuantity;
+                        pendingQuantities[key] += line.RemainingQuantity;
                     }
                 }
             }
@@ -359,22 +378,39 @@ namespace OCC.Client.Services.Managers
             {
                 if (!item.TrackLowStock) continue;
 
-                double onOrder = 0;
-                if (pendingQuantities.ContainsKey(item.Id))
+                // Evaluate JHB
+                if (!branch.HasValue || branch == Branch.JHB)
                 {
-                    onOrder = pendingQuantities[item.Id];
+                    if (item.JhbQuantity <= item.JhbReorderPoint)
+                    {
+                        double onOrder = 0;
+                        pendingQuantities.TryGetValue((item.Id, Branch.JHB), out onOrder);
+                        
+                        candidates.Add(new OCC.Client.Models.RestockCandidate
+                        {
+                            Item = item,
+                            QuantityOnOrder = onOrder,
+                            TargetBranch = Branch.JHB
+                        });
+                    }
                 }
 
-                // Rule: Show if Physical Stock is Low.
-                // We display the 'On Order' part visually so the user knows if it's covered.
-                // If we filtered by (Hand + Order) >= Reorder, we would never show the "Blue Bar" case the user described.
-                if (item.QuantityOnHand >= item.ReorderPoint) continue;
-
-                candidates.Add(new OCC.Client.Models.RestockCandidate
+                // Evaluate CPT
+                if (!branch.HasValue || branch == Branch.CPT)
                 {
-                    Item = item,
-                    QuantityOnOrder = onOrder
-                });
+                    if (item.CptQuantity <= item.CptReorderPoint)
+                    {
+                        double onOrder = 0;
+                        pendingQuantities.TryGetValue((item.Id, Branch.CPT), out onOrder);
+                        
+                        candidates.Add(new OCC.Client.Models.RestockCandidate
+                        {
+                            Item = item,
+                            QuantityOnOrder = onOrder,
+                            TargetBranch = Branch.CPT
+                        });
+                    }
+                }
             }
 
             return candidates;

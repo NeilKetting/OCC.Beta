@@ -112,6 +112,18 @@ namespace OCC.Client.ViewModels.Orders
         private double _cptQuantity;
 
         /// <summary>
+        /// Gets or sets the stock level at which a restock should be triggered for JHB.
+        /// </summary>
+        [ObservableProperty]
+        private double _jhbReorderPoint;
+
+        /// <summary>
+        /// Gets or sets the stock level at which a restock should be triggered for CPT.
+        /// </summary>
+        [ObservableProperty]
+        private double _cptReorderPoint;
+
+        /// <summary>
         /// Gets or sets a value indicating whether an asynchronous operation is in progress.
         /// </summary>
 
@@ -193,7 +205,8 @@ namespace OCC.Client.ViewModels.Orders
                     JhbQuantity = JhbQuantity,
                     CptQuantity = CptQuantity,
                     QuantityOnHand = QuantityOnHand, // Will be computed or ignored by API largely, but good to send
-                    ReorderPoint = ReorderPoint,
+                    JhbReorderPoint = JhbReorderPoint,
+                    CptReorderPoint = CptReorderPoint,
                     AverageCost = AverageCost,
                     TrackLowStock = IsTrackingLowStock,
                     IsStockItem = IsStockItem
@@ -266,9 +279,8 @@ namespace OCC.Client.ViewModels.Orders
                 UnitOfMeasure = "ea";
                 JhbQuantity = 0;
                 CptQuantity = 0;
-                ReorderPoint = 10;
-                IsTrackingLowStock = true;
-                IsStockItem = true;
+                JhbReorderPoint = 10;
+                CptReorderPoint = 10;
             }
             else
             {
@@ -284,10 +296,12 @@ namespace OCC.Client.ViewModels.Orders
                 JhbQuantity = item.JhbQuantity;
                 CptQuantity = item.CptQuantity;
                 // QuantityOnHand is computed
-                ReorderPoint = item.ReorderPoint;
+                // QuantityOnHand is computed
                 AverageCost = item.AverageCost;
                 IsTrackingLowStock = item.TrackLowStock;
                 IsStockItem = item.IsStockItem;
+                JhbReorderPoint = item.JhbReorderPoint;
+                CptReorderPoint = item.CptReorderPoint;
             }
         }
 

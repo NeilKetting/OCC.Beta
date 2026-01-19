@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Messages;
+using OCC.Client.Services.Interfaces;
 using OCC.Client.Models;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.Services.Managers.Interfaces;
@@ -27,11 +28,14 @@ namespace OCC.Client.ViewModels.Orders
 
         public OrderMenuViewModel OrderMenu { get; }
 
-        public RestockReviewViewModel(IOrderManager orderManager, OrderStateService orderStateService, OrderMenuViewModel orderMenu)
+        private readonly IAuthService _authService;
+
+        public RestockReviewViewModel(IOrderManager orderManager, OrderStateService orderStateService, OrderMenuViewModel orderMenu, IAuthService authService)
         {
             _orderManager = orderManager;
             _orderStateService = orderStateService;
             OrderMenu = orderMenu;
+            _authService = authService;
             OrderMenu.TabSelected += OnMenuTabSelected;
         }
 
@@ -60,14 +64,21 @@ namespace OCC.Client.ViewModels.Orders
             }
         }
 
-        public RestockReviewViewModel() { _orderManager = null!; _orderStateService = null!; OrderMenu = null!; }
+        public RestockReviewViewModel() 
+        { 
+            _orderManager = null!; 
+            _orderStateService = null!; 
+            OrderMenu = null!; 
+            _authService = null!; 
+        }
 
         public async Task LoadData()
         {
             IsBusy = true;
             try
             {
-                var candidates = await _orderManager.GetRestockCandidatesAsync();
+                var branch = _authService?.CurrentUser?.Branch;
+                var candidates = await _orderManager.GetRestockCandidatesAsync(branch);
                 
                 var grouped = candidates.GroupBy(c => c.Item.Supplier)
                                         .Select(g => new SupplierRestockGroup(g.Key, g.ToList()))
@@ -146,15 +157,32 @@ namespace OCC.Client.ViewModels.Orders
                     order.SupplierName = group.SupplierName;
                 }
 
+                // Set branch from the first candidate if available, else user's branch
+                var firstCandidate = group.Items.FirstOrDefault();
+                if (firstCandidate != null)
+                {
+                     order.Branch = firstCandidate.TargetBranch;
+                }
+
                 foreach (var candidate in group.Items)
                 {
                     var item = candidate.Item;
-                    // Calculate Order Qty
-                    // Target = ReorderPoint * 2 (as per original logic in Manager)
-                    // Or just ReorderPoint - (Hand + Order)?
-                    // User didn't specify formula, so I'll stick to the "Safe Buffer" logic: Target = ReorderPoint * 2.
-                    double target = item.ReorderPoint * 2;
-                    double needed = target - (item.QuantityOnHand + candidate.QuantityOnOrder);
+                    // Calculate Order Qty Target = ReorderPoint * 2 (as per original logic in Manager)
+                    double target = 0;
+                    double currentHand = 0;
+                    
+                    if (candidate.TargetBranch == Branch.JHB)
+                    {
+                        target = item.JhbReorderPoint * 2;
+                        currentHand = item.JhbQuantity;
+                    }
+                    else
+                    {
+                        target = item.CptReorderPoint * 2;
+                        currentHand = item.CptQuantity;
+                    }
+
+                    double needed = target - (currentHand + candidate.QuantityOnOrder);
                     if (needed < 1) needed = 1;
 
                     order.Lines.Add(new OrderLine

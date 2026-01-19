@@ -16,13 +16,25 @@ namespace OCC.Client.Views.Time
 
         public EditAttendanceDialog(TimeSpan? currentIn, TimeSpan? currentOut, bool showIn = true, bool showOut = true) : this()
         {
-            var inPicker = this.FindControl<TimePicker>("ClockInPicker");
-            var outPicker = this.FindControl<TimePicker>("ClockOutPicker");
+            var inHour = this.FindControl<NumericUpDown>("InHour");
+            var inMin = this.FindControl<NumericUpDown>("InMin");
+            var outHour = this.FindControl<NumericUpDown>("OutHour");
+            var outMin = this.FindControl<NumericUpDown>("OutMin");
+
             var inPanel = this.FindControl<StackPanel>("ClockInPanel");
             var outPanel = this.FindControl<StackPanel>("ClockOutPanel");
 
-            if (inPicker != null && currentIn.HasValue) inPicker.SelectedTime = currentIn;
-            if (outPicker != null && currentOut.HasValue) outPicker.SelectedTime = currentOut;
+            if (inHour != null && inMin != null && currentIn.HasValue) 
+            {
+                inHour.Value = currentIn.Value.Hours;
+                inMin.Value = currentIn.Value.Minutes;
+            }
+            
+            if (outHour != null && outMin != null && currentOut.HasValue) 
+            {
+                outHour.Value = currentOut.Value.Hours;
+                outMin.Value = currentOut.Value.Minutes;
+            }
             
             if (inPanel != null) inPanel.IsVisible = showIn;
             if (outPanel != null) outPanel.IsVisible = showOut;
@@ -40,11 +52,16 @@ namespace OCC.Client.Views.Time
 
         private void OnSaveClick(object? sender, RoutedEventArgs e)
         {
-            var inPicker = this.FindControl<TimePicker>("ClockInPicker");
-            var outPicker = this.FindControl<TimePicker>("ClockOutPicker");
+            var inHour = this.FindControl<NumericUpDown>("InHour");
+            var inMin = this.FindControl<NumericUpDown>("InMin");
+            var outHour = this.FindControl<NumericUpDown>("OutHour");
+            var outMin = this.FindControl<NumericUpDown>("OutMin");
 
-            ClockInTime = inPicker?.SelectedTime;
-            ClockOutTime = outPicker?.SelectedTime;
+            if (inHour?.Value != null && inMin?.Value != null)
+                ClockInTime = new TimeSpan((int)inHour.Value.Value, (int)inMin.Value.Value, 0);
+            
+            if (outHour?.Value != null && outMin?.Value != null)
+                ClockOutTime = new TimeSpan((int)outHour.Value.Value, (int)outMin.Value.Value, 0);
 
             Close(true);
         }

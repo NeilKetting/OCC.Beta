@@ -73,7 +73,8 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private double _totalHours;
 
-
+        [ObservableProperty]
+        private bool _isAllSelected;
 
         [ObservableProperty]
         private string _searchText = string.Empty;
@@ -266,6 +267,50 @@ namespace OCC.Client.ViewModels.Time
         }
 
         [RelayCommand]
+        private async Task BulkEdit()
+        {
+            var selected = Records.Where(r => r.IsSelected).ToList();
+            if (!selected.Any())
+            {
+                await _dialogService.ShowAlertAsync("No Selection", "Please select one or more records to edit.");
+                return;
+            }
+
+            var result = await _dialogService.ShowEditAttendanceAsync(null, null);
+
+            if (result.Confirmed && result.InTime.HasValue)
+            {
+                IsBusy = true;
+                try
+                {
+                    foreach (var record in selected)
+                    {
+                        var originalDate = record.Attendance.Date.Date;
+                        var newCheckIn = originalDate.Add(result.InTime.Value);
+
+                        DateTime? newCheckOut = null;
+                        if (result.OutTime.HasValue)
+                        {
+                            newCheckOut = originalDate.Add(result.OutTime.Value);
+                            if (newCheckOut < newCheckIn) newCheckOut = newCheckOut.Value.AddDays(1);
+                        }
+
+                        record.Attendance.CheckInTime = newCheckIn;
+                        record.Attendance.CheckOutTime = newCheckOut;
+
+                        await _timeService.SaveAttendanceRecordAsync(record.Attendance);
+                        record.Refresh();
+                    }
+                    
+                    IsBusy = false;
+                    await LoadData();
+                    IsAllSelected = false;
+                }
+                finally { IsBusy = false; }
+            }
+        }
+
+        [RelayCommand]
         private async Task Initialize()
         {
             await LoadData();
@@ -282,6 +327,14 @@ namespace OCC.Client.ViewModels.Time
         partial void OnSearchTextChanged(string value) => FilterRecords();
         partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
         partial void OnSelectedBranchChanged(string value) => FilterRecords();
+
+        partial void OnIsAllSelectedChanged(bool value)
+        {
+            foreach (var record in Records)
+            {
+                record.IsSelected = value;
+            }
+        }
 
         private void FilterRecords()
         {

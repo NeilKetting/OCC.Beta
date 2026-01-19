@@ -26,7 +26,7 @@ namespace OCC.Shared.Models
         private decimal _lineTotal;
 
         /// <summary> Unique primary key for the order line. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
         public Guid OrderId { get; set; }

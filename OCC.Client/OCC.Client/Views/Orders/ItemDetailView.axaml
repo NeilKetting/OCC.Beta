@@ -161,10 +161,19 @@
                                     <!-- Read Only to prevent manual edits bypassing Receive/Adjust flow -->
                                     <TextBox Text="{Binding QuantityOnHand}" Classes="FormInput" Watermark="0" IsReadOnly="True" Background="#F8FAFC"/>
                                 </StackPanel>
+                            </Grid>
+                            
+                            <TextBlock Text="Reorder Points (Branch Specific)" Classes="FormLabel" Margin="0,5,0,0"/>
+
+                            <Grid ColumnDefinitions="*, 20, *" IsVisible="{Binding IsTrackingLowStock}">
+                                <StackPanel Grid.Column="0" Spacing="10">
+                                    <TextBlock Text="JHB Threshold" Classes="FormLabel" FontSize="11" Foreground="Gray"/>
+                                    <TextBox Text="{Binding JhbReorderPoint}" Classes="FormInput" Watermark="10"/>
+                                </StackPanel>
                                 
                                 <StackPanel Grid.Column="2" Spacing="10" IsVisible="{Binding IsTrackingLowStock}">
-                                    <TextBlock Text="Reorder Point" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding ReorderPoint}" Classes="FormInput" Watermark="10" ToolTip.Tip="Global alert level (Total Stock)"/>
+                                    <TextBlock Text="CPT Threshold" Classes="FormLabel" FontSize="11" Foreground="Gray"/>
+                                    <TextBox Text="{Binding CptReorderPoint}" Classes="FormInput" Watermark="10"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel> <!-- End of Stock Tracking Group -->

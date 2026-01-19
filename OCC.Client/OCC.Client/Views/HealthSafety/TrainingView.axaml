@@ -30,7 +30,7 @@
                         <!-- Toolbar -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="10">
                              <TextBlock Text="Expiry Warning (Days):" VerticalAlignment="Center"/>
-                             <NumericUpDown Value="{Binding ExpiryWarningDays}" Minimum="1" Maximum="365" Width="80"/>
+                             <NumericUpDown Value="{Binding ExpiryWarningDays}" Minimum="1" Maximum="365" Width="120"/>
                              <Button Content="Show Expiring" Command="{Binding FilterExpiringCommand}" Classes="Secondary"/>
                              <Button Content="Reset/Reload" Command="{Binding LoadDataCommand}" Classes="Ghost"/>
                         </StackPanel>

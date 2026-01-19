@@ -47,8 +47,11 @@ namespace OCC.Shared.Models
         /// <summary> Total aggregate quantity across all branches. </summary>
         public double QuantityOnHand { get; set; }
 
-        /// <summary> The stock level threshold at which a restock should be triggered. </summary>
-        public double ReorderPoint { get; set; }
+        /// <summary> The stock level threshold at which a restock should be triggered for JHB. </summary>
+        public double JhbReorderPoint { get; set; }
+
+        /// <summary> The stock level threshold at which a restock should be triggered for CPT. </summary>
+        public double CptReorderPoint { get; set; }
 
         /// <summary> The unit in which the item is measured (e.g., "ea", "kg", "m"). </summary>
         public string UnitOfMeasure { get; set; } = "ea";
@@ -69,7 +72,7 @@ namespace OCC.Shared.Models
         public bool IsStockItem { get; set; } = true;
 
         // Status
-        public InventoryStatus Status => TrackLowStock && QuantityOnHand <= ReorderPoint ? InventoryStatus.Low : InventoryStatus.OK;
+        public InventoryStatus Status => TrackLowStock && (JhbQuantity <= JhbReorderPoint || CptQuantity <= CptReorderPoint) ? InventoryStatus.Low : InventoryStatus.OK;
         
         // Alias for View Binding compatibility
         public InventoryStatus InventoryStatus => Status;

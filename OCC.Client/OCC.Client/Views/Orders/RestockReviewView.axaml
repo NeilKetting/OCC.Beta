@@ -80,7 +80,7 @@
                                                              <TextBlock Text="+" FontSize="11"/>
                                                              <TextBlock Text="{Binding QuantityOnOrder}" Foreground="Blue" FontWeight="Bold" FontSize="11"/>
                                                              <TextBlock Text="/" FontSize="11"/>
-                                                             <TextBlock Text="{Binding Item.ReorderPoint, StringFormat='{}{0} (Min)'}" Foreground="Gray" FontSize="11"/>
+                                                             <TextBlock Text="{Binding TargetReorderPoint, StringFormat='{}{0} (Min)'}" Foreground="Gray" FontSize="11"/>
                                                         </StackPanel>
 
                                                         <!-- Bar Container -->

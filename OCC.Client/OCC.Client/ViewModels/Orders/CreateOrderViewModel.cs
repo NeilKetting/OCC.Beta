@@ -46,7 +46,13 @@ namespace OCC.Client.ViewModels.Orders
 
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(SubmitButtonText))]
         private OrderWrapper _currentOrder = null!; // Renamed from NewOrder
+
+        /// <summary>
+        /// Gets the localizable text for the submission button.
+        /// </summary>
+        public string SubmitButtonText => (CurrentOrder?.Id != Guid.Empty && CurrentOrder?.Id != null) ? "UPDATE ORDER" : "CREATE ORDER";
 
         [ObservableProperty]
         private bool _isReadOnly;
@@ -678,14 +684,23 @@ namespace OCC.Client.ViewModels.Orders
 
 
             // 2. Validate Lines
-            if (!CurrentOrder.Lines.Any())
+            // Filter out empty placeholder lines before validation
+            var meaningfulLines = CurrentOrder.Lines.Where(l => 
+                l.InventoryItemId != null || 
+                !string.IsNullOrWhiteSpace(l.ItemCode) || 
+                !string.IsNullOrWhiteSpace(l.Description) || 
+                l.QuantityOrdered > 0 || 
+                l.UnitPrice > 0)
+                .ToList();
+
+            if (!meaningfulLines.Any())
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please add at least one line item.");
                 return;
             }
 
-            // Strict Field Validation for each line
-            var invalidLines = CurrentOrder.Lines.Where(l => 
+            // Strict Field Validation for each meaningful line
+            var invalidLines = meaningfulLines.Where(l => 
                 l.InventoryItemId == null || 
                 string.IsNullOrWhiteSpace(l.Description) || 
                 l.QuantityOrdered <= 0 || 
@@ -996,6 +1011,7 @@ namespace OCC.Client.ViewModels.Orders
                 Initialize();
 
                 OnPropertyChanged(nameof(CurrentOrder));
+                OnPropertyChanged(nameof(SubmitButtonText));
             }
             catch(Exception ex)
             {

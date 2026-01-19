@@ -24,6 +24,7 @@ namespace OCC.Client.ViewModels.Orders
 
         private readonly IOrderManager _orderManager;
         private readonly IDialogService _dialogService;
+        private readonly IAuthService _authService;
         private List<Order> _allOrders = new();
 
         #endregion
@@ -89,11 +90,19 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         /// <param name="orderManager">Central manager for order operations.</param>
         /// <param name="dialogService">Service for displaying user notifications and confirmations.</param>
-        public OrderListViewModel(IOrderManager orderManager, IDialogService dialogService)
+        public OrderListViewModel(IOrderManager orderManager, IDialogService dialogService, IAuthService authService)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
+            _authService = authService;
             
+            // Set default branch filter to user's branch if available
+            var userBranch = _authService.CurrentUser?.Branch;
+            if (userBranch.HasValue)
+            {
+                SelectedBranchFilter = userBranch.Value.ToString();
+            }
+
             // Register for Real-time Updates to ensure the list remains synchronized with server changes
             WeakReferenceMessenger.Default.Register(this);
             

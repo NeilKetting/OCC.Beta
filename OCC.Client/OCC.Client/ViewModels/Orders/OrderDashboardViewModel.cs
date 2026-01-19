@@ -29,6 +29,7 @@ namespace OCC.Client.ViewModels.Orders
 
         private readonly IOrderManager _orderManager;
         private readonly OrderStateService _orderStateService;
+        private readonly IAuthService _authService;
         private readonly ILogger<OrderDashboardViewModel> _logger;
 
         #endregion
@@ -103,6 +104,7 @@ namespace OCC.Client.ViewModels.Orders
         {
             _orderManager = null!;
             _orderStateService = null!;
+            _authService = null!;
             _logger = null!;
         }
 
@@ -110,11 +112,13 @@ namespace OCC.Client.ViewModels.Orders
         /// Initializes a new instance of the <see cref="OrderDashboardViewModel"/> class with required dependencies.
         /// </summary>
         /// <param name="orderManager">Manager providing centralized order and inventory operations.</param>
+        /// <param name="authService">Service for accessing current user context.</param>
         /// <param name="logger">Logger for capturing diagnostic information.</param>
-        public OrderDashboardViewModel(IOrderManager orderManager, OrderStateService orderStateService, ILogger<OrderDashboardViewModel> logger)
+        public OrderDashboardViewModel(IOrderManager orderManager, OrderStateService orderStateService, IAuthService authService, ILogger<OrderDashboardViewModel> logger)
         {
             _orderManager = orderManager;
             _orderStateService = orderStateService;
+            _authService = authService;
             _logger = logger;
             
             // Register for Real-time Updates to keep dashboard current
@@ -134,16 +138,18 @@ namespace OCC.Client.ViewModels.Orders
              WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("RestockReview"));
         }
 
+        /// <summary>
+        /// Event raised when an order is selected from the dashboard for detailed viewing.
+        /// </summary>
+        public event EventHandler<Order>? OrderSelected;
+
         [RelayCommand]
         private void OpenOrder(Order order)
         {
             if (order == null) return;
             
-            // 1. Save state so CreateOrderViewModel picks it up
-            _orderStateService.SaveState(order, null);
-
-            // 2. Navigate to CreateOrder
-            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("CreateOrder"));
+            // Invoke event for the parent ViewModel to handle navigation/loading
+            OrderSelected?.Invoke(this, order);
         }
 
         [RelayCommand]
@@ -166,8 +172,9 @@ namespace OCC.Client.ViewModels.Orders
             {
                 IsBusy = true;
                 
-                // Fetch pre-calculated stats from the Manager
-                var stats = await _orderManager.GetDashboardStatsAsync();
+                // Fetch branch-isolated stats
+                var branch = _authService?.CurrentUser?.Branch;
+                var stats = await _orderManager.GetDashboardStatsAsync(branch);
 
                 // Update Properties
                 OrdersThisMonth = stats.OrdersThisMonth;

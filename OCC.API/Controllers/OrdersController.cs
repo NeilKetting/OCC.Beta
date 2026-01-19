@@ -124,12 +124,7 @@ namespace OCC.API.Controllers
 
             try
             {
-                _context.Entry(order).State = EntityState.Modified;
-
-                // Handle lines (simple approach: remove all and re-add for prototype simplicity, 
-                // typically we'd reconcile)
-                // For MVP/Robust persistence logic, we need to handle child lines carefully.
-                // 1. Load existing
+                // 1. Load existing WITH lines
                 var existingOrder = await _context.Orders
                                             .Include(o => o.Lines)
                                             .FirstOrDefaultAsync(o => o.Id == id);
@@ -138,7 +133,7 @@ namespace OCC.API.Controllers
 
                 var oldStatus = existingOrder.Status;
                 
-                // 2. Update scalar properties
+                // 2. Update scalar properties on the tracked instance
                 _context.Entry(existingOrder).CurrentValues.SetValues(order);
 
                 // 3. Reconcile Lines (Smart Merge)
@@ -165,6 +160,7 @@ namespace OCC.API.Controllers
                     else
                     {
                         // Add new
+                        line.Id = Guid.NewGuid(); // Explicitly set ID for new lines added during update
                         line.OrderId = order.Id;
                         _context.OrderLines.Add(line);
                     }

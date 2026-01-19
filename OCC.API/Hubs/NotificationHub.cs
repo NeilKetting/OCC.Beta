@@ -13,14 +13,17 @@ namespace OCC.API.Hubs
             try
             {
                 var userName = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value 
-                               ?? Context.User?.Identity?.Name 
-                               ?? "Anonymous";
+                               ?? Context.User?.Identity?.Name;
+                
+                if (string.IsNullOrEmpty(userName)) userName = "Anonymous";
+
                 var id = Context.ConnectionId;
                 
                 var info = new OCC.Shared.DTOs.UserConnectionInfo 
                 { 
                     UserName = userName, 
-                    ConnectedAt = DateTime.UtcNow 
+                    ConnectedAt = DateTime.UtcNow,
+                    Status = "Online"
                 };
 
                 _connectedUsers.TryAdd(id, info);
@@ -50,6 +53,7 @@ namespace OCC.API.Hubs
         {
             // Distinct users by name. Prioritize "Online" status if multiple connections exist.
             var users = _connectedUsers.Values
+                .Where(u => u.UserName != "Anonymous")
                 .GroupBy(u => u.UserName)
                 .Select(g => 
                 {

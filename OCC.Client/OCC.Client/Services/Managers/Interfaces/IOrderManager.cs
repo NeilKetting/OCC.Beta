@@ -177,10 +177,11 @@ namespace OCC.Client.Services.Managers.Interfaces
         // --- Dashboard & Analytics ---
 
         /// <summary>
-        /// Calculates and retrieves statistical data for the order dashboard.
+        /// Calculates and retrieves statistical data for the order dashboard, filtered by branch if provided.
         /// </summary>
+        /// <param name="branch">Optional branch to filter by.</param>
         /// <returns>A <see cref="OrderDashboardStats"/> object containing processed metrics.</returns>
-        Task<OrderDashboardStats> GetDashboardStatsAsync();
+        Task<OrderDashboardStats> GetDashboardStatsAsync(Branch? branch = null);
 
         /// <summary>
         /// Creates a new order template populated with all inventory items that are currently low on stock.
@@ -189,9 +190,10 @@ namespace OCC.Client.Services.Managers.Interfaces
         Task<Order> GetRestockOrderTemplateAsync();
 
         /// <summary>
-        /// Retrieves list of low stock items grouped by supplier with on-order calculations.
+        /// Retrieves list of low stock items grouped by supplier with on-order calculations, optionally filtered by branch.
         /// </summary>
-        Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync();
+        /// <param name="branch">Optional branch to filter by.</param>
+        Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync(Branch? branch = null);
     }
 
     /// <summary>

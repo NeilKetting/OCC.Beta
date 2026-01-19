@@ -16,7 +16,7 @@
                     <StackPanel Spacing="12">
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Text="Bug Reports" Classes="H1" FontSize="20"/>
-                            <Button Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center">
+                            <Button Grid.Column="1" Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center">
                                 <PathIcon Data="{StaticResource IconHistory}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
                             </Button>
                         </Grid>

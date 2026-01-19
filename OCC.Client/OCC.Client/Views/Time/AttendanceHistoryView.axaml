@@ -20,6 +20,13 @@
 
 				<!-- Actions -->
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					<Button Command="{Binding BulkEditCommand}" Classes="Primary" ToolTip.Tip="Bulk Edit Selected">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
+							<TextBlock Text="Bulk Edit" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+					
 					<Button Command="{Binding PrintReportCommand}" Classes="Secondary" ToolTip.Tip="Print Report">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconPrint}" Width="16" Height="16"/>
@@ -106,6 +113,17 @@
                 </Style>
             </DataGrid.Styles>
 			<DataGrid.Columns>
+				<DataGridTemplateColumn Width="40">
+					<DataGridTemplateColumn.Header>
+						<CheckBox IsChecked="{Binding #Root.DataContext.IsAllSelected}"/>
+					</DataGridTemplateColumn.Header>
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center"/>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
+				
 				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
 				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="250"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>

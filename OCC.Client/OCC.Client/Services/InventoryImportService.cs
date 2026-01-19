@@ -140,7 +140,10 @@ namespace OCC.Client.Services
                 JhbQuantity = qty, // User instruction: "Stock can all go to jhb"
                 CptQuantity = 0,
                 QuantityOnHand = qty, // Derived total
-                ReorderPoint = reorder,
+                JhbReorderPoint = reorder, // Map global reorder point to both/primary branch? User said "Manage independently".
+                                           // For import, we assume JHB is the primary or we just duplicate it as a starting point.
+                                           // Let's set both to safe-guard.
+                CptReorderPoint = reorder,
                 UnitOfMeasure = uom,
                 Sku = effectiveSku,
                 AverageCost = cost,

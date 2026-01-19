@@ -13,6 +13,9 @@ namespace OCC.Client.ViewModels.Time
         private readonly AttendanceRecord _attendance;
         private readonly Employee _employee;
         private bool _isPublicHoliday = false;
+        
+        [ObservableProperty]
+        private bool _isSelected;
 
         public HistoryRecordViewModel(AttendanceRecord attendance, Employee employee, IHolidayService holidayService)
         {
@@ -53,27 +56,26 @@ namespace OCC.Client.ViewModels.Time
             get
             {
                 var checkOut = _attendance.CheckOutTime;
-                
-                // Live calculation for active sessions (regardless of start date)
-                if (!checkOut.HasValue)
-                {
-                    checkOut = DateTime.Now;
-                }
+                if (!checkOut.HasValue) checkOut = DateTime.Now;
 
+                double rawHours = 0;
                 if (_attendance.CheckInTime.HasValue)
                 {
                     if (checkOut.HasValue)
-                        return (checkOut.Value - _attendance.CheckInTime.Value).TotalHours;
+                        rawHours = (checkOut.Value - _attendance.CheckInTime.Value).TotalHours;
                 }
-                
-                // Fallback for manual ClockInTime + CheckOutTime/Now
-                if (_attendance.ClockInTime.HasValue)
+                else if (_attendance.ClockInTime.HasValue)
                 {
                     var inDt = _attendance.Date.Add(_attendance.ClockInTime.Value);
                     if (checkOut.HasValue)
-                        return (checkOut.Value - inDt).TotalHours;
+                        rawHours = (checkOut.Value - inDt).TotalHours;
                 }
-                return 0;
+
+                if (rawHours <= 0) return 0;
+
+                // Subtract mandatory lunch
+                double netHours = rawHours - LunchDeduction;
+                return netHours > 0 ? netHours : 0;
             }
         }
         

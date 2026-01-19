@@ -179,6 +179,7 @@
 								<TextBlock Text="Rate / Salary (R)" Classes="FormLabel"/>
 								<NumericUpDown Value="{Binding Wrapper.HourlyRate}" 
 											   Minimum="0" 
+											   VerticalContentAlignment="Center"
 											   Increment="0.5"
 											   FormatString="N2"
 											   ShowButtonSpinner="False"
