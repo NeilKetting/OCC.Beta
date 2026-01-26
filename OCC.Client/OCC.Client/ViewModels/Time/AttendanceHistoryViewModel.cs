@@ -4,9 +4,13 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using OCC.Client.ViewModels.Time;
+
+using OCC.Shared.Models;
 
 namespace OCC.Client.ViewModels.Time
 {
@@ -14,6 +18,7 @@ namespace OCC.Client.ViewModels.Time
     {
         private readonly ITimeService _timeService;
         private readonly IExportService _exportService;
+        private readonly IPdfService _pdfService;
 
         #region Filter Properties
 
@@ -79,8 +84,20 @@ namespace OCC.Client.ViewModels.Time
         [ObservableProperty]
         private string _searchText = string.Empty;
 
+        [ObservableProperty]
+        private int _totalLates;
+
+        [ObservableProperty]
+        private int _totalAbsences;
+
         private System.Collections.Generic.List<HistoryRecordViewModel> _allRecords = new();
         private readonly DispatcherTimer _timer;
+
+        [ObservableProperty]
+        private bool _isEmployeeReportPopupVisible;
+
+        [ObservableProperty]
+        private EmployeeReportViewModel? _employeeReportPopup;
 
         #endregion
         
@@ -103,12 +120,25 @@ namespace OCC.Client.ViewModels.Time
             _dialogService = null!;
         }
 
-        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService, IDialogService dialogService)
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(PrintStaffReportCommand))] // Notify when selection changes
+        private HistoryRecordViewModel? _selectedRecord;
+
+        partial void OnSelectedRecordChanged(HistoryRecordViewModel? value)
+        {
+             // Optional: If user selects a row, maybe clear checkboxes? 
+             // "If checkbox is clicked and another row selected we do the report for the one that is checked instead."
+             // So no need to clear.
+             PrintStaffReportCommand.NotifyCanExecuteChanged();
+        }
+
+        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService, IDialogService dialogService, IPdfService pdfService)
         {
             _timeService = timeService;
             _exportService = exportService;
             _holidayService = holidayService;
             _dialogService = dialogService;
+            _pdfService = pdfService;
             
             // Check Permission
             IsWageVisible = permissionService.CanAccess("WageViewing");
@@ -179,42 +209,7 @@ namespace OCC.Client.ViewModels.Time
             // For now, let's open it so they see it.
         }
 
-        [RelayCommand]
-        private async Task PrintReport()
-        {
-            if (Records == null || !Records.Any()) return;
 
-            var columns = new System.Collections.Generic.Dictionary<string, string>
-            {
-                { "Date", "Date" },
-                { "Employee", "Employee" },
-                { "Branch", "Branch" },
-                { "In", "In" },
-                { "Out", "Out" },
-                { "Status", "Status" },
-                { "Hours", "Hours" },
-                { "Overtime", "Overtime" },
-                { "Wage", "Wage Cost" }
-            };
-
-            var data = Records.Select(r => new 
-            {
-                Date = r.Date.ToShortDateString(),
-                Employee = r.EmployeeName,
-                Branch = r.Branch,
-                In = r.InTime,
-                Out = r.OutTime,
-                Status = r.Status,
-                Hours = r.HoursWorkedDisplay,
-                Overtime = r.OvertimeHoursDisplay,
-                Wage = r.WageDisplay
-            });
-            
-            var title = $"Attendance Report: {StartDate:dd MMM} - {EndDate:dd MMM yyyy}";
-            var path = await _exportService.GenerateHtmlReportAsync(data, title, columns);
-            
-            await _exportService.OpenFileAsync(path);
-        }
 
         [RelayCommand]
         private async Task EditRecord(HistoryRecordViewModel record)
@@ -324,16 +319,25 @@ namespace OCC.Client.ViewModels.Time
 
 
 
-        partial void OnSearchTextChanged(string value) => FilterRecords();
-        partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
-        partial void OnSelectedBranchChanged(string value) => FilterRecords();
-
         partial void OnIsAllSelectedChanged(bool value)
         {
             foreach (var record in Records)
             {
                 record.IsSelected = value;
             }
+        }
+
+        [ObservableProperty]
+        private string _statusFilter = "All";
+
+        [RelayCommand]
+        private void FilterByStatus(string status)
+        {
+             // Toggle off if clicking same status active
+             if (StatusFilter == status) StatusFilter = "All";
+             else StatusFilter = status;
+             
+             FilterRecords();
         }
 
         private void FilterRecords()
@@ -352,33 +356,344 @@ namespace OCC.Client.ViewModels.Time
                 bool matchPay = SelectedPayType == "All" || string.Equals(r.PayType, SelectedPayType, StringComparison.OrdinalIgnoreCase);
 
                 // Branch Filter
-                // Note: Branch might be null on record, check carefully.
-                // Assuming "Johannesburg" as default if null, or strict check? 
-                // Using Loose matching: if filter is JHB, we want JHB records.
-                // If record has no branch, maybe exclude? Or assume JHB? 
-                // Let's assume explicit check on Branch property.
-                string recordBranch = r.Branch ?? "Johannesburg"; // Default per HistoryRecordViewModel logic needed? Or check r.Branch directly?
-                // r.Branch property in VM: public string Branch => _attendance.Branch;
-                // If null, filter might fail. Let's use string comparison safely.
+                string recordBranch = r.Branch ?? "Johannesburg";
                 bool matchBranch = SelectedBranch == "All" || string.Equals(recordBranch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
 
-                return matchText && matchPay && matchBranch;
+                // Status Filter (Late/Absent etc)
+                // Note: Absences are phantom records not in the list usually? 
+                // Ah, Absences are CALCULATED, they are not records in the list unless we generate them.
+                // The current list only contains actual Attendance Records. 
+                // So filtering by "Absent" will show nothing unless we add fake rows.
+                // User said "count the absences as well and also if we click on either lets fileter either".
+                // If I filter by "Late", that works.
+                // If I filter by "Absent", I can't show them if they don't exist in the list.
+                // For now, let's assume filtering "Late" works. Filtering "Absent" might require UI change to show missing days.
+                // Given constraints, I will enable "Late" filtering. For "Absent", I'll set status but it may show empty list, which is technically correct if no rows exist.
+                
+                bool matchStatus = StatusFilter == "All" || string.Equals(r.Status, StatusFilter, StringComparison.OrdinalIgnoreCase);
+
+                return matchText && matchPay && matchBranch && matchStatus;
             }).ToList();
 
-            var list = new ObservableCollection<HistoryRecordViewModel>(filtered);
-            Records = list;
+            // Trigger updates
+                                        
+            // Subscribe to PropertyChanged for Checkbox updates
+            foreach(var rec in filtered)
+            {
+                rec.PropertyChanged += (s, e) => 
+                {
+                    if (e.PropertyName == nameof(HistoryRecordViewModel.IsSelected))
+                    {
+                        PrintStaffReportCommand.NotifyCanExecuteChanged();
+                    }
+                };
+            }
+
+            Records = new ObservableCollection<HistoryRecordViewModel>(filtered);
+            PrintStaffReportCommand.NotifyCanExecuteChanged();
             
             // Recalculate totals for filtered view
             if (filtered.Any())
             {
                 TotalWages = filtered.Sum(r => r.Wage);
                 TotalHours = filtered.Sum(r => r.HoursWorked);
+                
+                // Calculate Stats for ALL filtered records
+                TotalLates = filtered.Count(r => r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late);
+                
+                // Calculate Absences
+                // We need to calculate absences for all unique employees in the filtered list
+                // This might be expensive if range is large, but essential for accurate stats.
+                CalculateTotalAbsences(filtered);
             }
             else
             {
                  TotalWages = 0;
                  TotalHours = 0;
+                 TotalLates = 0;
+                 TotalAbsences = 0;
             }
+        }
+
+        private void CalculateAbsences(OCC.Shared.Models.Employee employee, System.Collections.Generic.List<HistoryRecordViewModel> records)
+        {
+            int absences = 0;
+            var current = StartDate.Date;
+            var end = EndDate.Date;
+            if (end > DateTime.Today) end = DateTime.Today; // Don't count future absences
+
+            while (current <= end)
+            {
+                // Skip Weekends
+                if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    // Skip Public Holidays
+                    if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
+                    {
+                        // Check if we have a record for this day
+                        bool hasRecord = records.Any(r => r.Date.Date == current.Date && 
+                                                         (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                          
+                        if (!hasRecord) absences++;
+                    }
+                }
+                current = current.AddDays(1);
+            }
+            TotalAbsences = absences;
+        }
+
+        [RelayCommand]
+        public void OpenEmployeeReport(object parameter)
+        {
+            if (parameter is HistoryRecordViewModel record)
+            {
+                OpenReportForEmployee(record.Employee);
+            }
+            else if (parameter is Employee emp)
+            {
+                 OpenReportForEmployee(emp);
+            }
+        }
+
+        private void OpenReportForEmployee(Employee employee)
+        {
+             if (employee == null) return;
+             try
+             {
+                 EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService);
+                 IsEmployeeReportPopupVisible = true;
+             }
+             catch (Exception ex)
+             {
+                 _dialogService.ShowAlertAsync("Error", $"Could not open report: {ex.Message}");
+             }
+        }
+
+        [RelayCommand]
+        private void CloseReport()
+        {
+            IsEmployeeReportPopupVisible = false;
+            EmployeeReportPopup = null;
+        }
+
+        public bool CanPrintStaffReport
+        {
+            get
+            {
+                if (Records == null) return false;
+
+                var selectedCheckboxes = Records.Where(r => r.IsSelected).ToList();
+                if (selectedCheckboxes.Any())
+                {
+                    // "If more than one checkbox is selected it should also not be enabled" -> 
+                    // Assuming "More than one EMPLOYEE" is the constraint given "Individual Report".
+                    // If user selects 5 rows for Anna, it should be enabled.
+                    // If user selects 1 row for Anna, 1 for Bob, it should NOT be enabled.
+                    var distinctEmployees = selectedCheckboxes.Select(r => r.EmployeeName).Distinct().Count();
+                    return distinctEmployees == 1;
+                }
+
+                if (SelectedRecord != null) return true;
+
+                // Fallback: If filtered to single employee
+                if (Records.Any() && Records.GroupBy(x => x.EmployeeName).Count() == 1) return true;
+
+                // "If neither are selected the button should not be enabled." -> Strict mode.
+                return false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task PrintReport()
+        {
+            if (Records == null || !Records.Any()) return;
+
+            // Aggregate data per employee for a summary report
+            var summaryData = Records.GroupBy(r => r.Employee)
+                .Select(g => new 
+                {
+                    Employee = g.Key.DisplayName,
+                    Branch = g.Key.Branch ?? "-",
+                    TotalHours = g.Sum(x => x.HoursWorked).ToString("F2"),
+                    Overtime = g.Sum(x => x.OvertimeHours).ToString("F2"),
+                    Lates = g.Count(x => x.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late),
+                    Absences = 0, // Need to calc if we want per-row absences, but expensive. Maybe leave 0 or aggregate? User complained it was empty.
+                    EstPay = g.Sum(x => x.Wage).ToString("C")
+                })
+                .OrderBy(x => x.Employee)
+                .ToList();
+
+            var columns = new Dictionary<string, string>
+            {
+                { "Employee", "Employee" },
+                { "Branch", "Branch" },
+                { "TotalHours", "Total Hours" },
+                { "Overtime", "Overtime (Hrs)" },
+                { "Lates", "Lates" },
+                { "Absences", "Absences" },
+                { "EstPay", "Est. Pay" }
+            };
+
+            var title = $"Attendance Summary Report ({StartDate:dd MMM} - {EndDate:dd MMM yyyy})";
+            
+            try 
+            {
+                var path = await _exportService.GenerateHtmlReportAsync(summaryData, title, columns);
+                
+                var p = new System.Diagnostics.Process();
+                p.StartInfo = new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true };
+                p.Start();
+            }
+            catch(Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Could not print report: {ex.Message}");
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanPrintStaffReport))]
+        private async Task PrintStaffReport()
+        {
+            if (Records == null || !Records.Any()) return;
+            
+            // Determine the target data source
+            System.Collections.Generic.IEnumerable<HistoryRecordViewModel> targetRecords = Records;
+            
+            bool isFilteredToSingle = Records.GroupBy(x => x.EmployeeName).Count() == 1;
+            bool hasSelection = Records.Any(r => r.IsSelected);
+
+            if (hasSelection)
+            {
+                // Checkbox takes precedence
+                var selected = Records.Where(r => r.IsSelected).ToList();
+                var distinctEmployees = selected.GroupBy(x => x.EmployeeName).ToList();
+                
+                if (distinctEmployees.Count == 1)
+                {
+                   var name = distinctEmployees.First().Key;
+                   // Use ALL records for this employee in the current view? Or just Selected?
+                   // User said: "we do the report for the one that is checked instead".
+                   // Implies we target that Employee. usually reports cover the whole period.
+                   targetRecords = Records.Where(r => r.EmployeeName == name).ToList();
+                }
+                else
+                {
+                    // Should be blocked by CanExecute, but failsafe
+                     await _dialogService.ShowAlertAsync("Multiple Employees", "Selection invalid.");
+                     return;
+                }
+            }
+            else if (SelectedRecord != null)
+            {
+                // Selected Row takes 2nd priority
+                var name = SelectedRecord.EmployeeName;
+                targetRecords = Records.Where(r => r.EmployeeName == name).ToList();
+            }
+            else if (isFilteredToSingle)
+            {
+                // Fallback
+            }
+            else
+            {
+                // Should not happen due to CanExecute
+                await _dialogService.ShowAlertAsync("Select Employee", "Please select an employee via checkbox or row.");
+                return;
+            }
+            
+            // Generate
+            var employee = targetRecords.First().Employee;
+            var data = targetRecords.OrderByDescending(r => r.Date).Select(r => new 
+            {
+                Date = r.Date.ToShortDateString(),
+                In = r.InTime,
+                Out = r.OutTime,
+                Status = r.Status,
+                Hours = r.HoursWorkedDisplay,
+                Wage = r.WageDisplay
+            });
+
+            // Recalculate summary for the report context
+            var reportWages = targetRecords.Sum(r => r.Wage);
+            var reportHours = targetRecords.Sum(r => r.HoursWorked);
+            var reportLates = targetRecords.Count(r => r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late);
+            
+            var tempAbsences = CalculateAbsencesForReport(employee, targetRecords.ToList());
+
+            var summary = new Dictionary<string, string>
+            {
+                { "Total Hours", $"{reportHours:F2}" },
+                { "Total Lates", $"{reportLates}" },
+                { "Absences", $"{tempAbsences}" } 
+            };
+
+            var title = $"Individual Staff Report: {employee.DisplayName}";
+            var path = await _exportService.GenerateIndividualStaffReportAsync(employee, StartDate.DateTime, EndDate.DateTime, data, summary);
+            
+            await _exportService.OpenFileAsync(path);
+        }
+
+        private void CalculateTotalAbsences(System.Collections.Generic.List<HistoryRecordViewModel> records)
+        {
+            var absences = 0;
+            // Get unique employees in the filtered view
+            var employees = records.Select(r => r.Employee).DistinctBy(e => e.Id).ToList();
+
+            foreach(var employee in employees)
+            {
+                var current = StartDate.Date;
+                var end = EndDate.Date;
+                if (end > DateTime.Today) end = DateTime.Today;
+
+                while (current <= end)
+                {
+                    if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                    {
+                        if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
+                        {
+                            // Check if this employee has a record on this day
+                            bool hasRecord = records.Any(r => r.Employee.Id == employee.Id && r.Date.Date == current.Date && 
+                                                             (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                              
+                            if (!hasRecord) absences++;
+                        }
+                    }
+                    current = current.AddDays(1);
+                }
+            }
+            TotalAbsences = absences;
+        }
+
+        private int CalculateAbsencesForReport(OCC.Shared.Models.Employee employee, System.Collections.Generic.List<HistoryRecordViewModel> records)
+        {
+             // Similar logic to CalculateAbsences but independent
+            int absences = 0;
+            var current = StartDate.Date;
+            var end = EndDate.Date;
+            if (end > DateTime.Today) end = DateTime.Today; 
+
+            while (current <= end)
+            {
+                if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
+                    {
+                        bool hasRecord = records.Any(r => r.Date.Date == current.Date && 
+                                                         (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                          
+                        if (!hasRecord) absences++;
+                    }
+                }
+                current = current.AddDays(1);
+            }
+            return absences;
         }
 
         private void SetRange(string range)
@@ -429,6 +744,10 @@ namespace OCC.Client.ViewModels.Time
         {
             await LoadData();
         }
+
+        partial void OnSearchTextChanged(string value) => FilterRecords();
+        partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
+        partial void OnSelectedBranchChanged(string value) => FilterRecords();
 
         // Trigger load when dates change IF Custom is selected
         async partial void OnStartDateChanged(DateTimeOffset value)

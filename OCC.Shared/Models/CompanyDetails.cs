@@ -121,6 +121,8 @@ namespace OCC.Shared.Models
                     AddressLine2 = "TBD",
                     City = "Cape Town",
                     PostalCode = "TBD",
+                    ShiftStartTime = new TimeSpan(7,0,0),
+                    ShiftEndTime = new TimeSpan(16,45,0),
                     DepartmentEmails = new()
                     {
                         new DepartmentEmail { Department = "Buying", EmailAddress = "TBD" },
@@ -144,6 +146,9 @@ namespace OCC.Shared.Models
         public string City { get; set; } = string.Empty;
         public string PostalCode { get; set; } = string.Empty;
         public string Country { get; set; } = "South Africa";
+
+        public TimeSpan ShiftStartTime { get; set; } = new TimeSpan(7, 0, 0); // 07:00
+        public TimeSpan ShiftEndTime { get; set; } = new TimeSpan(16, 45, 0); // 16:45
 
         public List<DepartmentEmail> DepartmentEmails { get; set; } = new();
 

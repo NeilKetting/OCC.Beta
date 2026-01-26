@@ -148,7 +148,7 @@ namespace OCC.Client.ModelWrappers
             _model.LastName = LastName;
             _model.IdNumber = IdNumber;
             _model.PermitNumber = PermitNumber;
-            _model.TaxNumber = TaxNumber;
+            _model.TaxNumber = TaxNumber ?? string.Empty;
             _model.IdType = IdType;
             _model.Email = Email;
             _model.Phone = Phone;

@@ -30,6 +30,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
         private readonly IRepository<ProjectTask> _projectTaskRepository;
         private readonly IRepository<Employee> _staffRepository;
+        private readonly IRepository<Team> _teamRepository;
+        private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<TaskAssignment> _assignmentRepository;
         private readonly IRepository<TaskComment> _commentRepository;
         private readonly IDialogService _dialogService;
@@ -58,6 +61,14 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private bool _isShowingAllSubtasks;
 
         [ObservableProperty]
+        private bool _isCreateMode;
+
+        [ObservableProperty]
+        private Project? _selectedProject;
+
+        public ObservableCollection<Project> AvailableProjects { get; } = new();
+
+        [ObservableProperty]
         private bool _hasMoreSubtasks;
 
 
@@ -67,6 +78,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         public ObservableCollection<ProjectTask> VisibleSubtasks { get; } = new();
         public ObservableCollection<TaskAssignment> Assignments { get; } = new();
         public ObservableCollection<Employee> AvailableStaff { get; } = new();
+        public ObservableCollection<Team> AvailableTeams { get; } = new();
+        public ObservableCollection<User> AvailableContractors { get; } = new();
         public ObservableCollection<ModelWrappers.ToDoItemWrapper> ToDoList { get; } = new();
 
         public int CommentsCount => Comments.Count;
@@ -78,6 +91,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         public TaskDetailViewModel(
             IRepository<ProjectTask> projectTaskRepository,
             IRepository<Employee> staffRepository,
+            IRepository<Team> teamRepository,
+            IRepository<User> userRepository,
+            IRepository<Project> projectRepository,
             IRepository<TaskAssignment> assignmentRepository,
             IRepository<TaskComment> commentRepository,
             IDialogService dialogService,
@@ -85,6 +101,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
             _projectTaskRepository = projectTaskRepository;
             _staffRepository = staffRepository;
+            _teamRepository = teamRepository;
+            _userRepository = userRepository;
+            _projectRepository = projectRepository;
             _assignmentRepository = assignmentRepository;
             _commentRepository = commentRepository;
             _dialogService = dialogService;
@@ -226,21 +245,58 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private async Task AssignStaff(Employee staff)
         {
              if (staff == null) return;
-             // Logic to assign staff
-             // Check if already assigned
-             if (Assignments.Any(a => a.AssigneeId == staff.Id)) return;
+             if (Assignments.Any(a => a.AssigneeId == staff.Id && a.AssigneeType == AssigneeType.Staff)) return;
 
              var assignment = new TaskAssignment
              {
                  TaskId = _currentTaskId,
                  AssigneeId = staff.Id,
-                 AssigneeName = $"{staff.FirstName} {staff.LastName}",
+                 AssigneeName = staff.DisplayName,
                  AssigneeType = AssigneeType.Staff
              };
              
              Assignments.Add(assignment);
+             await SaveAssignment(assignment);
+        }
+
+        [RelayCommand]
+        private async Task AssignTeam(Team team)
+        {
+             if (team == null) return;
+             if (Assignments.Any(a => a.AssigneeId == team.Id && a.AssigneeType == AssigneeType.Team)) return;
+
+             var assignment = new TaskAssignment
+             {
+                 TaskId = _currentTaskId,
+                 AssigneeId = team.Id,
+                 AssigneeName = team.Name,
+                 AssigneeType = AssigneeType.Team
+             };
              
-             // Persist
+             Assignments.Add(assignment);
+             await SaveAssignment(assignment);
+        }
+
+        [RelayCommand]
+        private async Task AssignContractor(User contractor)
+        {
+             if (contractor == null) return;
+             if (Assignments.Any(a => a.AssigneeId == contractor.Id && a.AssigneeType == AssigneeType.Contractor)) return;
+
+             var assignment = new TaskAssignment
+             {
+                 TaskId = _currentTaskId,
+                 AssigneeId = contractor.Id,
+                 AssigneeName = contractor.DisplayName ?? contractor.Email,
+                 AssigneeType = AssigneeType.Contractor
+             };
+             
+             Assignments.Add(assignment);
+             await SaveAssignment(assignment);
+        }
+
+        private async Task SaveAssignment(TaskAssignment assignment)
+        {
              await _updateLock.WaitAsync();
              try 
              {
@@ -259,6 +315,69 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             {
                 ToDoList.Add(new ModelWrappers.ToDoItemWrapper(NewToDoContent));
                 NewToDoContent = string.Empty;
+            }
+        }
+
+        [RelayCommand]
+        private async Task CreateTask()
+        {
+            if (Task == null || string.IsNullOrWhiteSpace(Task.Name))
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Task name is required.");
+                return;
+            }
+
+            if (SelectedProject == null)
+            {
+                await _dialogService.ShowAlertAsync("Validation Error", "Please select a project.");
+                return;
+            }
+
+            try 
+            {
+                BusyText = "Creating task...";
+                IsBusy = true;
+
+                Task.CommitToModel();
+                var newTask = Task.Model;
+                newTask.ProjectId = SelectedProject.Id;
+
+                if (newTask.Id == Guid.Empty) newTask.Id = Guid.NewGuid();
+                
+                // Set initial properties if not set
+                if (string.IsNullOrEmpty(newTask.Status)) newTask.Status = "To Do";
+                if (string.IsNullOrEmpty(newTask.Priority)) newTask.Priority = "Medium";
+                
+                // Date handling
+                if (newTask.StartDate == DateTime.MinValue) newTask.StartDate = DateTime.UtcNow;
+                if (newTask.FinishDate == DateTime.MinValue) newTask.FinishDate = DateTime.UtcNow.AddDays(1);
+
+                // Add assignments
+                foreach (var assign in Assignments)
+                {
+                    assign.TaskId = newTask.Id;
+                }
+                newTask.Assignments = Assignments.ToList();
+
+                await _projectTaskRepository.AddAsync(newTask);
+
+                // Notify tree to refresh
+                WeakReferenceMessenger.Default.Send(new Messages.TaskUpdatedMessage(newTask.Id));
+
+                // Switch to edit mode or close
+                IsCreateMode = false;
+                _currentTaskId = newTask.Id;
+                
+                // Reload to establish proper wrapper tracking and refresh from DB
+                LoadTaskById(_currentTaskId);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to create task: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -295,6 +414,101 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 {
                     await _dialogService.ShowAlertAsync("Error", $"Critical Error loading task details: {ex.Message}");
                 }
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
+        /// Initializes the ViewModel for creating a new task.
+        /// </summary>
+        public async void InitializeForCreation(Guid? projectId = null, Guid? parentTaskId = null)
+        {
+            try 
+            {
+                IsBusy = true;
+                BusyText = "Preparing new task...";
+                IsCreateMode = true;
+
+                // 1. Fresh Task Model
+                var model = new ProjectTask
+                {
+                    Id = Guid.NewGuid(),
+                    ProjectId = projectId ?? Guid.Empty,
+                    ParentId = parentTaskId,
+                    Status = "To Do",
+                    Priority = "Medium",
+                    StartDate = DateTime.UtcNow,
+                    FinishDate = DateTime.UtcNow.AddDays(1)
+                };
+
+                // 2. Wrap and Setup
+                LoadTask(model);
+                _currentTaskId = model.Id;
+
+                // 3. Load Lookups
+                var projectsTask = _projectRepository.GetAllAsync();
+                var staffTask = _staffRepository.GetAllAsync();
+                var teamsTask = _teamRepository.GetAllAsync();
+                var usersTask = _userRepository.GetAllAsync();
+
+                await System.Threading.Tasks.Task.WhenAll(projectsTask, staffTask, teamsTask, usersTask);
+
+                AvailableProjects.Clear();
+                foreach (var p in projectsTask.Result.OrderBy(x => x.Name)) AvailableProjects.Add(p);
+
+                if (projectId.HasValue)
+                {
+                    SelectedProject = AvailableProjects.FirstOrDefault(p => p.Id == projectId.Value);
+                }
+
+                AvailableStaff.Clear();
+                foreach (var s in staffTask.Result.Where(e => e.Status == EmployeeStatus.Active)) AvailableStaff.Add(s);
+
+                AvailableTeams.Clear();
+                foreach (var t in teamsTask.Result) AvailableTeams.Add(t);
+
+                AvailableContractors.Clear();
+                foreach (var u in usersTask.Result.Where(user => user.UserRole == UserRole.ExternalContractor)) AvailableContractors.Add(u);
+
+                // 4. Default Assignment (Self)
+                if (_authService.CurrentUser != null)
+                {
+                    var currentUser = _authService.CurrentUser;
+                    var employee = staffTask.Result.FirstOrDefault(e => e.LinkedUserId == currentUser.Id);
+                    
+                    if (employee != null)
+                    {
+                        Assignments.Add(new TaskAssignment
+                        {
+                            TaskId = _currentTaskId,
+                            AssigneeId = employee.Id,
+                            AssigneeName = employee.DisplayName,
+                            AssigneeType = AssigneeType.Staff
+                        });
+                    }
+                    else if (currentUser.UserRole == UserRole.ExternalContractor)
+                    {
+                        Assignments.Add(new TaskAssignment
+                        {
+                            TaskId = _currentTaskId,
+                            AssigneeId = currentUser.Id,
+                            AssigneeName = currentUser.DisplayName ?? currentUser.Email,
+                            AssigneeType = AssigneeType.Contractor
+                        });
+                    }
+                }
+
+                // Clear subtasks and comments for new record
+                Subtasks.Clear();
+                VisibleSubtasks.Clear();
+                Comments.Clear();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] InitializeForCreation Error: {ex.Message}");
+            }
+            finally
+            {
                 IsBusy = false;
             }
         }
@@ -352,9 +566,20 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
             try 
             {
+                var staffTask = _staffRepository.GetAllAsync();
+                var teamsTask = _teamRepository.GetAllAsync();
+                var usersTask = _userRepository.GetAllAsync();
+
+                await System.Threading.Tasks.Task.WhenAll(staffTask, teamsTask, usersTask);
+
                 AvailableStaff.Clear();
-                var staff = await _staffRepository.GetAllAsync();
-                foreach(var s in staff) AvailableStaff.Add(s);
+                foreach(var s in staffTask.Result.Where(e => e.Status == EmployeeStatus.Active)) AvailableStaff.Add(s);
+
+                AvailableTeams.Clear();
+                foreach(var t in teamsTask.Result) AvailableTeams.Add(t);
+
+                AvailableContractors.Clear();
+                foreach(var u in usersTask.Result.Where(user => user.UserRole == UserRole.ExternalContractor)) AvailableContractors.Add(u);
                 
                 await LoadComments();
                 await LoadAssignments();
@@ -443,6 +668,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// </summary>
         public async System.Threading.Tasks.Task UpdateTask()
         {
+            if (IsCreateMode) return;
             if (_currentTaskId == Guid.Empty) return;
 
             // If already busy, mark that we need another update once finished
@@ -498,10 +724,10 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
                     // Set to NULL to act as "Do Not Update" for navigation properties
                     // Now safe as the Shared Model allows nulls for these collections.
-                    Children = null,
-                    Assignments = null,
-                    Comments = null,
-                    Project = null
+                    Children = null!,
+                    Assignments = null!,
+                    Comments = null!,
+                    Project = null!
                 };
 
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Sending Update for {cleanModel.Id} (Project: {cleanModel.ProjectId}) Priority: {cleanModel.Priority}");

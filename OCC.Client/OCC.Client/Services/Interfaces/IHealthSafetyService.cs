@@ -30,7 +30,7 @@ namespace OCC.Client.Services.Interfaces
 
         // Documents
         Task<IEnumerable<HseqDocument>> GetDocumentsAsync();
-        Task<HseqDocument?> UploadDocumentAsync(HseqDocument document);
+        Task<HseqDocument?> UploadDocumentAsync(HseqDocument metadata, System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteDocumentAsync(Guid id);
 
         // Stats

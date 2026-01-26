@@ -67,8 +67,8 @@
 
     <Grid RowDefinitions="Auto, *">
         <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,10" Padding="10" Background="Transparent" CornerRadius="8">
-            <Grid ColumnDefinitions="Auto, *, Auto">
+        <Border Grid.Row="0" Margin="0,0,0,10" Padding="10" Background="Transparent" CornerRadius="8" HorizontalAlignment="Center">
+            <Grid ColumnDefinitions="Auto, Auto, Auto">
                 <Button Grid.Column="0" Command="{Binding PreviousMonthCommand}" Classes="IconButton">
                     <PathIcon Data="{StaticResource IconChevronLeft}" Width="16" Height="16"/>
                 </Button>

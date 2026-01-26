@@ -20,6 +20,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
         private readonly IProjectTaskRepository _taskRepository;
         private readonly ILogger<TaskListViewModel> _logger; // Added Logger
+        private bool _isDataLoading = false;
 
         #endregion
 
@@ -42,7 +43,6 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         #region Events
         // Events to notify selection or new task request
         public event EventHandler<string>? TaskSelectionRequested;
-        public event EventHandler? NewTaskRequested;
 
         #endregion
 
@@ -59,7 +59,6 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         {
             _taskRepository = taskRepository;
             _logger = logger;
-            LoadTasks();
 
             // Subscribe to updates
             WeakReferenceMessenger.Default.Register<Messages.TaskUpdatedMessage>(this, (r, m) =>
@@ -89,7 +88,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         [RelayCommand]
         public void NewTask()
         {
-            NewTaskRequested?.Invoke(this, EventArgs.Empty);
+            WeakReferenceMessenger.Default.Send(new Messages.CreateNewTaskMessage());
         }
 
 
@@ -100,6 +99,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
         public async void LoadTasks()
         {
+            if (_isDataLoading) return;
+            _isDataLoading = true;
             try 
             {
                 BusyText = "Loading tasks...";
@@ -162,6 +163,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             finally
             {
                 IsBusy = false;
+                _isDataLoading = false;
             }
         }
 

@@ -20,15 +20,29 @@
                         <TextBlock Text="AUDITS &amp; INSPECTIONS" Classes="H1"/>
                         <TextBlock Text="Track compliance and deviations across sites" Classes="TextSecondary"/>
                     </StackPanel>
+                    
+                    <Button Grid.Column="1" Classes="Primary" Command="{Binding CreateNewAuditCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16"/>
+                            <TextBlock Text="NEW AUDIT"/>
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </Border>
 
-            <!-- Toolbar Bar: Filters -->
+            <!-- Toolbar Bar: Filters & Actions -->
             <Border Grid.Row="1" Margin="10,0,10,10" Padding="10,5" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
-                <Grid ColumnDefinitions="Auto, *, Auto">
+                <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-                        <!-- Placeholder for future filters -->
-                        <TextBlock Text="Filters area" VerticalAlignment="Center" IsVisible="False"/>
+                        <TextBlock Text="Recent Audits" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                        <Button Classes="Secondary" Command="{Binding LoadAuditsCommand}" ToolTip.Tip="Refresh List">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Refresh"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -65,9 +79,13 @@
                         <DataGridTemplateColumn Header="Score" Width="140">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="40, *">
-                                        <TextBlock Text="{Binding ActualScore, StringFormat='{}{0}%'}" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                                        <ProgressBar Grid.Column="1" Value="{Binding ActualScore}" Maximum="100" Height="6" Margin="8,0"
+                                    <Grid VerticalAlignment="Center">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="{Binding ActualScore, StringFormat='{}{0}%'}" HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,2"/>
+                                        <ProgressBar Grid.Row="1" Value="{Binding ActualScore}" Maximum="100" Height="6" 
                                                      Foreground="{DynamicResource PrimaryTeal}" Background="#E0E0E0" CornerRadius="3"/>
                                     </Grid>
                                 </DataTemplate>
@@ -88,8 +106,13 @@
                          <DataGridTemplateColumn Width="140">
                              <DataGridTemplateColumn.CellTemplate>
                                  <DataTemplate>
-                                     <Button Classes="LinkButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).ViewDeviationsCommand}" CommandParameter="{Binding}"
-                                             Content="View Deviations" Foreground="{DynamicResource Primary}"/>
+                                     <StackPanel Orientation="Horizontal" Spacing="10">
+                                         <Button Classes="IconOnlyButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).EditAuditCommand}" CommandParameter="{Binding}" ToolTip.Tip="Edit Score">
+                                             <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16" Foreground="{DynamicResource TextSecondary}"/>
+                                         </Button>
+                                         <Button Classes="LinkButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).ViewDeviationsCommand}" CommandParameter="{Binding}"
+                                                 Content="View Deviations" Foreground="{DynamicResource Primary}"/>
+                                     </StackPanel>
                                  </DataTemplate>
                              </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -97,6 +120,115 @@
                 </DataGrid>
             </Border>
         </Grid>
+
+        <!-- Audit Editor Panel -->
+        <Border Grid.Column="1" Background="{DynamicResource CardBackground}" 
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0"
+                Width="650" Padding="0" IsVisible="{Binding IsEditorOpen}">
+            <Grid RowDefinitions="Auto, *, Auto">
+                
+                <!-- Header -->
+                <Border Grid.Row="0" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="24">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel>
+                            <TextBlock Text="{Binding EditorTitle}" Classes="H2"/>
+                            <TextBlock Text="Capture audit details and scores" Classes="TextSecondary"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="Close" Command="{Binding CloseEditorCommand}">
+                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Form -->
+                <ScrollViewer Grid.Row="1" Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Details -->
+                        <Grid ColumnDefinitions="*, 16, *">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Audit No" Classes="FormLabel"/>
+                                <TextBox Text="{Binding CurrentAudit.AuditNumber}" Watermark="Ref #"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="Date" Classes="FormLabel"/>
+                                <CalendarDatePicker SelectedDate="{Binding CurrentAudit.Date}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Site Name" Classes="FormLabel"/>
+                            <TextBox Text="{Binding CurrentAudit.SiteName}" Watermark="Site / Project Name"/>
+                        </StackPanel>
+
+                         <StackPanel Spacing="4">
+                             <TextBlock Text="Scope of Works" Classes="FormLabel"/>
+                             <TextBox Text="{Binding CurrentAudit.ScopeOfWorks}" Watermark="Description of works..."/>
+                         </StackPanel>
+
+                        <Grid ColumnDefinitions="*, 16, *">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Site Manager" Classes="FormLabel"/>
+                                <TextBox Text="{Binding CurrentAudit.SiteManager}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="HSEQ Consultant" Classes="FormLabel"/>
+                                <TextBox Text="{Binding CurrentAudit.HseqConsultant}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Observations -->
+                        <StackPanel Spacing="4">
+                             <TextBlock Text="Findings / Observations" Classes="FormLabel"/>
+                             <TextBox Text="{Binding CurrentAudit.Findings}" Watermark="Positive findings and general observations..." MinHeight="60" AcceptsReturn="True" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                             <TextBlock Text="Non-Conformance" Classes="FormLabel"/>
+                             <TextBox Text="{Binding CurrentAudit.NonConformance}" Watermark="Areas of non-compliance..." MinHeight="60" AcceptsReturn="True" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4">
+                             <TextBlock Text="Immediate Action" Classes="FormLabel"/>
+                             <TextBox Text="{Binding CurrentAudit.ImmediateAction}" Watermark="Immediate corrective actions taken..." MinHeight="60" AcceptsReturn="True" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <Border Height="1" Background="{DynamicResource BorderColor}" Margin="0,10"/>
+                        
+                        <TextBlock Text="Efficiency Ratings" Classes="H3"/>
+
+                        <!-- Sections List -->
+                        <ItemsControl ItemsSource="{Binding CurrentAudit.Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="Card" Margin="0,0,0,10" Padding="12">
+                                        <Grid ColumnDefinitions="*, 100, 100">
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                            
+                                            <StackPanel Grid.Column="1" Spacing="2" Margin="0,0,10,0">
+                                                <TextBlock Text="Actual" FontSize="10" Foreground="{DynamicResource TextSecondary}"/>
+                                                <TextBox Text="{Binding ActualScore}" />
+                                            </StackPanel>
+                                            
+                                            <StackPanel Grid.Column="2" Spacing="2" Margin="0,0,8,0">
+                                                <TextBlock Text="Possible" FontSize="10" Foreground="{DynamicResource TextSecondary}"/>
+                                                <TextBox Text="{Binding PossibleScore}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer Actions -->
+                <Border Grid.Row="2" Padding="24" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderColor}" Background="{DynamicResource CardBackground}">
+                     <Button Classes="Primary" HorizontalAlignment="Stretch" Command="{Binding SaveAuditCommand}">
+                        <TextBlock Text="SAVE AUDIT"/>
+                    </Button>
+                </Border>
+            </Grid>
+        </Border>
 
         <!-- Deviation Action Sheet Panel -->
         <Border Grid.Column="1" Background="{DynamicResource CardBackground}" 
@@ -111,9 +243,14 @@
                             <TextBlock Text="Deviation Action Sheet" Classes="H2"/>
                             <TextBlock Text="{Binding SelectedAudit.AuditNumber, StringFormat='Audit Ref: {0}'}" Classes="TextSecondary"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Classes="IconOnlyButton" Command="{Binding CloseDeviationsCommand}">
-                            <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
-                        </Button>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <Button Classes="Secondary" Command="{Binding AddDeviationCommand}" ToolTip.Tip="Add New Deviation">
+                                <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14"/>
+                            </Button>
+                            <Button Classes="IconOnlyButton" Command="{Binding CloseDeviationsCommand}">
+                                <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -155,7 +292,7 @@
                                             </StackPanel>
                                             
                                             <!-- Save Button for this item -->
-                                            <Button Grid.Row="2" Grid.ColumnSpan="3" Classes="SecondaryButton" Margin="0,12,0,0"
+                                            <Button Grid.Row="2" Grid.ColumnSpan="3" Classes="Secondary" Margin="0,12,0,0"
                                                     Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).SaveDeviationCommand}"
                                                     CommandParameter="{Binding}"
                                                     Content="Update Item" HorizontalAlignment="Right"/>

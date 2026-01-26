@@ -58,7 +58,14 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             Status = task.Status;
             Priority = task.Priority;
             IsCompleted = task.IsComplete;
-            AssigneeInitials = task.Assignments?.FirstOrDefault()?.AssigneeName?.Substring(0, Math.Min(2, task.Assignments.FirstOrDefault().AssigneeName.Length)).ToUpper() ?? "UN";
+            
+            var assignment = task.Assignments?.FirstOrDefault();
+            var initials = "UN";
+            if (assignment?.AssigneeName != null && assignment.AssigneeName.Length >= 1)
+            {
+                initials = assignment.AssigneeName.Substring(0, Math.Min(2, assignment.AssigneeName.Length)).ToUpper();
+            }
+            AssigneeInitials = initials;
             
             CommentsCount = task.Comments?.Count ?? 0;
             AttachmentsCount = 0; // Placeholder

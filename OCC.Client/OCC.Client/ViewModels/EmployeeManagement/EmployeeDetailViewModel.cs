@@ -389,7 +389,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 
                 IsBusy = false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 IsBusy = false;
                 throw;

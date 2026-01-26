@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces; // Added
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Core;
 using System;
@@ -15,6 +16,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         private readonly IHealthSafetyService _hseqService;
         private readonly IDialogService _dialogService;
         private readonly IToastService _toastService;
+        private readonly IRepository<Employee> _employeeRepository; // Added
 
         [ObservableProperty]
         private ObservableCollection<HseqTrainingRecord> _trainingRecords = new();
@@ -25,7 +27,11 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private int _expiryWarningDays = 30;
 
+        [ObservableProperty]
+        private ObservableCollection<Employee> _employees = new(); // Added
 
+        [ObservableProperty]
+        private Employee? _selectedEmployee; // Added
 
         public TrainingViewModel()
         {
@@ -33,14 +39,20 @@ namespace OCC.Client.ViewModels.HealthSafety
             _hseqService = null!;
             _dialogService = null!;
             _toastService = null!;
+            _employeeRepository = null!;
             InitializeCertificateTypes();
         }
 
-        public TrainingViewModel(IHealthSafetyService hseqService, IDialogService dialogService, IToastService toastService)
+        public TrainingViewModel(
+            IHealthSafetyService hseqService, 
+            IDialogService dialogService, 
+            IToastService toastService,
+            IRepository<Employee> employeeRepository) // Modified
         {
             _hseqService = hseqService;
             _dialogService = dialogService;
             _toastService = toastService;
+            _employeeRepository = employeeRepository;
             InitializeCertificateTypes();
             LoadDataCommand.ExecuteAsync(null);
         }
@@ -69,6 +81,15 @@ namespace OCC.Client.ViewModels.HealthSafety
             };
         }
 
+        partial void OnSelectedEmployeeChanged(Employee? value)
+        {
+            if (value != null)
+            {
+                NewRecord.EmployeeName = value.DisplayName;
+                NewRecord.Role = value.Role.ToString(); // Auto-fill Role
+            }
+        }
+
         [RelayCommand]
         private async Task LoadData()
         {
@@ -77,18 +98,18 @@ namespace OCC.Client.ViewModels.HealthSafety
             IsBusy = true;
             try
             {
-                var records = await _hseqService.GetTrainingRecordsAsync();
-                TrainingRecords = new ObservableCollection<HseqTrainingRecord>(records);
-                
-                // Check for expiring certificates immediately? 
-                // Or let user filter? The user requested "warn them".
-                // We can highlight them in the UI using a converter or property.
-                // For now, let's just show a toast if any are critical? 
-                // Or just load the list.
+                // Parallel load
+                var recordsTask = _hseqService.GetTrainingRecordsAsync();
+                var employeesTask = _employeeRepository.GetAllAsync();
+
+                await Task.WhenAll(recordsTask, employeesTask);
+
+                TrainingRecords = new ObservableCollection<HseqTrainingRecord>(recordsTask.Result);
+                Employees = new ObservableCollection<Employee>(employeesTask.Result.OrderBy(e => e.FirstName).ThenBy(e => e.LastName));
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading training: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error loading training data: {ex.Message}");
             }
             finally
             {
@@ -163,6 +184,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                     TrainingRecords.Insert(0, created);
                     _toastService.ShowSuccess("Saved", "Training record added.");
                     NewRecord = new HseqTrainingRecord(); // Reset
+                    SelectedEmployee = null; // Reset selection
                 }
             }
             catch(Exception)

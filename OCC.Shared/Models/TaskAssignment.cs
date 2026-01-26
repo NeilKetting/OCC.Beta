@@ -20,7 +20,7 @@ namespace OCC.Shared.Models
         public Guid TaskId { get; set; }
 
         /// <summary> Navigation property to the assigned task. </summary>
-        public ProjectTask ProjectTask { get; set; } = null!;
+        public virtual ProjectTask? ProjectTask { get; set; }
 
         /// <summary> Foreign Key of the assigned resource (e.g., Employee ID). </summary>
         public Guid AssigneeId { get; set; }
@@ -38,6 +38,10 @@ namespace OCC.Shared.Models
     public enum AssigneeType
     {
         /// <summary> Valid Employee of the company. </summary>
-        Staff
+        Staff,
+        /// <summary> A functional work team. </summary>
+        Team,
+        /// <summary> An external contractor (linked to a User record). </summary>
+        Contractor
     }
 }

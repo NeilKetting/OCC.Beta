@@ -34,6 +34,7 @@ namespace OCC.Client.ViewModels.Home
         private readonly IRepository<TaskAssignment> _taskAssignmentRepository;
         private readonly IRepository<TaskComment> _commentRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Team> _teamRepository;
         private readonly IDialogService _dialogService;
         private readonly ILoggerFactory _loggerFactory;
         private readonly IServiceProvider _serviceProvider;
@@ -71,12 +72,6 @@ namespace OCC.Client.ViewModels.Home
         private TaskDetailViewModel? _currentTaskDetail;
 
         [ObservableProperty]
-        private bool _isNewTaskPopupVisible = false;
-
-        [ObservableProperty]
-        private NewTaskPopupViewModel? _newTaskPopup;
-
-        [ObservableProperty]
         private bool _isCreateProjectVisible;
 
         [ObservableProperty]
@@ -112,6 +107,7 @@ namespace OCC.Client.ViewModels.Home
             _taskAssignmentRepository = null!;
             _commentRepository = null!;
             _userRepository = null!;
+            _teamRepository = null!;
             _dialogService = null!;
             _loggerFactory = null!;
             _serviceProvider = null!;
@@ -132,6 +128,7 @@ namespace OCC.Client.ViewModels.Home
                              IRepository<TaskAssignment> taskAssignmentRepository,
                              IRepository<TaskComment> commentRepository,
                              IRepository<User> userRepository,
+                             IRepository<Team> teamRepository,
                              IDialogService dialogService,
                              ILoggerFactory loggerFactory,
                              IServiceProvider serviceProvider)
@@ -149,6 +146,7 @@ namespace OCC.Client.ViewModels.Home
             _taskAssignmentRepository = taskAssignmentRepository;
             _commentRepository = commentRepository;
             _userRepository = userRepository;
+            _teamRepository = teamRepository;
             _dialogService = dialogService;
             _loggerFactory = loggerFactory;
 
@@ -168,7 +166,7 @@ namespace OCC.Client.ViewModels.Home
             };
 
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
-            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup());
+            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup(m.ProjectId));
 
             HomeMenu.PropertyChanged += HomeMenu_PropertyChanged;
 
@@ -182,7 +180,7 @@ namespace OCC.Client.ViewModels.Home
         [RelayCommand]
         private void OpenTaskDetail(Guid taskId)
         {
-            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
             CurrentTaskDetail.LoadTaskById(taskId);
             IsTaskDetailVisible = true;
@@ -255,19 +253,12 @@ namespace OCC.Client.ViewModels.Home
             return $"{timeGreeting}, {userName}";
         }
 
-        private void OpenNewTaskPopup()
+        private void OpenNewTaskPopup(Guid? projectId = null)
         {
-            NewTaskPopup = new NewTaskPopupViewModel(_projectTaskRepository, _projectRepository, _authService);
-            _ = NewTaskPopup.LoadData();
-
-            NewTaskPopup.CloseRequested += (s, e) => CloseNewTaskPopup();
-            IsNewTaskPopupVisible = true;
-        }
-
-        private void CloseNewTaskPopup()
-        {
-            IsNewTaskPopupVisible = false;
-            NewTaskPopup = null;
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
+            CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
+            CurrentTaskDetail.InitializeForCreation(projectId);
+            IsTaskDetailVisible = true;
         }
 
         private void OpenCreateProject()

@@ -41,6 +41,9 @@ namespace OCC.Shared.Models
         // Our account number with this supplier
         /// <summary> The account number OCC holds with this specific supplier. </summary>
         public string SupplierAccountNumber { get; set; } = string.Empty;
+
+        /// <summary> The branch this supplier belongs to. If null, available to all. </summary>
+        public Branch? Branch { get; set; }
         
         public override string ToString() => Name;
     }

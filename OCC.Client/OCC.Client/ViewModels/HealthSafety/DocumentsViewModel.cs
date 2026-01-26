@@ -15,19 +15,13 @@ namespace OCC.Client.ViewModels.HealthSafety
     {
         private readonly IHealthSafetyService _hseqService;
         private readonly IToastService _toastService;
+        private readonly IDialogService _dialogService;
         
-        // In a real app we'd inject a file picker service or use TopLevel storage provider
-        // For this task, we'll simulate the picker or assumes minimal integration 
-        // as complete file picking requires view-layer dependency injection usually.
-        // We'll stub the "Pick File" part.
-
         [ObservableProperty]
         private ObservableCollection<HseqDocument> _documents = new();
 
         [ObservableProperty]
         private bool _isUploading;
-
-
 
         // Upload Form Properties
         [ObservableProperty]
@@ -45,16 +39,18 @@ namespace OCC.Client.ViewModels.HealthSafety
         public OCC.Shared.Enums.DocumentCategory[] Categories { get; } = 
             (OCC.Shared.Enums.DocumentCategory[])Enum.GetValues(typeof(OCC.Shared.Enums.DocumentCategory));
 
-        public DocumentsViewModel(IHealthSafetyService hseqService, IToastService toastService)
+        public DocumentsViewModel(IHealthSafetyService hseqService, IToastService toastService, IDialogService dialogService)
         {
             _hseqService = hseqService;
             _toastService = toastService;
+            _dialogService = dialogService;
         }
 
         public DocumentsViewModel()
         {
              _hseqService = null!;
              _toastService = null!;
+             _dialogService = null!;
         }
 
         [RelayCommand]
@@ -92,17 +88,15 @@ namespace OCC.Client.ViewModels.HealthSafety
         [RelayCommand]
         private async Task PickFile()
         {
-            // Simulation of file picking
-            // In a real Avalonia app, we would use StorageProvider from the View's TopLevel
-            // For this scope, let's just simulate a path or ask user to type one for now?
-            // Or better, just hardcode a 'simulated' file for the demo upload
-            
-            SelectedFilePath = "C:\\FakePath\\Safety_Policy_2025.pdf";
-            if (string.IsNullOrEmpty(NewDocTitle))
+            var path = await _dialogService.PickFileAsync("Select Document", new[] { "pdf", "docx", "xlsx", "jpg", "png" });
+            if (!string.IsNullOrEmpty(path))
             {
-                NewDocTitle = "Safety Policy 2025";
+                SelectedFilePath = path;
+                if (string.IsNullOrEmpty(NewDocTitle))
+                {
+                    NewDocTitle = System.IO.Path.GetFileNameWithoutExtension(path);
+                }
             }
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
@@ -114,31 +108,42 @@ namespace OCC.Client.ViewModels.HealthSafety
                 return;
             }
 
+            if (!System.IO.File.Exists(SelectedFilePath))
+            {
+                 _toastService.ShowError("Validation", "Selected file does not exist.");
+                 return;
+            }
+
             IsUploading = true;
             try
             {
-                var newDoc = new HseqDocument
+                using var stream = System.IO.File.OpenRead(SelectedFilePath);
+                var fileName = System.IO.Path.GetFileName(SelectedFilePath);
+
+                var metadata = new HseqDocument
                 {
                     Title = NewDocTitle,
                     Category = NewDocCategory,
-                    FilePath = SelectedFilePath,
-                    UploadedBy = "Current User", // Should use AuthService
+                    UploadedBy = "Current User", // Should be replaced by Auth Service user
                     UploadDate = DateTime.UtcNow,
-                    Version = "1.0",
-                    FileSize = "1.2 MB" // Mocked size
+                    Version = "1.0"
                 };
 
-                var created = await _hseqService.UploadDocumentAsync(newDoc);
+                var created = await _hseqService.UploadDocumentAsync(metadata, stream, fileName);
                 if (created != null)
                 {
                     Documents.Insert(0, created);
                     _toastService.ShowSuccess("Success", "Document uploaded.");
                     ShowUploadForm = false;
                 }
+                else
+                {
+                     _toastService.ShowError("Error", "Upload failed.");
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _toastService.ShowError("Error", "Failed to upload document.");
+                _toastService.ShowError("Error", $"Failed to upload: {ex.Message}");
             }
             finally
             {

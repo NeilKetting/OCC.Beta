@@ -68,6 +68,11 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public OCC.Shared.Models.BankName[] AvailableBanks { get; } = Enum.GetValues<OCC.Shared.Models.BankName>();
 
+        /// <summary>
+        /// Gets the list of available branches.
+        /// </summary>
+        public OCC.Shared.Models.Branch[] AvailableBranches { get; } = Enum.GetValues<OCC.Shared.Models.Branch>();
+
         #endregion
 
         #region Constructors
@@ -182,7 +187,8 @@ namespace OCC.Client.ViewModels.Orders
                     VatNumber = supplier.VatNumber,
                     BankAccountNumber = supplier.BankAccountNumber,
                     SupplierAccountNumber = supplier.SupplierAccountNumber,
-                    BranchCode = supplier.BranchCode
+                    BranchCode = supplier.BranchCode,
+                    Branch = supplier.Branch
                 };
                 IsEditMode = true;
 

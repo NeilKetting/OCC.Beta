@@ -45,26 +45,28 @@ namespace OCC.API.Controllers
 
                 if (assignedToMe)
                 {
-                    // 1. Get current logged-in user's ID from Claims
-                    var userIdString = User.Identity?.Name;
+                    // 1. Get current logged-in user's ID
+                    var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
                     if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId)) 
                         return Unauthorized();
 
-                    // 2. Find the User record
-                    var user = await _context.Users.FindAsync(userId);
-                    if (user == null) return Unauthorized();
+                    // 2. Find the linked Employee (if any)
+                    var linkedEmployee = await _context.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.LinkedUserId == userId);
 
-                    // 3. Find the Employee linked to this User
-                    var linkedEmployee = await _context.Employees.FirstOrDefaultAsync(e => e.LinkedUserId == user.Id);
+                    // 3. Get Team IDs if user is an employee
+                    var teamIds = linkedEmployee != null 
+                        ? await _context.TeamMembers.AsNoTracking()
+                            .Where(tm => tm.EmployeeId == linkedEmployee.Id)
+                            .Select(tm => tm.TeamId)
+                            .ToListAsync() 
+                        : new List<Guid>();
 
-                    if (linkedEmployee == null)
-                    {
-                        // User is not linked to any Employee resource -> Show 0 tasks
-                        return new List<ProjectTask>();
-                    }
-
-                    // 4. Filter tasks where this Employee is assigned
-                    query = query.Where(t => t.Assignments.Any(a => a.AssigneeId == linkedEmployee.Id));
+                    // 4. Update the query to find any assignment matching the user's identities
+                    query = query.Where(t => t.Assignments.Any(a => 
+                        (a.AssigneeType == AssigneeType.Staff && linkedEmployee != null && a.AssigneeId == linkedEmployee.Id) ||
+                        (a.AssigneeType == AssigneeType.Contractor && a.AssigneeId == userId) ||
+                        (a.AssigneeType == AssigneeType.Team && teamIds.Contains(a.AssigneeId))
+                    ));
                 }
 
                 return await query.ToListAsync();

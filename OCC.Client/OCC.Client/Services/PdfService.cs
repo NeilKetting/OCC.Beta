@@ -4,7 +4,9 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OCC.Client.Services
@@ -606,6 +608,252 @@ namespace OCC.Client.Services
         }
 
         #endregion
+
+        // Added for Employee Report
+        public async Task<string> GenerateEmployeeReportPdfAsync<T>(Employee employee, DateTime start, DateTime end, IEnumerable<T> data, Dictionary<string, string> summary)
+        {
+            var company = await _settingsService.GetCompanyDetailsAsync();
+            
+            return await Task.Run(() =>
+            {
+               var doc = Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Margin(30);
+                        page.Size(PageSizes.A4);
+                        page.DefaultTextStyle(x => x.FontSize(10).FontFamily(Fonts.Arial).FontColor(ColorSecondary));
+
+                        page.Header().Element(c => ComposeReportHeader(c, employee, start, end, company));
+                        page.Content().PaddingVertical(20).Element(c => ComposeReportContent(c, employee, data, summary));
+                        page.Footer().Element(c => ComposeReportFooter(c, company));
+                    });
+                });
+
+                string docsPath = Path.GetTempPath(); 
+                string filename = $"Report_{employee.LastName}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                string fullPath = Path.Combine(docsPath, filename);
+
+                doc.GeneratePdf(fullPath);
+                return fullPath;
+            });
+        }
+
+        private void ComposeReportHeader(IContainer container, Employee employee, DateTime start, DateTime end, CompanyDetails company)
+        {
+             container.Row(row =>
+             {
+                 // Left: Branding
+                 row.RelativeItem(3).Column(col =>
+                 {
+                     col.Item().Text("Orange Circle Construction").FontSize(22).ExtraBold().FontColor(ColorPrimary);
+                     col.Item().Text("Staff Performance Report").FontSize(12).FontColor(Colors.Grey.Medium);
+                 });
+
+                 // Right: Meta
+                 row.RelativeItem(2).AlignRight().Column(col =>
+                 {
+                     col.Item().Text($"{start:dd MMM yyyy} - {end:dd MMM yyyy}").FontSize(14).SemiBold().FontColor(ColorSecondary);
+                     col.Item().Text($"Generated: {DateTime.Now:g}").FontSize(9).FontColor(Colors.Grey.Medium);
+                 });
+             });
+        }
+
+        private void ComposeReportContent<T>(IContainer container, Employee employee, IEnumerable<T> data, Dictionary<string, string> summary)
+        {
+            container.Column(col =>
+            {
+                // Employee Info Row (No Border)
+                col.Item().Background(Colors.Grey.Lighten5).Padding(15).Row(row =>
+                {
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text(employee.DisplayName).FontSize(16).Bold().FontColor(ColorSecondary);
+                        c.Item().Text(employee.EmployeeNumber ?? "No ID").FontSize(10).FontColor(Colors.Grey.Darken1);
+                    });
+                     row.RelativeItem().AlignRight().Column(c =>
+                    {
+                        c.Item().Text(employee.Branch ?? "No Branch").FontSize(12).SemiBold().FontColor(Colors.Grey.Darken2);
+                    });
+                });
+                
+                // Summary Grid (Custom Layout)
+                col.Item().PaddingTop(20).Element(c => ComposeSummaryGrid(c, summary));
+                
+                // Table
+                col.Item().PaddingTop(30).Element(c => ComposeReportTable(c, data));
+            });
+        }
+
+        private void ComposeSummaryGrid(IContainer container, Dictionary<string, string> summary)
+        {
+             // Extract specific values
+             var totalHours = summary.ContainsKey("Total Hours") ? summary["Total Hours"] : "-";
+             var totalOT = summary.ContainsKey("Total Overtime") ? summary["Total Overtime"] : "-";
+             
+             // Parsing composite values "Hours|Pay"
+             string ParseVal(string key, bool isPay) 
+             {
+                 if (!summary.ContainsKey(key)) return isPay ? "R0.00" : "0.00";
+                 var parts = summary[key].Split('|');
+                 if (parts.Length > 1) return isPay ? parts[1] : parts[0];
+                 return parts[0]; 
+             }
+
+             var ot15Hours = ParseVal("Overtime (1.5x)", false);
+             var ot15Pay = ParseVal("Overtime (1.5x)", true);
+             var ot20Hours = ParseVal("Overtime (2.0x)", false);
+             var ot20Pay = ParseVal("Overtime (2.0x)", true);
+             
+             var lates = summary.ContainsKey("Total Lates") ? summary["Total Lates"] : "0";
+             var absences = summary.ContainsKey("Absences") ? summary["Absences"] : "0";
+             var pay = summary.ContainsKey("Gross Pay") ? summary["Gross Pay"] : "-";
+
+             var normalPay = summary.ContainsKey("Normal Hours Pay") ? summary["Normal Hours Pay"] : "R0.00";
+
+             container.Row(row =>
+             {
+                 // 1. Total Hours
+                 row.RelativeItem().PaddingRight(10).Element(c => 
+                 {
+                      c.Background(Colors.Grey.Lighten4).Border(1).BorderColor(Colors.Grey.Lighten3).Padding(10).Column(col =>
+                      {
+                          col.Item().Text("TOTAL HOURS").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken2);
+                          col.Item().Text(totalHours).FontSize(14).SemiBold().FontColor(ColorSecondary);
+                          col.Item().Text(normalPay).FontSize(10).FontColor(Colors.Grey.Medium); // Show Normal Pay here? User said "rand value of total normal hours"
+                          // If "totalHours" includes OT, then normalPay (derived from total - OT) matches "Normal Hours".
+                          // If the user meant "Value of the Total Hours displayed above", that is Gross Pay.
+                          // But user said "rand value of the *total normal hours*". So likely specifically the Normal Pay.
+                          // Visually:
+                          // TOTAL HOURS
+                          // 8.97
+                          // R872.00 (Normal)
+                      });
+                 });
+                 
+                 // 2. Overtime Group
+                 row.RelativeItem(2).PaddingRight(10).Element(c => 
+                 {
+                     c.Border(1).BorderColor(Colors.Grey.Lighten3).Background(Colors.Grey.Lighten5).Padding(10).Column(col => 
+                     {
+                         col.Item().Row(r => 
+                         {
+                             r.RelativeItem().Text("OVERTIME").FontSize(8).SemiBold().FontColor(Colors.Grey.Darken2);
+                             r.RelativeItem().AlignRight().Text(totalOT).FontSize(14).Bold().FontColor(ColorSecondary);
+                         });
+                         
+                         col.Item().PaddingTop(5).Row(r => 
+                         {
+                             r.RelativeItem().Element(sc => MiniStat(sc, "1.5x", ot15Hours, ot15Pay));
+                             r.RelativeItem().Element(sc => MiniStat(sc, "2.0x", ot20Hours, ot20Pay));
+                         });
+                     });
+                 });
+                 
+                 // 3. Lates & Absences
+                 row.RelativeItem().PaddingRight(10).Column(col => 
+                 {
+                     col.Item().Element(c => StatCard(c, "LATES", lates, "#FFEBEE", Colors.Red.Darken2)); // Red tint
+                     col.Item().PaddingTop(10).Element(c => StatCard(c, "ABSENCES", absences, "#FFEBEE", Colors.Red.Darken2));
+                 });
+                 
+                 // 4. Pay
+                 row.RelativeItem().Element(c => StatCard(c, "GROSS PAY", pay, "#FFF3E0", ColorPrimary, true));
+             });
+
+             // Helper for Main Cards
+             static void StatCard(IContainer c, string title, string value, string bg, string valueColor = null, bool bold = false)
+             {
+                 c.Background(bg).Border(1).BorderColor(Colors.Grey.Lighten3).Padding(10).Column(col =>
+                 {
+                     col.Item().Text(title).FontSize(8).SemiBold().FontColor(Colors.Grey.Darken2);
+                     var txt = col.Item().Text(value).FontSize(14);
+                     if (bold) txt.Bold(); else txt.SemiBold();
+                     if (valueColor != null) txt.FontColor(valueColor); else txt.FontColor(ColorSecondary);
+                 });
+             }
+             
+             // Helper for Overtime Breakdown
+             static void MiniStat(IContainer c, string label, string hours, string pay)
+             {
+                 c.Column(col => 
+                 {
+                     col.Item().Text(label).FontSize(8).FontColor(Colors.Grey.Darken1);
+                     col.Item().Text(hours).FontSize(10).SemiBold().FontColor(Colors.Grey.Darken3);
+                     col.Item().Text(pay).FontSize(9).FontColor(Colors.Grey.Medium);
+                 });
+             }
+        }
+
+        private void ComposeReportTable<T>(IContainer container, IEnumerable<T> data)
+        {
+             container.Table(table =>
+             {
+                 // Define Columns based on ViewModel properties we expect
+                 // Date, In, Out, Status, Hours, Wage
+                 table.ColumnsDefinition(columns =>
+                 {
+                     columns.RelativeColumn(); // Date
+                     columns.ConstantColumn(60); // In
+                     columns.ConstantColumn(60); // Out
+                     columns.ConstantColumn(80); // Status
+                     columns.ConstantColumn(60); // Hours
+                     columns.ConstantColumn(80); // Wage
+                 });
+                 
+                 table.Header(header =>
+                 {
+                     header.Cell().Element(HeaderStyle).Text("Date");
+                     header.Cell().Element(HeaderStyle).Text("In");
+                     header.Cell().Element(HeaderStyle).Text("Out");
+                     header.Cell().Element(HeaderStyle).Text("Status");
+                     header.Cell().Element(HeaderStyle).AlignRight().Text("Hours");
+                     header.Cell().Element(HeaderStyle).AlignRight().Text("Wage");
+                     
+                     static IContainer HeaderStyle(IContainer container)
+                     {
+                         return container.Background(Colors.Grey.Lighten4).PaddingVertical(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2).DefaultTextStyle(x => x.SemiBold());
+                     }
+                 });
+                 
+                 var props = typeof(T).GetProperties();
+
+                 foreach(var item in data)
+                 {
+                     // Reflection to get values by order or name?
+                     // Expected anonymous object: Date, In, Out, Status, Hours, Wage
+                     // We trust the order from ViewModel: Date, In, Out, Status, Hours, Wage
+                     
+                     // Helper to safe get
+                     string GetVal(string name) => props.FirstOrDefault(p => p.Name == name)?.GetValue(item)?.ToString() ?? "";
+                     
+                     table.Cell().Element(CellStyle).Text(GetVal("Date"));
+                     table.Cell().Element(CellStyle).Text(GetVal("In"));
+                     table.Cell().Element(CellStyle).Text(GetVal("Out"));
+                     table.Cell().Element(CellStyle).Text(GetVal("Status"));
+                     table.Cell().Element(CellStyle).AlignRight().Text(GetVal("Hours"));
+                     table.Cell().Element(CellStyle).AlignRight().Text(GetVal("Wage"));
+                     
+                     static IContainer CellStyle(IContainer container)
+                     {
+                         return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten4).PaddingVertical(5);
+                     }
+                 }
+             });
+        }
+
+        private void ComposeReportFooter(IContainer container, CompanyDetails company)
+        {
+            container.Column(col =>
+            {
+                 col.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                 col.Item().PaddingTop(5).Row(row =>
+                 {
+                     row.RelativeItem().Text("Confidential Internal Report").FontSize(8).FontColor(Colors.Grey.Medium);
+                     row.RelativeItem().AlignRight().Text(company.CompanyName).FontSize(8).FontColor(Colors.Grey.Medium);
+                 });
+            });
+        }
     }
     
     public class NotesComponent : IComponent

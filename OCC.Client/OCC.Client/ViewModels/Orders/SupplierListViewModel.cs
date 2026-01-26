@@ -28,6 +28,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IDialogService _dialogService;
         private readonly ISupplierImportService _importService;
         private readonly ILogger<SupplierListViewModel> _logger;
+        private readonly IAuthService _authService;
         private List<Supplier> _allSuppliers = new();
 
         #endregion
@@ -60,12 +61,18 @@ namespace OCC.Client.ViewModels.Orders
 
         #region Constructors
 
-        public SupplierListViewModel(IOrderManager orderManager, IDialogService dialogService, ISupplierImportService importService, ILogger<SupplierListViewModel> logger)
+        public SupplierListViewModel(IOrderManager orderManager, IDialogService dialogService, ISupplierImportService importService, ILogger<SupplierListViewModel> logger, IAuthService authService)
         {
             _orderManager = orderManager;
             _dialogService = dialogService;
             _importService = importService;
             _logger = logger;
+            _authService = authService;
+
+            if (_authService.CurrentUser?.Branch != null)
+            {
+                _selectedBranchFilter = _authService.CurrentUser.Branch.Value.ToString();
+            }
         }
 
         #endregion
@@ -209,21 +216,43 @@ namespace OCC.Client.ViewModels.Orders
         }
 
         /// <summary>
-        /// Filters the full collection of suppliers based on the current search query.
+        /// Filters the full collection of suppliers based on the current search query and branch filter.
         /// </summary>
         private void FilterSuppliers()
         {
             Suppliers.Clear();
-            var filtered = string.IsNullOrWhiteSpace(SearchQuery) 
-                ? _allSuppliers 
-                : _allSuppliers.Where(s => s.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) 
-                                        || s.Email.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            
+            var query = _allSuppliers.AsEnumerable();
 
-            foreach (var s in filtered)
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                query = query.Where(s => s.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) 
+                                      || s.Email.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (SelectedBranchFilter != "All" && Enum.TryParse<Branch>(SelectedBranchFilter, out var branch))
+            {
+                 // Show Global suppliers (null) AND Branch specific suppliers
+                 // OR should strictly filter?
+                 // "split Supplier for cpt and jhb" implies strict separation usually, but global suppliers exist.
+                 // I'll include null branch suppliers always? Or only if filtering for "All"?
+                 // Creating Order logic: `s.Branch == null || s.Branch == targetBranch`
+                 // So here: `s.Branch == null || s.Branch == branch`
+                 query = query.Where(s => s.Branch == null || s.Branch == branch);
+            }
+
+            foreach (var s in query.OrderBy(s => s.Name))
             {
                 Suppliers.Add(s);
             }
         }
+
+        [ObservableProperty]
+        private string _selectedBranchFilter = "All";
+        
+        public List<string> BranchOptions { get; } = new List<string> { "All" }.Concat(Enum.GetNames(typeof(Branch))).ToList();
+
+        partial void OnSelectedBranchFilterChanged(string value) => FilterSuppliers();
 
         #endregion
 

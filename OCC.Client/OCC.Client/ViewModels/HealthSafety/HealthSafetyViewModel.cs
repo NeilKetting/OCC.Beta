@@ -61,6 +61,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             
             // Default view
             CurrentView = DashboardView;
+            DashboardView.LoadDashboardDataCommand.Execute(null);
 
             MenuViewModel.PropertyChanged += MenuViewModel_PropertyChanged;
         }
@@ -88,6 +89,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                     break;
                 case "Audits":
                     CurrentView = AuditsView;
+                    AuditsView.LoadAuditsCommand.Execute(null);
                     break;
                 case "Documents":
                     CurrentView = DocumentsView;
@@ -95,6 +97,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                 case "Dashboard":
                 default:
                     CurrentView = DashboardView;
+                    DashboardView.LoadDashboardDataCommand.Execute(null);
                     break;
             }
         }

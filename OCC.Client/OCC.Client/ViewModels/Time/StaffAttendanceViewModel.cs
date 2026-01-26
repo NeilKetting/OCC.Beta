@@ -32,7 +32,7 @@ namespace OCC.Client.ViewModels.Time
         private TimeSpan? _clockInTime = new TimeSpan(7, 0, 0); // Default 07:00
 
         [ObservableProperty]
-        private TimeSpan? _clockOutTime = new TimeSpan(16, 0, 0); // Default 16:00
+        private TimeSpan? _clockOutTime = new TimeSpan(16, 45, 0); // Default 16:45
 
         [ObservableProperty]
         private string _branch = string.Empty;
@@ -66,6 +66,10 @@ namespace OCC.Client.ViewModels.Time
         {
             _staff = staff;
             Branch = staff.Branch ?? "Johannesburg";
+
+            // Initialize defaults from Employee specified shifts
+            if (_staff.ShiftStartTime.HasValue) _clockInTime = _staff.ShiftStartTime.Value;
+            if (_staff.ShiftEndTime.HasValue) _clockOutTime = _staff.ShiftEndTime.Value;
         }
 
         #endregion

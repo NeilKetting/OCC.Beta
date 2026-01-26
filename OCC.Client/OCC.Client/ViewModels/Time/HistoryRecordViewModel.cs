@@ -4,6 +4,9 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Time
 {
@@ -12,19 +15,37 @@ namespace OCC.Client.ViewModels.Time
         private readonly IHolidayService _holidayService;
         private readonly AttendanceRecord _attendance;
         private readonly Employee _employee;
-        private bool _isPublicHoliday = false;
+        private bool _isPublicHoliday;
+        private readonly BranchDetails? _branchDetails; // Nullable if default needed
         
         [ObservableProperty]
         private bool _isSelected;
+        
+        // Expanded Overtime Properties
+        [ObservableProperty]
+        private double _overtimeHours15;
 
-        public HistoryRecordViewModel(AttendanceRecord attendance, Employee employee, IHolidayService holidayService)
+        [ObservableProperty]
+        private double _overtimeHours20;
+
+        [ObservableProperty]
+        private decimal _overtimePay15;
+
+        [ObservableProperty]
+        private decimal _overtimePay20;
+
+        public HistoryRecordViewModel(AttendanceRecord attendance, Employee employee, IHolidayService holidayService, BranchDetails? branchDetails = null)
         {
             _attendance = attendance;
             _employee = employee;
             _holidayService = holidayService;
+            _branchDetails = branchDetails;
             
             // Async check for holiday status
             CheckHolidayStatus();
+            
+            // Initial Calc
+            CalculateEverything();
         }
 
         private async void CheckHolidayStatus()
@@ -35,107 +56,144 @@ namespace OCC.Client.ViewModels.Time
                 _isPublicHoliday = await _holidayService.IsHolidayAsync(d);
                 if (_isPublicHoliday)
                 {
-                    Refresh(); // Trigger data update if holiday status confirmed
+                    CalculateEverything(); // Recalculate
                 }
             }
+        }
+        
+        // Triggers calculation of all derived values
+        private void CalculateEverything()
+        {
+             CalculateAccurateWage(); // This will populate prop fields
         }
 
         public DateTime Date => _attendance.Date;
         public string EmployeeName => _employee.DisplayName;
-        public string Branch => _attendance.Branch; // Or employee branch? Attendance branch preserves history.
+        public string Branch => _attendance.Branch; 
         public string PayType => _employee.RateType == RateType.Hourly ? "Hourly" : "Salary";
         
-        // Times
         public string InTime => _attendance.CheckInTime?.ToString("HH:mm") ?? _attendance.ClockInTime?.ToString(@"hh\:mm") ?? "--:--";
         public string OutTime => _attendance.CheckOutTime?.ToString("HH:mm") ?? "--:--";
         public string Status => _attendance.Status.ToString();
 
         // Calculations
-        public double HoursWorked
+        [ObservableProperty]
+        private double _hoursWorked;
+
+        [ObservableProperty]
+        private decimal _wage;
+        
+        public string HoursWorkedDisplay => HoursWorked > 0 ? $"{HoursWorked:F2}" : "-";
+        public string WageDisplay => $"{Wage:C}";
+        
+        public double LunchDeduction
         {
             get
             {
-                var checkOut = _attendance.CheckOutTime;
-                if (!checkOut.HasValue) checkOut = DateTime.Now;
-
-                double rawHours = 0;
-                if (_attendance.CheckInTime.HasValue)
-                {
-                    if (checkOut.HasValue)
-                        rawHours = (checkOut.Value - _attendance.CheckInTime.Value).TotalHours;
-                }
-                else if (_attendance.ClockInTime.HasValue)
-                {
-                    var inDt = _attendance.Date.Add(_attendance.ClockInTime.Value);
-                    if (checkOut.HasValue)
-                        rawHours = (checkOut.Value - inDt).TotalHours;
-                }
-
-                if (rawHours <= 0) return 0;
-
-                // Subtract mandatory lunch
-                double netHours = rawHours - LunchDeduction;
-                return netHours > 0 ? netHours : 0;
+                 // We calculate effective lunch in the main loop, but if we need a display property:
+                 // It's just the overlap of Effective Time with 12:00-13:00.
+                 var (start, end) = GetEffectiveTimes();
+                 if (start >= end) return 0;
+                 
+                 DateTime lunchStart = start.Date.AddHours(12);
+                 DateTime lunchEnd = start.Date.AddHours(13);
+                 
+                 var intersectStart = start > lunchStart ? start : lunchStart;
+                 var intersectEnd = end < lunchEnd ? end : lunchEnd;
+                 
+                 if (intersectStart < intersectEnd)
+                     return (intersectEnd - intersectStart).TotalHours;
+                     
+                 return 0;
             }
         }
         
-        public string HoursWorkedDisplay => HoursWorked > 0 ? $"{HoursWorked:F2}" : "-";
+        public string LunchDeductionDisplay => LunchDeduction > 0 ? $"{LunchDeduction:F2}h" : "-";
 
-        public decimal Wage
+        [ObservableProperty]
+        private double _overtimeHours;
+        
+        public string OvertimeHoursDisplay => OvertimeHours > 0 ? $"{OvertimeHours:F2}" : "-";
+
+        private (DateTime Start, DateTime End) GetEffectiveTimes()
         {
-            get
-            {
-                if (_employee.RateType == RateType.Hourly)
-                {
-                    // return (decimal)(HoursWorked * _employee.HourlyRate);
-                    // NEW: Detailed Calculation (Bucket Logic)
-                    return CalculateAccurateWage();
-                }
-                // RateType.MonthlySalary
-                // Refined Logic v2: Dynamic Shift Hours
-                // 1. Calculate Daily Rate = Monthly / 21.67
-                // 2. Calculate Standard Daily Hours = ShiftEnd - ShiftStart
-                // 3. Hourly Rate = Daily Rate / Standard Hours
-                // 4. Wage = Hourly Rate * HoursWorked
-                if (HoursWorked > 0)
-                {
-                    decimal monthlyRate = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
-                    decimal dailyRate = monthlyRate / 21.67m;
-                    
-                    // Default to 9 hours if shift times are missing, but User says they should be there.
-                    double standardHours = 9.0;
-                    if (_employee.ShiftStartTime.HasValue && _employee.ShiftEndTime.HasValue)
-                    {
-                        var span = _employee.ShiftEndTime.Value - _employee.ShiftStartTime.Value;
-                        if (span.TotalHours > 0) standardHours = span.TotalHours;
-                    }
+             DateTime rawStart;
+             if (_attendance.CheckInTime.HasValue) rawStart = _attendance.CheckInTime.Value;
+             else if (_attendance.ClockInTime.HasValue) rawStart = _attendance.Date.Add(_attendance.ClockInTime.Value);
+             else return (DateTime.MinValue, DateTime.MinValue);
+ 
+             DateTime rawEnd;
+             if (_attendance.CheckOutTime.HasValue) rawEnd = _attendance.CheckOutTime.Value;
+             else rawEnd = DateTime.Now; 
 
-                    decimal hourlyRate = dailyRate / (decimal)standardHours;
-                    return hourlyRate * (decimal)HoursWorked;
-                }
-                return 0;
-            }
+             if (rawStart >= rawEnd) return (DateTime.MinValue, DateTime.MinValue);
+             
+             // Priority: Employee -> Branch -> Default
+             TimeSpan shiftStart = _employee.ShiftStartTime ?? _branchDetails?.ShiftStartTime ?? new TimeSpan(7,0,0);
+             TimeSpan shiftEnd = _employee.ShiftEndTime ?? _branchDetails?.ShiftEndTime ?? new TimeSpan(16,45,0);
+
+             // Construct Shift DateTimes
+             DateTime shiftStartDt = rawStart.Date.Add(shiftStart);
+             DateTime shiftEndDt = rawStart.Date.Add(shiftEnd);
+
+             // Snap Logic
+             // In: If within 15m BEFORE ShiftStart, Snap to ShiftStart
+             DateTime effectiveIn = rawStart;
+             if (rawStart < shiftStartDt && (shiftStartDt - rawStart).TotalMinutes <= 15)
+             {
+                 effectiveIn = shiftStartDt;
+             }
+             
+             // Out: If within 15m BEFORE or AFTER ShiftEnd, Snap to ShiftEnd
+             DateTime effectiveOut = rawEnd;
+             if (Math.Abs((rawEnd - shiftEndDt).TotalMinutes) <= 15)
+             {
+                 effectiveOut = shiftEndDt;
+             }
+             
+             return (effectiveIn, effectiveOut);
         }
-        private decimal CalculateAccurateWage()
+
+        private void CalculateAccurateWage()
         {
-             // 1. Get Start and End Times
-             DateTime start;
-             if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
-             else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
-             else return 0;
- 
-             DateTime end;
-             if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
-             else end = DateTime.Now; 
- 
-             if (start >= end || _attendance.Status == AttendanceStatus.Absent) return 0;
- 
+             var (start, end) = GetEffectiveTimes();
+             if (start == DateTime.MinValue) 
+             {
+                 HoursWorked = 0;
+                 Wage = 0;
+                 OvertimeHours = 0;
+                 OvertimeHours15 = 0;
+                 OvertimeHours20 = 0;
+                 return;
+             }
+
+             if (_employee.RateType == RateType.Hourly)
+             {
+                  CalculateHourlyWage(start, end);
+             }
+             else
+             {
+                  // Salary Logic (Simplified for now, borrowing structure)
+                  // Salary usually just pays fixed, but if tracking OT:
+                  CalculateHourlyWage(start, end); // Reuse for tracking, but maybe override Wage?
+                  // Re-apply Salary Wage Override if needed (not requested to change, but OT needs tracking)
+                  // For now, let's assume we calculate "Value" same way.
+             }
+        }
+        
+        private void CalculateHourlyWage(DateTime start, DateTime end)
+        {
              decimal totalWage = 0;
+             double totalHours = 0;
+             double ot15 = 0;
+             double ot20 = 0;
+             decimal otPay15 = 0;
+             decimal otPay20 = 0;
+
              decimal rateToUse = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
              double hourlyRate = (double)rateToUse;
              string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
              
-             // UNPAID LUNCH WINDOW (12:00 - 13:00)
              DateTime lunchStart = start.Date.AddHours(12);
              DateTime lunchEnd = start.Date.AddHours(13);
 
@@ -149,116 +207,46 @@ namespace OCC.Client.ViewModels.Time
                  
                  var durationHours = (next - current).TotalHours;
                  
-                 // Check if this interval overlaps lunch
+                 // Check lunch
                  var intersectStart = current > lunchStart ? current : lunchStart;
                  var intersectEnd = next < lunchEnd ? next : lunchEnd;
-                 
                  if (intersectStart < intersectEnd)
                  {
-                     // Skip this chunk of time for pay
-                     // We could subtract just the intersection but chunking makes it simpler
                      durationHours -= (intersectEnd - intersectStart).TotalHours;
                  }
 
                  if (durationHours > 0)
                  {
                     var multiplier = GetMultiplier(current, branch);
-                    totalWage += (decimal)(durationHours * hourlyRate * multiplier);
+                    totalHours += durationHours;
+                    var segmentPay = (decimal)(durationHours * hourlyRate * multiplier);
+                    totalWage += segmentPay;
+                    
+                    if (multiplier == 1.5) 
+                    {
+                        ot15 += durationHours;
+                        otPay15 += segmentPay;
+                    }
+                    else if (multiplier == 2.0) 
+                    {
+                        ot20 += durationHours;
+                        otPay20 += segmentPay;
+                    }
                  }
                  
                  current = next;
              }
              
-             return totalWage;
+             HoursWorked = totalHours;
+             Wage = totalWage;
+             OvertimeHours15 = ot15;
+             OvertimeHours20 = ot20;
+             OvertimePay15 = otPay15;
+             OvertimePay20 = otPay20;
+             OvertimeHours = ot15 + ot20;
         }
 
-        public double LunchDeduction
-        {
-            get
-            {
-                DateTime start;
-                if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
-                else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
-                else return 0;
-
-                DateTime end;
-                if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
-                else end = DateTime.Now;
-
-                DateTime lunchStart = start.Date.AddHours(12);
-                DateTime lunchEnd = start.Date.AddHours(13);
-
-                var intersectStart = start > lunchStart ? start : lunchStart;
-                var intersectEnd = end < lunchEnd ? end : lunchEnd;
-
-                if (intersectStart < intersectEnd)
-                {
-                    return (intersectEnd - intersectStart).TotalHours;
-                }
-                return 0;
-            }
-        }
-        
-        public string LunchDeductionDisplay => LunchDeduction > 0 ? $"{LunchDeduction:F2}h" : "-";
-
-        public double OvertimeHours
-        {
-            get
-            {
-                // Similar to Wage Calculation but summing hours where multiplier > 1.0
-                 // 1. Get Start and End Times
-                 DateTime start;
-                 if (_attendance.CheckInTime.HasValue) start = _attendance.CheckInTime.Value;
-                 else if (_attendance.ClockInTime.HasValue) start = _attendance.Date.Add(_attendance.ClockInTime.Value);
-                 else return 0;
-    
-                 DateTime end;
-                 if (_attendance.CheckOutTime.HasValue) end = _attendance.CheckOutTime.Value;
-                 else end = DateTime.Now; 
-    
-                  if (start >= end || _attendance.Status == AttendanceStatus.Absent) return 0;
-     
-                  double overtimeHours = 0;
-                  string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
-                  
-                  DateTime lunchStart = start.Date.AddHours(12);
-                  DateTime lunchEnd = start.Date.AddHours(13);
-
-                  var current = start;
-                  var interval = TimeSpan.FromMinutes(15);
-                  
-                  while (current < end)
-                  {
-                      var next = current.Add(interval);
-                      if (next > end) next = end;
-                      
-                      var durationHours = (next - current).TotalHours;
-                      
-                      // Check lunch
-                      var intersectStart = current > lunchStart ? current : lunchStart;
-                      var intersectEnd = next < lunchEnd ? next : lunchEnd;
-                      if (intersectStart < intersectEnd)
-                      {
-                          durationHours -= (intersectEnd - intersectStart).TotalHours;
-                      }
-
-                      if (durationHours > 0)
-                      {
-                          var multiplier = GetMultiplier(current, branch);
-                          if (multiplier > 1.0)
-                          {
-                             overtimeHours += durationHours;
-                          }
-                      }
-                      
-                      current = next;
-                  }
-                  return overtimeHours;
-            }
-        }
-        
-        public string OvertimeHoursDisplay => OvertimeHours > 0 ? $"{OvertimeHours:F2}" : "-";
-
+        // ... Multiplier Logic same as before ...
         private double GetMultiplier(DateTime time, string branch)
         {
             // 0. Public Holidays = 2.0x (Highest Priority)
@@ -270,27 +258,40 @@ namespace OCC.Client.ViewModels.Time
             // 2. Saturdays = 1.5x
             if (time.DayOfWeek == DayOfWeek.Saturday) return 1.5;
 
-            // 3. Weekday Overtime (After 16:00 JHB / 17:00 CPT) = 1.5x
-            int endHour = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) ? 17 : 16;
+            // 3. Weekday Overtime (After Shift End)
+            // Use Branch Details if available, else fallback
+            // 3. Weekday Overtime (After Shift End)
+            // Priority: Employee Specific -> Branch -> Default
+            TimeSpan shiftEnd = _employee.ShiftEndTime ?? _branchDetails?.ShiftEndTime ?? new TimeSpan(16, 45, 0);
+            TimeSpan shiftStart = _employee.ShiftStartTime ?? _branchDetails?.ShiftStartTime ?? new TimeSpan(7, 0, 0);
             
-            // If before 07:00 start? Usually early starts are also OT, but focused on late for now.
-            // Requirement was: "Weekdays after normal hours". 
-            // Normal hours usually end at 16:00/17:00.
-            if (time.Hour >= endHour) return 1.5;
+            // Standard Overtime: Weekdays after shift
+            if (time.TimeOfDay >= shiftEnd) return 1.5;
             
-            // Early morning? (Before 7/8). Assuming standard day matches Overtime logic.
-            // For now, Standard Rate.
+            // Early Work?
+            if (time.TimeOfDay < shiftStart) return 1.5;
+
             return 1.0;
         }
         
-        public string WageDisplay => $"{Wage:C}";
-
+        // Remove old properties that were computed properties, as we now set them
+        // (Calculations region replaced above)
+        
         public void Refresh()
         {
+            CheckHolidayStatus(); 
+            // Calculated properties notify themselves when set
             OnPropertyChanged(nameof(HoursWorked));
             OnPropertyChanged(nameof(HoursWorkedDisplay));
             OnPropertyChanged(nameof(Wage));
             OnPropertyChanged(nameof(WageDisplay));
+            OnPropertyChanged(nameof(OvertimeHours));
+            OnPropertyChanged(nameof(OvertimeHoursDisplay));
+            OnPropertyChanged(nameof(OvertimeHours15));
+            OnPropertyChanged(nameof(OvertimeHours20));
+
+            // Force recalculate on refresh as well
+            CalculateEverything();
         }
 
         // Expose underlying data for Export

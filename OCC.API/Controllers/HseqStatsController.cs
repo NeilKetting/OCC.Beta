@@ -47,7 +47,7 @@ namespace OCC.API.Controllers
 
             return Ok(new 
             {
-                TotalSafeHours = totalHours, // Ignoring 'lost time' subtraction for MVP unless simpler
+                TotalSafeHours = totalHours, 
                 IncidentsTotal = incidentsCount,
                 NearMisses = nearMisses,
                 Injuries = injuries,

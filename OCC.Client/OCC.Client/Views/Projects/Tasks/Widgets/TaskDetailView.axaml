@@ -114,8 +114,11 @@
 
 				<!-- Top Bar (Metadata) -->
 				<Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="20,0">
-					<!-- Task ID -->
-					<TextBlock Grid.Column="0" Text="{Binding Task.DisplayId}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12"/>
+					<!-- Task ID / New Task Title -->
+					<StackPanel Grid.Column="0" VerticalAlignment="Center">
+						<TextBlock Text="{Binding Task.DisplayId}" Foreground="{DynamicResource TextSecondaryGray}" FontSize="12" IsVisible="{Binding !IsCreateMode}"/>
+						<TextBlock Text="Initialise Task" Foreground="{DynamicResource TextPrimaryDark}" FontSize="18" FontWeight="Bold" IsVisible="{Binding IsCreateMode}"/>
+					</StackPanel>
 
 					<!-- Meta Counters & Avatar -->
 					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
@@ -160,11 +163,25 @@
 									 Margin="20,0,0,0"
 									 AcceptsReturn="True"
 									 TextWrapping="Wrap"/>
-							<StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+							<StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" IsVisible="{Binding !IsCreateMode}">
 								<CheckBox IsChecked="{Binding Task.IsComplete}" Classes="TaskCheck" VerticalAlignment="Center" Margin="0" Foreground="{DynamicResource TextSecondaryDark}"/>
 								<TextBlock Text="Done" VerticalAlignment="Center" Margin="0" Foreground="{DynamicResource TextSecondaryDark}"/>
 							</StackPanel>
 						</Grid>
+
+						<!-- Project Selection (Create Mode Only) -->
+						<StackPanel Margin="20,10" Spacing="8" IsVisible="{Binding IsCreateMode}">
+							<TextBlock Text="LINK TO PROJECT" FontSize="11" FontWeight="Bold" Foreground="#6366F1" LetterSpacing="0.5"/>
+							<ComboBox ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProject}" 
+									  HorizontalAlignment="Stretch" MinHeight="45"
+									  Background="#FFFFFF" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" CornerRadius="8">
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</StackPanel>
 
 						<!-- Task Indicators -->
 						<StackPanel Orientation="Horizontal" Margin="20, 10,0,10" Spacing="20">
@@ -357,8 +374,36 @@
 																<ItemsControl.ItemTemplate>
 																		<DataTemplate>
 																			<Grid ColumnDefinitions="*, Auto" Margin="5">
-																				<TextBlock Text="{Binding FirstName}" VerticalAlignment="Center"/>
+																				<TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
 																				<Button Content="+" Command="{Binding $parent[UserControl].((vm:TaskDetailViewModel)DataContext).AssignStaffCommand}" CommandParameter="{Binding}" Classes="IconButton" Width="24" Height="24" Grid.Column="1"/>
+																			</Grid>
+																		</DataTemplate>
+																	</ItemsControl.ItemTemplate>
+																</ItemsControl>
+															</ScrollViewer>
+														</TabItem>
+														<TabItem Header="Teams">
+															<ScrollViewer>
+																<ItemsControl ItemsSource="{Binding AvailableTeams}">
+																	<ItemsControl.ItemTemplate>
+																		<DataTemplate>
+																			<Grid ColumnDefinitions="*, Auto" Margin="5">
+																				<TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+																				<Button Content="+" Command="{Binding $parent[UserControl].((vm:TaskDetailViewModel)DataContext).AssignTeamCommand}" CommandParameter="{Binding}" Classes="IconButton" Width="24" Height="24" Grid.Column="1"/>
+																			</Grid>
+																		</DataTemplate>
+																	</ItemsControl.ItemTemplate>
+																</ItemsControl>
+															</ScrollViewer>
+														</TabItem>
+														<TabItem Header="Contractors">
+															<ScrollViewer>
+																<ItemsControl ItemsSource="{Binding AvailableContractors}">
+																	<ItemsControl.ItemTemplate>
+																		<DataTemplate>
+																			<Grid ColumnDefinitions="*, Auto" Margin="5">
+																				<TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+																				<Button Content="+" Command="{Binding $parent[UserControl].((vm:TaskDetailViewModel)DataContext).AssignContractorCommand}" CommandParameter="{Binding}" Classes="IconButton" Width="24" Height="24" Grid.Column="1"/>
 																			</Grid>
 																		</DataTemplate>
 																	</ItemsControl.ItemTemplate>
@@ -658,8 +703,8 @@
 					</StackPanel>
 				</ScrollViewer>
 			</Grid>
-			<!-- Right Comments -->
-			<Border Grid.Column="1" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1,0,0,0" Background="#F8F9FB">
+			<!-- Right Comments (Hidden in Create Mode) -->
+			<Border Grid.Column="1" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1,0,0,0" Background="#F8F9FB" IsVisible="{Binding !IsCreateMode}">
 				<Grid RowDefinitions="Auto, Auto, *, Auto">
 					<!-- Top Bar / Popup Controls -->
 					<Grid Grid.Row="0" ColumnDefinitions="*, Auto" Height="60">
@@ -737,6 +782,20 @@
 					</Border>
 				</Grid>
 			</Border>
+
+
+			<!-- Create Task Button (Floating at Bottom Right in Create Mode) -->
+			<Button Grid.Column="0" Grid.ColumnSpan="2" 
+					Command="{Binding CreateTaskCommand}" 
+					IsVisible="{Binding IsCreateMode}"
+					HorizontalAlignment="Right" VerticalAlignment="Bottom"
+					Margin="30" Padding="30,12"
+					Background="#6366F1" CornerRadius="8">
+				<StackPanel Orientation="Horizontal" Spacing="8">
+					<PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" Foreground="White" VerticalAlignment="Center"/>
+					<TextBlock Text="Create Task" Foreground="White" FontWeight="Bold" VerticalAlignment="Center"/>
+				</StackPanel>
+			</Button>
 
 			<!-- Saving -->
 			<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using OCC.Client.ViewModels.Time;
 
 namespace OCC.Client.ViewModels.EmployeeManagement
 {
@@ -24,6 +25,11 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly IAuthService _authService;
         private readonly INotificationService _notificationService;
         private readonly ILeaveService _leaveService;
+        private readonly IEmployeeImportService _importService;
+        private readonly ITimeService _timeService;
+        private readonly IExportService _exportService;
+        private readonly IHolidayService _holidayService;
+        private readonly IPdfService _pdfService;
         
         /// <summary>
         /// Cache for all loaded employees to support filtering without database calls
@@ -79,6 +85,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private TeamDetailViewModel? _teamDetailPopup;
 
+        [ObservableProperty]
+        private bool _isEmployeeReportPopupVisible;
+
+        [ObservableProperty]
+        private EmployeeReportViewModel? _employeeReportPopup;
+
         #endregion
 
         #region Constructors
@@ -94,7 +106,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _authService = null!;
             _notificationService = null!;
             _leaveService = null!;
-            CurrentContent = this;
+            _importService = null!;
+            CurrentContent = this!;
         }
 
         private readonly IServiceProvider _serviceProvider;
@@ -107,7 +120,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             IDialogService dialogService,
             INotificationService notificationService,
             IAuthService authService,
-            ILeaveService leaveService)
+            ILeaveService leaveService,
+            IEmployeeImportService importService,
+            ITimeService timeService,
+            IExportService exportService,
+            IHolidayService holidayService,
+            IPdfService pdfService)
         {
             _employeeRepository = employeeRepository;
             _userRepository = userRepository;
@@ -117,6 +135,11 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _notificationService = notificationService;
             _authService = authService;
             _leaveService = leaveService;
+            _importService = importService;
+            _timeService = timeService;
+            _exportService = exportService;
+            _holidayService = holidayService;
+            _pdfService = pdfService;
             
             _teamsVM.EditTeamRequested += (s, team) => 
             {
@@ -131,9 +154,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             };
 
             LoadData();
-            
+
             // Register for real-time updates
-            CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
+            IMessengerExtensions.RegisterAll(messenger: WeakReferenceMessenger.Default, this);
 
             CurrentContent = this;
         }
@@ -193,6 +216,29 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] StackTrace: {ex.StackTrace}");
                 _ = _dialogService.ShowAlertAsync("Error", $"Critical Error opening employee: {ex.Message}");
             }
+        }
+
+        [RelayCommand]
+        public void OpenEmployeeReport(Employee employee)
+        {
+            if (employee == null) return;
+
+            try
+            {
+                EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService);
+                // Optional: Subscribe to close if needed, but for now just binding IsVisible
+                IsEmployeeReportPopupVisible = true;
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowAlertAsync("Error", $"Could not open report: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private void CloseReport()
+        {
+            IsEmployeeReportPopupVisible = false;
         }
 
         [ObservableProperty]
@@ -283,6 +329,48 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 System.Diagnostics.Debug.WriteLine($"Export failed: {ex.Message}");
             }
         }
+
+        [RelayCommand]
+        private async Task ImportEmployees()
+        {
+            try
+            {
+                var filePath = await _dialogService.PickFileAsync("Select Employee Import CSV", new[] { "*.csv" });
+
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    IsBusy = true;
+                    BusyText = "Importing employees...";
+
+                    await using var stream = System.IO.File.OpenRead(filePath);
+                    var (success, failed, errors) = await _importService.ImportEmployeesAsync(stream);
+
+                    if (failed == 0)
+                    {
+                        await _dialogService.ShowAlertAsync("Success", $"Successfully imported {success} employees.");
+                    }
+                    else
+                    {
+                        var errorMsg = $"Imported: {success}\nSkipped/Failed: {failed}\n\nErrors:\n" + string.Join("\n", errors.Take(10));
+                        if (errors.Count > 10) errorMsg += "\n...";
+
+                        await _dialogService.ShowAlertAsync("Import Result", errorMsg);
+                    }
+
+                    LoadData();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Import failed: {ex.Message}");
+                await _dialogService.ShowAlertAsync("Error", $"Import failed: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
 
         #endregion
 

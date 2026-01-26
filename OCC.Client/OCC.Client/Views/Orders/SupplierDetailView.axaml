@@ -115,7 +115,17 @@
 
 					<!-- Right Column: Additional Info -->
 					<StackPanel Grid.Column="4" Spacing="15">
-						<StackPanel Spacing="5">
+						
+                        <!-- OCC Branch Assignment -->
+                        <StackPanel Spacing="5">
+							<TextBlock Text="Assigned Branch" Classes="Label"/>
+							<ComboBox ItemsSource="{Binding AvailableBranches}"
+									  SelectedItem="{Binding Supplier.Branch}"
+									  HorizontalAlignment="Stretch"
+                                      PlaceholderText="Select Branch"/>
+						</StackPanel>
+
+                        <StackPanel Spacing="5">
 							<TextBlock Text="Banking Details" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5"/>
 							<TextBlock Text="Bank Name" Classes="Label"/>
 

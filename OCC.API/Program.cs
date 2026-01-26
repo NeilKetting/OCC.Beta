@@ -127,7 +127,7 @@ using (var scope = app.Services.CreateScope())
         var hasher = services.GetRequiredService<OCC.API.Services.PasswordHasher>();
         
         logger.LogInformation("Calling DbInitializer.Initialize()...");
-        DbInitializer.Initialize(context, hasher);
+        DbInitializer.Initialize(context, hasher, app.Environment.IsDevelopment());
         logger.LogInformation("Database Initialization Completed Successfully.");
     }
     catch (Exception ex)

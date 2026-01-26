@@ -66,6 +66,13 @@ namespace OCC.Client.ViewModels.Home.Dashboard
                 Tasks.Clear();
                 foreach (var task in recentTasks)
                 {
+                    var assignment = task.Assignments?.FirstOrDefault();
+                    var initials = "UN";
+                    if (assignment?.AssigneeName != null && assignment.AssigneeName.Length >= 1)
+                    {
+                        initials = assignment.AssigneeName.Substring(0, Math.Min(2, assignment.AssigneeName.Length)).ToUpper();
+                    }
+
                     Tasks.Add(new HomeTaskItem
                     {
                         Id = task.Id,
@@ -74,7 +81,7 @@ namespace OCC.Client.ViewModels.Home.Dashboard
                         DueDate = task.FinishDate,
                         Status = task.Status,
                         Priority = task.Priority,
-                        AssigneeInitials = task.Assignments?.FirstOrDefault()?.AssigneeName?.Substring(0, Math.Min(2, task.Assignments.FirstOrDefault().AssigneeName.Length)).ToUpper() ?? "UN"
+                        AssigneeInitials = initials
                     });
                 }
             }

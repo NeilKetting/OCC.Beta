@@ -57,9 +57,78 @@ namespace OCC.API.Controllers
         {
             if (id != audit.Id) return BadRequest();
 
-            _context.Entry(audit).State = EntityState.Modified;
+            var existingAudit = await _context.HseqAudits
+                .Include(a => a.Sections)
+                .Include(a => a.NonComplianceItems)
+                .FirstOrDefaultAsync(a => a.Id == id);
 
-            // Simple update, deeper graph updates might require custom logic
+            if (existingAudit == null)
+            {
+                return NotFound();
+            }
+
+            // Update properties
+            existingAudit.Date = audit.Date;
+            existingAudit.SiteName = audit.SiteName;
+            existingAudit.SiteManager = audit.SiteManager;
+            existingAudit.HseqConsultant = audit.HseqConsultant;
+            existingAudit.ScopeOfWorks = audit.ScopeOfWorks;
+            existingAudit.Status = audit.Status;
+            existingAudit.TargetScore = audit.TargetScore;
+            existingAudit.ActualScore = audit.ActualScore;
+            
+            // Text Fields
+            existingAudit.Findings = audit.Findings;
+            existingAudit.NonConformance = audit.NonConformance;
+            existingAudit.ImmediateAction = audit.ImmediateAction;
+            
+            existingAudit.UpdatedAt = DateTime.UtcNow;
+            
+            // Update Sections
+            foreach (var section in audit.Sections)
+            {
+                // Match by ID preferred, fallback to Name
+                var existingSection = existingAudit.Sections
+                    .FirstOrDefault(s => (section.Id != Guid.Empty && s.Id == section.Id) || s.Name == section.Name);
+
+                if (existingSection != null)
+                {
+                    existingSection.ActualScore = section.ActualScore;
+                    existingSection.PossibleScore = section.PossibleScore;
+                }
+                else
+                {
+                    existingAudit.Sections.Add(section);
+                }
+            }
+            
+            // Update NonComplianceItems
+            if (audit.NonComplianceItems != null)
+            {
+                foreach (var item in audit.NonComplianceItems)
+                {
+                    var existingItem = existingAudit.NonComplianceItems
+                        .FirstOrDefault(i => (item.Id != Guid.Empty && i.Id == item.Id));
+
+                    if (existingItem != null)
+                    {
+                        existingItem.Description = item.Description;
+                        existingItem.RegulationReference = item.RegulationReference;
+                        existingItem.CorrectiveAction = item.CorrectiveAction;
+                        existingItem.ResponsiblePerson = item.ResponsiblePerson;
+                        existingItem.TargetDate = item.TargetDate;
+                        existingItem.Status = item.Status;
+                        existingItem.ClosedDate = item.ClosedDate;
+                        existingItem.UpdatedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        item.AuditId = existingAudit.Id;
+                        existingAudit.NonComplianceItems.Add(item);
+                    }
+                }
+            }
+
             try
             {
                 await _context.SaveChangesAsync();

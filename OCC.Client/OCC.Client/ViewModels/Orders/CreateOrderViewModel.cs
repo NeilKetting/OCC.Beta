@@ -38,6 +38,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly ILogger<CreateOrderViewModel> _logger;
         private readonly IPdfService _pdfService;
         private bool _isUpdatingSearchText;
+        private List<Supplier> _allSuppliers = new();
 
         #endregion
 
@@ -891,8 +892,9 @@ namespace OCC.Client.ViewModels.Orders
                 IsBusy = true;
                 var data = await _orderManager.GetOrderEntryDataAsync();
 
-                Suppliers.Clear();
-                foreach(var i in data.Suppliers) Suppliers.Add(i);
+                _allSuppliers.Clear();
+                _allSuppliers.AddRange(data.Suppliers);
+                FilterSuppliers(); // Apply filter based on current branch
 
                 Customers.Clear();
                 foreach(var i in data.Customers) Customers.Add(i);
@@ -1101,7 +1103,57 @@ namespace OCC.Client.ViewModels.Orders
 
 
 
-        partial void OnCurrentOrderChanged(OrderWrapper value) => UpdateOrderTypeFlags();
+        partial void OnCurrentOrderChanged(OrderWrapper value) 
+        {
+            if (value != null)
+            {
+                value.PropertyChanged -= OnOrderPropertyChanged;
+                value.PropertyChanged += OnOrderPropertyChanged;
+            }
+            UpdateOrderTypeFlags();
+            FilterSuppliers();
+        }
+
+        private void OnOrderPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(OrderWrapper.Branch))
+            {
+                FilterSuppliers();
+            }
+        }
+
+        private void FilterSuppliers()
+        {
+            if (CurrentOrder == null) return;
+            
+            var targetBranch = CurrentOrder.Branch;
+            
+            var filtered = _allSuppliers.Where(s => s.Branch == null || s.Branch == targetBranch).ToList();
+            
+            // Retain selection if valid, else clear
+            var currentSelection = SelectedSupplier;
+            
+            Suppliers.Clear();
+            foreach(var s in filtered.OrderBy(x => x.Name)) Suppliers.Add(s);
+
+            if (currentSelection != null && Suppliers.Contains(currentSelection))
+            {
+                SelectedSupplier = currentSelection;
+            }
+            else
+            {
+                // If the previously selected supplier is no longer valid for this branch, should we clear it?
+                // Probably yes, to avoid invalid data.
+                if (currentSelection != null && currentSelection.Branch != null && currentSelection.Branch != targetBranch)
+                {
+                    SelectedSupplier = null;
+                }
+                // If it was a global supplier (Branch == null), it should still be in the list, so we keep it.
+                // If it's not in the list for some reason, SelectedSupplier becomes null automatically if bound to list? 
+                // No, ObservableProperty holds the value.
+            }
+        }
+
         partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
         partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.FullAddress; } }
         partial void OnSelectedProjectChanged(Project? value)

@@ -12,6 +12,7 @@ using OCC.Client.ViewModels.Shared; // For ProfileViewModel
 using OCC.Client.ViewModels.Messages; // Corrected Namespace
 using OCC.Client.Services;
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Threading;
@@ -321,118 +322,21 @@ namespace OCC.Client.ViewModels.Core
 
             var viewName = "Unknown";
 
-            // 1. Check for any open Popup/Dialog windows first
-            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                // Find visible windows that are NOT the main window or splash screen
-                var popup = desktop.Windows
-                    .LastOrDefault(w => w.IsVisible && 
-                                        w.GetType().Name != "MainWindow" && 
-                                        w.GetType().Name != "SplashView" &&
-                                        w.GetType().Name != "BugReportDialog"); // Don't report the bug dialog itself if somehow double-triggered
+            // 2. Determine View Name via Reflection
+            viewName = "Unknown";
 
-                if (popup != null)
-                {
-                    viewName = popup.GetType().Name.Replace("View", "");
-                    // Optional: Append ViewModel name for clarity
-                    if (popup.DataContext != null)
-                    {
-                        var vmName = popup.DataContext.GetType().Name.Replace("ViewModel", "");
-                        viewName += $" ({vmName})";
-                    }
-                }
+            // Check Shell Overlays first
+            if (IsProfileOpen)
+            {
+               viewName = "ProfileView";
             }
-
-            // 2. Fallback to CurrentPage if no popup found or viewName is still default
-            // 2. Fallback to CurrentPage if no popup found or viewName is still default
-            if (viewName == "Unknown" && CurrentPage != null)
+            else if (IsNotificationOpen)
             {
-                // Default to the Page name itself
-                viewName = CurrentPage.GetType().Name.Replace("ViewModel", "View");
-
-                // Refine based on specific ViewModels
-                if (CurrentPage is ViewModels.Projects.ProjectsViewModel projectsVM && projectsVM.CurrentView != null)
-                {
-                    viewName = projectsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
-                    
-                    // Drill down into ProjectList overlays
-                    if (projectsVM.CurrentView is ViewModels.Projects.ProjectListViewModel listVM && listVM.IsCreateProjectVisible)
-                    {
-                        viewName = "CreateProjectView";
-                    }
-                    // Drill down into ProjectDetail overlays
-                    else if (projectsVM.CurrentView is ViewModels.Projects.ProjectDetailViewModel detailVM)
-                    {
-                        if (detailVM.IsEditProjectVisible) viewName = "EditProjectView";
-                        else if (detailVM.IsTaskDetailOpen) viewName = "TaskDetailView";
-                    }
-                }
-                else if (CurrentPage is ViewModels.EmployeeManagement.EmployeeManagementViewModel empVM)
-                {
-                    if (empVM.IsAddEmployeePopupVisible) viewName = "EmployeeDetailView";
-                    else if (empVM.IsAddTeamPopupVisible) viewName = "TeamDetailView";
-                    
-                    // EmployeeDetail might have permissions popup
-                    // Wait, empVM.IsAddEmployeePopupVisible usually shows EmployeeDetailView
-                    // We need to check if that view has its own overlay if possible
-                    // However, empVM often holds the instances.
-                }
-                else if (CurrentPage is ViewModels.Settings.UserManagementViewModel userVM && userVM.IsUserPopupVisible)
-                {
-                    viewName = "UserDetailView";
-                }
-                else if (CurrentPage is ViewModels.Orders.OrderViewModel orderVM)
-                {
-                    if (orderVM.IsOrderDetailVisible) viewName = "OrderDetailView";
-                    else if (orderVM.IsReceiveOrderVisible) viewName = "ReceiveOrderView";
-                    else if (orderVM.IsSupplierDetailVisible) viewName = "SupplierDetailView";
-                    else if (orderVM.CurrentView is ViewModels.Orders.InventoryViewModel inventoryVM && inventoryVM.IsDetailVisible)
-                    {
-                        viewName = "ItemDetailView";
-                    }
-                    else if (orderVM.CurrentView != null) 
-                    {
-                        viewName = orderVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
-                    }
-                }
-                else if (CurrentPage is ViewModels.Orders.ItemListViewModel itemListVM && itemListVM.IsDetailVisible)
-                {
-                    viewName = "ItemDetailView";
-                }
-                else if (CurrentPage is ViewModels.Home.Calendar.CalendarViewModel calVM && calVM.IsCreatePopupVisible)
-                {
-                    viewName = "CreateTaskPopupView";
-                }
-                else if (CurrentPage is HomeViewModel homeVM)
-                {
-                    if (homeVM.IsTaskDetailVisible) viewName = "TaskDetailView";
-                    else if (homeVM.IsNewTaskPopupVisible) viewName = "NewTaskPopupView";
-                    else if (homeVM.IsCreateProjectVisible) viewName = "CreateProjectView";
-                    else if (homeVM.CurrentView != null)
-                    {
-                        viewName = homeVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
-                    }
-                }
-                else if (CurrentPage is ViewModels.Time.TimeAttendanceViewModel timeVM)
-                {
-                    if (timeVM.CurrentView != null)
-                    {
-                        viewName = timeVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
-                    }
-                }
-                else if (CurrentPage is ViewModels.Time.TimeLiveViewModel timeLiveVM && timeLiveVM.IsTimesheetVisible)
-                {
-                    viewName = "DailyTimesheetView";
-                }
-                else if (CurrentPage is ViewModels.HealthSafety.HealthSafetyViewModel hsVM && hsVM.CurrentView != null)
-                {
-                    viewName = hsVM.CurrentView.GetType().Name.Replace("ViewModel", "View");
-                    
-                    if (hsVM.CurrentView is ViewModels.HealthSafety.AuditsViewModel auditVM && auditVM.IsDeviationsOpen)
-                    {
-                        viewName = "AuditDetailView"; // This view shows deviations
-                    }
-                }
+               viewName = "NotificationView";
+            }
+            else if (CurrentPage != null)
+            {
+               viewName = GetActiveViewName(CurrentPage);
             }
             
             await _dialogService.ShowBugReportAsync(viewName, screenshotBase64);
@@ -453,6 +357,69 @@ namespace OCC.Client.ViewModels.Core
                  
              // Also simulate notification
              NotificationVM.AddSystemNotification("Birthdays", $"Happy Birthday to: {name} 🎂");
+        }
+
+
+        private string GetActiveViewName(object viewModel)
+        {
+            if (viewModel == null) return "Unknown";
+
+            // Start with current
+            var vmType = viewModel.GetType();
+            string currentName = vmType.Name.Replace("ViewModel", "View");
+
+            // 1. Check for 'CurrentView' (Sub-navigation)
+            var currentViewProp = vmType.GetProperty("CurrentView");
+            if (currentViewProp != null)
+            {
+                var val = currentViewProp.GetValue(viewModel);
+                if (val != null) return GetActiveViewName(val);
+            }
+
+            // 2. Check for Visible Popups (Boolean + ViewModel pair)
+            // Look for properties like IsXVisible = true, then find property X
+            var boolProps = vmType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                  .Where(p => p.PropertyType == typeof(bool));
+
+            // Sort so that properties containing "Popup" or "Dialog" are checked FIRST
+            // This prioritizes "IsAddEmployeePopupVisible" over "IsWageVisible"
+            var sortedProps = boolProps.OrderByDescending(p => p.Name.Contains("Popup") || p.Name.Contains("Dialog"));
+
+            foreach (var prop in sortedProps)
+            {
+                // Only consider properties that contain "Visible", "Open", or "Show" AND are True
+                if ((prop.Name.Contains("Visible") || prop.Name.Contains("Open") || prop.Name.Contains("Show")) && 
+                    prop.CanRead && (bool)prop.GetValue(viewModel)!)
+                {
+                    // Exclude common state flags
+                    if (prop.Name == "IsBusy" || prop.Name == "IsLoading" || prop.Name == "IsAuthenticated") continue;
+
+                    // Heuristic: Extract base name
+                    var baseName = prop.Name.Replace("Is", "").Replace("Visible", "").Replace("Open", "").Replace("Show", "");
+
+                    // Look for the ViewModel property first (Strongest signal)
+                    // e.g. IsEmployeeReportPopupVisible -> EmployeeReportPopup (VM)
+                    var possibleNames = new[] { baseName, baseName + "Popup", baseName + "ViewModel", baseName + "VM" };
+                    foreach (var name in possibleNames)
+                    {
+                        var vmProp = vmType.GetProperty(name);
+                        if (vmProp != null && vmProp.GetValue(viewModel) is object subVm)
+                        {
+                            // If found, recurse into it
+                            return GetActiveViewName(subVm);
+                        }
+                    }
+
+                    // If no VM property found, ONLY return if it explicitly looks like a popup name
+                    // This prevents "IsWageVisible" from being detected as a view "Wage"
+                    if (prop.Name.Contains("Popup") || prop.Name.Contains("Dialog") || prop.Name.Contains("Modal"))
+                    {
+                        return $"{currentName} ({baseName})";
+                    }
+                }
+            }
+
+            return currentName;
         }
 
         #endregion

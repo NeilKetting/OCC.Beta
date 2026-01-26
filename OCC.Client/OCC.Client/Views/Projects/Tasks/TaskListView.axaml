@@ -123,6 +123,16 @@
 		<!-- Task List Area -->
 		<ScrollViewer Grid.Row="1">
 			<StackPanel>
+				<!-- New Task Button -->
+				<Button Command="{Binding NewTaskCommand}" Background="Transparent" Padding="20,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+					<StackPanel Orientation="Horizontal" Spacing="15">
+						<Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource TextSecondaryGray}">
+							<PathIcon Data="{StaticResource IconPlus}" Width="10" Height="10" Foreground="White"/>
+						</Border>
+						<TextBlock Text="New Task" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+					</StackPanel>
+				</Button>
+
 				<!-- Grouped List -->
 				<ItemsControl ItemsSource="{Binding ProjectGroups}">
 					<ItemsControl.ItemTemplate>
@@ -151,17 +161,6 @@
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
-
-
-				<!-- New Task Button -->
-				<Button Command="{Binding NewTaskCommand}" Background="Transparent" Padding="20,12" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="0,10,0,0">
-					<StackPanel Orientation="Horizontal" Spacing="15">
-						<Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource TextSecondaryGray}">
-							<PathIcon Data="{StaticResource IconPlus}" Width="10" Height="10" Foreground="White"/>
-						</Border>
-						<TextBlock Text="New Task" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
-					</StackPanel>
-				</Button>
 			</StackPanel>
 		</ScrollViewer>
 

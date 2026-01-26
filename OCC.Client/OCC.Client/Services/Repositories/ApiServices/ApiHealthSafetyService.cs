@@ -5,42 +5,49 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using OCC.Client.Services.Interfaces;
 using OCC.Shared.Models;
+using System.Text.Json;
 
 namespace OCC.Client.Services.Repositories.ApiServices
 {
     public class ApiHealthSafetyService : IHealthSafetyService
     {
         private readonly HttpClient _httpClient; 
+        private readonly JsonSerializerOptions _options;
 
         public ApiHealthSafetyService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+            };
         }
 
         // --- Incidents ---
         public async Task<IEnumerable<Incident>> GetIncidentsAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Incident>>("api/Incidents") ?? new List<Incident>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<Incident>>("api/Incidents", _options) ?? new List<Incident>();
         }
 
         public async Task<Incident?> GetIncidentAsync(Guid id)
         {
-            return await _httpClient.GetFromJsonAsync<Incident>($"api/Incidents/{id}");
+            return await _httpClient.GetFromJsonAsync<Incident>($"api/Incidents/{id}", _options);
         }
 
         public async Task<Incident?> CreateIncidentAsync(Incident incident)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/Incidents", incident);
+            var response = await _httpClient.PostAsJsonAsync("api/Incidents", incident, _options);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<Incident>();
+                return await response.Content.ReadFromJsonAsync<Incident>(_options);
             }
             return null;
         }
 
         public async Task<bool> UpdateIncidentAsync(Incident incident)
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/Incidents/{incident.Id}", incident);
+            var response = await _httpClient.PutAsJsonAsync($"api/Incidents/{incident.Id}", incident, _options);
             return response.IsSuccessStatusCode;
         }
 
@@ -53,12 +60,28 @@ namespace OCC.Client.Services.Repositories.ApiServices
         // --- Audits ---
         public async Task<IEnumerable<HseqAudit>> GetAuditsAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqAudit>>("api/HseqAudits") ?? new List<HseqAudit>();
+            try
+            {
+                var response = await _httpClient.GetAsync("api/HseqAudits");
+                if (response.IsSuccessStatusCode)
+                {
+                    // Optional: Inspect JSON if debugging needed
+                    // var json = await response.Content.ReadAsStringAsync();
+                    // System.Diagnostics.Debug.WriteLine($"[DEBUG] Audits JSON: {json}");
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<HseqAudit>>(_options) ?? new List<HseqAudit>();
+                }
+                System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetAudits Failed: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                 System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetAudits Exception: {ex.Message}");
+            }
+            return new List<HseqAudit>();
         }
 
         public async Task<HseqAudit?> GetAuditAsync(Guid id)
         {
-            return await _httpClient.GetFromJsonAsync<HseqAudit>($"api/HseqAudits/{id}");
+            return await _httpClient.GetFromJsonAsync<HseqAudit>($"api/HseqAudits/{id}", _options);
         }
 
         public async Task<HseqAudit?> CreateAuditAsync(HseqAudit audit)
@@ -115,9 +138,20 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqDocument>>("api/HseqDocuments") ?? new List<HseqDocument>();
         }
 
-        public async Task<HseqDocument?> UploadDocumentAsync(HseqDocument document)
+        public async Task<HseqDocument?> UploadDocumentAsync(HseqDocument metadata, System.IO.Stream fileStream, string fileName)
         {
-             var response = await _httpClient.PostAsJsonAsync("api/HseqDocuments", document);
+             using var content = new MultipartFormDataContent();
+             content.Add(new StringContent(metadata.Title ?? ""), nameof(HseqDocument.Title));
+             content.Add(new StringContent(metadata.Category.ToString()), nameof(HseqDocument.Category));
+             content.Add(new StringContent(metadata.UploadedBy ?? ""), nameof(HseqDocument.UploadedBy));
+             content.Add(new StringContent(metadata.Version ?? "1.0"), nameof(HseqDocument.Version));
+             
+             // Reset stream position if possible
+             if (fileStream.CanSeek) fileStream.Position = 0;
+             using var streamContent = new StreamContent(fileStream);
+             content.Add(streamContent, "file", fileName);
+
+             var response = await _httpClient.PostAsync("api/HseqDocuments", content);
              if (response.IsSuccessStatusCode)
              {
                  return await response.Content.ReadFromJsonAsync<HseqDocument>();
@@ -136,12 +170,18 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<HseqDashboardStats>("api/HseqStats/dashboard");
+                var response = await _httpClient.GetAsync("api/HseqStats/dashboard");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<HseqDashboardStats>(_options);
+                }
+                System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetDashboardStats Failed: {response.StatusCode}");
             }
-            catch
+            catch (Exception ex)
             {
-                return new HseqDashboardStats(); // Return empty on error
+                System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetDashboardStats Error: {ex.Message}");
             }
+            return new HseqDashboardStats();
         }
     }
 }

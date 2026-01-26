@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using OCC.API.Data;
 
 namespace OCC.API.Controllers
@@ -15,6 +16,18 @@ namespace OCC.API.Controllers
         {
             _context = context;
             _configuration = configuration;
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult GetStatus()
+        {
+            return Ok(new 
+            { 
+                Status = "Online", 
+                Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production (Default)",
+                Timestamp = DateTime.UtcNow
+            });
         }
 
         [HttpGet("db-check")]

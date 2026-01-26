@@ -5,6 +5,7 @@
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.EmployeeManagement"
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:views="clr-namespace:OCC.Client.Views.EmployeeManagement"
+             xmlns:timeViews="clr-namespace:OCC.Client.Views.Time"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1200"
 			 x:Class="OCC.Client.Views.EmployeeManagement.EmployeeManagementView"
@@ -76,5 +77,24 @@
 									  VerticalAlignment="Center"/>
 			</Grid>
 		</Grid>
+
+        <!-- Employee Report Popup Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsEmployeeReportPopupVisible}">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                 <!-- Main Report View -->
+                 <timeViews:EmployeeReportView DataContext="{Binding EmployeeReportPopup}" 
+                                           Width="1000" Height="750"
+                                           Background="White"
+                                           CornerRadius="8"/>
+                 
+                 <!-- Close Button (Top Right) -->
+                 <Button Classes="Close" 
+                         Command="{Binding CloseReportCommand}"
+                         HorizontalAlignment="Right" VerticalAlignment="Top" 
+                         Margin="0,5,5,0">
+                     <PathIcon Data="{StaticResource IconClose}" />
+                 </Button>
+            </Grid>
+        </Grid>
 	</Grid>
 </UserControl>

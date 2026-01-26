@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.HealthSafety"
              xmlns:conv="clr-namespace:OCC.Client.Converters"
+             xmlns:models="using:OCC.Shared.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="OCC.Client.Views.HealthSafety.TrainingView"
              x:DataType="vm:TrainingViewModel">
@@ -68,8 +69,20 @@
                     <StackPanel Spacing="10" Margin="10">
                         <TextBlock Text="Add Training Record" Classes="H2" Margin="0,0,0,10"/>
                         
-                        <TextBox Watermark="Employee Name" Text="{Binding NewRecord.EmployeeName}"/>
-                        <TextBox Watermark="Role / Position" Text="{Binding NewRecord.Role}"/>
+                        <AutoCompleteBox ItemsSource="{Binding Employees}"
+                                         SelectedItem="{Binding SelectedEmployee}"
+                                         Text="{Binding NewRecord.EmployeeName}"
+                                         Watermark="Employee Name"
+                                         FilterMode="Contains"
+                                         ValueMemberBinding="{Binding DisplayName, DataType=models:Employee}">
+                            <AutoCompleteBox.ItemTemplate>
+                                <DataTemplate DataType="models:Employee">
+                                    <TextBlock Text="{Binding DisplayName}"/>
+                                </DataTemplate>
+                            </AutoCompleteBox.ItemTemplate>
+                        </AutoCompleteBox>
+                        
+                        <TextBox Watermark="Role / Position" Text="{Binding NewRecord.Role}" IsReadOnly="False"/>
                         
                         <TextBlock Text="Certificate Type" Classes="Label"/>
                         <ComboBox ItemsSource="{Binding CertificateTypes}" 

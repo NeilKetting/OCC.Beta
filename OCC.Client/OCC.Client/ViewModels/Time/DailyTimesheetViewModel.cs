@@ -468,10 +468,9 @@ namespace OCC.Client.ViewModels.Time
             if (IsManualMode)
             {
                 // Typical end time
-                string branch = toClockOut.First().Branch ?? "Johannesburg";
-                TimeSpan defaultEnd = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
-                    ? new TimeSpan(16, 30, 0) 
-                    : new TimeSpan(16, 45, 0);
+                // Typical end time - use first person's scheduled end
+                var first = toClockOut.First();
+                TimeSpan defaultEnd = first.Staff?.ShiftEndTime ?? new TimeSpan(16, 45, 0);
 
                 var result = await _dialogService.ShowEditAttendanceAsync(null, defaultEnd, showIn: false, showOut: true);
                 if (!result.Confirmed || !result.OutTime.HasValue) return;
@@ -594,10 +593,9 @@ namespace OCC.Client.ViewModels.Time
                 {
                     // C. Branch Default
                     // JHB: 16:00, CPT: 17:00
+                    // JHB: 16:45, CPT: 16:45
                     string branch = item.Branch ?? "Johannesburg";
-                    expectedEndTime = branch.Contains("Cape", StringComparison.OrdinalIgnoreCase) 
-                        ? new TimeSpan(17, 0, 0) 
-                        : new TimeSpan(16, 0, 0);
+                    expectedEndTime = new TimeSpan(16, 45, 0);
                 }
 
                 // A. Overtime Check

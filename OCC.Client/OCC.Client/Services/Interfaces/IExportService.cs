@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace OCC.Client.Services.Interfaces
     {
         Task ExportToCsvAsync<T>(IEnumerable<T> data, string filePath);
         Task<string> GenerateHtmlReportAsync<T>(IEnumerable<T> data, string title, Dictionary<string, string> columns);
+        Task<string> GenerateIndividualStaffReportAsync<T>(OCC.Shared.Models.Employee employee, DateTime start, DateTime end, IEnumerable<T> data, Dictionary<string, string> summary);
         Task OpenFileAsync(string filePath);
     }
 }

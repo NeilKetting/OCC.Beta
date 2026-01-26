@@ -35,7 +35,6 @@ namespace OCC.Client.ViewModels.Projects
         #region Events
 
         public event EventHandler<Guid>? TaskSelectionRequested;
-        public event EventHandler? NewTaskRequested;
 
         #endregion
 
@@ -110,8 +109,6 @@ namespace OCC.Client.ViewModels.Projects
                 }
             }
         }
-
-
 
         #endregion
 
@@ -225,7 +222,14 @@ namespace OCC.Client.ViewModels.Projects
             }
 
             var vm = _serviceProvider.GetRequiredService<ViewModels.Projects.Tasks.TaskDetailViewModel>();
-            vm.LoadTaskModel(task);
+            if (task.Id == Guid.Empty)
+            {
+                vm.InitializeForCreation(CurrentProjectId);
+            }
+            else
+            {
+                vm.LoadTaskModel(task);
+            }
             vm.CloseRequested += TaskDetailVM_CloseRequested;
             
             SelectedTaskDetailVM = vm;
@@ -258,7 +262,20 @@ namespace OCC.Client.ViewModels.Projects
         private void AddNewTask()
         {
             if (CurrentProjectId == Guid.Empty) return;
-            NewTaskRequested?.Invoke(this, EventArgs.Empty);
+            OpenNewTaskPopup();
+        }
+
+        private void OpenNewTaskPopup()
+        {
+            if (CurrentProjectId == Guid.Empty) return;
+
+            var vm = _serviceProvider.GetRequiredService<ViewModels.Projects.Tasks.TaskDetailViewModel>();
+            vm.InitializeForCreation(CurrentProjectId);
+            vm.CloseRequested += TaskDetailVM_CloseRequested;
+            
+            SelectedTaskDetailVM = vm;
+            IsPinned = true;
+            IsTaskDetailOpen = true;
         }
 
         [RelayCommand]
