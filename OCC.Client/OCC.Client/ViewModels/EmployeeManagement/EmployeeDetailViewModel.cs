@@ -192,13 +192,11 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _authService = authService;
             _leaveService = leaveService;
             
-            // Ensure the initial wrapper is set via the property so OnWrapperChanged is called
+            // Initial empty wrapper to prevent null reference checks before Load is called
             Wrapper = new EmployeeWrapper(new Employee());
-            
-            _ = InitializeAsync();
         }
 
-        private async Task InitializeAsync()
+        public async Task InitializeAsync()
         {
             try
             {
@@ -209,6 +207,13 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading users: {ex.Message}");
             }
+        }
+
+        public async Task InitializeForNew()
+        {
+            await InitializeAsync();
+            // Reset wrapper for new entry
+            Wrapper = new EmployeeWrapper(new Employee());
         }
 
         public EmployeeDetailViewModel() 
@@ -250,6 +255,33 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                  await _dialogService.ShowAlertAsync("Validation Error", $"An employee with Email '{Wrapper.Email}' already exists.");
                  return;
+            }
+
+            // Validation: Unique User Link
+            if (Wrapper.LinkedUserId.HasValue)
+            {
+                var existingLink = otherStaff.FirstOrDefault(s => s.LinkedUserId == Wrapper.LinkedUserId.Value);
+                if (existingLink != null)
+                {
+                    await _dialogService.ShowAlertAsync("Validation Error", $"The selected user account is already linked to employee '{existingLink.DisplayName}'. An account can only be linked to one employee.");
+                    return;
+                }
+
+                // Validation: Name Matching
+                var selectedUser = AvailableUsers.FirstOrDefault(u => u.Id == Wrapper.LinkedUserId.Value);
+                if (selectedUser != null)
+                {
+                    bool firstMatch = string.Equals(Wrapper.FirstName?.Trim(), selectedUser.FirstName?.Trim(), StringComparison.OrdinalIgnoreCase);
+                    bool lastMatch = string.Equals(Wrapper.LastName?.Trim(), selectedUser.LastName?.Trim(), StringComparison.OrdinalIgnoreCase);
+
+                    if (!firstMatch || !lastMatch)
+                    {
+                        var result = await _dialogService.ShowConfirmationAsync("Name Mismatch", 
+                            $"The employee name ({Wrapper.FirstName} {Wrapper.LastName}) does not match the linked account name ({selectedUser.FirstName} {selectedUser.LastName}).\n\nDo you want to proceed anyway?");
+                        
+                        if (!result) return;
+                    }
+                }
             }
 
             // 2. Sync UI-Only properties to the Wrapper/Model
@@ -331,7 +363,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Methods
 
-        public void Load(Employee staff)
+        public async Task Load(Employee staff)
         {
             if (staff == null) return;
 
@@ -341,6 +373,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 _existingStaffId = staff.Id;
                 Title = "Edit Employee";
                 SaveButtonText = "Save Changes";
+
+                // Ensure users are loaded BEFORE setting the wrapper to guarantee binding works
+                await InitializeAsync();
+
+                // Small delay to ensure UI binding context updates (sometimes needed for ComboBox items source propagation)
+                await Task.Delay(50);
 
                 Wrapper = new EmployeeWrapper(staff);
                 Wrapper.PropertyChanged += (s, e) => 

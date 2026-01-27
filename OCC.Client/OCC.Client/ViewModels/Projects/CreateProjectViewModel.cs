@@ -435,10 +435,6 @@ namespace OCC.Client.ViewModels.Projects
                     ProjectManagers.Add(pm);
                 }
 
-                // Fallback owner if empty or specific requirement
-                if (!ProjectManagers.Contains("Origize63@Gmail.Com (Owner)"))
-                     ProjectManagers.Insert(0, "Origize63@Gmail.Com (Owner)"); // Keep owner always available?
-
                 // Default selection
                 if (ProjectManagers.Count > 0)
                     Project.ProjectManager = ProjectManagers[0];

@@ -106,7 +106,7 @@ namespace OCC.Client.ModelWrappers
         private Guid? _linkedUserId;
 
         [ObservableProperty]
-        private DateTime _doB = DateTime.Now.AddYears(-30);
+        private DateTime _doB = new DateTime(1990, 1, 1);
 
         public void Initialize()
         {

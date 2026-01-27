@@ -10,10 +10,12 @@ namespace OCC.API.Controllers
     public class HseqTrainingController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public HseqTrainingController(AppDbContext context)
+        public HseqTrainingController(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         [HttpGet]
@@ -42,6 +44,43 @@ namespace OCC.API.Controllers
             _context.HseqTrainingRecords.Add(record);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetTrainingRecords", new { id = record.Id }, record);
+        }
+
+        [HttpPost("upload")]
+        public async Task<ActionResult<string>> UploadCertificate(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            try
+            {
+                var webRoot = _env.WebRootPath;
+                if (string.IsNullOrWhiteSpace(webRoot))
+                {
+                    // Fallback for some local dev setups if WebRootPath is null (unlikely with UseStaticFiles but safe)
+                    webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                }
+
+                var uploadsFolder = Path.Combine(webRoot, "uploads", "certificates");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                // Unique filename
+                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Return server-relative URL
+                var relativeUrl = $"/uploads/certificates/{fileName}";
+                return Ok(new { Url = relativeUrl }); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpDelete("{id}")]

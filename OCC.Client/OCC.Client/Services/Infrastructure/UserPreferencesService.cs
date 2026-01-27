@@ -62,5 +62,6 @@ namespace OCC.Client.Services.Infrastructure
     public class UserPreferencesDetails
     {
         public int SessionTimeoutMinutes { get; set; } = 5; // Default
+        public int LastBirthdayWishYear { get; set; }
     }
 }

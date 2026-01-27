@@ -26,6 +26,7 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync();
         Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days);
         Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record);
+        Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteTrainingRecordAsync(Guid id);
 
         // Documents

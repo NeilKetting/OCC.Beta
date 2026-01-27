@@ -45,8 +45,9 @@
                         <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="180"/>
                         <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
                         <DataGridTextColumn Header="Topic" Binding="{Binding TrainingTopic}" Width="*" MinWidth="250"/>
-                        <DataGridTextColumn Header="Completed" Binding="{Binding DateCompleted, StringFormat='d MMM yyyy'}" Width="Auto"/>
-                        <DataGridTextColumn Header="Valid Until" Binding="{Binding ValidUntil, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Issue Date" Binding="{Binding DateCompleted, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Expiry Date" Binding="{Binding ValidUntil, StringFormat='d MMM yyyy'}" Width="Auto"/>
+                        <DataGridTextColumn Header="Validity" Binding="{Binding ValidityStatus}" Width="Auto"/>
                         <DataGridTextColumn Header="Trainer" Binding="{Binding Trainer}" Width="Auto"/>
 
                         <!-- Actions -->
@@ -82,7 +83,7 @@
                             </AutoCompleteBox.ItemTemplate>
                         </AutoCompleteBox>
                         
-                        <TextBox Watermark="Role / Position" Text="{Binding NewRecord.Role}" IsReadOnly="False"/>
+                        <TextBox Watermark="Skill" Text="{Binding NewRecord.Role}" IsReadOnly="False"/>
                         
                         <TextBlock Text="Certificate Type" Classes="Label"/>
                         <ComboBox ItemsSource="{Binding CertificateTypes}" 
@@ -90,11 +91,23 @@
                                   PlaceholderText="Select Certificate..."
                                   HorizontalAlignment="Stretch"/>
                                   
-                        <TextBlock Text="Date Completed" Classes="Label"/>
+                        <TextBlock Text="Issue Date" Classes="Label"/>
                         <CalendarDatePicker SelectedDate="{Binding NewRecord.DateCompleted}" HorizontalAlignment="Stretch"/>
+
+                        <TextBlock Text="Expiry Date" Classes="Label"/>
+                        <CalendarDatePicker SelectedDate="{Binding NewRecord.ValidUntil}" HorizontalAlignment="Stretch"/>
                         
                         <TextBlock Text="Trainer / Provider" Classes="Label"/>
                         <TextBox Watermark="e.g. Red Cross" Text="{Binding NewRecord.Trainer}"/>
+
+                        <Button Content="Upload Certificate" 
+                                Command="{Binding UploadCertificateCommand}"
+                                Classes="Secondary"
+                                HorizontalAlignment="Stretch"/>
+                        <TextBlock Text="{Binding CertificateFileName}" 
+                                   Foreground="{DynamicResource TextSecondary}" 
+                                   FontSize="12" 
+                                   TextWrapping="Wrap"/>
 
                         <Button Content="Save Record" 
                                 Command="{Binding SaveTrainingCommand}" 

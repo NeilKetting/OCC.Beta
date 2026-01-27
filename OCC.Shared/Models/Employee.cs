@@ -94,7 +94,7 @@ namespace OCC.Shared.Models
         /// Date of Birth, typically calculated from RSA ID or manually entered.
         /// Defaults to 30 years ago.
         /// </summary>
-        public DateTime DoB { get; set; } = DateTime.Now.AddYears(-30);
+        public DateTime DoB { get; set; } = new DateTime(1990, 1, 1);
 
         /// <summary>
         /// The primary skill set of the employee.

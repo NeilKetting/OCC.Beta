@@ -126,6 +126,40 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return null;
         }
 
+        public async Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName)
+        {
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                
+                // Reset stream position if possible
+                if (fileStream.CanSeek) fileStream.Position = 0;
+                
+                using var streamContent = new StreamContent(fileStream);
+                content.Add(streamContent, "file", fileName);
+
+                var response = await _httpClient.PostAsync("api/HseqTraining/upload", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    // Expecting JSON: { "url": "/uploads/..." }
+                    var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    if (result.TryGetProperty("url", out var urlProp))
+                    {
+                        return urlProp.GetString();
+                    }
+                    else if (result.TryGetProperty("Url", out var urlPropCase))
+                    {
+                        return urlPropCase.GetString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Upload Exception: {ex.Message}");
+            }
+            return null;
+        }
+
         public async Task<bool> DeleteTrainingRecordAsync(Guid id)
         {
             var response = await _httpClient.DeleteAsync($"api/HseqTraining/{id}");

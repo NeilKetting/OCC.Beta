@@ -1,13 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces; // Added
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
 using OCC.Client.ViewModels.Core;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace OCC.Client.ViewModels.HealthSafety
 {
@@ -16,10 +17,10 @@ namespace OCC.Client.ViewModels.HealthSafety
         private readonly IHealthSafetyService _hseqService;
         private readonly IDialogService _dialogService;
         private readonly IToastService _toastService;
-        private readonly IRepository<Employee> _employeeRepository; // Added
+        private readonly IRepository<Employee> _employeeRepository;
 
         [ObservableProperty]
-        private ObservableCollection<HseqTrainingRecord> _trainingRecords = new();
+        private ObservableCollection<TrainingRecordViewModel> _trainingRecords = new();
 
         [ObservableProperty]
         private ObservableCollection<string> _certificateTypes = new();
@@ -28,10 +29,13 @@ namespace OCC.Client.ViewModels.HealthSafety
         private int _expiryWarningDays = 30;
 
         [ObservableProperty]
-        private ObservableCollection<Employee> _employees = new(); // Added
+        private ObservableCollection<Employee> _employees = new();
 
         [ObservableProperty]
-        private Employee? _selectedEmployee; // Added
+        private Employee? _selectedEmployee;
+
+        [ObservableProperty]
+        private string _certificateFileName = "No file selected";
 
         public TrainingViewModel()
         {
@@ -47,7 +51,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             IHealthSafetyService hseqService, 
             IDialogService dialogService, 
             IToastService toastService,
-            IRepository<Employee> employeeRepository) // Modified
+            IRepository<Employee> employeeRepository)
         {
             _hseqService = hseqService;
             _dialogService = dialogService;
@@ -61,6 +65,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         {
             CertificateTypes = new ObservableCollection<string>
             {
+                "Medicals",
                 "First Aid Level 1",
                 "First Aid Level 2",
                 "First Aid Level 3",
@@ -85,8 +90,22 @@ namespace OCC.Client.ViewModels.HealthSafety
         {
             if (value != null)
             {
-                NewRecord.EmployeeName = value.DisplayName;
-                NewRecord.Role = value.Role.ToString(); // Auto-fill Role
+                // Create a new instance to force UI update binding
+                NewRecord = new HseqTrainingRecord
+                {
+                    Id = NewRecord.Id,
+                    EmployeeName = value.DisplayName,
+                    Role = value.Role.ToString(),
+                    EmployeeId = value.Id,
+                    // Preserve other fields
+                    TrainingTopic = NewRecord.TrainingTopic,
+                    DateCompleted = NewRecord.DateCompleted == default ? DateTime.Now : NewRecord.DateCompleted,
+                    ValidUntil = NewRecord.ValidUntil ?? DateTime.Now,
+                    Trainer = NewRecord.Trainer,
+                    CertificateUrl = NewRecord.CertificateUrl,
+                    CertificateType = NewRecord.CertificateType,
+                    ExpiryWarningDays = NewRecord.ExpiryWarningDays
+                };
             }
         }
 
@@ -104,7 +123,9 @@ namespace OCC.Client.ViewModels.HealthSafety
 
                 await Task.WhenAll(recordsTask, employeesTask);
 
-                TrainingRecords = new ObservableCollection<HseqTrainingRecord>(recordsTask.Result);
+                var vms = recordsTask.Result.Select(r => new TrainingRecordViewModel(r)).ToList();
+                TrainingRecords = new ObservableCollection<TrainingRecordViewModel>(vms);
+                
                 Employees = new ObservableCollection<Employee>(employeesTask.Result.OrderBy(e => e.FirstName).ThenBy(e => e.LastName));
             }
             catch (Exception ex)
@@ -124,7 +145,8 @@ namespace OCC.Client.ViewModels.HealthSafety
             try
             {
                 var expiring = await _hseqService.GetExpiringTrainingAsync(ExpiryWarningDays);
-                TrainingRecords = new ObservableCollection<HseqTrainingRecord>(expiring);
+                var vms = expiring.Select(r => new TrainingRecordViewModel(r)).ToList();
+                TrainingRecords = new ObservableCollection<TrainingRecordViewModel>(vms);
                 _toastService.ShowInfo("Filter Applied", $"Found {expiring.Count()} records expiring within {ExpiryWarningDays} days.");
             }
             catch (Exception)
@@ -138,24 +160,48 @@ namespace OCC.Client.ViewModels.HealthSafety
         }
 
         [RelayCommand]
-        private async Task DeleteRecord(HseqTrainingRecord record)
+        private async Task DeleteRecord(TrainingRecordViewModel vm)
         {
-            if (record == null) return;
+            if (vm == null) return;
             
-            var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Delete training record for {record.EmployeeName}?");
+            var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Delete training record for {vm.EmployeeName}?");
             if (confirm)
             {
-                var success = await _hseqService.DeleteTrainingRecordAsync(record.Id);
+                var success = await _hseqService.DeleteTrainingRecordAsync(vm.Id);
                 if (success)
                 {
-                    TrainingRecords.Remove(record);
+                    TrainingRecords.Remove(vm);
                     _toastService.ShowSuccess("Success", "Record deleted.");
                 }
             }
         }
 
+        [RelayCommand]
+        private async Task UploadCertificate()
+        {
+            try
+            {
+                var path = await _dialogService.PickFileAsync("Select Certificate", new[] { "pdf", "jpg", "jpeg", "png" });
+                if (!string.IsNullOrEmpty(path))
+                {
+                    NewRecord.CertificateUrl = path;
+                    CertificateFileName = Path.GetFileName(path);
+                    _toastService.ShowSuccess("File Selected", CertificateFileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Failed to select file.");
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+        }
+
         [ObservableProperty]
-        private HseqTrainingRecord _newRecord = new();
+        private HseqTrainingRecord _newRecord = new() 
+        { 
+            DateCompleted = DateTime.Now, 
+            ValidUntil = DateTime.Now 
+        };
 
         [RelayCommand]
         private async Task SaveTraining()
@@ -169,21 +215,40 @@ namespace OCC.Client.ViewModels.HealthSafety
             IsBusy = true;
             try
             {
-                // Default valid until based on type? Usually 1-3 years. Let's assume 2 years for now if not set.
-                if (!NewRecord.ValidUntil.HasValue)
+                // Upload Certificate if local file exists
+                if (!string.IsNullOrEmpty(NewRecord.CertificateUrl) && File.Exists(NewRecord.CertificateUrl))
                 {
-                    NewRecord.ValidUntil = NewRecord.DateCompleted.AddYears(2);
+                    try
+                    {
+                        using var stream = File.OpenRead(NewRecord.CertificateUrl);
+                        var fileName = Path.GetFileName(NewRecord.CertificateUrl);
+                        var serverUrl = await _hseqService.UploadCertificateAsync(stream, fileName);
+                        
+                        if (!string.IsNullOrEmpty(serverUrl))
+                        {
+                            NewRecord.CertificateUrl = serverUrl;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _toastService.ShowError("Upload Failed", "Could not upload certificate. Saving text only.");
+                        System.Diagnostics.Debug.WriteLine($"Upload error: {ex.Message}");
+                    }
                 }
-                
-                // Map Combobox selection to Topic if needed, or just use CertificateType property
+
                 NewRecord.TrainingTopic = NewRecord.CertificateType; 
 
                 var created = await _hseqService.CreateTrainingRecordAsync(NewRecord);
                 if (created != null)
                 {
-                    TrainingRecords.Insert(0, created);
+                    TrainingRecords.Insert(0, new TrainingRecordViewModel(created));
                     _toastService.ShowSuccess("Saved", "Training record added.");
-                    NewRecord = new HseqTrainingRecord(); // Reset
+                    NewRecord = new HseqTrainingRecord 
+                    { 
+                        DateCompleted = DateTime.Now, 
+                        ValidUntil = DateTime.Now 
+                    }; 
+                    CertificateFileName = "No file selected";
                     SelectedEmployee = null; // Reset selection
                 }
             }
@@ -194,6 +259,51 @@ namespace OCC.Client.ViewModels.HealthSafety
             finally
             {
                 IsBusy = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Wrapper for HseqTrainingRecord to provide UI-specific properties like Validity.
+    /// </summary>
+    public class TrainingRecordViewModel : ObservableObject
+    {
+        public HseqTrainingRecord Record { get; }
+
+        public TrainingRecordViewModel(HseqTrainingRecord record)
+        {
+            Record = record;
+        }
+
+        // Expose properties for binding
+        public Guid Id => Record.Id;
+        public string EmployeeName => Record.EmployeeName;
+        public string Role => Record.Role;
+        public string TrainingTopic => Record.TrainingTopic;
+        public DateTime DateCompleted => Record.DateCompleted;
+        public DateTime? ValidUntil => Record.ValidUntil;
+        public string Trainer => Record.Trainer;
+
+        public string ValidityStatus
+        {
+            get
+            {
+                if (!ValidUntil.HasValue) return "No Expiry";
+                
+                var daysLeft = (ValidUntil.Value.Date - DateTime.Now.Date).Days;
+                
+                if (daysLeft < 0) return $"Expired ({Math.Abs(daysLeft)} days ago)";
+                if (daysLeft == 0) return "Expires Today";
+                if (daysLeft < 30) return $"Expires in {daysLeft} days"; // Warning range
+                
+                // For longer durations, maybe years/months?
+                if (daysLeft > 365) 
+                {
+                    var years = Math.Round(daysLeft / 365.25, 1);
+                    return $"{years} Years";
+                }
+                
+                return $"{daysLeft} Days";
             }
         }
     }

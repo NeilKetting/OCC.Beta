@@ -175,11 +175,14 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         #region Commands
 
         [RelayCommand]
-        private void AddEmployee()
+        private async Task AddEmployee()
         {
              AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
              AddEmployeePopup.Title = "Add New Employee";
              AddEmployeePopup.SaveButtonText = "Create Employee";
+             
+             await AddEmployeePopup.InitializeForNew();
+
              AddEmployeePopup.EmployeeAdded += (s, e) => {
                   IsAddEmployeePopupVisible = false;
                   // Refresh list?
@@ -191,7 +194,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         }
 
         [RelayCommand]
-        public void EditEmployee(Employee employee)
+        public async Task EditEmployee(Employee employee)
         {
             if (employee == null) return;
 
@@ -200,7 +203,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] Attempting to edit employee: {employee.Id} - {employee.FirstName} {employee.LastName}");
                 
                 AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
-                AddEmployeePopup.Load(employee);
+                
+                // Now await Load to ensure users are populated before binding
+                await AddEmployeePopup.Load(employee);
                 
                 AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
                 AddEmployeePopup.EmployeeAdded += (s, e) => 

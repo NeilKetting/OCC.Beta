@@ -353,7 +353,7 @@
 							<Separator Background="{DynamicResource SurfaceBorder}"/>
 							<StackPanel Spacing="10">
 								<StackPanel Orientation="Horizontal" Spacing="10">
-									<PathIcon Data="{StaticResource IconUser}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
+									<PathIcon Data="{StaticResource IconPermissions}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
 									<TextBlock Text="System Access" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 								</StackPanel>
 								

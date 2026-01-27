@@ -208,6 +208,13 @@ namespace OCC.Client.ViewModels.Core
 
              try
              {
+                 // Get Preferences Service
+                 var prefsService = _serviceProvider.GetRequiredService<OCC.Client.Services.Infrastructure.UserPreferencesService>();
+                 if (prefsService.Preferences.LastBirthdayWishYear == DateTime.Now.Year)
+                 {
+                     return; // Already acknowledged this year
+                 }
+
                  var today = DateTime.Today;
                  var employees = await employeeRepository.GetAllAsync();
                  var birthdayPeople = employees.Where(e => e.Status == EmployeeStatus.Active && 
@@ -233,6 +240,10 @@ namespace OCC.Client.ViewModels.Core
                                  "Wishing you a fantastic birthday filled with success and happiness.\n" +
                                  "Thank you for your hard work and dedication!\n\n" +
                                  "Best Regards,\n OCC Management");
+                             
+                             // Mark as shown for this year
+                             prefsService.Preferences.LastBirthdayWishYear = DateTime.Now.Year;
+                             prefsService.SavePreferences();
                          }
                      }
                  }

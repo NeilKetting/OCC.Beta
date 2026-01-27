@@ -34,7 +34,7 @@
                 <Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Training" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Training'}">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<PathIcon Data="{StaticResource IconManageEmployees}" Classes="IconStyle" Width="16" Height="16"/>
-						<TextBlock Text="TRAINING" VerticalAlignment="Center"/>
+						<TextBlock Text="TRAINING &amp; MEDICALS" VerticalAlignment="Center"/>
 					</StackPanel>
 				</Button>
 
