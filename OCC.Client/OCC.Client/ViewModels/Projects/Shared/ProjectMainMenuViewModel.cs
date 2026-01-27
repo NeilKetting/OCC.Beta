@@ -42,6 +42,8 @@ namespace OCC.Client.ViewModels.Projects.Shared
         private void SetActiveTab(string tabName)
         {
             ActiveTab = tabName;
+            // Send explicit message to force navigation even if tab is already active
+            WeakReferenceMessenger.Default.Send(new SwitchTabMessage(tabName));
         }
 
         [RelayCommand]

@@ -119,6 +119,7 @@ namespace OCC.Client.ViewModels.Core
         private string _themeToggleText = "Enable Dark Mode";
 
         public bool CanViewStaff => _permissionService.CanAccess(NavigationRoutes.StaffManagement);
+        public bool CanViewCustomers => _permissionService.CanAccess(NavigationRoutes.Customers);
         public bool CanAccessOrders => _permissionService.CanAccess(NavigationRoutes.Feature_OrderManagement);
         public bool CanAccessCompanySettings => _permissionService.CanAccess(NavigationRoutes.CompanySettings);
         public bool CanViewProjects => _permissionService.CanAccess(NavigationRoutes.Projects);
@@ -397,6 +398,15 @@ namespace OCC.Client.ViewModels.Core
             // Close menu
             IsPreferencesOpen = false;
             UpdateLastActionMessage(IsDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled");
+        }
+
+        [RelayCommand]
+        private void Customers()
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+            ActiveSection = NavigationRoutes.Customers;
+            UpdateLastActionMessage("Navigating to Customers");
         }
 
 

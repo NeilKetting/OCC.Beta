@@ -9,6 +9,7 @@ namespace OCC.Client.Infrastructure
         public const string Calendar = "Calendar";
         public const string Notifications = "Notifications";
         public const string Developer = "Developer";
+        public const string Customers = "Customers";
         
         // System Routes
         public const string AccessDenied = "AccessDenied";

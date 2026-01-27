@@ -263,6 +263,8 @@ namespace OCC.Client
             services.AddTransient<AuditLogViewModel>();
             services.AddTransient<TaskDetailViewModel>(); // If needed
             services.AddTransient<EmployeeManagementViewModel>();
+            services.AddTransient<ViewModels.Customers.CustomerManagementViewModel>();
+            services.AddTransient<ViewModels.Customers.CustomerDetailViewModel>();
             services.AddTransient<EmployeeDetailViewModel>();
             services.AddTransient<TimeLiveViewModel>();
             services.AddTransient<TimeMenuViewModel>();

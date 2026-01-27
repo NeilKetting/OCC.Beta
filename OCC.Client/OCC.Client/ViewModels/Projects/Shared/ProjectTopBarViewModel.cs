@@ -39,7 +39,7 @@ namespace OCC.Client.ViewModels.Projects.Shared
         #region Observables
 
         [ObservableProperty]
-        private string _activeTab = "List";
+        private string _activeTab = "Dashboard";
 
         [ObservableProperty]
         private string _projectName = "Engen";

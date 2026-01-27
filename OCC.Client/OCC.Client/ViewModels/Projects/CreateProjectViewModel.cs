@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ModelWrappers;
 using OCC.Client.Services.External;
 using OCC.Client.Services.Infrastructure;
+using OCC.Client.Infrastructure;
+using OCC.Client.Messages;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.ViewModels.Messages;
@@ -24,6 +26,7 @@ namespace OCC.Client.ViewModels.Projects
         private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<AppSetting> _appSettingsRepository;
         private readonly IRepository<Employee> _staffRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly IGoogleMapsService _googleMapsService;
         private string _sessionToken = Guid.NewGuid().ToString();
 
@@ -92,7 +95,7 @@ namespace OCC.Client.ViewModels.Projects
         public double ModalWidth => IsSettingsVisible ? 1100 : 700;
         
         // Collections
-        public string[] ProjectManagers { get; } = new[] { "Origize63@Gmail.Com (Owner)", "John Doe", "Jane Smith" };
+        public System.Collections.ObjectModel.ObservableCollection<string> ProjectManagers { get; } = new();
 
         public System.Collections.ObjectModel.ObservableCollection<Employee> SiteManagers { get; } = new();
         public System.Collections.ObjectModel.ObservableCollection<Customer> Customers { get; } = new();
@@ -112,6 +115,7 @@ namespace OCC.Client.ViewModels.Projects
             _taskRepository = null!;
             _appSettingsRepository = null!;
             _staffRepository = null!;
+            _userRepository = null!;
             _googleMapsService = null!;
             _project = new ProjectWrapper(new Project());
         }
@@ -122,6 +126,7 @@ namespace OCC.Client.ViewModels.Projects
             IRepository<ProjectTask> taskRepository,
             IRepository<AppSetting> appSettingsRepository,
             IRepository<Employee> staffRepository,
+            IRepository<User> userRepository,
             IGoogleMapsService googleMapsService)
         {
             _projectRepository = projectRepository;
@@ -129,12 +134,12 @@ namespace OCC.Client.ViewModels.Projects
             _taskRepository = taskRepository;
             _appSettingsRepository = appSettingsRepository;
             _staffRepository = staffRepository;
+            _userRepository = userRepository;
             _googleMapsService = googleMapsService;
             Project = new ProjectWrapper(new Project());
-            Project.ProjectManager = ProjectManagers[0];
             
             LoadCustomers();
-            LoadSiteManagers();
+            LoadManagers();
 
             // Trigger geofencing warning on start
             IsAddressMissing = true;
@@ -349,6 +354,12 @@ namespace OCC.Client.ViewModels.Projects
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
 
+        [RelayCommand]
+        private void AddCustomer()
+        {
+            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(NavigationRoutes.Customers));
+        }
+
         #endregion
 
         #region Methods
@@ -402,34 +413,71 @@ namespace OCC.Client.ViewModels.Projects
             }
         }
 
-        private async void LoadSiteManagers()
+        private async void LoadManagers()
         {
             try
             {
-                var staff = await _staffRepository.GetAllAsync();
-                SiteManagers.Clear();
-                foreach (var s in staff)
+                var employees = await _staffRepository.GetAllAsync();
+                var users = await _userRepository.GetAllAsync();
+
+                // 1. Load Project Managers 
+                // Filter: 'Office' Skill AND 'Admin' Role via LinkedUser
+                var adminUsers = users.Where(u => u.UserRole == UserRole.Admin).Select(u => u.Id).ToHashSet();
+                
+                var projectManagers = employees
+                    .Where(e => e.Role == EmployeeRole.Office && e.LinkedUserId.HasValue && adminUsers.Contains(e.LinkedUserId.Value))
+                    .OrderBy(e => e.FirstName)
+                    .Select(e => e.DisplayName);
+
+                ProjectManagers.Clear();
+                foreach(var pm in projectManagers)
                 {
-                    SiteManagers.Add(s);
+                    ProjectManagers.Add(pm);
+                }
+
+                // Fallback owner if empty or specific requirement
+                if (!ProjectManagers.Contains("Origize63@Gmail.Com (Owner)"))
+                     ProjectManagers.Insert(0, "Origize63@Gmail.Com (Owner)"); // Keep owner always available?
+
+                // Default selection
+                if (ProjectManagers.Count > 0)
+                    Project.ProjectManager = ProjectManagers[0];
+
+
+                // 2. Load Site Managers
+                // Filter: 'SiteManager' Skill AND 'SiteManager' Role via LinkedUser (Assuming UserRole.Manager/SiteManager exists? Or just 'User'?)
+                // Let's assume UserRole.SiteManager exists or map it. UserRole has: Admin, Office, SiteManager, etc.
+                // Assuming UserRole enum has SiteManager.
+                var siteManagerUsers = users.Where(u => u.UserRole == UserRole.SiteManager).Select(u => u.Id).ToHashSet();
+
+                var siteManagers = employees
+                    .Where(e => e.Role == EmployeeRole.SiteManager && e.LinkedUserId.HasValue && siteManagerUsers.Contains(e.LinkedUserId.Value))
+                    .OrderBy(e => e.FirstName);
+
+                SiteManagers.Clear();
+                foreach (var sm in siteManagers)
+                {
+                    SiteManagers.Add(sm);
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading managers: {ex.Message}");
+            }
         }
 
         private async void LoadCustomers()
         {
-            var customers = await _customerRepository.GetAllAsync();
-            Customers.Clear();
-            foreach (var c in customers)
+            try 
             {
-                Customers.Add(c);
+                var customers = await _customerRepository.GetAllAsync();
+                Customers.Clear();
+                foreach (var c in customers.OrderBy(c => c.Name))
+                {
+                    Customers.Add(c);
+                }
             }
-            
-            if (Customers.Count == 0)
-            {
-                Customers.Add(new Customer { Name = "Internal", Id = Guid.NewGuid() });
-                Customers.Add(new Customer { Name = "Acme Corp", Id = Guid.NewGuid() });
-            }
+            catch(Exception) { }
         }
 
         #endregion

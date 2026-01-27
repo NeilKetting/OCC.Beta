@@ -119,6 +119,9 @@
 				<!-- Name -->
 				<DataGridTextColumn Header="EMPLOYEE" Binding="{Binding DisplayName, Converter={x:Static conv:StringToTitleCaseConverter.Instance}, Mode=OneWay}" Width="*" MinWidth="250" Foreground="{DynamicResource TextPrimaryDark}"/>
 
+				<!-- Skill / Role -->
+				<DataGridTextColumn Header="SKILL" Binding="{Binding Role}" Width="Auto" Foreground="{DynamicResource TextSecondaryGray}"/>
+
 
 				<!-- Contract or Permanent -->
 				<DataGridTextColumn Header="EMPLOYMENT TYPE" Binding="{Binding EmploymentType}" Width="2*" Foreground="{DynamicResource TextPrimaryDark}"/>

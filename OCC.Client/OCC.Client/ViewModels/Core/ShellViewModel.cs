@@ -464,6 +464,9 @@ namespace OCC.Client.ViewModels.Core
                 case NavigationRoutes.StaffManagement:
                     CurrentPage = _serviceProvider.GetRequiredService<EmployeeManagementViewModel>();
                     break;
+                case NavigationRoutes.Customers:
+                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Customers.CustomerManagementViewModel>();
+                    break;
                 case NavigationRoutes.Projects:
                     CurrentPage = _serviceProvider.GetRequiredService<ProjectsViewModel>();
                     break;

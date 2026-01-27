@@ -12,6 +12,11 @@ namespace OCC.Client.Desktop
         [STAThread]
         public static void Main(string[] args)
         {
+            // Enforce South African Culture
+            var culture = new System.Globalization.CultureInfo("en-ZA");
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+
             // Configure Serilog
             var logPath = System.IO.Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 

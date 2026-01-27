@@ -114,6 +114,14 @@
 						</StackPanel>
 					</Button>
 
+					<!-- Customers -->
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding CustomersCommand}" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Customers'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewCustomers}">
+						<StackPanel Orientation="Horizontal" Spacing="15">
+							<PathIcon Data="{StaticResource IconAddUser}" Classes="IconStyle"/>
+							<TextBlock Text="Customers" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+
 					<!-- Projects Link -->
 					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Portfolio" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Portfolio'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewProjects}">
 						<StackPanel Orientation="Horizontal" Spacing="15">

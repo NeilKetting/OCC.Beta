@@ -153,7 +153,7 @@ namespace OCC.Client.ViewModels.Projects
             _calendarVM = new ProjectCalendarViewModel(serviceProvider.GetRequiredService<IHolidayService>(), _projectManager);
             _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
 
-            _currentView = _listVM;
+            _currentView = _dashboardVM;
 
             _listVM.TaskSelectionRequested += (s, id) => OnTaskSelectionRequested(id);
             _listVM.ToggleExpandRequested += (s, e) => { RefreshDisplayList(); };

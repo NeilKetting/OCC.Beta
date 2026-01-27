@@ -1,0 +1,133 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Threading.Tasks;
+
+namespace OCC.Client.ViewModels.Customers
+{
+    public partial class CustomerDetailViewModel : ViewModelBase
+    {
+        private readonly IRepository<Customer> _customerRepository;
+        private readonly Services.Interfaces.IDialogService _dialogService;
+        private Guid? _existingId;
+
+        public event EventHandler? CloseRequested;
+        public event EventHandler? Saved;
+
+        [ObservableProperty]
+        private string _title = "New Customer";
+
+        [ObservableProperty]
+        private string _saveButtonText = "Create Customer";
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        private string _name = string.Empty;
+
+        [ObservableProperty]
+        private string _header = string.Empty;
+
+        [ObservableProperty]
+        private string _email = string.Empty;
+
+        [ObservableProperty]
+        private string _phone = string.Empty;
+
+        [ObservableProperty]
+        private string _address = string.Empty;
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        public CustomerDetailViewModel(IRepository<Customer> customerRepository, Services.Interfaces.IDialogService dialogService)
+        {
+            _customerRepository = customerRepository;
+            _dialogService = dialogService;
+        }
+
+        public CustomerDetailViewModel()
+        {
+             _customerRepository = null!;
+             _dialogService = null!;
+        }
+
+        public void InitializeNew()
+        {
+            Title = "New Customer";
+            SaveButtonText = "Create Customer";
+            _existingId = null;
+        }
+
+        public void Load(Customer customer)
+        {
+            if (customer == null) return;
+
+            Title = "Edit Customer";
+            SaveButtonText = "Save Changes";
+            _existingId = customer.Id;
+
+            Name = customer.Name;
+            Header = customer.Header;
+            Email = customer.Email;
+            Phone = customer.Phone;
+            Address = customer.Address;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanSave))]
+        private async Task Save()
+        {
+            if (string.IsNullOrWhiteSpace(Name)) return;
+
+            try
+            {
+                IsBusy = true;
+
+                if (_existingId.HasValue)
+                {
+                    var existing = await _customerRepository.GetByIdAsync(_existingId.Value);
+                    if (existing != null)
+                    {
+                        UpdateModel(existing);
+                        await _customerRepository.UpdateAsync(existing);
+                    }
+                }
+                else
+                {
+                    var newCustomer = new Customer();
+                    UpdateModel(newCustomer);
+                    await _customerRepository.AddAsync(newCustomer);
+                }
+
+                Saved?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to save customer: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
+
+        private void UpdateModel(Customer model)
+        {
+            model.Name = Name;
+            model.Header = Header;
+            model.Email = Email;
+            model.Phone = Phone;
+            model.Address = Address;
+        }
+
+        [RelayCommand]
+        private void Cancel()
+        {
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+}

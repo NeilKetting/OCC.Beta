@@ -6,7 +6,9 @@ using OCC.Client.ViewModels.Projects.Shared;
 
 namespace OCC.Client.ViewModels.Projects
 {
-    public partial class ProjectsViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<ProjectSelectedMessage>
+    public partial class ProjectsViewModel : ViewModelBase, 
+        CommunityToolkit.Mvvm.Messaging.IRecipient<ProjectSelectedMessage>,
+        CommunityToolkit.Mvvm.Messaging.IRecipient<SwitchTabMessage>
     {
         private readonly ProjectDetailViewModel _projectDetailVM;
         private readonly ProjectListViewModel _projectListVM;
@@ -66,6 +68,21 @@ namespace OCC.Client.ViewModels.Projects
              // Switch to Detail View
              CurrentView = _projectDetailVM;
              _projectDetailVM.LoadTasks(message.Value.Id);
+        }
+
+        public void Receive(SwitchTabMessage message)
+        {
+            if (message.Value == "Projects")
+            {
+                // Force reset to List View (Side Menu "Home" behavior)
+                CurrentView = _projectListVM;
+
+                // Ensure tab is synchronized if needed
+                if (ProjectMainMenu.ActiveTab != "Projects")
+                {
+                    ProjectMainMenu.ActiveTab = "Projects";
+                }
+            }
         }
     }
 }
