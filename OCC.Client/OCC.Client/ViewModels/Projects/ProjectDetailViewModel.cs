@@ -79,37 +79,6 @@ namespace OCC.Client.ViewModels.Projects
         [ObservableProperty]
         private Guid _currentProjectId;
 
-        [ObservableProperty]
-        private string _siteManagerInitials = "UA";
-
-        [ObservableProperty]
-        private string _siteManagerName = "Unassigned";
-
-        [ObservableProperty]
-        private string _siteManagerColor = "#EF4444"; // Red for UA
-
-        [ObservableProperty]
-        private bool _isSiteManagerAssigned;
-
-        [ObservableProperty]
-        private ObservableCollection<Employee> _availableSiteManagers = new();
-
-        [ObservableProperty]
-        private ObservableCollection<Employee> _filteredSiteManagers = new();
-
-        private string _managerSearchText = string.Empty;
-        public string ManagerSearchText
-        {
-            get => _managerSearchText;
-            set
-            {
-                if (SetProperty(ref _managerSearchText, value))
-                {
-                    ApplyManagerFilter();
-                }
-            }
-        }
-
         #endregion
 
         #region Properties
@@ -145,8 +114,7 @@ namespace OCC.Client.ViewModels.Projects
             _dialogService = serviceProvider.GetRequiredService<IDialogService>();
             _toastService = serviceProvider.GetRequiredService<IToastService>();
 
-            var permService = serviceProvider.GetRequiredService<IPermissionService>();
-            _topBar = new Shared.ProjectTopBarViewModel(permService);
+            _topBar = serviceProvider.GetRequiredService<Shared.ProjectTopBarViewModel>();
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
             _dashboardVM = new ProjectDashboardViewModel();
@@ -278,31 +246,7 @@ namespace OCC.Client.ViewModels.Projects
             IsTaskDetailOpen = true;
         }
 
-        [RelayCommand]
-        private async Task AssignSiteManager(Employee manager)
-        {
-            if (CurrentProjectId == Guid.Empty || manager == null) return;
 
-            try
-            {
-                BusyText = "Assigning site manager...";
-                IsBusy = true;
-                await _projectManager.AssignSiteManagerAsync(CurrentProjectId, manager.Id);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-            
-            // UI Update
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                SiteManagerName = manager.DisplayName;
-                SiteManagerInitials = GetInitials(manager.DisplayName);
-                SiteManagerColor = "#14B8A6"; 
-                IsSiteManagerAssigned = true;
-            });
-        }
 
         [RelayCommand]
         private void ToggleExpand(ProjectTask task)
@@ -345,34 +289,12 @@ namespace OCC.Client.ViewModels.Projects
                 var managers = await _projectManager.GetSiteManagersAsync();
                 var tasks = await _projectManager.GetTasksForProjectAsync(projectId);
 
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                await Dispatcher.UIThread.InvokeAsync(async () =>
                 {
                     if (project != null)
                     {
-                        TopBar.ProjectName = project.Name;
-                        TopBar.ProjectId = project.Id;
-                        TopBar.ProjectAddress = project.FullAddress;
-                        TopBar.ProjectIconInitials = GetInitials(project.Name);
-
-                        if (project.SiteManager != null)
-                        {
-                            SiteManagerName = project.SiteManager.DisplayName;
-                            SiteManagerInitials = GetInitials(project.SiteManager.DisplayName);
-                            SiteManagerColor = "#14B8A6"; 
-                            IsSiteManagerAssigned = true;
-                        }
-                        else
-                        {
-                            SiteManagerName = "Unassigned";
-                            SiteManagerInitials = "UA";
-                            SiteManagerColor = "#EF4444";
-                            IsSiteManagerAssigned = false;
-                        }
+                        await TopBar.LoadProjectDataAsync(project);
                     }
-
-                    AvailableSiteManagers.Clear();
-                    foreach (var m in managers) AvailableSiteManagers.Add(m);
-                    ApplyManagerFilter();
 
                     _rootTasks = _projectManager.BuildTaskHierarchy(tasks);
                     RefreshDisplayList();
@@ -426,15 +348,7 @@ namespace OCC.Client.ViewModels.Projects
             OnPropertyChanged(nameof(HasTasks));
         }
 
-        private void ApplyManagerFilter()
-        {
-            var filtered = string.IsNullOrWhiteSpace(ManagerSearchText)
-                ? AvailableSiteManagers
-                : AvailableSiteManagers.Where(m => m.DisplayName.Contains(ManagerSearchText, StringComparison.OrdinalIgnoreCase));
 
-            FilteredSiteManagers.Clear();
-            foreach (var m in filtered) FilteredSiteManagers.Add(m);
-        }
 
         private async void OnDeleteProjectRequested(object? sender, EventArgs e)
         {

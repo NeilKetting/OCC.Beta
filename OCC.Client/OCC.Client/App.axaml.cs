@@ -254,6 +254,7 @@ namespace OCC.Client
             services.AddTransient<ProjectDetailViewModel>();
             services.AddTransient<CreateProjectViewModel>();
             services.AddTransient<EditProjectViewModel>();
+            services.AddTransient<ProjectTopBarViewModel>();
 
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectCalendarViewModel>();

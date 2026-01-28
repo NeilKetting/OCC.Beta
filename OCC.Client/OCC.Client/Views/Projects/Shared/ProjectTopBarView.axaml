@@ -59,11 +59,41 @@
 			<Button Grid.Column="1" Classes="Ghost" Margin="30,0,0,0">
 				<StackPanel Orientation="Horizontal" Spacing="15">
 					<Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource PrimaryTeal}">
-						<TextBlock Text="{Binding ProjectIconInitials}" Foreground="White" FontWeight="Bold" FontSize="12"
+						<TextBlock Text="{Binding SiteManagerInitials}" Foreground="White" FontWeight="Bold" FontSize="12"
 								   HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Border>
-					<TextBlock Text="Site Manager" FontSize="{StaticResource FontSizeMedium}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+					<TextBlock Text="{Binding SelectedSiteManager.DisplayName, FallbackValue='Unassigned', TargetNullValue='Unassigned'}" 
+                               FontSize="{StaticResource FontSizeMedium}" FontWeight="SemiBold" VerticalAlignment="Center"/>
 				</StackPanel>
+                
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <Grid Width="250">
+                            <!-- List of Managers -->
+                            <ListBox ItemsSource="{Binding AvailableSiteManagers}" 
+                                     SelectedItem="{Binding SelectedSiteManager}" 
+                                     SelectionMode="Single"
+                                     MaxHeight="300"
+                                     IsVisible="{Binding HasSiteManagers}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="5"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                            
+                            <!-- Empty State -->
+                            <StackPanel Spacing="10" Margin="10" IsVisible="{Binding !HasSiteManagers}">
+                                <TextBlock Text="No site managers found." 
+                                           Foreground="{DynamicResource TextSecondaryGray}" 
+                                           HorizontalAlignment="Center" 
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                    </Flyout>
+                </Button.Flyout>
 			</Button>
 
 			<!-- CENTER: Tabs -->
@@ -73,7 +103,7 @@
 						  HorizontalAlignment="Center"
 						  Margin="20,0">
 				<StackPanel Orientation="Horizontal" Spacing="5">
-					
+
 					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Dashboard" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Dashboard'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
@@ -100,24 +130,23 @@
 							<StackPanel Orientation="Horizontal" Spacing="8">
 								<PathIcon Data="{StaticResource IconSheet}" Classes="IconStyle" Width="16" Height="16"/>
 								<TextBlock Text="VARIATION ORDER" VerticalAlignment="Center"/>
+								<!-- Open Variations Badge -->
+								<Border Background="#EF4444"
+										HorizontalAlignment="Right"
+										VerticalAlignment="Top"
+										Margin="0,-8,-12,0"
+										Height="18" MinWidth="18"
+										CornerRadius="9"
+										Padding="4,0"
+										IsVisible="{Binding OpenVariationCount, Converter={StaticResource IntToBoolConverter}}">
+									<TextBlock Text="{Binding OpenVariationCount}"
+											   Foreground="White"
+											   FontSize="10"
+											   FontWeight="Bold"
+											   HorizontalAlignment="Center"
+											   VerticalAlignment="Center"/>
+								</Border>
 							</StackPanel>
-
-							<!-- Open Variations Badge -->
-							<Border Background="#EF4444"
-									HorizontalAlignment="Right"
-									VerticalAlignment="Top"
-									Margin="0,-8,-12,0"
-									Height="18" MinWidth="18"
-									CornerRadius="9"
-									Padding="4,0"
-									IsVisible="{Binding OpenVariationCount, Converter={StaticResource IntToBoolConverter}}">
-								<TextBlock Text="{Binding OpenVariationCount}"
-										   Foreground="White"
-										   FontSize="10"
-										   FontWeight="Bold"
-										   HorizontalAlignment="Center"
-										   VerticalAlignment="Center"/>
-							</Border>
 						</Grid>
 					</Button>
 

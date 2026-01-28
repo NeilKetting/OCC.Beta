@@ -563,6 +563,48 @@
 		<Setter Property="ClipToBounds" Value="False"/>
 	</Style>
 
+	<!-- Standard MenuFlyout styling -->
+	<Style Selector="MenuFlyoutPresenter">
+		<Setter Property="Padding" Value="6"/>
+		<Setter Property="CornerRadius" Value="8"/>
+		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource BorderGray}"/>
+		<Setter Property="BorderThickness" Value="1"/>
+        <!-- Ensure minimal constraints -->
+        <Setter Property="MaxWidth" Value="400"/>
+        <Setter Property="MinHeight" Value="40"/>
+	</Style>
+
+    <Style Selector="MenuFlyoutPresenter /template/ Border">
+        <Setter Property="BoxShadow" Value="0 4 12 0 #1A000000, 0 2 4 -1 #1A000000"/>
+    </Style>
+
+    <!-- MenuItem Styling -->
+    <Style Selector="MenuItem">
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}"/> 
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+    </Style>
+
+    <!-- MenuItem Hover -->
+    <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceLightGray}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_IconPresenter">
+        <Setter Property="Background" Value="{DynamicResource SurfaceLightGray}"/>
+    </Style>
+    
+    <!-- MenuItem Separator -->
+	<Style Selector="Separator">
+		<Setter Property="Background" Value="#E2E8F0"/>
+		<Setter Property="Height" Value="1"/>
+		<Setter Property="Margin" Value="0,4"/>
+        <Setter Property="Opacity" Value="0.5"/>
+	</Style>
+
 	<Style Selector="MenuItem.ProfileHeader">
 		<Setter Property="VerticalAlignment" Value="Center"/>
 		<Setter Property="Template">

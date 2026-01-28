@@ -27,7 +27,7 @@
 				<Grid ColumnDefinitions="*, Auto" Margin="40">
 
 					<!-- LEFT COLUMN: Main Creation Form -->
-					<Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" Margin="0,0,20,0">
+					<Grid Grid.Column="0" RowDefinitions="Auto, *, Auto" Margin="0,0,10,0">
 
 						<!-- Header -->
 						<Grid ColumnDefinitions="*, Auto" Grid.Row="0" Margin="0,0,0,30">
