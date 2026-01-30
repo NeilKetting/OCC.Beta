@@ -10,18 +10,9 @@ namespace OCC.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "AssignedTo",
-                table: "ProjectTasks",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.Sql("IF COL_LENGTH('ProjectTasks', 'AssignedTo') IS NULL BEGIN ALTER TABLE [ProjectTasks] ADD [AssignedTo] nvarchar(max) NOT NULL DEFAULT N''; END");
 
-            migrationBuilder.AddColumn<long>(
-                name: "PlanedDurationHours",
-                table: "ProjectTasks",
-                type: "bigint",
-                nullable: true);
+            migrationBuilder.Sql("IF COL_LENGTH('ProjectTasks', 'PlanedDurationHours') IS NULL BEGIN ALTER TABLE [ProjectTasks] ADD [PlanedDurationHours] bigint NULL; END");
         }
 
         /// <inheritdoc />
