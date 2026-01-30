@@ -142,8 +142,8 @@
                 </Border>
 
                 <!-- Form -->
-                <ScrollViewer Grid.Row="1" Padding="24">
-                    <StackPanel Spacing="20">
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel Spacing="20" Margin="24,24,24,50">
                         <!-- Details -->
                         <Grid ColumnDefinitions="*, 16, *">
                             <StackPanel Spacing="4">

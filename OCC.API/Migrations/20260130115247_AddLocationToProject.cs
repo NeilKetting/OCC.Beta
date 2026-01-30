@@ -14,12 +14,7 @@ namespace OCC.API.Migrations
                 name: "FK_HseqAuditAttachments_HseqAudits_AuditId",
                 table: "HseqAuditAttachments");
 
-            migrationBuilder.AddColumn<string>(
-                name: "Location",
-                table: "Projects",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.Sql("IF COL_LENGTH('Projects', 'Location') IS NULL BEGIN ALTER TABLE [Projects] ADD [Location] nvarchar(max) NOT NULL DEFAULT N''; END");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_HseqAuditAttachments_HseqAudits_AuditId",
