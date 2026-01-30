@@ -17,8 +17,8 @@ namespace OCC.API.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous] // For debugging purposes when auth might be broken
-        public IActionResult GetLatestLog()
+        [AllowAnonymous]
+        public IActionResult GetLatestLog([FromQuery] int lines = 1000)
         {
             try
             {
@@ -38,17 +38,39 @@ namespace OCC.API.Controllers
                     return NotFound("No log files found.");
                 }
 
-                // Read file with sharing enabled (in case it's being written to)
+                // Read file with sharing enabled
                 using (var fs = new FileStream(lastLogFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 using (var sr = new StreamReader(fs))
                 {
-                    var content = sr.ReadToEnd();
-                    return Ok(new 
-                    { 
-                        FileName = lastLogFile.Name, 
-                        Timestamp = lastLogFile.LastWriteTime,
-                        Content = content 
-                    });
+                    if (lines > 0)
+                    {
+                        // Efficient reverse reading would be better, but for now just read all and take last N
+                        // Beware of memory for huge files, but safe enough for text logs
+                        var allLines = new List<string>();
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
+                        {
+                            allLines.Add(line);
+                        }
+                        
+                        var content = string.Join("\n", allLines.TakeLast(lines));
+                        return Ok(new 
+                        { 
+                            FileName = lastLogFile.Name, 
+                            Timestamp = lastLogFile.LastWriteTime,
+                            Content = content 
+                        });
+                    }
+                    else
+                    {
+                        var content = sr.ReadToEnd();
+                        return Ok(new 
+                        { 
+                            FileName = lastLogFile.Name, 
+                            Timestamp = lastLogFile.LastWriteTime,
+                            Content = content 
+                        });
+                    }
                 }
             }
             catch (Exception ex)

@@ -74,7 +74,7 @@
                     <StackPanel Spacing="2">
                         <TextBlock Text="Branch" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}"/>
 					    <ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}"
-							      Width="120" Classes="FormInput" PlaceholderText="Branch"/>
+							      Width="140" Classes="FormInput" PlaceholderText="Branch"/>
                     </StackPanel>
 
                     <StackPanel Spacing="2">

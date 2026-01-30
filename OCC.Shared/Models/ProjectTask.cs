@@ -150,7 +150,6 @@ namespace OCC.Shared.Models
         public TimeSpan? PlannedDurationHours { get; set; }
 
         /// <summary> Legacy property to support old database schema. </summary>
-        [System.ComponentModel.DataAnnotations.Required]
         public string AssignedTo { get; set; } = string.Empty;
 
         /// <summary> Legacy property to support old database schema (typo in original schema). </summary>
