@@ -441,13 +441,9 @@ namespace OCC.Client.ViewModels.Projects
 
 
                 // 2. Load Site Managers
-                // Filter: 'SiteManager' Skill AND 'SiteManager' Role via LinkedUser (Assuming UserRole.Manager/SiteManager exists? Or just 'User'?)
-                // Let's assume UserRole.SiteManager exists or map it. UserRole has: Admin, Office, SiteManager, etc.
-                // Assuming UserRole enum has SiteManager.
-                var siteManagerUsers = users.Where(u => u.UserRole == UserRole.SiteManager).Select(u => u.Id).ToHashSet();
-
+                // Broadened for testing: Show all employees with SiteManager role/skill
                 var siteManagers = employees
-                    .Where(e => e.Role == EmployeeRole.SiteManager && e.LinkedUserId.HasValue && siteManagerUsers.Contains(e.LinkedUserId.Value))
+                    .Where(e => e.Role == EmployeeRole.SiteManager)
                     .OrderBy(e => e.FirstName);
 
                 SiteManagers.Clear();
