@@ -18,10 +18,10 @@
                 <TextBlock Text="Clock In Time" FontWeight="Medium"/>
                 <Grid ColumnDefinitions="*, Auto, *">
                     <NumericUpDown x:Name="InHour" Minimum="0" Maximum="23" FormatString="00" 
-                                 HorizontalContentAlignment="Center" ParsingNumberStyle="Integer"/>
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ParsingNumberStyle="Integer"/>
                     <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" Margin="5,0"/>
                     <NumericUpDown Grid.Column="2" x:Name="InMin" Minimum="0" Maximum="59" FormatString="00" 
-                                 HorizontalContentAlignment="Center" ParsingNumberStyle="Integer"/>
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ParsingNumberStyle="Integer"/>
                 </Grid>
             </StackPanel>
 
@@ -29,10 +29,10 @@
                 <TextBlock Text="Clock Out Time" FontWeight="Medium"/>
                 <Grid ColumnDefinitions="*, Auto, *">
                     <NumericUpDown x:Name="OutHour" Minimum="0" Maximum="23" FormatString="00" 
-                                 HorizontalContentAlignment="Center" ParsingNumberStyle="Integer"/>
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ParsingNumberStyle="Integer"/>
                     <TextBlock Grid.Column="1" Text=":" VerticalAlignment="Center" Margin="5,0"/>
                     <NumericUpDown Grid.Column="2" x:Name="OutMin" Minimum="0" Maximum="59" FormatString="00" 
-                                 HorizontalContentAlignment="Center" ParsingNumberStyle="Integer"/>
+                                 HorizontalContentAlignment="Center" VerticalContentAlignment="Center" ParsingNumberStyle="Integer"/>
                 </Grid>
             </StackPanel>
 

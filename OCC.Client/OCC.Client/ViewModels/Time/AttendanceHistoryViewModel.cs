@@ -262,12 +262,25 @@ namespace OCC.Client.ViewModels.Time
         }
 
         [RelayCommand]
-        private async Task BulkEdit()
+        private async Task BulkEdit(object? parameter)
         {
             var selected = Records.Where(r => r.IsSelected).ToList();
+
+            // Also include DataGrid row selection if passed (user might just highlight rows)
+            if (parameter is System.Collections.IList list)
+            {
+                foreach (var item in list)
+                {
+                    if (item is HistoryRecordViewModel vm && !selected.Contains(vm))
+                    {
+                        selected.Add(vm);
+                    }
+                }
+            }
+
             if (!selected.Any())
             {
-                await _dialogService.ShowAlertAsync("No Selection", "Please select one or more records to edit.");
+                await _dialogService.ShowAlertAsync("No Selection", "Please select one or more records to edit (via checkboxes or row selection).");
                 return;
             }
 
@@ -278,31 +291,96 @@ namespace OCC.Client.ViewModels.Time
                 IsBusy = true;
                 try
                 {
+                    int successCount = 0;
+                    int failCount = 0;
+                    
                     foreach (var record in selected)
                     {
-                        var originalDate = record.Attendance.Date.Date;
-                        var newCheckIn = originalDate.Add(result.InTime.Value);
-
-                        DateTime? newCheckOut = null;
-                        if (result.OutTime.HasValue)
+                        try
                         {
-                            newCheckOut = originalDate.Add(result.OutTime.Value);
-                            if (newCheckOut < newCheckIn) newCheckOut = newCheckOut.Value.AddDays(1);
+                            var originalDate = record.Attendance.Date.Date;
+                            // Calculate New Times
+                            // Ensure we create NEW DateTime objects
+                            var newCheckIn = originalDate.Add(result.InTime.Value);
+
+                            DateTime? newCheckOut = record.Attendance.CheckOutTime; // Default to existing
+                            
+                            if (result.OutTime.HasValue)
+                            {
+                                var tempOut = originalDate.Add(result.OutTime.Value);
+                                if (tempOut < newCheckIn) tempOut = tempOut.AddDays(1);
+                                newCheckOut = tempOut;
+                            }
+
+                            // Update locally
+                            record.Attendance.CheckInTime = newCheckIn;
+                            record.Attendance.CheckOutTime = newCheckOut;
+
+                            // Save
+                            await _timeService.SaveAttendanceRecordAsync(record.Attendance);
+                            record.Refresh();
+                            successCount++;
                         }
-
-                        record.Attendance.CheckInTime = newCheckIn;
-                        record.Attendance.CheckOutTime = newCheckOut;
-
-                        await _timeService.SaveAttendanceRecordAsync(record.Attendance);
-                        record.Refresh();
+                        catch (Exception ex)
+                        {
+                            failCount++;
+                            System.Diagnostics.Debug.WriteLine($"Failed to update record {record.EmployeeName}: {ex.Message}");
+                        }
                     }
                     
+                    if (failCount > 0)
+                    {
+                        await _dialogService.ShowAlertAsync("Bulk Edit Partial Failure", $"Updated {successCount} records. Failed to update {failCount} records. Check logs.");
+                    }
+
+                    // Give API a moment to process/commit if necessary, though Save is awaited.
+                    // This primarily helps if there are any async db consistency delays on the server.
+                    await Task.Delay(500);
+
                     IsBusy = false;
                     await LoadData();
-                    IsAllSelected = false;
+                    IsAllSelected = false; // Reset selection
                 }
                 finally { IsBusy = false; }
             }
+        } // End BulkEdit
+
+        [RelayCommand]
+        private async Task SmartEdit(object? parameter)
+        {
+             // Determine context: Single or Multiple?
+             var selected = Records.Where(r => r.IsSelected).ToList();
+
+             // Check parameter
+             if (parameter is System.Collections.IList list)
+             {
+                 foreach (var item in list)
+                 {
+                     if (item is HistoryRecordViewModel vm && !selected.Contains(vm))
+                     {
+                         selected.Add(vm);
+                     }
+                 }
+             }
+             else if (parameter is HistoryRecordViewModel singleVm)
+             {
+                 if (!selected.Contains(singleVm)) selected.Add(singleVm);
+             }
+
+             if (!selected.Any()) return;
+
+             // Single Item Logic (Pre-fill times)
+             if (selected.Count == 1 && !Records.Any(r => r.IsSelected)) // If only 1 item and NO explicit checkboxes checked, treat as specific edit
+             {
+                 await EditRecord(selected.First());
+             }
+             else
+             {
+                 // Bulk Logic (Empty times)
+                 // Pass the merged list back to BulkEdit logic or call it directly
+                 // Since BulkEdit accepts parameter, let's just call passing selected list
+                 await BulkEdit(selected);
+             }
         }
 
         [RelayCommand]

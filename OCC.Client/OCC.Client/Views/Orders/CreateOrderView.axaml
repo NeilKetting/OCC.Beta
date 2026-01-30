@@ -295,8 +295,14 @@
 
 								<!-- Delivery Instructions Field -->
 								<StackPanel Spacing="5">
-									<TextBlock Text="Delivery Instructions:" Classes="Label"/>
+									<TextBlock Text="Delivery Instructions" Classes="Label"/>
 									<TextBox Text="{Binding CurrentOrder.DeliveryInstructions}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
+								</StackPanel>
+
+								<!-- Scope of Work Field -->
+								<StackPanel Spacing="5">
+									<TextBlock Text="Scope of Work (SOW)" Classes="Label"/>
+									<TextBox Text="{Binding CurrentOrder.ScopeOfWork}" Watermark="Describe the work (e.g. Cafe 365)" Classes="FormInput"/>
 								</StackPanel>
 
 							</StackPanel>

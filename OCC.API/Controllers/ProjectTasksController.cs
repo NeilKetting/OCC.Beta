@@ -113,6 +113,10 @@ namespace OCC.API.Controllers
                 if (task.Id == Guid.Empty) task.Id = Guid.NewGuid();
                 TaskHelper.EnsureUtcDates(task);
 
+                // Legacy column protection
+                task.AssignedTo ??= string.Empty;
+                task.PlanedDurationHours ??= 0;
+
                 _context.ProjectTasks.Add(task);
                 await _context.SaveChangesAsync();
 

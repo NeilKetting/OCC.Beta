@@ -244,5 +244,10 @@ namespace OCC.Client.Services.Repositories.ApiServices
             }
             return new HseqDashboardStats();
         }
+
+        public async Task<IEnumerable<HseqSafeHourRecord>> GetPerformanceHistoryAsync(int? year = null)
+        {
+             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqSafeHourRecord>>($"api/HseqStats/history/{year}") ?? new List<HseqSafeHourRecord>();
+        }
     }
 }

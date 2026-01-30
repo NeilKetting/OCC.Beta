@@ -48,6 +48,7 @@ namespace OCC.Shared.Models
         public OrderStatus Status { get; set; } = OrderStatus.Ordered;
         public string Notes { get; set; } = string.Empty;
         public string DeliveryInstructions { get; set; } = string.Empty;
+        public string ScopeOfWork { get; set; } = string.Empty;
 
         // --- Content ---
         public System.Collections.ObjectModel.ObservableCollection<OrderLine> Lines { get; set; } = new();

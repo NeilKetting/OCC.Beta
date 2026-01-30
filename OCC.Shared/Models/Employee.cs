@@ -91,6 +91,11 @@ namespace OCC.Shared.Models
         public string Phone { get; set; } = string.Empty;
 
         /// <summary>
+        /// Employee's physical residential address.
+        /// </summary>
+        public string PhysicalAddress { get; set; } = string.Empty;
+
+        /// <summary>
         /// Date of Birth, typically calculated from RSA ID or manually entered.
         /// Defaults to 30 years ago.
         /// </summary>
@@ -254,7 +259,8 @@ namespace OCC.Shared.Models
         SeniorForeman = 18,
         Foreman = 19,
         Welder = 20,
-        SiteManager = 21
+        SiteManager = 21,
+        BrickLayer = 22
     }
 
     /// <summary>

@@ -55,5 +55,54 @@ namespace OCC.API.Controllers
                 RecentAuditScores = auditScores
             });
         }
+
+        [HttpGet("history/{year?}")]
+        public async Task<ActionResult<List<HseqSafeHourRecord>>> GetPerformanceHistory(int? year = null)
+        {
+            var targetYear = year ?? DateTime.Now.Year;
+            
+            // 1. Get Monthly Hours
+            var monthlyHours = await _context.AttendanceRecords
+                .Where(a => !a.IsDeleted && a.Date.Year == targetYear)
+                .GroupBy(a => a.Date.Month)
+                .Select(g => new { Month = g.Key, TotalHours = g.Sum(x => x.HoursWorked) })
+                .ToDictionaryAsync(k => k.Month, v => v.TotalHours);
+
+            // 2. Get Incidents
+            var incidents = await _context.Incidents
+                .Where(i => !i.IsDeleted && i.Date.Year == targetYear)
+                .ToListAsync();
+
+            var monthlyIncidents = incidents
+                .GroupBy(i => i.Date.Month)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 3. Build Record for each month (up to current month if current year)
+            var stats = new List<HseqSafeHourRecord>();
+            var monthsToGenerate = (targetYear == DateTime.Now.Year) ? DateTime.Now.Month : 12;
+
+            for (int m = 1; m <= monthsToGenerate; m++)
+            {
+                var monthDate = new DateTime(targetYear, m, 1);
+                var hours = monthlyHours.ContainsKey(m) ? monthlyHours[m] : 0;
+                var monthIncidents = monthlyIncidents.ContainsKey(m) ? monthlyIncidents[m] : new List<Incident>();
+                
+                var hasIncidents = monthIncidents.Any();
+                var nearMisses = monthIncidents.Count(i => i.Type == Shared.Enums.IncidentType.NearMiss);
+
+                stats.Add(new HseqSafeHourRecord
+                {
+                    Id = Guid.NewGuid(), // Generate ephemeral ID for UI
+                    Month = monthDate,
+                    SafeWorkHours = hours,
+                    IncidentReported = hasIncidents ? "Yes" : "No",
+                    NearMisses = nearMisses,
+                    Status = hasIncidents ? "Review" : "Closed",
+                    ReportedBy = "System"
+                });
+            }
+
+            return Ok(stats.OrderByDescending(s => s.Month).ToList());
+        }
     }
 }

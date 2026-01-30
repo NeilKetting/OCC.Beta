@@ -622,8 +622,9 @@ namespace OCC.Client.ViewModels.Orders
                 EntityVatNo = CurrentOrder.EntityVatNo,
                 Attention = CurrentOrder.Attention,
                 DestinationType = CurrentOrder.DestinationType,
-                DeliveryInstructions = CurrentOrder.DeliveryInstructions, // Added
-                Branch = CurrentOrder.Branch, // Added
+                DeliveryInstructions = CurrentOrder.DeliveryInstructions,
+                ScopeOfWork = CurrentOrder.ScopeOfWork,
+                Branch = CurrentOrder.Branch,
                 TaxRate = CurrentOrder.TaxRate,
                 Lines = new ObservableCollection<OrderLine>()
             };

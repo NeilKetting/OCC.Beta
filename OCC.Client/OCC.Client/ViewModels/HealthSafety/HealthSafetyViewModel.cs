@@ -80,6 +80,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             {
                 case "Performance Monitoring":
                     CurrentView = PerformanceView;
+                    PerformanceView.LoadDataCommand.Execute(null);
                     break;
                 case "Incidents":
                     CurrentView = IncidentsView;

@@ -1,38 +1,43 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
+using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.HealthSafety
 {
     public partial class PerformanceMonitoringViewModel : ViewModelBase
     {
+        private readonly IHealthSafetyService _healthSafetyService;
+
         [ObservableProperty]
         private System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.HseqSafeHourRecord> _safeHours;
 
-        public PerformanceMonitoringViewModel()
+        [ObservableProperty]
+        private bool _isLoading;
+
+        public PerformanceMonitoringViewModel(IHealthSafetyService healthSafetyService)
         {
-            _safeHours = new System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.HseqSafeHourRecord>
+            _healthSafetyService = healthSafetyService;
+            _safeHours = new System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.HseqSafeHourRecord>();
+        }
+
+        [CommunityToolkit.Mvvm.Input.RelayCommand]
+        private async Task LoadDataAsync()
+        {
+            IsLoading = true;
+            try
             {
-                new OCC.Shared.Models.HseqSafeHourRecord 
-                { 
-                    Month = new System.DateTime(2025, 1, 1), 
-                    SafeWorkHours = 1200, 
-                    IncidentReported = "No", 
-                    NearMisses = 0, 
-                    Status = "Closed",
-                    ReportedBy = "John Doe"
-                },
-                new OCC.Shared.Models.HseqSafeHourRecord 
-                { 
-                    Month = new System.DateTime(2025, 2, 1), 
-                    SafeWorkHours = 1150, 
-                    IncidentReported = "Yes", 
-                    NearMisses = 2, 
-                    RootCause = "Slippery floor",
-                    CorrectiveActions = "Installed anti-slip mats",
-                    Status = "Open",
-                    ReportedBy = "Jane Smith"
-                }
-            };
+                var history = await _healthSafetyService.GetPerformanceHistoryAsync();
+                SafeHours = new System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.HseqSafeHourRecord>(history);
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading H&S performance: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 }

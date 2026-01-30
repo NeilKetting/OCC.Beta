@@ -5,7 +5,7 @@
 BEGIN TRANSACTION;
 
 -- 1. Add new detailed address columns to Projects
-IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Projepass
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Projects]') AND name = N'StreetLine1')
 BEGIN
     ALTER TABLE [Projects] ADD [StreetLine1] nvarchar(max) NOT NULL DEFAULT N'';
     ALTER TABLE [Projects] ADD [StreetLine2] nvarchar(max) NULL;
@@ -66,6 +66,18 @@ BEGIN
         CONSTRAINT [FK_TaskComments_ProjectTasks_TaskId] FOREIGN KEY ([TaskId]) REFERENCES [ProjectTasks] ([Id]) ON DELETE CASCADE,
         CONSTRAINT [FK_TaskComments_ProjectTasks_ProjectTaskId] FOREIGN KEY ([ProjectTaskId]) REFERENCES [ProjectTasks] ([Id])
     );
+END
+
+-- 6. Add ScopeOfWork to Orders
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Orders]') AND name = N'ScopeOfWork')
+BEGIN
+    ALTER TABLE [Orders] ADD [ScopeOfWork] nvarchar(max) NOT NULL DEFAULT N'';
+END
+
+-- 7. Add PhysicalAddress to Employees
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Employees]') AND name = N'PhysicalAddress')
+BEGIN
+    ALTER TABLE [Employees] ADD [PhysicalAddress] nvarchar(max) NOT NULL DEFAULT N'';
 END
 
 -- 3. Update Migration History to "Bless" the new InitialCreate

@@ -280,7 +280,7 @@ namespace OCC.Client.Services
                      row.RelativeItem(3).Text(t => { t.Span("PROJECT: ").SemiBold(); t.Span(order.ProjectName ?? "-"); });
 
                      // 2. SOW
-                     row.RelativeItem(3).Text(t => { t.Span("SOW: ").SemiBold(); t.Span("Cafe 365"); }); 
+                     row.RelativeItem(3).Text(t => { t.Span("SOW: ").SemiBold(); t.Span(string.IsNullOrEmpty(order.ScopeOfWork) ? "-" : order.ScopeOfWork); }); 
 
                      // 3. Date
                      row.RelativeItem(1.5f).Text(t => { t.Span("DATE: ").SemiBold(); t.Span($"{order.OrderDate:yyyy-MM-dd}"); });

@@ -148,6 +148,13 @@ namespace OCC.Shared.Models
         public TimeSpan? ActualDuration { get; set; }
         /// <summary> Planned duration in hours (stored as nullable TimeSpan). </summary>
         public TimeSpan? PlannedDurationHours { get; set; }
+
+        /// <summary> Legacy property to support old database schema. </summary>
+        [System.ComponentModel.DataAnnotations.Required]
+        public string AssignedTo { get; set; } = string.Empty;
+
+        /// <summary> Legacy property to support old database schema (typo in original schema). </summary>
+        public long? PlanedDurationHours { get; set; } = 0;
         #endregion
 
         #region Geofencing

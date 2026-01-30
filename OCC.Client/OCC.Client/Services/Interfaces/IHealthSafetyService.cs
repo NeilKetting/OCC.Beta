@@ -38,6 +38,7 @@ namespace OCC.Client.Services.Interfaces
 
         // Stats
         Task<HseqDashboardStats?> GetDashboardStatsAsync();
+        Task<IEnumerable<HseqSafeHourRecord>> GetPerformanceHistoryAsync(int? year = null);
     }
 
     public class HseqDashboardStats

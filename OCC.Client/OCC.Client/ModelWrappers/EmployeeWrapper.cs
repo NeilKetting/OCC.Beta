@@ -55,6 +55,9 @@ namespace OCC.Client.ModelWrappers
         private string _phone = string.Empty;
 
         [ObservableProperty]
+        private string _physicalAddress = string.Empty;
+
+        [ObservableProperty]
         private EmployeeRole _role = EmployeeRole.GeneralWorker;
 
         [ObservableProperty]
@@ -132,6 +135,7 @@ namespace OCC.Client.ModelWrappers
             IdType = _model.IdType;
             Email = _model.Email;
             Phone = _model.Phone;
+            PhysicalAddress = _model.PhysicalAddress;
             Role = _model.Role;
             HourlyRate = _model.HourlyRate;
             EmploymentType = _model.EmploymentType;
@@ -172,6 +176,7 @@ namespace OCC.Client.ModelWrappers
             _model.IdType = IdType;
             _model.Email = Email;
             _model.Phone = Phone;
+            _model.PhysicalAddress = PhysicalAddress;
             _model.Role = Role;
             _model.HourlyRate = HourlyRate;
             _model.EmploymentType = EmploymentType;

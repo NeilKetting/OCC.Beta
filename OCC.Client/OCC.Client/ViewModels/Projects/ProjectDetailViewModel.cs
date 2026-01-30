@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using OCC.Client.Infrastructure;
 
 namespace OCC.Client.ViewModels.Projects
 {
@@ -366,7 +367,7 @@ namespace OCC.Client.ViewModels.Projects
                     IsBusy = true;
                     await _projectManager.DeleteProjectAsync(CurrentProjectId);
                     _toastService.ShowSuccess("Project Deleted", "The project has been successfully removed.");
-                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Projects")); 
+                    WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(OCC.Client.Infrastructure.NavigationRoutes.Projects)); 
                 }
                 catch (Exception ex)
                 {

@@ -21,7 +21,7 @@
 
 				<!-- Actions -->
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-					<Button Command="{Binding BulkEditCommand}" Classes="Primary" ToolTip.Tip="Bulk Edit Selected">
+					<Button Command="{Binding BulkEditCommand}" CommandParameter="{Binding #RecordsGrid.SelectedItems}" Classes="Primary" ToolTip.Tip="Bulk Edit Selected">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconBulkEdit}" Width="16" Height="16"/>
 							<TextBlock Text="Bulk Edit" VerticalAlignment="Center"/>
@@ -130,6 +130,8 @@
 				  SelectedItem="{Binding SelectedRecord}"
                   DoubleTapped="DataGrid_DoubleTapped"
 				  IsReadOnly="True" GridLinesVisibility="Horizontal"
+                  x:Name="RecordsGrid"
+                  SelectionMode="Extended"
 				  BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderGray}"
 				  Background="White" RowBackground="White">
             <DataGrid.Styles>
@@ -137,8 +139,8 @@
                     <Setter Property="ContextMenu">
                         <ContextMenu>
                             <MenuItem Header="Edit Time" 
-                                      Command="{Binding #Root.DataContext.EditRecordCommand}" 
-                                      CommandParameter="{Binding}">
+                                      Command="{Binding #Root.DataContext.SmartEditCommand}" 
+                                      CommandParameter="{Binding #RecordsGrid.SelectedItems}">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconEdit}" />
                                 </MenuItem.Icon>

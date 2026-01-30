@@ -325,7 +325,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 await System.IO.File.WriteAllTextAsync(fullPath, jsonString);
 
                 // Notify user via toast
-                CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new ViewModels.Messages.UpdateStatusMessage($"Backup Saved to Documents: {fileName}"));
+                WeakReferenceMessenger.Default.Send(new Messages.UpdateStatusMessage($"Backup Saved to Documents: {fileName}"));
                 
                 System.Diagnostics.Debug.WriteLine($"Exported to: {fullPath}");
             }

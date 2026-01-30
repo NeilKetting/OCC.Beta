@@ -95,6 +95,12 @@
 								<TextBox Text="{Binding Wrapper.Email}" Classes="FormInput" Watermark="john@example.com"
 										 ToolTip.Tip="Work or personal email address"/>
 							</StackPanel>
+							<!-- Physical Address -->
+							<StackPanel>
+								<TextBlock Text="Physical Address" Classes="FormLabel"/>
+								<TextBox Text="{Binding Wrapper.PhysicalAddress}" Classes="FormInput" Watermark="123 Main St..." Height="60" AcceptsReturn="True" TextWrapping="Wrap"
+										 ToolTip.Tip="Employee's residential address"/>
+							</StackPanel>
 							<!-- ID and Passport -->
 							<StackPanel>
 								<TextBlock Text="Identification" Classes="FormLabel"/>

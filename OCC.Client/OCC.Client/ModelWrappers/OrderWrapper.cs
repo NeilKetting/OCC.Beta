@@ -90,6 +90,9 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private string _notes = string.Empty;
 
+        [ObservableProperty]
+        private string _scopeOfWork = string.Empty;
+
         // Totals
         [ObservableProperty]
         private decimal _subTotal;
@@ -125,6 +128,7 @@ namespace OCC.Client.ModelWrappers
             DeliveryInstructions = _model.DeliveryInstructions ?? string.Empty;
             Attention = _model.Attention ?? string.Empty;
             Notes = _model.Notes ?? string.Empty;
+            ScopeOfWork = _model.ScopeOfWork ?? string.Empty;
 
             foreach (var line in _model.Lines)
             {
@@ -158,6 +162,7 @@ namespace OCC.Client.ModelWrappers
             _model.DeliveryInstructions = DeliveryInstructions;
             _model.Attention = Attention;
             _model.Notes = Notes;
+            _model.ScopeOfWork = ScopeOfWork;
 
             // Sync lines back to model
             _model.Lines.Clear();
