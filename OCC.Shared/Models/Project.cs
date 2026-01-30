@@ -80,6 +80,11 @@
         /// Current lifecycle status (e.g., "Planning", "Active", "Completed", "OnHold").
         /// </summary>
         public string Status { get; set; } = "Planning";
+        
+        /// <summary>
+        /// General location or branch branding for the project.
+        /// </summary>
+        public string Location { get; set; } = string.Empty;
 
         /// <summary>
         /// Name of the overall project manager (often office-based).

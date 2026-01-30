@@ -80,6 +80,9 @@ namespace OCC.Client.ModelWrappers
         private string _projectManager = string.Empty;
 
         [ObservableProperty]
+        private string _location = string.Empty;
+
+        [ObservableProperty]
         private Guid? _siteManagerId;
 
         [ObservableProperty]
@@ -119,6 +122,7 @@ namespace OCC.Client.ModelWrappers
             Longitude = _model.Longitude;
             Status = _model.Status;
             ProjectManager = _model.ProjectManager;
+            Location = _model.Location;
             SiteManagerId = _model.SiteManagerId;
             Customer = _model.Customer;
             Priority = _model.Priority;
@@ -145,6 +149,7 @@ namespace OCC.Client.ModelWrappers
             _model.Longitude = Longitude;
             _model.Status = Status;
             _model.ProjectManager = ProjectManager;
+            _model.Location = Location;
             _model.SiteManagerId = SiteManagerId;
             _model.Customer = Customer;
             _model.Priority = Priority;
