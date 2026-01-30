@@ -42,12 +42,14 @@
 
 			<!-- Greeting Area -->
 			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">
-				<StackPanel Spacing="5" Margin="0">
-					<TextBlock Text="{Binding Greeting, FallbackValue='Good day, User'}"
-							   FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-					<TextBlock Text="{Binding CurrentDate, FallbackValue='1st Jan 2026'}"
-							   Foreground="{DynamicResource TextPrimaryDark}" FontSize="14"/>
-				</StackPanel>
+				<Grid ColumnDefinitions="*, Auto">
+					<StackPanel Spacing="5" Margin="0" Grid.Column="0">
+						<TextBlock Text="{Binding Greeting, FallbackValue='Good day, User'}"
+								   FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+						<TextBlock Text="{Binding CurrentDate, FallbackValue='1st Jan 2026'}"
+								   Foreground="{DynamicResource TextPrimaryDark}" FontSize="14"/>
+					</StackPanel>
+				</Grid>
 			</Border>
 
 			<!-- Content Area -->

@@ -4,6 +4,7 @@ using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OCC.Client.ViewModels.Customers
@@ -40,6 +41,9 @@ namespace OCC.Client.ViewModels.Customers
         private string _address = string.Empty;
 
         [ObservableProperty]
+        private System.Collections.ObjectModel.ObservableCollection<CustomerContact> _contacts = new();
+
+        [ObservableProperty]
         private bool _isBusy;
 
         public CustomerDetailViewModel(IRepository<Customer> customerRepository, Services.Interfaces.IDialogService dialogService)
@@ -74,6 +78,12 @@ namespace OCC.Client.ViewModels.Customers
             Email = customer.Email;
             Phone = customer.Phone;
             Address = customer.Address;
+            
+            Contacts.Clear();
+            if (customer.Contacts != null)
+            {
+                foreach(var c in customer.Contacts) Contacts.Add(c);
+            }
         }
 
         [RelayCommand(CanExecute = nameof(CanSave))]
@@ -112,6 +122,18 @@ namespace OCC.Client.ViewModels.Customers
                 IsBusy = false;
             }
         }
+        
+        [RelayCommand]
+        public void AddContact()
+        {
+            Contacts.Add(new CustomerContact { Name = "New Contact", Department = "General" });
+        }
+
+        [RelayCommand]
+        public void RemoveContact(CustomerContact contact)
+        {
+            if (Contacts.Contains(contact)) Contacts.Remove(contact);
+        }
 
         private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
@@ -122,6 +144,7 @@ namespace OCC.Client.ViewModels.Customers
             model.Email = Email;
             model.Phone = Phone;
             model.Address = Address;
+            model.Contacts = Contacts.ToList();
         }
 
         [RelayCommand]

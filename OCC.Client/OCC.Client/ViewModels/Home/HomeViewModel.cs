@@ -37,6 +37,7 @@ namespace OCC.Client.ViewModels.Home
         private readonly IRepository<Team> _teamRepository;
         private readonly IDialogService _dialogService;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ITaskAttachmentService _attachmentService;
         private readonly IServiceProvider _serviceProvider;
 
         #endregion
@@ -131,6 +132,7 @@ namespace OCC.Client.ViewModels.Home
                              IRepository<Team> teamRepository,
                              IDialogService dialogService,
                              ILoggerFactory loggerFactory,
+                             ITaskAttachmentService attachmentService,
                              IServiceProvider serviceProvider)
         {
             _authService = authService;
@@ -149,6 +151,7 @@ namespace OCC.Client.ViewModels.Home
             _teamRepository = teamRepository;
             _dialogService = dialogService;
             _loggerFactory = loggerFactory;
+            _attachmentService = attachmentService;
 
             HomeMenu = homeMenu;
             
@@ -166,7 +169,7 @@ namespace OCC.Client.ViewModels.Home
             };
 
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
-            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup(m.ProjectId));
+            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup(m.ProjectId, m.InitialDate));
 
             HomeMenu.PropertyChanged += HomeMenu_PropertyChanged;
 
@@ -180,7 +183,7 @@ namespace OCC.Client.ViewModels.Home
         [RelayCommand]
         private void OpenTaskDetail(Guid taskId)
         {
-            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _attachmentService, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
             CurrentTaskDetail.LoadTaskById(taskId);
             IsTaskDetailVisible = true;
@@ -253,11 +256,11 @@ namespace OCC.Client.ViewModels.Home
             return $"{timeGreeting}, {userName}";
         }
 
-        private void OpenNewTaskPopup(Guid? projectId = null)
+        private void OpenNewTaskPopup(Guid? projectId = null, DateTime? initialDate = null)
         {
-            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _dialogService, _authService);
+            CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _attachmentService, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
-            CurrentTaskDetail.InitializeForCreation(projectId);
+            CurrentTaskDetail.InitializeForCreation(projectId, null, initialDate);
             IsTaskDetailVisible = true;
         }
 

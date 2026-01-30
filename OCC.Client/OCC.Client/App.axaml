@@ -18,6 +18,10 @@
 
             <conv:StatusColorConverter x:Key="StatusToColorConverter"/>
             <conv:TypeToColorConverter x:Key="TypeToColorConverter"/>
+            <conv:GuidToBoolConverter x:Key="GuidToBoolConverter"/>
+            <conv:EmployeeToNameConverter x:Key="EmployeeToNameConverter"/>
+            <conv:InvertBoolConverter x:Key="InvertBoolConverter"/>
+            <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
 
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">8</x:Double>

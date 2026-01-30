@@ -39,6 +39,7 @@ namespace OCC.Client.ViewModels.Core
         private readonly IPermissionService _permissionService;
         private readonly ILogger<SideMenuViewModel> _logger;
         private readonly IToastService _toastService;
+        private readonly IReminderService _reminderService;
 
         #endregion
 
@@ -137,6 +138,9 @@ namespace OCC.Client.ViewModels.Core
         
         public bool CanCreateProject => _permissionService.CanAccess(NavigationRoutes.Feature_ProjectCreation);
 
+        [ObservableProperty]
+        private int _reminderCount;
+
         #endregion
 
         #region Constructors
@@ -168,7 +172,8 @@ namespace OCC.Client.ViewModels.Core
             IPermissionService permissionService, 
             ILogger<SideMenuViewModel> logger,
             NotificationViewModel notificationViewModel,
-            IToastService toastService)
+            IToastService toastService,
+            IReminderService reminderService)
         {
             _authService = authService;
             _updateService = updateService;
@@ -177,6 +182,12 @@ namespace OCC.Client.ViewModels.Core
             _logger = logger;
             _notificationViewModel = notificationViewModel;
             _toastService = toastService;
+            _reminderService = reminderService;
+
+            // Monitor Reminders
+            _reminderService.UnreadCountChanged += (s, count) => ReminderCount = count;
+            ReminderCount = _reminderService.UnreadCount;
+            _reminderService.Start();
 
             // Register for messages
             WeakReferenceMessenger.Default.RegisterAll(this);
@@ -352,6 +363,15 @@ namespace OCC.Client.ViewModels.Core
             {
                 UpdateLastActionMessage("Navigating to Notifications");
                 WeakReferenceMessenger.Default.Send(new OpenNotificationsMessage());
+                return;
+            }
+
+            if (section == NavigationRoutes.Reminders)
+            {
+                UpdateLastActionMessage("Navigating to Task Reminders");
+                // Navigate to home and switch to list view where tasks can be seen
+                ActiveSection = NavigationRoutes.Home;
+                WeakReferenceMessenger.Default.Send(new SwitchTabMessage("List"));
                 return;
             }
 

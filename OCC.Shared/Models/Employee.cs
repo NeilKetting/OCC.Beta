@@ -174,7 +174,24 @@ namespace OCC.Shared.Models
         /// <summary>
         /// Current status of the employee (Active, Inactive, Terminated).
         /// </summary>
+        /// <summary>
+        /// Current status of the employee (Active, Inactive, Terminated).
+        /// </summary>
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
+
+        // Emergency & Next of Kin
+        
+        /// <summary> Name of the next of kin. </summary>
+        public string? NextOfKinName { get; set; }
+        /// <summary> Types of relation (e.g. Spouse, Parent, Sibling). </summary>
+        public string? NextOfKinRelation { get; set; }
+        /// <summary> Contact number for next of kin. </summary>
+        public string? NextOfKinPhone { get; set; }
+
+        /// <summary> Name of emergency contact (if different from NOK). </summary>
+        public string? EmergencyContactName { get; set; }
+        /// <summary> Contact number for emergency contact. </summary>
+        public string? EmergencyContactPhone { get; set; }
 
         public override string ToString()
         {

@@ -25,8 +25,8 @@ namespace OCC.Shared.Models
         /// <summary> Reference to the specific regulation violated. </summary>
         public string RegulationReference { get; set; } = string.Empty;
 
-        /// <summary> Base64 encoded string of photo evidence showing the non-compliance. </summary>
-        public string PhotoBase64 { get; set; } = string.Empty;
+        /// <summary> Attachments for this specific non-compliance item. </summary>
+        public System.Collections.Generic.List<HseqAuditAttachment> Attachments { get; set; } = new();
         
         // Deviation Action Sheet Fields
         

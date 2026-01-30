@@ -137,8 +137,30 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
                 foreach (var group in grouped)
                 {
-                    // We don't have the Project Name easily here unless we fetch projects.
-                    // For now, let's try to get it from the first task if it's populated, or "Unknown Project".
+                    if (group.Key == null)
+                    {
+                        // Split independent tasks into "Standalone" (Shared) and "Personal To-Do" (Private/Quick)
+                        var toDos = group.Where(t => t.Type == TaskType.PersonalToDo).ToList();
+                        var standalones = group.Where(t => t.Type != TaskType.PersonalToDo).ToList();
+
+                        if (standalones.Any())
+                        {
+                            var standaloneVM = new ProjectGroupViewModel("Standalone Tasks");
+                            var sorted = standalones.OrderBy(t => t.OrderIndex).ToList();
+                            foreach(var root in BuildTaskTree(sorted)) standaloneVM.RootTasks.Add(root);
+                            ProjectGroups.Add(standaloneVM);
+                        }
+
+                        if (toDos.Any())
+                        {
+                            var todoVM = new ProjectGroupViewModel("My To-Do List");
+                            var sorted = toDos.OrderBy(t => t.OrderIndex).ToList();
+                            foreach (var root in BuildTaskTree(sorted)) todoVM.RootTasks.Add(root);
+                            ProjectGroups.Add(todoVM);
+                        }
+                        continue;
+                    }
+
                     var firstTask = group.FirstOrDefault();
                     var projectName = firstTask?.Project?.Name ?? "Project"; 
                     

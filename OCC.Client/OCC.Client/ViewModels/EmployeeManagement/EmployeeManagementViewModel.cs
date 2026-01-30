@@ -177,7 +177,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [RelayCommand]
         private async Task AddEmployee()
         {
-             AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
+             AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService, _exportService);
              AddEmployeePopup.Title = "Add New Employee";
              AddEmployeePopup.SaveButtonText = "Create Employee";
              
@@ -202,7 +202,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             {
                 System.Diagnostics.Debug.WriteLine($"[EmployeeManagementViewModel] Attempting to edit employee: {employee.Id} - {employee.FirstName} {employee.LastName}");
                 
-                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService);
+                AddEmployeePopup = new EmployeeDetailViewModel(_employeeRepository, _userRepository, _dialogService, _authService, _leaveService, _exportService);
                 
                 // Now await Load to ensure users are populated before binding
                 await AddEmployeePopup.Load(employee);

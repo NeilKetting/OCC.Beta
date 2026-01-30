@@ -105,6 +105,33 @@ namespace OCC.Client.Services.Repositories.ApiServices
              return await _httpClient.GetFromJsonAsync<IEnumerable<HseqAuditNonComplianceItem>>($"api/HseqAudits/{auditId}/deviations") ?? new List<HseqAuditNonComplianceItem>();
         }
 
+        public async Task<HseqAuditAttachment?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName)
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(metadata.AuditId.ToString()), nameof(HseqAuditAttachment.AuditId));
+            if (metadata.NonComplianceItemId.HasValue)
+                content.Add(new StringContent(metadata.NonComplianceItemId.Value.ToString()), nameof(HseqAuditAttachment.NonComplianceItemId));
+            content.Add(new StringContent(metadata.FileName ?? ""), nameof(HseqAuditAttachment.FileName));
+            content.Add(new StringContent(metadata.UploadedBy ?? ""), nameof(HseqAuditAttachment.UploadedBy));
+
+            if (fileStream.CanSeek) fileStream.Position = 0;
+            using var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", fileName);
+
+            var response = await _httpClient.PostAsync("api/HseqAudits/attachments", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<HseqAuditAttachment>(_options);
+            }
+            return null;
+        }
+
+        public async Task<bool> DeleteAuditAttachmentAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/HseqAudits/attachments/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
         // --- Training ---
         public async Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync()
         {

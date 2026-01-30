@@ -29,6 +29,9 @@ namespace OCC.Shared.Models
 
         /// <summary> Registered or billing address. </summary>
         public string Address { get; set; } = string.Empty;
+
+        /// <summary> Collection of contact persons for this customer. </summary>
+        public virtual System.Collections.Generic.ICollection<CustomerContact> Contacts { get; set; } = new System.Collections.Generic.List<CustomerContact>();
     }
 }
 

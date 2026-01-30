@@ -16,8 +16,8 @@
 			CornerRadius="8"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Center"
-			MaxWidth="600"
-			Width="600"
+			MaxWidth="850"
+			Width="850"
 			BoxShadow="0 8 30 0 #50000000">
 		<Grid RowDefinitions="Auto, *, Auto">
 			<!-- Header -->
@@ -68,6 +68,60 @@
 					<StackPanel>
 						<TextBlock Text="Address" Classes="FormLabel"/>
 						<TextBox Text="{Binding Address}" Classes="FormInput" MinHeight="80" AcceptsReturn="True" TextWrapping="Wrap" Watermark="Billing Address"/>
+					</StackPanel>
+
+					<Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
+
+					<!-- Contact Persons -->
+					<StackPanel Spacing="10">
+						<StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+							<PathIcon Data="{StaticResource IconUser}" Width="16" Height="16" Foreground="{DynamicResource PrimaryTeal}"/>
+							<TextBlock Text="Detailed Contacts" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+						</StackPanel>
+						<TextBlock Text="Add multiple contact people (e.g. different departments)." FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"/>
+
+						<ScrollViewer MaxHeight="300">
+							<ItemsControl ItemsSource="{Binding Contacts}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<Border Background="White" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+											<Grid ColumnDefinitions="*, 10, *, 10, Auto" RowDefinitions="Auto, 10, Auto">
+												
+												<!-- Row 1: Name & Department -->
+												<StackPanel Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="Name" Classes="LabelXSM" Margin="0,0,0,2"/>
+													<TextBox Text="{Binding Name}" Classes="FormInput" Watermark="Contact Name"/>
+												</StackPanel>
+												<StackPanel Grid.Row="0" Grid.Column="2">
+													<TextBlock Text="Department" Classes="LabelXSM" Margin="0,0,0,2"/>
+													<TextBox Text="{Binding Department}" Classes="FormInput" Watermark="Department / Role"/>
+												</StackPanel>
+
+												<!-- Row 2: Email & Phone -->
+												<StackPanel Grid.Row="2" Grid.Column="0">
+													<TextBlock Text="Email" Classes="LabelXSM" Margin="0,0,0,2"/>
+													<TextBox Text="{Binding Email}" Classes="FormInput" Watermark="Email Address"/>
+												</StackPanel>
+												<StackPanel Grid.Row="2" Grid.Column="2">
+													<TextBlock Text="Phone" Classes="LabelXSM" Margin="0,0,0,2"/>
+													<TextBox Text="{Binding Phone}" Classes="FormInput" Watermark="Direct Line / Mobile"/>
+												</StackPanel>
+
+												<!-- Delete Button (Spans rows or centered) -->
+												<Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="4" Classes="IconOnly" VerticalAlignment="Top" Margin="0,5,0,0"
+														Command="{Binding $parent[UserControl].((vm:CustomerDetailViewModel)DataContext).RemoveContactCommand}" 
+														CommandParameter="{Binding}"
+														ToolTip.Tip="Remove Contact">
+													<PathIcon Data="{StaticResource IconDelete}" Height="16" Width="16" Foreground="Red"/>
+												</Button>
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+
+						<Button Content="Add New Contact" Command="{Binding AddContactCommand}" Classes="Secondary" HorizontalAlignment="Stretch"/>
 					</StackPanel>
 				</StackPanel>
 			</ScrollViewer>

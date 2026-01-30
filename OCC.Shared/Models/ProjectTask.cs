@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
+using OCC.Shared.Enums;
+
 namespace OCC.Shared.Models
 {
     /// <summary>
@@ -26,6 +28,12 @@ namespace OCC.Shared.Models
         /// <summary> Unique primary key for the task. </summary>
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        /// <summary>
+        /// The user who owns this task (if it's a personal task). 
+        /// For project tasks, this might typically be the creator or null.
+        /// </summary>
+        public Guid? OwnerId { get; set; }
+
         /// <summary> Optional ID from external systems like MS Project or Gantt exports. </summary>
         public string? LegacyId { get; set; }
 
@@ -46,6 +54,17 @@ namespace OCC.Shared.Models
 
         /// <summary> Priority level (Low, Medium, High, Critical). Default is "Medium". </summary>
         public string Priority { get; set; } = "Medium";
+
+        #region Reminders
+        /// <summary> Whether a reminder is active for this task. </summary>
+        public bool IsReminderSet { get; set; }
+
+        /// <summary> How often the reminder should repeat. </summary>
+        public ReminderFrequency Frequency { get; set; } = ReminderFrequency.Once;
+
+        /// <summary> The date/time of the next reminder. </summary>
+        public DateTime? NextReminderDate { get; set; }
+        #endregion
 
         /// <summary> Status string (e.g., "To Do", "In Progress", "Completed"). </summary>
         public string Status { get; set; } = "To Do";
@@ -73,8 +92,8 @@ namespace OCC.Shared.Models
         /// <summary> If true, work is temporarily suspended. </summary>
         public bool IsOnHold { get; set; }
 
-        /// <summary> Foreign Key to the parent <see cref="Models.Project"/>. </summary>
-        public Guid ProjectId { get; set; }
+        /// <summary> Foreign Key to the parent <see cref="Models.Project"/>. Nullable for Personal Tasks. </summary>
+        public Guid? ProjectId { get; set; }
         
         /// <summary> Navigation property to the parent Project. </summary>
         public virtual Project? Project { get; set; }
@@ -147,6 +166,8 @@ namespace OCC.Shared.Models
         /// <summary> A standard work activity. </summary>
         Task,
         /// <summary> A scheduled meeting or consultation. </summary>
-        Meeting
+        Meeting,
+        /// <summary> A quick personal to-do item. </summary>
+        PersonalToDo
     }
 }

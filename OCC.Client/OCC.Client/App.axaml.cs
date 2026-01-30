@@ -199,7 +199,9 @@ namespace OCC.Client
             services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<ITaskAttachmentService, ApiTaskAttachmentService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddSingleton<IWageService, WageService>();
+            services.AddSingleton<IReminderService, ReminderService>();
             services.AddSingleton<IDialogService, DialogService>();
             
             // ...

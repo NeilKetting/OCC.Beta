@@ -61,12 +61,15 @@ namespace OCC.API.Controllers
                             .ToListAsync() 
                         : new List<Guid>();
 
-                    // 4. Update the query to find any assignment matching the user's identities
-                    query = query.Where(t => t.Assignments.Any(a => 
-                        (a.AssigneeType == AssigneeType.Staff && linkedEmployee != null && a.AssigneeId == linkedEmployee.Id) ||
-                        (a.AssigneeType == AssigneeType.Contractor && a.AssigneeId == userId) ||
-                        (a.AssigneeType == AssigneeType.Team && teamIds.Contains(a.AssigneeId))
-                    ));
+                    // 4. Update the query to find any assignment matching the user's identities OR tasks owned by the user
+                    query = query.Where(t => 
+                        (t.OwnerId == userId) || 
+                        (t.Assignments.Any(a => 
+                            (a.AssigneeType == AssigneeType.Staff && linkedEmployee != null && a.AssigneeId == linkedEmployee.Id) ||
+                            (a.AssigneeType == AssigneeType.Contractor && a.AssigneeId == userId) ||
+                            (a.AssigneeType == AssigneeType.Team && teamIds.Contains(a.AssigneeId))
+                        ))
+                    );
                 }
 
                 return await query.ToListAsync();
@@ -177,6 +180,10 @@ namespace OCC.API.Controllers
                 existingTask.OrderIndex = task.OrderIndex;
                 existingTask.IndentLevel = task.IndentLevel;
                 existingTask.IsGroup = task.IsGroup;
+                existingTask.OwnerId = task.OwnerId; 
+                existingTask.NextReminderDate = task.NextReminderDate;
+                existingTask.IsReminderSet = task.IsReminderSet;
+                existingTask.Frequency = task.Frequency;
                 
                 // Recursive Completion: If a parent is marked Completed, mark all children as Completed.
                 // This preserves DB integrity where parents can't be done if kids are active.

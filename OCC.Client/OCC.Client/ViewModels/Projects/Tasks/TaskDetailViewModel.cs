@@ -2,6 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using OCC.Shared.Enums;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +36,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<TaskAssignment> _assignmentRepository;
         private readonly IRepository<TaskComment> _commentRepository;
+        private readonly ITaskAttachmentService _attachmentService;
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
         
@@ -64,6 +66,20 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         private bool _isCreateMode;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsProjectLinkVisible))]
+        [NotifyPropertyChangedFor(nameof(IsDetailedTask))]
+        [NotifyPropertyChangedFor(nameof(IsReminderVisible))]
+        private TaskType _selectedTaskType = TaskType.Task;
+
+        public bool IsProjectLinkVisible => IsCreateMode && SelectedTaskType != TaskType.PersonalToDo;
+        
+        public bool IsDetailedTask => SelectedTaskType != TaskType.PersonalToDo && SelectedTaskType != TaskType.Meeting;
+        
+        public bool IsReminderVisible => SelectedTaskType == TaskType.Task || SelectedTaskType == TaskType.PersonalToDo;
+
+        public List<TaskType> AvailableTaskTypes { get; } = new() { TaskType.Task, TaskType.PersonalToDo, TaskType.Meeting };
+
+        [ObservableProperty]
         private Project? _selectedProject;
 
         public ObservableCollection<Project> AvailableProjects { get; } = new();
@@ -74,6 +90,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
 
         public ObservableCollection<TaskComment> Comments { get; } = new();
+        public ObservableCollection<TaskAttachment> Attachments { get; } = new();
         public ObservableCollection<ProjectTask> Subtasks { get; } = new();
         public ObservableCollection<ProjectTask> VisibleSubtasks { get; } = new();
         public ObservableCollection<TaskAssignment> Assignments { get; } = new();
@@ -81,10 +98,31 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         public ObservableCollection<Team> AvailableTeams { get; } = new();
         public ObservableCollection<User> AvailableContractors { get; } = new();
         public ObservableCollection<ModelWrappers.ToDoItemWrapper> ToDoList { get; } = new();
+        
+        public ObservableCollection<ReminderFrequency> ReminderFrequencies { get; } = new(Enum.GetValues<ReminderFrequency>());
+        
+        public TimeSpan? ReminderTime
+        {
+            get => Task?.NextReminderDate?.TimeOfDay;
+            set
+            {
+                if (Task != null && Task.NextReminderDate.HasValue && value.HasValue)
+                {
+                    Task.NextReminderDate = Task.NextReminderDate.Value.Date + value.Value;
+                    OnPropertyChanged();
+                }
+                else if (Task != null && !Task.NextReminderDate.HasValue && value.HasValue)
+                {
+                     // If no date set, default to today + time
+                     Task.NextReminderDate = DateTime.Today + value.Value;
+                     OnPropertyChanged();
+                }
+            }
+        }
 
         public int CommentsCount => Comments.Count;
         public int SubtaskCount => Subtasks.Count;
-        public int AttachmentsCount => 0; // Placeholder for now
+        public int AttachmentsCount => Attachments.Count;
 
         public event EventHandler? CloseRequested;
 
@@ -96,6 +134,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             IRepository<Project> projectRepository,
             IRepository<TaskAssignment> assignmentRepository,
             IRepository<TaskComment> commentRepository,
+            ITaskAttachmentService attachmentService,
             IDialogService dialogService,
             IAuthService authService)
         {
@@ -105,7 +144,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             _userRepository = userRepository;
             _projectRepository = projectRepository;
             _assignmentRepository = assignmentRepository;
+
             _commentRepository = commentRepository;
+            _attachmentService = attachmentService;
             _dialogService = dialogService;
             _authService = authService;
             _task = new ProjectTaskWrapper(new ProjectTask());
@@ -327,11 +368,15 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 return;
             }
 
+            /*
+            // No Project is now a valid state for all task types (Standalone or Personal Task)
             if (SelectedProject == null)
             {
-                await _dialogService.ShowAlertAsync("Validation Error", "Please select a project.");
-                return;
+                // Previous validation:
+                // await _dialogService.ShowAlertAsync("Validation Error", "Please select a project.");
+                // return;
             }
+            */
 
             try 
             {
@@ -340,7 +385,16 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
                 Task.CommitToModel();
                 var newTask = Task.Model;
-                newTask.ProjectId = SelectedProject.Id;
+                if (SelectedProject != null)
+                {
+                    newTask.ProjectId = SelectedProject.Id;
+                    newTask.OwnerId = null; // Project tasks don't have a single owner
+                }
+                else
+                {
+                    newTask.ProjectId = null;
+                    newTask.OwnerId = _authService.CurrentUser?.Id; // Personal Task owned by creator
+                }
 
                 if (newTask.Id == Guid.Empty) newTask.Id = Guid.NewGuid();
                 
@@ -351,6 +405,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 // Date handling
                 if (newTask.StartDate == DateTime.MinValue) newTask.StartDate = DateTime.UtcNow;
                 if (newTask.FinishDate == DateTime.MinValue) newTask.FinishDate = DateTime.UtcNow.AddDays(1);
+
+                // Set Type
+                newTask.Type = SelectedTaskType;
 
                 // Add assignments
                 foreach (var assign in Assignments)
@@ -421,7 +478,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
         /// <summary>
         /// Initializes the ViewModel for creating a new task.
         /// </summary>
-        public async void InitializeForCreation(Guid? projectId = null, Guid? parentTaskId = null)
+        public async void InitializeForCreation(Guid? projectId = null, Guid? parentTaskId = null, DateTime? initialDate = null)
         {
             try 
             {
@@ -429,17 +486,21 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 BusyText = "Preparing new task...";
                 IsCreateMode = true;
 
-                // 1. Fresh Task Model
                 var model = new ProjectTask
                 {
                     Id = Guid.NewGuid(),
-                    ProjectId = projectId ?? Guid.Empty,
+                    ProjectId = projectId == Guid.Empty ? null : projectId,
+                    OwnerId = _authService.CurrentUser?.Id,
                     ParentId = parentTaskId,
                     Status = "To Do",
                     Priority = "Medium",
-                    StartDate = DateTime.UtcNow,
-                    FinishDate = DateTime.UtcNow.AddDays(1)
+                    StartDate = initialDate ?? DateTime.UtcNow,
+                    FinishDate = initialDate ?? DateTime.UtcNow,
+                    Type = TaskType.Task
                 };
+                
+                // Reset Selection
+                SelectedTaskType = TaskType.Task;
 
                 // 2. Wrap and Setup
                 LoadTask(model);
@@ -542,8 +603,12 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 {
                     // Fallback to passed task if DB fetch fails (new task case)
                     _currentTaskId = task.Id;
+                    _currentTaskId = task.Id;
                     LoadTask(task);
                 }
+                
+                // Initialize SelectedTaskType for binding
+                SelectedTaskType = Task.Model.Type;
                 
                 await LoadAssignableResources();
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] LoadTaskModel Complete.");
@@ -605,6 +670,20 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                  Comments.Add(comment);
              }
              OnPropertyChanged(nameof(CommentsCount));
+
+             // Load Attachments
+             await LoadAttachments();
+        }
+
+        private async Task LoadAttachments()
+        {
+            Attachments.Clear();
+            var result = await _attachmentService.GetAttachmentsForTaskAsync(_currentTaskId);
+            foreach(var att in result)
+            {
+                Attachments.Add(att);
+            }
+            OnPropertyChanged(nameof(AttachmentsCount));
         }
 
         /// <summary>
@@ -656,6 +735,11 @@ namespace OCC.Client.ViewModels.Projects.Tasks
             
             try 
             {
+                if (e.PropertyName == nameof(ProjectTaskWrapper.NextReminderDate))
+                {
+                    OnPropertyChanged(nameof(ReminderTime));
+                }
+
                 await System.Threading.Tasks.Task.Delay(300, _debounceCts.Token);
                 await UpdateTask();
             }
@@ -687,6 +771,12 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                     BusyText = "Saving task changes...";
                     IsBusy = true;
                     
+                    // Ensure dates are valid before saving
+                    if (Task.FinishDate < Task.StartDate)
+                    {
+                        Task.FinishDate = Task.StartDate;
+                    }
+
                     // Sync Wrapper back to Model
                     Task.CommitToModel();
 
@@ -695,7 +785,9 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 var cleanModel = new ProjectTask
                 {
                     Id = Task.Model.Id,
-                    ProjectId = Task.Model.ProjectId,
+                    ProjectId = Task.Model.ProjectId == Guid.Empty ? null : Task.Model.ProjectId, // FK fix
+                    ParentId = Task.Model.ParentId == Guid.Empty ? null : Task.Model.ParentId,    // FK fix
+                    OwnerId = Task.Model.OwnerId, // Preserve Owner
                     LegacyId = Task.Model.LegacyId,
                     Name = Task.Model.Name,
                     Description = Task.Model.Description,
@@ -716,7 +808,6 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                     ActualDuration = Task.Model.ActualDuration,
                     
                     // Structural Properties (Critical for Tree)
-                    ParentId = Task.Model.ParentId,
                     OrderIndex = Task.Model.OrderIndex,
                     IndentLevel = Task.Model.IndentLevel,
                     IsGroup = Task.Model.IsGroup,
@@ -724,10 +815,18 @@ namespace OCC.Client.ViewModels.Projects.Tasks
 
                     // Set to NULL to act as "Do Not Update" for navigation properties
                     // Now safe as the Shared Model allows nulls for these collections.
-                    Children = null!,
-                    Assignments = null!,
-                    Comments = null!,
-                    Project = null!
+                    // Initializing collections to avoid validation errors, although they aren't used for update
+                    Children = new List<ProjectTask>(),
+                    Assignments = new List<TaskAssignment>(),
+                    Comments = new List<TaskComment>(),
+                    Project = null,
+                    ParentTask = null,
+                    
+                    // Reminder Support
+                    IsReminderSet = Task.Model.IsReminderSet,
+                    Frequency = Task.Model.Frequency,
+                    NextReminderDate = Task.Model.NextReminderDate
+
                 };
 
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Sending Update for {cleanModel.Id} (Project: {cleanModel.ProjectId}) Priority: {cleanModel.Priority}");
@@ -771,6 +870,88 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 _updateLock.Release();
             }
         }
+
+        /// <summary>
+        /// Handles file uploads from Drag & Drop or File Picker.
+        /// </summary>
+        /// <param name="files">List of IStorageFile/IStorageItem.</param>
+        [RelayCommand]
+        private async Task UploadFiles(IEnumerable<Avalonia.Platform.Storage.IStorageItem> files)
+        {
+            if (files == null || !files.Any() || _currentTaskId == Guid.Empty) return;
+
+            try 
+            {
+                BusyText = "Uploading files...";
+                IsBusy = true;
+
+                var user = _authService.CurrentUser;
+                var uploadedBy = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown";
+
+                foreach (var file in files)
+                {
+                    if (file is Avalonia.Platform.Storage.IStorageFile storageFile)
+                    {
+                        using var stream = await storageFile.OpenReadAsync();
+                        
+                        var metadata = new TaskAttachment
+                        {
+                            TaskId = _currentTaskId,
+                            UploadedBy = uploadedBy,
+                            UploadedAt = DateTime.UtcNow
+                        };
+
+                        var result = await _attachmentService.UploadAttachmentAsync(metadata, stream, file.Name);
+                        if (result != null)
+                        {
+                            Attachments.Insert(0, result);
+                        }
+                    }
+                }
+                OnPropertyChanged(nameof(AttachmentsCount));
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Upload Error", $"Failed to upload files: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteAttachment(TaskAttachment attachment)
+        {
+             if (attachment == null) return;
+             
+             var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Are you sure you want to delete '{attachment.FileName}'?");
+             if (!confirm) return;
+
+             try 
+             {
+                 IsBusy = true;
+                 var success = await _attachmentService.DeleteAttachmentAsync(attachment.Id);
+                 if (success)
+                 {
+                     Attachments.Remove(attachment);
+                     OnPropertyChanged(nameof(AttachmentsCount));
+                 }
+                 else
+                 {
+                     await _dialogService.ShowAlertAsync("Error", "Failed to delete attachment.");
+                 }
+             }
+             catch(Exception ex)
+             {
+                 await _dialogService.ShowAlertAsync("Error", $"Error deleting attachment: {ex.Message}");
+             }
+             finally
+             {
+                 IsBusy = false;
+             }
+        }
+
 
         /// <summary>
         /// Updates the VisibleSubtasks collection based on the 'Show All' toggle and preview limit.

@@ -150,17 +150,7 @@
                 </ItemsControl>
             </Border>
 
-            <!-- Create Task Popup Overlay -->
-            <Grid Grid.Row="0" Grid.RowSpan="3" IsVisible="{Binding IsCreatePopupVisible}" ZIndex="20">
-                <!-- Background Click Layer -->
-                <Button HorizontalAlignment="Stretch" 
-                        VerticalAlignment="Stretch" 
-                        Background="#40000000"
-                        Command="{Binding CloseCreatePopupCommand}"/>
-                
-                <!-- Popup Content -->
-                <widgets:CreateTaskPopupView DataContext="{Binding CreateTaskPopup}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-            </Grid>
+
         </Grid>
 
         <!-- Hover Popup -->

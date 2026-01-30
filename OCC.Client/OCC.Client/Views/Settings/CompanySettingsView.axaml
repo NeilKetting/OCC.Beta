@@ -41,7 +41,7 @@
                     <!-- Left Column: General Info -->
                     <StackPanel Grid.Column="0" Spacing="20" MinWidth="300" MaxWidth="350">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconSettings}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
+                            <PathIcon Data="{StaticResource IconInformation}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
                             <TextBlock Text="General Information" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
                         </StackPanel>
 
@@ -72,7 +72,7 @@
                                 <TextBlock Text="Website" Classes="FormLabel"/>
                                 <TextBox Text="{Binding CompanyDetails.Website}" Classes="FormInput" Watermark="e.g. www.orangecircle.co.za"/>
                             </StackPanel>
-                                                         <Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
+                            <Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
                              
                              <!-- NOTE: Banking is currently NOT per branch in CompanyDetails model, but Shared/Company level. 
                                   If the user wants per-branch banking, the model needs update. 

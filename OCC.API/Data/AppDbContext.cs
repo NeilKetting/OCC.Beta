@@ -26,6 +26,7 @@ namespace OCC.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Customer> Customers { get; set; }
+        public DbSet<CustomerContact> CustomerContacts { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Team> Teams { get; set; }
         public DbSet<TeamMember> TeamMembers { get; set; }
@@ -43,6 +44,7 @@ namespace OCC.API.Data
         public DbSet<TaskAssignment> TaskAssignments { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<TaskAttachment> TaskAttachments { get; set; }
 
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderLine> OrderLines { get; set; }
@@ -60,6 +62,7 @@ namespace OCC.API.Data
         public DbSet<HseqTrainingRecord> HseqTrainingRecords { get; set; }
         public DbSet<HseqSafeHourRecord> HseqSafeHourRecords { get; set; }
         public DbSet<HseqDocument> HseqDocuments { get; set; }
+        public DbSet<HseqAuditAttachment> HseqAuditAttachments { get; set; }
         
         public DbSet<NotificationDismissal> NotificationDismissals { get; set; }
         public DbSet<ProjectVariationOrder> ProjectVariationOrders { get; set; }
@@ -201,6 +204,20 @@ namespace OCC.API.Data
                 entity.Property(e => e.LineTotal).HasPrecision(18, 2);
             });
 
+            modelBuilder.Entity<Customer>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasMany(e => e.Contacts)
+                      .WithOne(e => e.Customer)
+                      .HasForeignKey(e => e.CustomerId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<CustomerContact>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.Property(e => e.TaxRate).HasPrecision(18, 4);
@@ -241,6 +258,16 @@ namespace OCC.API.Data
             modelBuilder.Entity<HseqAudit>()
                 .HasMany(a => a.NonComplianceItems)
                 .WithOne().HasForeignKey(i => i.AuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HseqAudit>()
+                .HasMany(a => a.Attachments)
+                .WithOne(a => a.Audit).HasForeignKey(a => a.AuditId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<HseqAuditNonComplianceItem>()
+                .HasMany(i => i.Attachments)
+                .WithOne(a => a.NonComplianceItem).HasForeignKey(a => a.NonComplianceItemId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<HseqAudit>(entity =>
@@ -295,6 +322,7 @@ namespace OCC.API.Data
                 entity.HasMany(e => e.Tasks)
                     .WithOne(e => e.Project)
                     .HasForeignKey(e => e.ProjectId)
+                    .IsRequired(false)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasMany(e => e.VariationOrders)

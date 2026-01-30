@@ -43,14 +43,6 @@ namespace OCC.Shared.Models
         /// <summary> The actual achieved score based on compliance. </summary>
         public decimal ActualScore { get; set; }
 
-        /// <summary> Detailed observations and positive findings. </summary>
-        public string Findings { get; set; } = string.Empty;
-
-        /// <summary> Identified failures to comply with safety standards. </summary>
-        public string NonConformance { get; set; } = string.Empty;
-
-        /// <summary> Actions required immediately to rectify safety issues. </summary>
-        public string ImmediateAction { get; set; } = string.Empty;
 
         /// <summary> Current status of the audit (e.g., Scheduled, InProgress, Completed). </summary>
         public Enums.AuditStatus Status { get; set; } = Enums.AuditStatus.Scheduled;
@@ -66,6 +58,9 @@ namespace OCC.Shared.Models
 
         /// <summary> Specific items that failed compliance checks. </summary>
         public System.Collections.Generic.List<HseqAuditNonComplianceItem> NonComplianceItems { get; set; } = new();
+
+        /// <summary> Attachments linked to this audit. </summary>
+        public System.Collections.Generic.List<HseqAuditAttachment> Attachments { get; set; } = new();
 
         /// <summary> Soft-delete flag. </summary>
         public bool IsDeleted { get; set; }

@@ -33,6 +33,8 @@ namespace OCC.API.Controllers
                 .Include(a => a.Sections)
                 .Include(a => a.ComplianceItems)
                 .Include(a => a.NonComplianceItems)
+                    .ThenInclude(i => i.Attachments)
+                .Include(a => a.Attachments)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (audit == null)
@@ -60,6 +62,8 @@ namespace OCC.API.Controllers
             var existingAudit = await _context.HseqAudits
                 .Include(a => a.Sections)
                 .Include(a => a.NonComplianceItems)
+                    .ThenInclude(i => i.Attachments)
+                .Include(a => a.Attachments)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (existingAudit == null)
@@ -77,10 +81,6 @@ namespace OCC.API.Controllers
             existingAudit.TargetScore = audit.TargetScore;
             existingAudit.ActualScore = audit.ActualScore;
             
-            // Text Fields
-            existingAudit.Findings = audit.Findings;
-            existingAudit.NonConformance = audit.NonConformance;
-            existingAudit.ImmediateAction = audit.ImmediateAction;
             
             existingAudit.UpdatedAt = DateTime.UtcNow;
             
@@ -147,9 +147,66 @@ namespace OCC.API.Controllers
         public async Task<ActionResult<IEnumerable<HseqAuditNonComplianceItem>>> GetAuditDeviations(Guid id)
         {
              var items = await _context.HseqAuditNonComplianceItems
+                .Include(i => i.Attachments)
                 .Where(i => i.AuditId == id && !i.IsDeleted)
                 .ToListAsync();
              return items;
+        }
+
+        [HttpPost("attachments")]
+        public async Task<ActionResult<HseqAuditAttachment>> PostAttachment([FromForm] Guid auditId, [FromForm] Guid? nonComplianceItemId, [FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
+
+            var audit = await _context.HseqAudits.FindAsync(auditId);
+            if (audit == null) return NotFound("Audit not found.");
+
+            // Create uploads directory if it doesn't exist
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "audits");
+            if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
+
+            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var attachment = new HseqAuditAttachment
+            {
+                AuditId = auditId,
+                NonComplianceItemId = nonComplianceItemId,
+                FileName = file.FileName,
+                FilePath = $"/uploads/audits/{fileName}",
+                FileSize = $"{(file.Length / 1024.0):F2} KB",
+                UploadedBy = User.Identity?.Name ?? "Admin",
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _context.HseqAuditAttachments.Add(attachment);
+            await _context.SaveChangesAsync();
+
+            return Ok(attachment);
+        }
+
+        [HttpDelete("attachments/{id}")]
+        public async Task<IActionResult> DeleteAttachment(Guid id)
+        {
+            var attachment = await _context.HseqAuditAttachments.FindAsync(id);
+            if (attachment == null) return NotFound();
+
+            // Delete physical file
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", attachment.FilePath.TrimStart('/'));
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            _context.HseqAuditAttachments.Remove(attachment);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }

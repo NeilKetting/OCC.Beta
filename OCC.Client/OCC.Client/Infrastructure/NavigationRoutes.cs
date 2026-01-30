@@ -10,6 +10,7 @@ namespace OCC.Client.Infrastructure
         public const string Notifications = "Notifications";
         public const string Developer = "Developer";
         public const string Customers = "Customers";
+        public const string Reminders = "Reminders";
         
         // System Routes
         public const string AccessDenied = "AccessDenied";

@@ -151,6 +151,20 @@
 
 			<!-- Bottom Action Section (New, Help, Settings, Profile) -->
 			<StackPanel Grid.Row="3" Margin="0,10">
+				<!-- Task Reminders Bell -->
+				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Reminders" HorizontalAlignment="Stretch">
+					<StackPanel Orientation="Horizontal" Spacing="15">
+						<PathIcon Data="{StaticResource IconBell}" Classes="IconStyle" Foreground="{DynamicResource AccentOrange}"/>
+						<TextBlock Text="Reminders" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}" FontWeight="Bold"/>
+						<!-- Orange Reminder Badge -->
+						<Border Background="{DynamicResource AccentOrange}" CornerRadius="10" MinWidth="20" Height="20"
+								HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,10"
+								IsVisible="{Binding ReminderCount, Converter={x:Static ObjectConverters.IsNotNull}}">
+							<TextBlock Text="{Binding ReminderCount}" Foreground="White" FontSize="10" FontWeight="Bold"
+									   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,-1"/>
+						</Border>
+					</StackPanel>
+				</Button>
 				<!-- Developer Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Developer" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Developer'}" HorizontalAlignment="Stretch" IsVisible="{Binding IsDeveloper}">
 					<StackPanel Orientation="Horizontal" Spacing="15">

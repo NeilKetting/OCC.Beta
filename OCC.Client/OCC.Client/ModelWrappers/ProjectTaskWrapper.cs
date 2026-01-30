@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.Models;
+using OCC.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -95,6 +96,18 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private double _progressPercent;
 
+        [ObservableProperty]
+        private Guid? _ownerId;
+
+        [ObservableProperty]
+        private bool _isReminderSet;
+
+        [ObservableProperty]
+        private ReminderFrequency _frequency;
+
+        [ObservableProperty]
+        private DateTime? _nextReminderDate;
+
         /// <summary>
         /// Initializes the wrapper properties from the model.
         /// </summary>
@@ -144,6 +157,12 @@ namespace OCC.Client.ModelWrappers
             
             // Ensure status color is consistent with Status/IsOnHold state
             if (string.IsNullOrEmpty(StatusColor)) UpdateStatusColor();
+
+            // Personal Task & Reminder Init
+            OwnerId = _model.OwnerId;
+            IsReminderSet = _model.IsReminderSet;
+            Frequency = _model.Frequency;
+            NextReminderDate = _model.NextReminderDate;
         }
 
         // --- Synchronization Methods (Push specific changes back to Model) ---
@@ -180,6 +199,11 @@ namespace OCC.Client.ModelWrappers
                 _model.ActualDuration = TimeSpan.FromHours(ActualHours.Value);
             else
                 _model.ActualDuration = null;
+
+            _model.OwnerId = OwnerId;
+            _model.IsReminderSet = IsReminderSet;
+            _model.Frequency = Frequency;
+            _model.NextReminderDate = NextReminderDate;
         }
 
         // --- Property Change Handlers ---
@@ -258,6 +282,11 @@ namespace OCC.Client.ModelWrappers
         }
 
         partial void OnPriorityChanged(string value) => _model.Priority = value;
+
+        partial void OnOwnerIdChanged(Guid? value) => _model.OwnerId = value;
+        partial void OnIsReminderSetChanged(bool value) => _model.IsReminderSet = value;
+        partial void OnFrequencyChanged(ReminderFrequency value) => _model.Frequency = value;
+        partial void OnNextReminderDateChanged(DateTime? value) => _model.NextReminderDate = value;
 
         partial void OnStartDateChanged(DateTime? value)
         {

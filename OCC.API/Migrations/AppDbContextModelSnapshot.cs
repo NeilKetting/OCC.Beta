@@ -38,7 +38,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppSettings");
+                    b.ToTable("AppSettings", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.AttendanceRecord", b =>
@@ -105,7 +105,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AttendanceRecords");
+                    b.ToTable("AttendanceRecords", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.AuditLog", b =>
@@ -143,7 +143,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.BugComment", b =>
@@ -177,7 +177,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("BugReportId");
 
-                    b.ToTable("BugComments");
+                    b.ToTable("BugComments", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.BugReport", b =>
@@ -219,7 +219,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BugReports");
+                    b.ToTable("BugReports", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Customer", b =>
@@ -250,7 +250,39 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.CustomerContact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("CustomerContacts", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Employee", b =>
@@ -286,6 +318,12 @@ namespace OCC.API.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyContactName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmergencyContactPhone")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EmployeeNumber")
@@ -325,6 +363,15 @@ namespace OCC.API.Migrations
                     b.Property<Guid?>("LinkedUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("NextOfKinName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NextOfKinPhone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NextOfKinRelation")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PermitNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -356,7 +403,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAudit", b =>
@@ -429,7 +476,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HseqAudits");
+                    b.ToTable("HseqAudits", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAuditComplianceItem", b =>
@@ -466,7 +513,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("AuditId");
 
-                    b.ToTable("HseqAuditComplianceItems");
+                    b.ToTable("HseqAuditComplianceItems", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAuditNonComplianceItem", b =>
@@ -520,7 +567,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("AuditId");
 
-                    b.ToTable("HseqAuditNonComplianceItems");
+                    b.ToTable("HseqAuditNonComplianceItems", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAuditSection", b =>
@@ -557,7 +604,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("AuditId");
 
-                    b.ToTable("HseqAuditSections");
+                    b.ToTable("HseqAuditSections", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqDocument", b =>
@@ -603,7 +650,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HseqDocuments");
+                    b.ToTable("HseqDocuments", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqSafeHourRecord", b =>
@@ -652,7 +699,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HseqSafeHourRecords");
+                    b.ToTable("HseqSafeHourRecords", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqTrainingRecord", b =>
@@ -708,7 +755,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HseqTrainingRecords");
+                    b.ToTable("HseqTrainingRecords", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Incident", b =>
@@ -764,7 +811,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Incidents");
+                    b.ToTable("Incidents", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.IncidentPhoto", b =>
@@ -800,7 +847,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("IncidentId");
 
-                    b.ToTable("IncidentPhotos");
+                    b.ToTable("IncidentPhotos", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.InventoryItem", b =>
@@ -864,7 +911,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InventoryItems");
+                    b.ToTable("InventoryItems", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.LeaveRequest", b =>
@@ -914,7 +961,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("LeaveRequests");
+                    b.ToTable("LeaveRequests", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Notification", b =>
@@ -948,7 +995,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.NotificationDismissal", b =>
@@ -972,7 +1019,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NotificationDismissals");
+                    b.ToTable("NotificationDismissals", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Order", b =>
@@ -1051,7 +1098,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.OrderLine", b =>
@@ -1104,7 +1151,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderLines");
+                    b.ToTable("OrderLines", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.OvertimeRequest", b =>
@@ -1151,7 +1198,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("OvertimeRequests");
+                    b.ToTable("OvertimeRequests", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Project", b =>
@@ -1244,7 +1291,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("SiteManagerId");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.ProjectTask", b =>
@@ -1273,6 +1320,9 @@ namespace OCC.API.Migrations
                     b.Property<DateTime>("FinishDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Frequency")
+                        .HasColumnType("int");
+
                     b.Property<int>("IndentLevel")
                         .HasColumnType("int");
 
@@ -1283,6 +1333,9 @@ namespace OCC.API.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsOnHold")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReminderSet")
                         .HasColumnType("bit");
 
                     b.Property<double?>("Latitude")
@@ -1298,8 +1351,14 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("NextReminderDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uniqueidentifier");
@@ -1318,7 +1377,7 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ProjectId")
+                    b.Property<Guid?>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDate")
@@ -1337,7 +1396,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("ProjectTasks");
+                    b.ToTable("ProjectTasks", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.ProjectVariationOrder", b =>
@@ -1375,7 +1434,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("ProjectVariationOrders");
+                    b.ToTable("ProjectVariationOrders", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.PublicHoliday", b =>
@@ -1393,7 +1452,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PublicHolidays");
+                    b.ToTable("PublicHolidays", (string)null);
 
                     b.HasData(
                         new
@@ -1535,7 +1594,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.TaskAssignment", b =>
@@ -1561,7 +1620,42 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskAssignments");
+                    b.ToTable("TaskAssignments", (string)null);
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.TaskAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileSize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("TaskAttachments", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.TaskComment", b =>
@@ -1592,7 +1686,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TaskComments");
+                    b.ToTable("TaskComments", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.Team", b =>
@@ -1614,7 +1708,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teams");
+                    b.ToTable("Teams", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.TeamMember", b =>
@@ -1636,7 +1730,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("TeamMembers");
+                    b.ToTable("TeamMembers", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.TimeRecord", b =>
@@ -1672,7 +1766,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("TimeRecords");
+                    b.ToTable("TimeRecords", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.User", b =>
@@ -1726,7 +1820,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.WageRun", b =>
@@ -1761,7 +1855,7 @@ namespace OCC.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WageRuns");
+                    b.ToTable("WageRuns", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.WageRunLine", b =>
@@ -1827,7 +1921,7 @@ namespace OCC.API.Migrations
 
                     b.HasIndex("WageRunId");
 
-                    b.ToTable("WageRunLines");
+                    b.ToTable("WageRunLines", (string)null);
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.BugComment", b =>
@@ -1837,6 +1931,17 @@ namespace OCC.API.Migrations
                         .HasForeignKey("BugReportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.CustomerContact", b =>
+                {
+                    b.HasOne("OCC.Shared.Models.Customer", "Customer")
+                        .WithMany("Contacts")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAuditComplianceItem", b =>
@@ -1939,8 +2044,7 @@ namespace OCC.API.Migrations
                     b.HasOne("OCC.Shared.Models.Project", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ParentTask");
 
@@ -1967,6 +2071,17 @@ namespace OCC.API.Migrations
                         .IsRequired();
 
                     b.Navigation("ProjectTask");
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.TaskAttachment", b =>
+                {
+                    b.HasOne("OCC.Shared.Models.ProjectTask", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.TaskComment", b =>
@@ -2016,6 +2131,11 @@ namespace OCC.API.Migrations
             modelBuilder.Entity("OCC.Shared.Models.BugReport", b =>
                 {
                     b.Navigation("Comments");
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.Customer", b =>
+                {
+                    b.Navigation("Contacts");
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAudit", b =>

@@ -108,6 +108,19 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private DateTime _doB = new DateTime(1990, 1, 1);
 
+        // Emergency & Next of Kin
+        [ObservableProperty]
+        private string? _nextOfKinName;
+        [ObservableProperty]
+        private string? _nextOfKinRelation;
+        [ObservableProperty]
+        private string? _nextOfKinPhone;
+
+        [ObservableProperty]
+        private string? _emergencyContactName;
+        [ObservableProperty]
+        private string? _emergencyContactPhone;
+
         public void Initialize()
         {
             EmployeeNumber = _model.EmployeeNumber;
@@ -136,7 +149,14 @@ namespace OCC.Client.ModelWrappers
             LeaveCycleStartDate = _model.LeaveCycleStartDate;
             RateType = _model.RateType;
             LinkedUserId = _model.LinkedUserId;
+            LinkedUserId = _model.LinkedUserId;
             DoB = _model.DoB;
+
+            NextOfKinName = _model.NextOfKinName;
+            NextOfKinRelation = _model.NextOfKinRelation;
+            NextOfKinPhone = _model.NextOfKinPhone;
+            EmergencyContactName = _model.EmergencyContactName;
+            EmergencyContactPhone = _model.EmergencyContactPhone;
 
             Validate();
         }
@@ -169,7 +189,14 @@ namespace OCC.Client.ModelWrappers
             _model.LeaveCycleStartDate = LeaveCycleStartDate;
             _model.RateType = RateType;
             _model.LinkedUserId = LinkedUserId;
+            _model.LinkedUserId = LinkedUserId;
             _model.DoB = DoB;
+            
+            _model.NextOfKinName = NextOfKinName;
+            _model.NextOfKinRelation = NextOfKinRelation;
+            _model.NextOfKinPhone = NextOfKinPhone;
+            _model.EmergencyContactName = EmergencyContactName;
+            _model.EmergencyContactPhone = EmergencyContactPhone;
         }
 
         public void Validate() => ValidateAllProperties();

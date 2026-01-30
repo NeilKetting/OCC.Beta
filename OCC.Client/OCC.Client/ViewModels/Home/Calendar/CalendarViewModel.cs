@@ -9,7 +9,10 @@ using OCC.Shared.Models;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using CommunityToolkit.Mvvm.Messaging;
+using OCC.Client.ViewModels.Messages;
 
 namespace OCC.Client.ViewModels.Home.Calendar
 {
@@ -33,12 +36,6 @@ namespace OCC.Client.ViewModels.Home.Calendar
 
         [ObservableProperty]
         private string _yearName = string.Empty; 
-
-        [ObservableProperty]
-        private bool _isCreatePopupVisible;
-
-        [ObservableProperty]
-        private CreateTaskPopupViewModel? _createTaskPopup;
 
         [ObservableProperty]
         private DateTime _currentDate = DateTime.Today;
@@ -73,6 +70,10 @@ namespace OCC.Client.ViewModels.Home.Calendar
              _projectRepository = projectRepository;
              _authService = authService;
              CurrentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+             
+             // Refresh when tasks are updated
+             WeakReferenceMessenger.Default.Register<OCC.Client.ViewModels.Messages.TaskUpdatedMessage>(this, async (r, m) => await LoadTasks());
+             
              GenerateCalendar();
         }
 
@@ -97,18 +98,8 @@ namespace OCC.Client.ViewModels.Home.Calendar
         [RelayCommand]
         public void OpenCreatePopup(DateTime date)
         {
-            CreateTaskPopup = new CreateTaskPopupViewModel(_taskRepository, _projectRepository, _authService);
-            CreateTaskPopup.SetDate(date);
-            CreateTaskPopup.CloseRequested += (s, e) => CloseCreatePopup();
-            CreateTaskPopup.TaskCreated += async (s, e) => await LoadTasks();
-            IsCreatePopupVisible = true;
-        }
-
-        [RelayCommand]
-        public void CloseCreatePopup()
-        {
-             IsCreatePopupVisible = false;
-             CreateTaskPopup = null;
+            // Send message to open the main TaskDetailView in Create Mode
+            WeakReferenceMessenger.Default.Send(new CreateNewTaskMessage(null, date));
         }
 
         #endregion
@@ -156,8 +147,18 @@ namespace OCC.Client.ViewModels.Home.Calendar
 
         private async System.Threading.Tasks.Task LoadTasks()
         {
+            var currentUser = _authService.CurrentUser;
+            if (currentUser == null) return;
+
             var tasks = await _taskRepository.GetAllAsync();
-            var sortedTasks = tasks
+            
+            // Filter: Personal Tasks (Owner) OR Assigned Tasks
+            var myTasks = tasks.Where(t => 
+                t.OwnerId == currentUser.Id || 
+                (t.Assignments != null && t.Assignments.Any(a => a.AssigneeId == currentUser.Id))
+            ).ToList();
+
+            var sortedTasks = myTasks
                 .OrderBy(t => GetTaskStart(t))
                 .ThenByDescending(t => (GetTaskEnd(t) - GetTaskStart(t)).Days)
                 .ToList();

@@ -26,6 +26,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
         private readonly ILeaveService _leaveService;
+        private readonly IExportService _exportService;
         private Guid? _existingStaffId;
         private DateTime _calculatedDoB = DateTime.Now.AddYears(-30);
 
@@ -163,6 +164,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsContractVisible => IsContract;
 
+        [ObservableProperty]
+        private bool _isSystemAccessVisible;
+
         // Exposed Enum Values for ComboBox
         public EmployeeRole[] EmployeeRoles { get; } = Enum.GetValues<EmployeeRole>();
 
@@ -184,13 +188,14 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         #region Constructors
 
-        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IRepository<User> userRepository, IDialogService dialogService, IAuthService authService, ILeaveService leaveService)
+        public EmployeeDetailViewModel(IRepository<Employee> staffRepository, IRepository<User> userRepository, IDialogService dialogService, IAuthService authService, ILeaveService leaveService, IExportService exportService)
         {
             _staffRepository = staffRepository;
             _userRepository = userRepository;
             _dialogService = dialogService;
             _authService = authService;
             _leaveService = leaveService;
+            _exportService = exportService;
             
             // Initial empty wrapper to prevent null reference checks before Load is called
             Wrapper = new EmployeeWrapper(new Employee());
@@ -223,7 +228,9 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _userRepository = null!;
             _dialogService = null!;
             _authService = null!;
+            _authService = null!;
             _leaveService = null!;
+            _exportService = null!;
         }
 
         #endregion
@@ -359,6 +366,39 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             SelectedBank = bank;
         }
 
+        [RelayCommand]
+        private async Task Print()
+        {
+            if (Wrapper == null || _exportService == null) return;
+            
+            // Generate profile based on current wrapper data (even if not saved yet, or partially edited)
+            // But usually print reflects saved state. However, user might want to print draft.
+            // We'll use Wrapper.Model but ensure sync first?
+            // Wrapper.CommitToModel() modifies the underlying model instance. 
+            // If we want to print *exactly* what is on screen without saving to DB, CommitToModel is okay provided we don't save to DB.
+            // But CommitToModel updates the _model by reference. 
+            // Let's create a temporary clone or just commit to the current model (which is the one being edited).
+            
+            Wrapper.CommitToModel();
+            
+            try 
+            {
+                BusyText = "Generating profile...";
+                IsBusy = true;
+                var path = await _exportService.GenerateEmployeeProfileHtmlAsync(Wrapper.Model);
+                await _exportService.OpenFileAsync(path);
+            }
+            catch (Exception ex)
+            {
+                if (_dialogService != null) 
+                    await _dialogService.ShowAlertAsync("Error", $"Failed to print profile: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -415,6 +455,10 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 
                 // Banking Logic
                 LoadBankInfo(staff.BankName);
+
+                OnPropertyChanged(nameof(IsOtherBankSelected));
+                
+                UpdateSystemAccessVisibility();
 
                 OnPropertyChanged(nameof(IsRsaId));
                 OnPropertyChanged(nameof(IsPassport));
@@ -493,6 +537,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                     else if (e.PropertyName == nameof(EmployeeWrapper.Role))
                     {
                          UpdatePermissionsButtonVisibility();
+                         UpdateSystemAccessVisibility();
                     }
                     else if (e.PropertyName == nameof(EmployeeWrapper.EmploymentType))
                     {
@@ -648,6 +693,12 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             }
 
             ShowPermissionsButton = isRoleManaged && !isLinkedAdmin;
+            ShowPermissionsButton = isRoleManaged && !isLinkedAdmin;
+        }
+
+        private void UpdateSystemAccessVisibility()
+        {
+            IsSystemAccessVisible = Wrapper.Role == EmployeeRole.Office || Wrapper.Role == EmployeeRole.SiteManager;
         }
 
         private void CalculateDoBFromRsaId(string id)
