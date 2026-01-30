@@ -117,7 +117,6 @@ namespace OCC.Client.ViewModels.Home
         public HomeViewModel(HomeMenuViewModel homeMenu,
                              SummaryViewModel mySummary,
                              TasksWidgetViewModel myTasks,
-                             PulseViewModel projectPulse,
                              IAuthService authService,
                              ITimeService timeService,
                              IProjectTaskRepository projectTaskRepository,
@@ -156,7 +155,7 @@ namespace OCC.Client.ViewModels.Home
             HomeMenu = homeMenu;
             
             // Initialize Pages
-            MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks, projectPulse);
+            MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks);
             Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
             TaskList.MyTasksOnly = true;
@@ -170,6 +169,7 @@ namespace OCC.Client.ViewModels.Home
 
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
             WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup(m.ProjectId, m.InitialDate));
+            WeakReferenceMessenger.Default.Register<TaskSelectedMessage>(this, (r, m) => OpenTaskDetail(m.TaskId));
 
             HomeMenu.PropertyChanged += HomeMenu_PropertyChanged;
 

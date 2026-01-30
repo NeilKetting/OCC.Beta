@@ -182,16 +182,65 @@
                         
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Text="Findings &amp; Non-Conformances" Classes="H3"/>
-                            <Button Grid.Column="1" Classes="Secondary" Command="{Binding ViewDeviationsCommand}" CommandParameter="{Binding CurrentAudit}" IsVisible="{Binding CurrentAudit.Id, Converter={StaticResource GuidToBoolConverter}}">
+                            <Button Grid.Column="1" Classes="Secondary" Command="{Binding AddFindingCommand}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14"/>
-                                    <TextBlock Text="EDIT FINDINGS"/>
+                                    <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14"/>
+                                    <TextBlock Text="ADD FINDING"/>
                                 </StackPanel>
                             </Button>
                         </Grid>
                         
-                        <TextBlock Text="Capture multiple findings below or use the 'Edit Findings' panel for detail." Classes="TextSecondary" IsVisible="{Binding CurrentAudit.Id, Converter={StaticResource GuidToBoolConverter}}"/>
-                        <TextBlock Text="Please save the audit first to add specific findings." Classes="TextSecondary" Foreground="{DynamicResource ErrorRed}" IsVisible="{Binding CurrentAudit.Id, Converter={StaticResource GuidToBoolConverter}, ConverterParameter='!'}"/>
+                        <TextBlock Text="Capture findings as listed on the audit document." Classes="TextSecondary"/>
+                        
+                        <ItemsControl ItemsSource="{Binding EditorFindings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
+                                        <StackPanel Spacing="10">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Spacing="4">
+                                                    <TextBlock Text="Regulation / Item Reference" Classes="FormLabel"/>
+                                                    <TextBox Text="{Binding RegulationReference}" Watermark="Ref (e.g. PPE #1)"/>
+                                                </StackPanel>
+                                                 <Button Grid.Column="1" Classes="IconOnlyButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).DeleteDeviationCommand}" CommandParameter="{Binding Model}" Foreground="{DynamicResource ErrorRed}" VerticalAlignment="Top" Margin="10,0,0,0">
+                                                    <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+                                                </Button>
+                                            </Grid>
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Finding Description" Classes="FormLabel"/>
+                                                <TextBox Text="{Binding Description}" Watermark="Describe the observed non-conformance..." TextWrapping="Wrap" AcceptsReturn="True" MinHeight="40"/>
+                                            </StackPanel>
+
+                                            <!-- Per-Finding Images in Main Editor -->
+                                            <StackPanel Spacing="5" Margin="0,5,0,0">
+                                                <TextBlock Text="Evidence Photos" Classes="LabelXSM" Foreground="{DynamicResource TextSecondary}"/>
+                                                <ItemsControl ItemsSource="{Binding Attachments}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{DynamicResource PrimaryLight}" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,0,8,8">
+                                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                    <PathIcon Data="{StaticResource IconImage}" Width="12" Height="12" Foreground="{DynamicResource Primary}"/>
+                                                                    <TextBlock Text="{Binding FileName}" FontSize="11" MaxWidth="120" TextTrimming="CharacterEllipsis"/>
+                                                                    <Button Classes="IconOnlyButton" Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).DeleteAttachmentCommand}" CommandParameter="{Binding}">
+                                                                        <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" Foreground="{DynamicResource ErrorRed}"/>
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Button Classes="LinkButton" Click="BrowseItem_Click" Content="Add Evidence Photo" Foreground="{DynamicResource Primary}" FontSize="12" HorizontalAlignment="Left"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
                         <!-- Attachments Section (Overall Audit) -->
                         <Border Height="1" Background="{DynamicResource BorderColor}" Margin="0,10"/>
@@ -370,11 +419,10 @@
                                                     Content="Update Item" HorizontalAlignment="Right"/>
                                         </Grid>
 
-                                        <!-- Per-Item Attachments? -->
-                                        <!-- Note: For simplicity, we could allow adding images directly here too, but the main Auditor request was for images in findings. -->
+                                        <!-- Per-Item Attachments -->
                                         <StackPanel Spacing="5" Margin="0,10,0,0">
                                             <TextBlock Text="Item Photo Evidence" Classes="LabelXSM" Foreground="{DynamicResource TextSecondary}"/>
-                                            <ItemsControl ItemsSource="{Binding Model.Attachments}">
+                                            <ItemsControl ItemsSource="{Binding Attachments}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
                                                         <WrapPanel />

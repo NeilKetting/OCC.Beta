@@ -263,7 +263,7 @@ namespace OCC.API.Data
             modelBuilder.Entity<HseqAudit>()
                 .HasMany(a => a.Attachments)
                 .WithOne(a => a.Audit).HasForeignKey(a => a.AuditId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<HseqAuditNonComplianceItem>()
                 .HasMany(i => i.Attachments)

@@ -12,14 +12,10 @@ namespace OCC.Client.ViewModels.Home.MySummary
         [ObservableProperty]
         private TasksWidgetViewModel _tasksWidget;
 
-        [ObservableProperty]
-        private PulseViewModel _pulse;
-
-        public MySummaryPageViewModel(SummaryViewModel summary, TasksWidgetViewModel tasksWidget, PulseViewModel pulse)
+        public MySummaryPageViewModel(SummaryViewModel summary, TasksWidgetViewModel tasksWidget)
         {
             Summary = summary;
             TasksWidget = tasksWidget;
-            Pulse = pulse;
         }
     }
 }

@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Threading.Tasks;
 using OCC.Client.Services;
 using OCC.Shared.Models;
 using System.Collections.ObjectModel;
@@ -23,13 +25,35 @@ namespace OCC.Client.ViewModels.Home.Dashboard
 
         private readonly IProjectTaskRepository _taskRepository;
         private readonly ILogger<TasksWidgetViewModel> _logger;
+        private readonly IDialogService _dialogService;
 
         #endregion
 
         #region Observables
 
         [ObservableProperty]
-        private ObservableCollection<HomeTaskItem> _tasks = new();
+        private ObservableCollection<HomeTaskItem> _todayTasks = new();
+
+        [ObservableProperty]
+        private ObservableCollection<HomeTaskItem> _upcomingTasks = new();
+
+        [ObservableProperty]
+        private ObservableCollection<HomeTaskItem> _todayToDos = new();
+
+        [ObservableProperty]
+        private ObservableCollection<HomeTaskItem> _upcomingToDos = new();
+
+        [ObservableProperty]
+        private int _todayTaskCount;
+
+        [ObservableProperty]
+        private int _upcomingTaskCount;
+
+        [ObservableProperty]
+        private int _todayToDoCount;
+
+        [ObservableProperty]
+        private int _upcomingToDoCount;
 
         #endregion
 
@@ -40,12 +64,14 @@ namespace OCC.Client.ViewModels.Home.Dashboard
             // Parameterless constructor for design-time support
             _taskRepository = null!;
             _logger = null!;
+            _dialogService = null!;
         }
         
-        public TasksWidgetViewModel(IProjectTaskRepository taskRepository, ILogger<TasksWidgetViewModel> logger)
+        public TasksWidgetViewModel(IProjectTaskRepository taskRepository, ILogger<TasksWidgetViewModel> logger, IDialogService dialogService)
         {
             _taskRepository = taskRepository;
             _logger = logger;
+            _dialogService = dialogService;
             LoadTasks();
             
             // Subscribe to updates
@@ -60,20 +86,21 @@ namespace OCC.Client.ViewModels.Home.Dashboard
         {
             try
             {
-                IEnumerable<ProjectTask> tasks = await _taskRepository.GetMyTasksAsync();
-                var recentTasks = tasks.OrderByDescending(t => t.StartDate).Take(5); // Show recent or upcoming
+                IEnumerable<ProjectTask> allTasks = await _taskRepository.GetMyTasksAsync();
+                var now = DateTime.Today;
+                var weekEnd = now.AddDays(7);
 
-                Tasks.Clear();
-                foreach (var task in recentTasks)
+                // Clear Collections
+                TodayTasks.Clear();
+                UpcomingTasks.Clear();
+                TodayToDos.Clear();
+                UpcomingToDos.Clear();
+
+                foreach (var task in allTasks.OrderBy(t => t.FinishDate))
                 {
-                    var assignment = task.Assignments?.FirstOrDefault();
-                    var initials = "UN";
-                    if (assignment?.AssigneeName != null && assignment.AssigneeName.Length >= 1)
-                    {
-                        initials = assignment.AssigneeName.Substring(0, Math.Min(2, assignment.AssigneeName.Length)).ToUpper();
-                    }
+                    if (task.IsComplete) continue;
 
-                    Tasks.Add(new HomeTaskItem
+                    var item = new HomeTaskItem
                     {
                         Id = task.Id,
                         Title = task.Name,
@@ -81,13 +108,85 @@ namespace OCC.Client.ViewModels.Home.Dashboard
                         DueDate = task.FinishDate,
                         Status = task.Status,
                         Priority = task.Priority,
-                        AssigneeInitials = initials
-                    });
+                        AssigneeInitials = task.AssigneeInitials
+                    };
+
+                    bool isTodayOrOverdue = task.FinishDate.Date <= now;
+                    bool isUpcoming = task.FinishDate.Date > now;
+
+                    if (task.Type == TaskType.PersonalToDo)
+                    {
+                        if (isTodayOrOverdue) TodayToDos.Add(item);
+                        else if (isUpcoming) UpcomingToDos.Add(item);
+                    }
+                    else
+                    {
+                        if (isTodayOrOverdue) TodayTasks.Add(item);
+                        else if (isUpcoming) UpcomingTasks.Add(item);
+                    }
+                }
+
+                TodayTaskCount = TodayTasks.Count;
+                UpcomingTaskCount = UpcomingTasks.Count;
+                TodayToDoCount = TodayToDos.Count;
+                UpcomingToDoCount = UpcomingToDos.Count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading tasks widget");
+            }
+        }
+
+        [RelayCommand]
+        private async System.Threading.Tasks.Task OpenTask(HomeTaskItem item)
+        {
+            if (item == null) return;
+            WeakReferenceMessenger.Default.Send(new Messages.TaskSelectedMessage(item.Id));
+            await System.Threading.Tasks.Task.CompletedTask;
+        }
+
+        [RelayCommand]
+        private async System.Threading.Tasks.Task CompleteTask(HomeTaskItem item)
+        {
+            if (item == null) return;
+            try
+            {
+                var task = await _taskRepository.GetByIdAsync(item.Id);
+                if (task != null)
+                {
+                    task.Status = "Completed";
+                    task.PercentComplete = 100;
+                    task.FinishDate = DateTime.Now;
+                    await _taskRepository.UpdateAsync(task);
+                    
+                    WeakReferenceMessenger.Default.Send(new Messages.TaskUpdatedMessage(task.Id));
+                    LoadTasks();
                 }
             }
             catch (Exception ex)
             {
-                 _logger.LogError(ex, "Error loading tasks widget");
+                _logger.LogError(ex, "Error completing task {TaskId}", item.Id);
+            }
+        }
+
+        [RelayCommand]
+        private async System.Threading.Tasks.Task DeleteTask(HomeTaskItem item)
+        {
+            if (item == null) return;
+            try
+            {
+                var task = await _taskRepository.GetByIdAsync(item.Id);
+                if (task != null)
+                {
+                    await _taskRepository.DeleteAsync(task.Id);
+                    
+                    WeakReferenceMessenger.Default.Send(new Messages.TaskUpdatedMessage(task.Id));
+                    LoadTasks();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting task {TaskId}", item.Id);
             }
         }
 

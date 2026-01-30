@@ -2,6 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.Models;
 using OCC.Shared.Enums;
 using System;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OCC.Client.ModelWrappers
 {
@@ -41,6 +44,9 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private string _statusColor = "#EF4444"; // Default Red
 
+        [ObservableProperty]
+        private ObservableCollection<HseqAuditAttachment> _attachments = new();
+
         private void Initialize()
         {
             Description = _model.Description;
@@ -50,6 +56,8 @@ namespace OCC.Client.ModelWrappers
             TargetDate = _model.TargetDate;
             ClosedDate = _model.ClosedDate;
             Status = _model.Status;
+            
+            Attachments = new ObservableCollection<HseqAuditAttachment>(_model.Attachments ?? new List<HseqAuditAttachment>());
             
             UpdateStatusColor();
         }
@@ -63,6 +71,7 @@ namespace OCC.Client.ModelWrappers
             _model.TargetDate = TargetDate;
             _model.ClosedDate = ClosedDate;
             _model.Status = Status;
+            _model.Attachments = Attachments.ToList();
         }
 
         partial void OnDescriptionChanged(string value) => _model.Description = value;

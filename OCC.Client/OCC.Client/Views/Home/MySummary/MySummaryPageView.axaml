@@ -13,14 +13,13 @@
         <StackPanel Spacing="20">
             <!-- Greeting or Top Section could go here if not in HomeView -->
             
-            <!-- Pulse and Summary Row -->
-            <WrapPanel Orientation="Horizontal">
-                <widgets:PulseView DataContext="{Binding Pulse}" Margin="0,0,20,20" MinWidth="600"/>
-                <local:MySummaryView DataContext="{Binding Summary}" Margin="0,0,0,20" MinWidth="400"/>
-            </WrapPanel>
+            <!-- Summary Row -->
+            <Grid HorizontalAlignment="Center">
+                <local:MySummaryView DataContext="{Binding Summary}" Width="850"/>
+            </Grid>
 
-            <!-- Tasks Widget -->
-            <widgets:TasksWidgetView DataContext="{Binding TasksWidget}"/>
+            <!-- Tasks & To-Dos List Widget -->
+            <widgets:TasksWidgetView DataContext="{Binding TasksWidget}" Margin="0,30,0,10"/>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

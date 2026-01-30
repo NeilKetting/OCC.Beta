@@ -42,6 +42,9 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private ObservableCollection<HseqAuditAttachment> _auditAttachments = new();
 
+        [ObservableProperty]
+        private ObservableCollection<HseqAuditNonComplianceItemWrapper> _editorFindings = new();
+
         public AuditsViewModel(IHealthSafetyService hseqService, IToastService toastService, IRepository<Employee> employeeRepository, IExportService exportService)
         {
             _hseqService = hseqService;
@@ -190,6 +193,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             }
 
             CurrentAudit = newAudit;
+            EditorFindings.Clear();
             EditorTitle = "New Audit";
             IsEditorOpen = true;
         }
@@ -223,6 +227,16 @@ namespace OCC.Client.ViewModels.HealthSafety
 
                 CurrentAudit = loadedAudit;
                 AuditAttachments = new ObservableCollection<HseqAuditAttachment>(loadedAudit.Attachments ?? new List<HseqAuditAttachment>());
+                
+                EditorFindings.Clear();
+                if (loadedAudit.NonComplianceItems != null)
+                {
+                    foreach (var item in loadedAudit.NonComplianceItems)
+                    {
+                        EditorFindings.Add(new HseqAuditNonComplianceItemWrapper(item));
+                    }
+                }
+
                 EditorTitle = "Edit Audit Score";
                 IsEditorOpen = true;
                 IsDeviationsOpen = false; // Hide deviations if editor is opened
@@ -246,6 +260,9 @@ namespace OCC.Client.ViewModels.HealthSafety
         [RelayCommand]
         public async Task SaveAudit()
         {
+            // Commit all editor findings
+            foreach(var f in EditorFindings) f.CommitToModel();
+
             // Calculate Total Score
             if (CurrentAudit.Sections.Any(s => s.PossibleScore > 0))
             {
@@ -286,10 +303,13 @@ namespace OCC.Client.ViewModels.HealthSafety
                          _toastService.ShowSuccess("Saved", "Audit score updated.");
                          var index = Audits.IndexOf(existing);
                          if (index >= 0) Audits[index] = CurrentAudit;
+                         IsEditorOpen = false;
+                         return;
                      }
                      else
                      {
                          _toastService.ShowError("Error", "Failed to update audit.");
+                         return;
                      }
                 }
                 else
@@ -298,16 +318,19 @@ namespace OCC.Client.ViewModels.HealthSafety
                     var created = await _hseqService.CreateAuditAsync(CurrentAudit);
                     if (created != null)
                     {
-                        Audits.Insert(0, created);
+                        // Update our model with any server-side changes (like identity)
+                        CurrentAudit.Id = created.Id;
+                        _audits.Insert(0, created);
                         _toastService.ShowSuccess("Created", "New audit created.");
+                        IsEditorOpen = false;
+                        return;
                     }
                     else
                     {
                         _toastService.ShowError("Error", "Failed to create audit.");
+                        return;
                     }
                 }
-                
-                IsEditorOpen = false;
             }
             catch (Exception ex)
             {
@@ -317,6 +340,59 @@ namespace OCC.Client.ViewModels.HealthSafety
             {
                 IsBusy = false;
             }
+        }
+
+        public async Task<bool> InternalSaveAudit()
+        {
+             // Commit all editor findings
+            foreach(var f in EditorFindings) f.CommitToModel();
+
+            // Calculate Total Score
+            if (CurrentAudit.Sections.Any(s => s.PossibleScore > 0))
+            {
+                decimal totalActual = CurrentAudit.Sections.Sum(s => s.ActualScore);
+                decimal totalPossible = CurrentAudit.Sections.Sum(s => s.PossibleScore);
+                if (totalPossible > 0)
+                {
+                    CurrentAudit.ActualScore = Math.Round((totalActual / totalPossible) * 100m, 2);
+                }
+            }
+
+            var existing = Audits.FirstOrDefault(a => a.Id == CurrentAudit.Id);
+            if (existing != null)
+            {
+                return await _hseqService.UpdateAuditAsync(CurrentAudit);
+            }
+            else
+            {
+                var created = await _hseqService.CreateAuditAsync(CurrentAudit);
+                if (created != null)
+                {
+                    CurrentAudit.Id = created.Id;
+                    _audits.Insert(0, created);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        [RelayCommand]
+        public void AddFinding()
+        {
+            if (CurrentAudit == null) return;
+            
+            var newItem = new HseqAuditNonComplianceItem
+            {
+                Id = Guid.NewGuid(),
+                AuditId = CurrentAudit.Id,
+                Status = OCC.Shared.Enums.AuditItemStatus.Open
+            };
+
+            if (CurrentAudit.NonComplianceItems == null)
+                CurrentAudit.NonComplianceItems = new List<HseqAuditNonComplianceItem>();
+            
+            CurrentAudit.NonComplianceItems.Add(newItem);
+            EditorFindings.Add(new HseqAuditNonComplianceItemWrapper(newItem));
         }
 
         [RelayCommand]
@@ -448,8 +524,23 @@ namespace OCC.Client.ViewModels.HealthSafety
             IsBusy = true;
             try
             {
+                // ENSURE AUDIT EXISTS BEFORE UPLOADING
+                var existsInDb = Audits.Any(a => a.Id == CurrentAudit.Id);
+                if (!existsInDb)
+                {
+                    BusyText = "Saving audit first...";
+                    var saved = await InternalSaveAudit();
+                    if (!saved)
+                    {
+                        _toastService.ShowError("Error", "Could not save audit to allow photo uploads.");
+                        return;
+                    }
+                }
+
+                int count = 0;
                 foreach (var file in storageFiles)
                 {
+                    BusyText = $"Uploading {file.Name}...";
                     using var stream = await file.OpenReadAsync();
                     var metadata = new HseqAuditAttachment
                     {
@@ -462,13 +553,19 @@ namespace OCC.Client.ViewModels.HealthSafety
                     var result = await _hseqService.UploadAuditAttachmentAsync(metadata, stream, file.Name);
                     if (result != null)
                     {
+                        count++;
                         if (targetItem != null)
                         {
                             if (targetItem.Attachments == null) targetItem.Attachments = new List<HseqAuditAttachment>();
                             targetItem.Attachments.Add(result);
                             
-                            // To update UI, we might need to find the wrapper and notify.
-                            // But for now, let's just add to the overall list too if it's the current audit.
+                            // Find wrapper in EditorFindings or WrappedDeviations to update UI
+                            var editorWrapper = EditorFindings.FirstOrDefault(f => f.Model.Id == targetItem.Id);
+                            if (editorWrapper != null) editorWrapper.Attachments.Add(result);
+
+                            var deviationWrapper = WrappedDeviations.FirstOrDefault(f => f.Model.Id == targetItem.Id);
+                            if (deviationWrapper != null) deviationWrapper.Attachments.Add(result);
+
                             AuditAttachments.Add(result);
                         }
                         else
@@ -479,6 +576,9 @@ namespace OCC.Client.ViewModels.HealthSafety
                         }
                     }
                 }
+                
+                if (count > 0) _toastService.ShowSuccess("Success", $"Uploaded {count} file(s).");
+                else _toastService.ShowWarning("Warning", "No files were uploaded successfully.");
             }
             catch (Exception ex)
             {
@@ -492,6 +592,45 @@ namespace OCC.Client.ViewModels.HealthSafety
         }
 
         [RelayCommand]
+        public async Task DeleteDeviation(HseqAuditNonComplianceItem item)
+        {
+            if (item == null) return;
+            
+            try
+            {
+                // Remove from parent model
+                if (CurrentAudit != null && CurrentAudit.NonComplianceItems != null)
+                {
+                    CurrentAudit.NonComplianceItems.Remove(item);
+                }
+                
+                if (SelectedAudit != null && SelectedAudit.NonComplianceItems != null)
+                {
+                    SelectedAudit.NonComplianceItems.Remove(item);
+                }
+
+                // Remove from UI collections
+                var editorWrapper = EditorFindings.FirstOrDefault(f => f.Model.Id == item.Id);
+                if (editorWrapper != null) EditorFindings.Remove(editorWrapper);
+
+                var deviationsWrapper = WrappedDeviations.FirstOrDefault(f => f.Model.Id == item.Id);
+                if (deviationsWrapper != null) WrappedDeviations.Remove(deviationsWrapper);
+
+                // If it was already saved in DB, we'd need a service call.
+                // But for now, since we save the whole Audit, removing from the list is enough for next SaveAudit call.
+                // However, if we are in the "View Deviations" panel, we might want to persist immediately.
+                if (IsDeviationsOpen && SelectedAudit != null)
+                {
+                    await _hseqService.UpdateAuditAsync(SelectedAudit);
+                }
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Failed to delete item.");
+            }
+        }
+
+        [RelayCommand]
         public async Task DeleteAttachment(HseqAuditAttachment attachment)
         {
             if (attachment == null) return;
@@ -501,6 +640,17 @@ namespace OCC.Client.ViewModels.HealthSafety
             {
                 AuditAttachments.Remove(attachment);
                 CurrentAudit?.Attachments?.Remove(attachment);
+
+                // Also remove from any wrapped findings if applicable
+                if (attachment.NonComplianceItemId.HasValue)
+                {
+                    var editorWrapper = EditorFindings.FirstOrDefault(f => f.Model.Id == attachment.NonComplianceItemId.Value);
+                    if (editorWrapper != null) editorWrapper.Attachments.Remove(attachment);
+
+                    var deviationWrapper = WrappedDeviations.FirstOrDefault(f => f.Model.Id == attachment.NonComplianceItemId.Value);
+                    if (deviationWrapper != null) deviationWrapper.Attachments.Remove(attachment);
+                }
+
                 _toastService.ShowSuccess("Deleted", "Attachment removed.");
             }
             else

@@ -14,9 +14,13 @@
             <Border BorderBrush="{DynamicResource PrimaryTeal}" BorderThickness="0,2,0,0"/>
             
             <Grid ColumnDefinitions="*, *, *">
-                <StackPanel Grid.Column="0" Grid.ColumnSpan="2">
+                <StackPanel Grid.Column="0">
                     <TextBlock Text="TASKS" Classes="LabelSmall" Margin="0,0,0,10"/>
                     <local:TaskStatusGraphView/>
+                </StackPanel>                
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="TO-DOS" Classes="LabelSmall" Margin="0,0,0,10"/>
+                    <local:ToDoStatusGraphView/>
                 </StackPanel>                
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="TIME" Classes="LabelSmall" Margin="0,0,0,10"/>
