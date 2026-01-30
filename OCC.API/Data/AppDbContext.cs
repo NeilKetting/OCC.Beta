@@ -314,7 +314,7 @@ namespace OCC.API.Data
                 entity.HasMany(e => e.Assignments)
                     .WithOne(a => a.ProjectTask)
                     .HasForeignKey(a => a.TaskId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Project>(entity =>
