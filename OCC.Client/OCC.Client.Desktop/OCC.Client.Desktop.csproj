@@ -40,7 +40,6 @@
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" />
     <PackageReference Include="Velopack" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\OCC.Client\OCC.Client.csproj" />
   </ItemGroup>
