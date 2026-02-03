@@ -20,14 +20,11 @@ namespace OCC.Shared.Models
         Other
     }
 
-    public class BugReport
+    public class BugReport : BaseEntity
     {
         /// <summary> The category of the report. </summary>
         public BugReportType Type { get; set; } = BugReportType.Bug;
 
-        /// <summary> Unique primary key for the bug report. </summary>
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary> Optional ID of the user who submitted the report (if logged in). </summary>
         public Guid? ReporterId { get; set; }

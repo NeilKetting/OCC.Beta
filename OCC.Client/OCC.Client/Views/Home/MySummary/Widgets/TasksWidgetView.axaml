@@ -19,24 +19,29 @@
 							<TextBlock Text="{Binding TodayTaskCount}" FontSize="10" Foreground="White" FontWeight="Bold"/>
 						</Border>
 					</StackPanel>
-					
+
 					<!-- Today's Tasks -->
 					<StackPanel Spacing="10">
-						<TextBlock Text="Due Today" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource PrimaryTeal}" 
+						<TextBlock Text="Due Today" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource PrimaryTeal}"
 								   IsVisible="{Binding !!TodayTasks.Count}"/>
 						<ItemsControl ItemsSource="{Binding TodayTasks}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
-									<Border Padding="12,10" Background="{DynamicResource SurfaceLightGray}" CornerRadius="8" Margin="0,0,0,8"
+									<Border Padding="12,10"
+											Background="{DynamicResource SurfaceLightGray}"
+											CornerRadius="8"
+											Margin="0,0,0,8"
+											BorderBrush="{DynamicResource PrimaryTeal}"
+											BorderThickness="2,0,0,0"
 											DoubleTapped="OnTaskDoubleTapping" Tag="{Binding}">
-                                        <Border.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Open" Click="OnOpenClick"/>
-                                                <MenuItem Header="Complete" Click="OnCompleteClick"/>
-                                                <Separator/>
-                                                <MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
+										<Border.ContextMenu>
+											<ContextMenu>
+												<MenuItem Header="Open" Click="OnOpenClick"/>
+												<MenuItem Header="Complete" Click="OnCompleteClick"/>
+												<Separator/>
+												<MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
+											</ContextMenu>
+										</Border.ContextMenu>
 										<Grid ColumnDefinitions="*, Auto">
 											<StackPanel>
 												<TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextPrimaryDark}"/>
@@ -55,21 +60,21 @@
 
 					<!-- Upcoming Tasks -->
 					<StackPanel Spacing="10">
-						<TextBlock Text="Upcoming this week" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryGray}" 
+						<TextBlock Text="Upcoming this week" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryGray}"
 								   Margin="0,5,0,0" IsVisible="{Binding !!UpcomingTasks.Count}"/>
 						<ItemsControl ItemsSource="{Binding UpcomingTasks}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
 									<Border Padding="12,10" Background="Transparent" BorderBrush="{DynamicResource BorderLightGray}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,8"
 											DoubleTapped="OnTaskDoubleTapping" Tag="{Binding}">
-                                        <Border.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Open" Click="OnOpenClick"/>
-                                                <MenuItem Header="Complete" Click="OnCompleteClick"/>
-                                                <Separator/>
-                                                <MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
+										<Border.ContextMenu>
+											<ContextMenu>
+												<MenuItem Header="Open" Click="OnOpenClick"/>
+												<MenuItem Header="Complete" Click="OnCompleteClick"/>
+												<Separator/>
+												<MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
+											</ContextMenu>
+										</Border.ContextMenu>
 										<Grid ColumnDefinitions="*, Auto">
 											<StackPanel>
 												<TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource TextPrimaryDark}"/>
@@ -92,24 +97,27 @@
 							<TextBlock Text="{Binding TodayToDoCount}" FontSize="10" Foreground="White" FontWeight="Bold"/>
 						</Border>
 					</StackPanel>
-					
+
 					<!-- Today's To-Dos -->
 					<StackPanel Spacing="10">
-						<TextBlock Text="To-Do Today" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentOrange}" 
+						<TextBlock Text="To-Do Today" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentOrange}"
 								   IsVisible="{Binding !!TodayToDos.Count}"/>
 						<ItemsControl ItemsSource="{Binding TodayToDos}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
-									<Border Padding="12,10" Background="{DynamicResource SurfaceLightGray}" CornerRadius="8" Margin="0,0,0,8" BorderBrush="{DynamicResource AccentOrange}" BorderThickness="2,0,0,0"
+									<Border Padding="12,10" Background="{DynamicResource SurfaceLightGray}"
+											CornerRadius="8" Margin="0,0,0,8"
+											BorderBrush="{DynamicResource Orange}"
+											BorderThickness="2,0,0,0"
 											DoubleTapped="OnTaskDoubleTapping" Tag="{Binding}">
-                                        <Border.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Open" Click="OnOpenClick"/>
-                                                <MenuItem Header="Complete" Click="OnCompleteClick"/>
-                                                <Separator/>
-                                                <MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
+										<Border.ContextMenu>
+											<ContextMenu>
+												<MenuItem Header="Open" Click="OnOpenClick"/>
+												<MenuItem Header="Complete" Click="OnCompleteClick"/>
+												<Separator/>
+												<MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
+											</ContextMenu>
+										</Border.ContextMenu>
 										<StackPanel>
 											<TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextPrimaryDark}"/>
 											<TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" TextTrimming="CharacterEllipsis" IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
@@ -123,21 +131,21 @@
 
 					<!-- Upcoming To-Dos -->
 					<StackPanel Spacing="10">
-						<TextBlock Text="Upcoming this week" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryGray}" 
+						<TextBlock Text="Upcoming this week" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryGray}"
 								   Margin="0,5,0,0" IsVisible="{Binding !!UpcomingToDos.Count}"/>
 						<ItemsControl ItemsSource="{Binding UpcomingToDos}">
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
 									<Border Padding="12,10" Background="Transparent" BorderBrush="{DynamicResource BorderLightGray}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,8"
 											DoubleTapped="OnTaskDoubleTapping" Tag="{Binding}">
-                                        <Border.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Open" Click="OnOpenClick"/>
-                                                <MenuItem Header="Complete" Click="OnCompleteClick"/>
-                                                <Separator/>
-                                                <MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
+										<Border.ContextMenu>
+											<ContextMenu>
+												<MenuItem Header="Open" Click="OnOpenClick"/>
+												<MenuItem Header="Complete" Click="OnCompleteClick"/>
+												<Separator/>
+												<MenuItem Header="Delete" Click="OnDeleteClick" Foreground="Red"/>
+											</ContextMenu>
+										</Border.ContextMenu>
 										<StackPanel>
 											<TextBlock Text="{Binding Title}" FontSize="13" Foreground="{DynamicResource TextPrimaryDark}"/>
 											<TextBlock Text="{Binding DueDate, StringFormat='{}{0:ddd, dd MMM}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}"/>

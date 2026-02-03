@@ -38,7 +38,7 @@
 		<Grid RowDefinitions="40, Auto, *">
 			
 			<!-- Top Bar -->
-			<homeShared:HomeMenuView Grid.Row="0" DataContext="{Binding HomeMenu}"/>
+			<homeShared:HomeMenuView Grid.Row="0" DataContext="{Binding HomeMenu}" Margin="-1,0,0,0"/>
 
 			<!-- Greeting Area -->
 			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">

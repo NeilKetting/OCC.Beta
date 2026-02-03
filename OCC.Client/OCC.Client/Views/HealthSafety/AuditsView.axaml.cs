@@ -20,6 +20,7 @@ namespace OCC.Client.Views.HealthSafety
             AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private void DragOver(object? sender, DragEventArgs e)
         {
             if (e.Data.Contains(DataFormats.Files))
@@ -32,7 +33,11 @@ namespace OCC.Client.Views.HealthSafety
             }
         }
 
-        private async void Drop(object? sender, DragEventArgs e)
+
+#pragma warning restore CS0618
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        private void Drop(object? sender, DragEventArgs e)
         {
             if (DataContext is AuditsViewModel vm && e.Data.Contains(DataFormats.Files))
             {

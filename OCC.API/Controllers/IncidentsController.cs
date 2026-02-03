@@ -22,7 +22,6 @@ namespace OCC.API.Controllers
         {
             return await _context.Incidents
                 .Include(i => i.Photos)
-                .Where(i => !i.IsDeleted)
                 .OrderByDescending(i => i.Date)
                 .ToListAsync();
         }
@@ -34,7 +33,7 @@ namespace OCC.API.Controllers
                 .Include(i => i.Photos)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
-            if (incident == null || incident.IsDeleted)
+            if (incident == null)
             {
                 return NotFound();
             }
@@ -94,7 +93,7 @@ namespace OCC.API.Controllers
                 return NotFound();
             }
 
-            incident.IsDeleted = true; // Soft delete
+            _context.Incidents.Remove(incident); // Soft delete handled by context
             await _context.SaveChangesAsync();
 
             return NoContent();

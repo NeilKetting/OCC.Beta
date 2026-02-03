@@ -118,6 +118,8 @@ namespace OCC.Client.ViewModels.Time
             _timer = null!;
             _holidayService = null!;
             _dialogService = null!;
+            _dialogService = null!;
+            _pdfService = null!;
         }
 
         [ObservableProperty]

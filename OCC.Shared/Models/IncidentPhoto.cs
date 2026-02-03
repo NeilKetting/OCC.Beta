@@ -9,10 +9,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>IncidentPhotos</c> table (or related storage).
     /// <b>How:</b> Linked to a parent <see cref="Incident"/>. Stores the image data (or reference) and a caption.
     /// </remarks>
-    public class IncidentPhoto : IEntity
+    public class IncidentPhoto : BaseEntity
     {
-        /// <summary> Unique primary key for the photo record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign Key linking to the parent <see cref="Incident"/>. </summary>
         public Guid IncidentId { get; set; }
@@ -26,13 +25,6 @@ namespace OCC.Shared.Models
         /// <summary> Timestamp when the photo was uploaded/captured. </summary>
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -13,9 +13,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Orders contain multiple <see cref="OrderLine"/> items. They can be for procurement (<see cref="OrderType.PurchaseOrder"/>) 
     /// or for project-specific allocation (<see cref="OrderType.SalesOrder"/>).
     /// </remarks>
-    public class Order
+    public class Order : BaseEntity
     {
-        public Guid Id { get; set; }
+
         public string OrderNumber { get; set; } = string.Empty;
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime? ExpectedDeliveryDate { get; set; }

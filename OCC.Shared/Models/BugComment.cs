@@ -12,11 +12,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>BugComments</c> table.
     /// <b>How:</b> Linked to a <see cref="BugReport"/>. Can be flagged as a developer comment via <see cref="IsDevComment"/>.
     /// </remarks>
-    public class BugComment : IEntity
+    public class BugComment : BaseEntity
     {
-        /// <summary> Unique primary key for the comment. </summary>
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> Foreign Key linking to the parent <see cref="BugReport"/>. </summary>
         public Guid BugReportId { get; set; }
@@ -31,8 +29,8 @@ namespace OCC.Shared.Models
         [Required]
         public string Content { get; set; } = string.Empty;
         
-        /// <summary> Timestamp when the comment was added. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // CreatedAt provided by BaseEntity
+
         
         /// <summary> If true, indicates the comment was made by a developer or admin (useful for UI styling). </summary>
         public bool IsDevComment { get; set; }

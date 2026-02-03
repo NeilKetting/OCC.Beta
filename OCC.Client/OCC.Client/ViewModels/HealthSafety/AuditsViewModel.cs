@@ -241,7 +241,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                 IsEditorOpen = true;
                 IsDeviationsOpen = false; // Hide deviations if editor is opened
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 _toastService.ShowError("Error", "Failed to load audit details.");
             }
@@ -320,7 +320,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                     {
                         // Update our model with any server-side changes (like identity)
                         CurrentAudit.Id = created.Id;
-                        _audits.Insert(0, created);
+                        Audits.Insert(0, created);
                         _toastService.ShowSuccess("Created", "New audit created.");
                         IsEditorOpen = false;
                         return;
@@ -369,7 +369,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                 if (created != null)
                 {
                     CurrentAudit.Id = created.Id;
-                    _audits.Insert(0, created);
+                    Audits.Insert(0, created);
                     return true;
                 }
             }
@@ -499,7 +499,9 @@ namespace OCC.Client.ViewModels.HealthSafety
             object? files = null;
             HseqAuditNonComplianceItem? targetItem = null;
 
+#pragma warning disable CS0618
             if (param is IDataObject data)
+#pragma warning restore CS0618
             {
                 files = data.GetFiles();
             }
@@ -624,7 +626,7 @@ namespace OCC.Client.ViewModels.HealthSafety
                     await _hseqService.UpdateAuditAsync(SelectedAudit);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _toastService.ShowError("Error", "Failed to delete item.");
             }

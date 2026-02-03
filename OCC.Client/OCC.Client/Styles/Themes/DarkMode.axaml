@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
     <!-- Brand & Primary Colors -->
-    <SolidColorBrush x:Key="OCCOrange">#FF8F00</SolidColorBrush>
+    <SolidColorBrush x:Key="Orange">#FF8F00</SolidColorBrush>
     <!-- Teal made slightly lighter for dark mode contrast -->
     <SolidColorBrush x:Key="PrimaryTeal">#00d4cc</SolidColorBrush> 
     <SolidColorBrush x:Key="PrimaryTealHover">#33e0d9</SolidColorBrush>
@@ -11,6 +11,7 @@
 
     <!-- Background & Surface Colors -->
     <!-- Main Slate Background -> Very Dark Slate -->
+    <SolidColorBrush x:Key="PrimaryBackgroundDark">#0f172a</SolidColorBrush>
     <SolidColorBrush x:Key="AppBackgroundSlate">#0f172a</SolidColorBrush>
     
     <!-- Surface Colors (Cards, Panels) -->
@@ -19,8 +20,6 @@
     
     <SolidColorBrush x:Key="BorderGray">#334155</SolidColorBrush>      <!-- Was #e2e8f0, now Slate 700 -->
     <SolidColorBrush x:Key="BorderDark">#94a3b8</SolidColorBrush>      <!-- Was #00252e, now Slate 400 -->
-    <SolidColorBrush x:Key="BorderBlack">#f8fafc</SolidColorBrush>     <!-- Was Black, now White/Light -->
-    <SolidColorBrush x:Key="LimeGreen">#A3E635</SolidColorBrush>
 
     <!-- Text Colors -->
     <SolidColorBrush x:Key="TextPrimaryDark">#f8fafc</SolidColorBrush>   <!-- Was Black, now Slate 50 -->
@@ -36,35 +35,13 @@
     <SolidColorBrush x:Key="LoginTextLight">#cbd5e1</SolidColorBrush>
 
     <!-- Button Top Bar and Top Header Colors -->
-    <SolidColorBrush x:Key="SelectedBackground">#334155</SolidColorBrush> <!-- Was #ced1d6, now Slate 700 -->
-    <SolidColorBrush x:Key="HoverButtonBackground">#475569</SolidColorBrush> <!-- Was #c5c5c5, now Slate 600 -->
-    <SolidColorBrush x:Key="GreenButtonBackground">#3f6212</SolidColorBrush> <!-- Darker Green for bg -->
-    <SolidColorBrush x:Key="CancelGrayButtonBackground">#334155</SolidColorBrush>
-    <SolidColorBrush x:Key="WarningYellow">#b45309</SolidColorBrush> <!-- Darker Orange/Yellow -->
+    <!-- Button Top Bar and Top Header Colors -->
+    <SolidColorBrush x:Key="GreenButtonBackground">#3f6212</SolidColorBrush>
 
     <!-- Gradients -->
-    <!-- Adjusted for Dark Mode -->
-    <LinearGradientBrush x:Key="SideMenuGradient" StartPoint="0%,0%" EndPoint="100%,0%">
-        <GradientStop Offset="0" Color="#20FFFFFF"/>
-        <GradientStop Offset="1" Color="#40F78D37"/>
-    </LinearGradientBrush>
-
     <LinearGradientBrush x:Key="HomeMenuGradient" StartPoint="50%,0%" EndPoint="100%,0%">
         <GradientStop Offset="0" Color="#1e293b"/>
         <GradientStop Offset="0.90" Color="#c2410c"/>
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="StructuralConcreteGradient" StartPoint="0%,0%" EndPoint="0%,100%">
-        <GradientStop Offset="0.0" Color="#0f172a" />
-        <GradientStop Offset="0.4" Color="#1e293b" />
-        <GradientStop Offset="0.5" Color="#334155" />
-        <GradientStop Offset="0.51" Color="#1e293b" />
-        <GradientStop Offset="1.0" Color="#0f172a" />
-    </LinearGradientBrush>
-
-    <LinearGradientBrush x:Key="WeatheredCementGradient" StartPoint="0%,0%" EndPoint="100%,100%">
-        <GradientStop Offset="0.0" Color="#1e293b" />
-        <GradientStop Offset="1.0" Color="#334155" />
     </LinearGradientBrush>
 
 </ResourceDictionary>

@@ -60,7 +60,7 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Border Background="{DynamicResource SurfaceLightGray}"
+	<Border Background="{DynamicResource SideMenuGradient}"
 			Width="{Binding IsCollapsed, Converter={StaticResource CollapseWidthConverter}}">
 		<Grid>
 			<!-- Main Sidebar Layout -->
@@ -98,7 +98,7 @@
 
 							<!-- Orange Reminder Badge on Home -->
 							<StackPanel Orientation="Horizontal" IsVisible="{Binding !IsCollapsed}">
-								<PathIcon Data="{StaticResource IconBell}" Width="12" Height="12" Margin="10,0,5,0" 
+								<PathIcon Data="{StaticResource IconBell}" Width="12" Height="12" Margin="10,0,5,0"
 										  VerticalAlignment="Center" Foreground="{DynamicResource AccentOrange}"
 										  IsVisible="{Binding ReminderCount, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 								<Border Background="{DynamicResource AccentOrange}" CornerRadius="10" MinWidth="18" Height="18"
@@ -110,9 +110,14 @@
 							</StackPanel>
 						</StackPanel>
 					</Button>
- 
+
 					<!-- Time & Attendance Link -->
-					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Time" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Time'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewTime}">
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}"
+							Command="{Binding NavigateCommand}"
+							CommandParameter="Time" Classes.Active="{Binding ActiveSection,
+							Converter={StaticResource StringEqualityConverter}, ConverterParameter='Time'}"
+							HorizontalAlignment="Stretch"
+							IsVisible="{Binding CanViewTime}">
 						<StackPanel Orientation="Horizontal" Spacing="15">
 							<PathIcon Data="{StaticResource IconTime}" Classes="IconStyle"/>
 							<TextBlock Text="Time &amp; Attendance" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
@@ -267,11 +272,11 @@
 				<StackPanel Margin="0,10,0,15" IsVisible="{Binding !IsCollapsed}">
 					<TextBlock FontSize="10"
 							   HorizontalAlignment="Center"
-							   Text="POWERED BY ORIGIZE 63" Foreground="{StaticResource TextSecondaryDark}" FontWeight="Bold"/>
+							   Text="POWERED BY ORIGIZE 63" Foreground="{StaticResource TextSecondaryLight}" FontWeight="Bold"/>
 					<TextBlock Text="{Binding AppVersion}"
 							   FontSize="12"
 							   HorizontalAlignment="Center"
-							   Foreground="{DynamicResource TextSecondaryDark}"
+							   Foreground="{DynamicResource TextSecondaryLight}"
 							   Opacity="0.5"/>
 					<Button Content="Check Updates"
 							Command="{Binding CheckForUpdatesCommand}"

@@ -13,6 +13,7 @@ using OCC.Client.ViewModels.Messages; // Corrected Namespace
 using OCC.Client.Services;
 using System;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Threading;
@@ -34,6 +35,32 @@ using OCC.Shared.Models; // Added for Employee
 
 namespace OCC.Client.ViewModels.Core
 {
+    public partial class WorkspaceViewModel : ObservableObject
+    {
+        [ObservableProperty]
+        private string _title;
+        
+        [ObservableProperty]
+        private string _id;
+
+        [ObservableProperty]
+        private object _iconData;
+
+        [ObservableProperty]
+        private ViewModelBase _viewModel;
+
+        [ObservableProperty]
+        private bool _isActive;
+
+        public WorkspaceViewModel(string title, string id, object iconData, ViewModelBase viewModel)
+        {
+            _title = title;
+            _id = id;
+            _iconData = iconData;
+            _viewModel = viewModel;
+        }
+    }
+
     public partial class ShellViewModel : ViewModelBase, 
         IRecipient<OpenNotificationsMessage>,
         IRecipient<OpenManageUsersMessage>,
@@ -62,8 +89,18 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private SideMenuViewModel _sideMenuViewModel;
 
+        // Replaces _currentPage
         [ObservableProperty]
-        private ViewModelBase _currentPage;
+        private WorkspaceViewModel _currentWorkspace;
+
+        partial void OnCurrentWorkspaceChanged(WorkspaceViewModel? oldValue, WorkspaceViewModel newValue)
+        {
+            if (oldValue != null) oldValue.IsActive = false;
+            if (newValue != null) newValue.IsActive = true;
+        }
+
+        [ObservableProperty]
+        private System.Collections.ObjectModel.ObservableCollection<WorkspaceViewModel> _workspaces = new();
 
         [ObservableProperty]
         private NotificationViewModel _notificationVM;
@@ -89,6 +126,12 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private string _userActivityStatus = "Active";
 
+        [ObservableProperty]
+        private bool _isDbConnected;
+
+        [ObservableProperty]
+        private string _dbStatusText = "Checking...";
+
         public System.Collections.ObjectModel.ObservableCollection<Models.ToastMessage> Toasts { get; } = new();
 
         #endregion
@@ -101,7 +144,7 @@ namespace OCC.Client.ViewModels.Core
             _serviceProvider = null!;
             _permissionService = null!;
             _sideMenuViewModel = null!;
-            _currentPage = null!;
+            _currentWorkspace = null!;
             _signalRService = null!;
             _notificationVM = null!;
             _authService = null!;
@@ -158,7 +201,7 @@ namespace OCC.Client.ViewModels.Core
             _sideMenuViewModel = sideMenuViewModel;
             _sideMenuViewModel.PropertyChanged += SideMenu_PropertyChanged;
 
-            _currentPage = null!; // Silence warning as NavigateTo sets it
+            _currentWorkspace = null!; // Silence warning as NavigateTo sets it
             
             // Initialize persistent Notification ViewModel
             _notificationVM = _serviceProvider.GetRequiredService<NotificationViewModel>();
@@ -179,11 +222,13 @@ namespace OCC.Client.ViewModels.Core
                     releaseNotesVM.CloseRequested += (s, e) => 
                     {
                         // Return to Beta Notice
-                        CurrentPage = betaVM;
+                        // For Beta Notice, we might just swap the VM in the current temporary workspace
+                        // But since we are moving to workspaces, let's just make Beta Notice a workspace for now
+                         AddOrActivateWorkspace("Beta Notice", "Beta", null, betaVM);
                     };
-                    CurrentPage = releaseNotesVM;
+                    AddOrActivateWorkspace("Release Notes", "ReleaseNotes", null, releaseNotesVM);
                 };
-                CurrentPage = betaVM;
+                 AddOrActivateWorkspace("Welcome", "Beta", null, betaVM);
             }
             else
             {
@@ -199,6 +244,42 @@ namespace OCC.Client.ViewModels.Core
             
             // Check Birthdays
             CheckBirthdaysAsync(serviceProvider.GetRequiredService<IRepository<Employee>>());
+
+            // Start DB Polling
+            StartDbPolling();
+        }
+
+        private async void StartDbPolling()
+        {
+            // Initial check
+            await CheckDbConnection();
+
+            // Poll every 30 seconds
+            var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            while (await timer.WaitForNextTickAsync())
+            {
+                await CheckDbConnection();
+            }
+        }
+
+        private async Task CheckDbConnection()
+        {
+            try
+            {
+                // Lightweight check: Try to get a non-existent ID. 
+                // If it returns null (or throws NotFound), DB is reachable.
+                // If it throws ConnectionException, it's not.
+                await _projectRepo.GetByIdAsync(Guid.NewGuid());
+                
+                IsDbConnected = true;
+                DbStatusText = "Online";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ShellViewModel] DB Connection Check Failed: {ex.Message}");
+                IsDbConnected = false;
+                DbStatusText = "Offline";
+            }
         }
 
         private async void CheckBirthdaysAsync(IRepository<Employee> employeeRepository)
@@ -299,6 +380,25 @@ namespace OCC.Client.ViewModels.Core
 
 
         [RelayCommand]
+        public void Exit()
+        {
+            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        }
+
+        [RelayCommand]
+        public async Task About()
+        {
+             await _dialogService.ShowAlertAsync("About OCC Client", 
+                 "Orange Circle Construction Client\n\n" +
+                 "Version: 1.0.0 (Beta)\n" +
+                 "Developed by: Deepmind Agent\n\n" + 
+                 "© 2026 Orange Circle Construction");
+        }
+
+        [RelayCommand]
         public async Task ReportBug()
         {
             string? screenshotBase64 = null;
@@ -345,9 +445,9 @@ namespace OCC.Client.ViewModels.Core
             {
                viewName = "NotificationView";
             }
-            else if (CurrentPage != null)
+            else if (CurrentWorkspace?.ViewModel != null)
             {
-               viewName = GetActiveViewName(CurrentPage);
+               viewName = GetActiveViewName(CurrentWorkspace.ViewModel);
             }
             
             await _dialogService.ShowBugReportAsync(viewName, screenshotBase64);
@@ -445,6 +545,53 @@ namespace OCC.Client.ViewModels.Core
             }
         }
 
+        [RelayCommand]
+        public void CloseWorkspace(WorkspaceViewModel workspace)
+        {
+            if (Workspaces.Contains(workspace))
+            {
+                Workspaces.Remove(workspace);
+                if (Workspaces.Any())
+                {
+                    CurrentWorkspace = Workspaces.Last();
+                }
+                else
+                {
+                    CurrentWorkspace = null!;
+                }
+            }
+        }
+
+        [RelayCommand]
+        public void SetActiveWorkspace(WorkspaceViewModel workspace)
+        {
+            CurrentWorkspace = workspace;
+        }
+
+        private void AddOrActivateWorkspace(string title, string id, object? iconData, ViewModelBase vm)
+        {
+            var existing = Workspaces.FirstOrDefault(w => w.Id == id);
+            if (existing != null)
+            {
+                CurrentWorkspace = existing;
+            }
+            else
+            {
+                var newWorkspace = new WorkspaceViewModel(title, id, iconData ?? "IconDashboard", vm);
+                Workspaces.Add(newWorkspace);
+                CurrentWorkspace = newWorkspace;
+            }
+        }
+
+        private object? GetResource(string key)
+        {
+            if (Application.Current != null && Application.Current.TryGetResource(key, null, out var resource))
+            {
+                return resource;
+            }
+            return null;
+        }
+
         private void NavigateTo(string section)
         {
             // Close notification popup when navigating
@@ -463,41 +610,66 @@ namespace OCC.Client.ViewModels.Core
 
                 var deniedVM = _serviceProvider.GetRequiredService<AccessDeniedViewModel>();
                 deniedVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
-                CurrentPage = deniedVM;
+                // Access denied usually replaces content, let's just show it in current workspace or new 'Error' workspace?
+                // Let's make it a workspace for now
+                AddOrActivateWorkspace("Access Denied", "Error", "IconAlert", deniedVM);
                 return;
             }
+
+            ViewModelBase vm = _serviceProvider.GetRequiredService<HomeViewModel>();
+            string title = "Home";
+            object? icon = GetResource("IconHome");
+            string id = section;
 
             switch (section)
             {
                 case NavigationRoutes.Home:
-                    CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
+                     vm = _serviceProvider.GetRequiredService<HomeViewModel>();
+                     title = "Home";
+                     icon = GetResource("IconHome");
                     break;
                 case NavigationRoutes.StaffManagement:
-                    CurrentPage = _serviceProvider.GetRequiredService<EmployeeManagementViewModel>();
+                    vm = _serviceProvider.GetRequiredService<EmployeeManagementViewModel>();
+                    title = "Employees";
+                    icon = GetResource("IconTeam");
                     break;
                 case NavigationRoutes.Customers:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Customers.CustomerManagementViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Customers.CustomerManagementViewModel>();
+                    title = "Customers";
+                    icon = GetResource("IconPortfolio");
                     break;
                 case NavigationRoutes.Projects:
-                    CurrentPage = _serviceProvider.GetRequiredService<ProjectsViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ProjectsViewModel>();
+                    title = "Projects";
+                    icon = GetResource("IconPortfolio");
                     break;
                 case NavigationRoutes.Time:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Time.TimeAttendanceViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Time.TimeAttendanceViewModel>();
+                    title = "Time & Attendance";
+                    icon = GetResource("IconTime");
                     break;
                 case NavigationRoutes.Calendar: 
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Home.Calendar.CalendarViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Home.Calendar.CalendarViewModel>();
+                    title = "Calendar";
+                    icon = GetResource("IconCalendar");
                     break;
                 case NavigationRoutes.UserManagement:
-                    CurrentPage = _serviceProvider.GetRequiredService<UserManagementViewModel>();
+                    vm = _serviceProvider.GetRequiredService<UserManagementViewModel>();
+                    title = "Users";
+                    icon = GetResource("IconUserManagement");
                     break;
                 case "MyProfile":
                     Receive(new OpenProfileMessage());
-                    break;
+                    return; // Profile is an overlay, not a workspace
                 case NavigationRoutes.HealthSafety:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
+                    title = "HSEQ";
+                    icon = GetResource("IconHealthSafety");
                     break;
                 case NavigationRoutes.Feature_OrderManagement:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
+                    title = "Orders";
+                    icon = GetResource("IconCart");
                     break;
                 case "OrderList":
                 case "Inventory":
@@ -505,46 +677,71 @@ namespace OCC.Client.ViewModels.Core
                 case "Suppliers":
                     var orderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
                     orderVM.SetTab(section);
-                    CurrentPage = orderVM;
+                    vm = orderVM;
+                    title = "Orders"; // Same workspace, just different tab
+                    id = NavigationRoutes.Feature_OrderManagement; // Reuse same ID to just switch tab
+                    icon = GetResource("IconCart");
                     break;
                 case "CreateOrder":
                     var createOrderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.CreateOrderViewModel>();
                     createOrderVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
-                    // Explicitly trigger load
                     _ = createOrderVM.LoadData();
-                    CurrentPage = createOrderVM;
+                    vm = createOrderVM;
+                    title = "New Order";
+                    id = "CreateOrder_" + Guid.NewGuid(); // Allow multiple? Or Singleton? Let's allow multiple for now or just one.
+                    // For now, let's treat "Create Order" as a unique workspace that can be opened.
+                    id = "CreateOrder"; 
+                    icon = GetResource("IconPlus");
                     break;
                 case "RestockReview":
                     var restockVM = _serviceProvider.GetRequiredService<ViewModels.Orders.RestockReviewViewModel>();
                     _ = restockVM.LoadData();
-                    CurrentPage = restockVM;
+                    vm = restockVM;
+                    title = "Restock Review";
+                    icon = GetResource("IconList");
                     break;
                 case "Help":
                      var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
-                     CurrentPage = releaseNotesVM;
+                     vm = releaseNotesVM;
+                     title = "Release Notes";
+                     icon = GetResource("IconHelp");
                      break;
                 case NavigationRoutes.AuditLog:
-                    CurrentPage = _serviceProvider.GetRequiredService<AuditLogViewModel>();
+                    vm = _serviceProvider.GetRequiredService<AuditLogViewModel>();
+                    title = "Audit Log";
+                    icon = GetResource("IconAudit");
                     break;
                 case NavigationRoutes.CompanySettings:
-                    CurrentPage = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
+                    vm = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
+                    title = "Company";
+                    icon = GetResource("IconSettings");
                     break;
                 case NavigationRoutes.UserPreferences:
                     var userPrefsVM = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
                     userPrefsVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
-                    CurrentPage = userPrefsVM;
+                    vm = userPrefsVM;
+                    title = "Preferences";
+                    icon = GetResource("IconGear");
                     break;
                 case NavigationRoutes.Feature_BugReports:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
+                    title = "Bugs";
+                    icon = GetResource("IconBug");
                     break;
                 case NavigationRoutes.Developer:
-                    CurrentPage = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
+                    vm = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
+                    title = "Developer";
+                    icon = GetResource("IconM");
                     break;
                  default:
-                    CurrentPage = _serviceProvider.GetRequiredService<HomeViewModel>();
+                    vm = _serviceProvider.GetRequiredService<HomeViewModel>();
+                    title = "Home";
+                    icon = GetResource("IconHome");
                     break;
             }
+            
+            AddOrActivateWorkspace(title, id, icon, vm);
         }
 
         public void Receive(OpenNotificationsMessage message)
@@ -557,24 +754,12 @@ namespace OCC.Client.ViewModels.Core
         {
             if (route == "InventoryDetail_Create")
             {
-                // This is a special case where we want to open a DETAIL view for creation
-                // Since our main navigation is usually page-based ("Orders", "Inventory"), 
-                // we might need to navigate to InventoryView first, then trigger the detail popup?
-                // OR we can just replace the CurrentPage with the DetailVM directly if that's supported.
-                
-                // Let's assume we can navigate to the Detail VM directly as a "Page" or Dialog.
-                // Looking at InventoryDetailViewModel, is it a page or a dialog? 
-                // It's used as a dialog/child in InventoryView usually. 
-                // Let's try to simulate navigating to "Orders/Inventory" but forcing the detail view?
-                
-                // Better approach: Open InventoryDetailViewModel as the CurrentPage.
+                // Open Item Detail as a new Workspace
                 var vm = _serviceProvider.GetRequiredService<ViewModels.Orders.ItemDetailViewModel>();
                 
                 // Setup for creation with pre-filled SKU/Name
                 if (payload is string searchTerm)
                 {
-                    // Heuristic: If it looks like a SKU (all caps, numbers), use as SKU. Else Name.
-                    // For simplicity, let's put it in both or guess
                     var isSku = searchTerm.Any(char.IsDigit) && searchTerm.Any(char.IsUpper);
                     
                     vm.Load(null); // Clear/New
@@ -582,7 +767,7 @@ namespace OCC.Client.ViewModels.Core
                     else vm.Description = searchTerm;
                 }
                 
-                CurrentPage = vm;
+                AddOrActivateWorkspace("New Item", "CreateItem_" + Guid.NewGuid(), GetResource("IconPlus"), vm);
             }
             else
             {
@@ -594,7 +779,7 @@ namespace OCC.Client.ViewModels.Core
         {
             NavigateTo("UserManagement");
             
-            if (message.Value.HasValue && CurrentPage is UserManagementViewModel vm)
+            if (message.Value.HasValue && CurrentWorkspace.ViewModel is UserManagementViewModel vm)
             {
                 vm.OpenUser(message.Value.Value);
             }
@@ -641,8 +826,6 @@ namespace OCC.Client.ViewModels.Core
         public void Receive(OpenBugReportMessage message)
         {
             NavigateTo("BugList");
-            // Future: Select specific bug if BugListViewModel supports it
-            // if (message.Value.HasValue && CurrentPage is ViewModels.Bugs.BugListViewModel vm) { ... }
         }
 
         [RelayCommand]

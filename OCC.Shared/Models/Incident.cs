@@ -13,10 +13,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Incidents are reported via the mobile or desktop apps, tracked by <see cref="Severity"/>, 
     /// and should eventually have a <see cref="RootCause"/> and <see cref="CorrectiveAction"/> assigned.
     /// </remarks>
-    public class Incident : IEntity
+    public class Incident : BaseEntity
     {
-        /// <summary> Unique primary key for the incident report. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The date and time the incident occurred. </summary>
         public DateTime Date { get; set; } = DateTime.UtcNow;
@@ -51,14 +50,7 @@ namespace OCC.Shared.Models
         /// <summary> Photographic evidence or relevant images attached to the incident. </summary>
         public List<IncidentPhoto> Photos { get; set; } = new();
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Incident creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }
 

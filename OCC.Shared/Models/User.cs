@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Can be linked to an <see cref="Employee"/> record for HR purposes. 
     /// Access control is determined by <see cref="UserRole"/> and explicit <see cref="Permissions"/>.
     /// </remarks>
-    public class User : IEntity
+    public class User : BaseEntity
     {
-        /// <summary> Unique primary key for the user account. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The user's login email address (must be unique). </summary>
         public string Email { get; set; } = string.Empty;

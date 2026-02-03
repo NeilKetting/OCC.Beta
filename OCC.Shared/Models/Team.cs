@@ -12,10 +12,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> A team can have a designated <see cref="LeaderId"/> (linked to an <see cref="Employee"/>) 
     /// and contains a collection of <see cref="Members"/>.
     /// </remarks>
-    public class Team : IEntity
+    public class Team : BaseEntity
     {
-        /// <summary> Unique primary key for the team. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The name of the team (e.g., "Tiling Team A", "Johannesburg Painters"). </summary>
         public string Name { get; set; } = string.Empty;

@@ -17,7 +17,7 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Tasks belong to a <see cref="Project"/> and can be grouped via <see cref="ParentId"/> / <see cref="Children"/>.
     /// Time tracked against tasks feeds into project costing.
     /// </remarks>
-    public class ProjectTask : IEntity, INotifyPropertyChanged
+    public class ProjectTask : BaseEntity, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -25,8 +25,7 @@ namespace OCC.Shared.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        /// <summary> Unique primary key for the task. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary>
         /// The user who owns this task (if it's a personal task). 

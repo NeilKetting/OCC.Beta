@@ -9,12 +9,9 @@
     /// <b>How:</b> Projects are associated with a <see cref="Customer"/> and can be assigned a <see cref="SiteManager"/> (linked to an <see cref="Employee"/>).
     /// Location data (Latitude/Longitude) allows for future mapping and site visit tracking.
     /// </remarks>
-    public class Project : IEntity
+    public class Project : BaseEntity
     {
-        /// <summary>
-        /// Unique identifier for the project.
-        /// </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary>
         /// The display name of the project (e.g., "Engen Bendor").

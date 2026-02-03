@@ -164,11 +164,21 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         public bool IsContractVisible => IsContract;
 
+        public bool IsActive
+        {
+            get => Wrapper.Status == EmployeeStatus.Active;
+            set
+            {
+                Wrapper.Status = value ? EmployeeStatus.Active : EmployeeStatus.Inactive;
+                OnPropertyChanged(nameof(IsActive));
+            }
+        }
+
         [ObservableProperty]
         private bool _isSystemAccessVisible;
 
         // Exposed Enum Values for ComboBox
-        public EmployeeRole[] EmployeeRoles { get; } = Enum.GetValues<EmployeeRole>();
+        public List<EmployeeRole> EmployeeRoles { get; } = Enum.GetValues<EmployeeRole>().OrderBy(r => r.ToString()).ToList();
 
         public List<string> Branches { get; } = new() { "Johannesburg", "Cape Town" };
 
@@ -431,7 +441,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
                 if (Wrapper.LinkedUserId.HasValue)
                 {
-                    Task.Run(async () => 
+                    _ = Task.Run(async () => 
                     {
                         var user = await _userRepository.GetByIdAsync(Wrapper.LinkedUserId.Value);
                         if (user != null)
@@ -467,6 +477,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 OnPropertyChanged(nameof(IsPermanent));
                 OnPropertyChanged(nameof(IsContract));
                 OnPropertyChanged(nameof(IsContractVisible));
+                OnPropertyChanged(nameof(IsActive));
                 OnPropertyChanged(nameof(IsOtherBankSelected));
                 
                 IsBusy = false;

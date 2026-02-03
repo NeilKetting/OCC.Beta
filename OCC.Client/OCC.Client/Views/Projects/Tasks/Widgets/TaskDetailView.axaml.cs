@@ -34,6 +34,7 @@ namespace OCC.Client.Views.Projects.Tasks.Widgets
             }
         }
 
+#pragma warning disable CS0618
         private void DragOver(object? sender, DragEventArgs e)
         {
             if (e.Data.Contains(DataFormats.Files))
@@ -45,8 +46,10 @@ namespace OCC.Client.Views.Projects.Tasks.Widgets
                e.DragEffects = DragDropEffects.None;
             }
         }
+#pragma warning restore CS0618
 
-        private async void Drop(object? sender, DragEventArgs e)
+#pragma warning disable CS0618 // Type or member is obsolete
+        private void Drop(object? sender, DragEventArgs e)
         {
             if (DataContext is TaskDetailViewModel vm && e.Data.Contains(DataFormats.Files))
             {
@@ -57,6 +60,7 @@ namespace OCC.Client.Views.Projects.Tasks.Widgets
                 }
             }
         }
+#pragma warning restore CS0618
 
         private async void Browse_Click(object? sender, RoutedEventArgs e)
         {

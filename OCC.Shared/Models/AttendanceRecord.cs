@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Entries are generated either by the manual attendance sheet (Office) 
     /// or via the mobile app "Clock-In" feature. Geolocation data is used to verify site presence.
     /// </remarks>
-    public class AttendanceRecord : IEntity
+    public class AttendanceRecord : BaseEntity
     {
-        /// <summary> Unique primary key for the attendance record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> Optional foreign key to the <see cref="User"/> account (system login). </summary>
         public Guid? UserId { get; set; }
@@ -64,14 +63,7 @@ namespace OCC.Shared.Models
         /// </summary>
         public decimal? CachedHourlyRate { get; set; }
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Record creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 
     /// <summary>

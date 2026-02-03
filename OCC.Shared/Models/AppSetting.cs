@@ -11,11 +11,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>AppSettings</c> table.
     /// <b>How:</b> Loaded at startup or on-demand. Lookups are done via the unique <see cref="Key"/>.
     /// </remarks>
-    public class AppSetting : IEntity
+    public class AppSetting : BaseEntity
     {
-        /// <summary> Unique primary key for the setting. </summary>
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The unique identifier string for the setting (e.g., "TaxRate"). </summary>
         [Required]

@@ -249,6 +249,7 @@ namespace OCC.Client.Services
             sb.AppendLine($"<div class='field'><span class='label'>Date of Birth</span><div class='value'>{employee.DoB:dd MMM yyyy}</div></div>");
             sb.AppendLine($"<div class='field'><span class='label'>Email</span><div class='value'>{employee.Email}</div></div>");
             sb.AppendLine($"<div class='field'><span class='label'>Phone</span><div class='value'>{employee.Phone}</div></div>");
+            sb.AppendLine($"<div class='field'><span class='label'>Physical Address</span><div class='value'>{employee.PhysicalAddress}</div></div>");
             sb.AppendLine($"<div class='field'><span class='label'>Tax Number</span><div class='value'>{employee.TaxNumber}</div></div>");
             sb.AppendLine("</div></div>");
             

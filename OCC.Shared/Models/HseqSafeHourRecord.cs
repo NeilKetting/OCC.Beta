@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>HseqSafeHourRecords</c> table.
     /// <b>How:</b> Aggregates data from <see cref="AttendanceRecord"/> (total hours) and <see cref="Incident"/> reports.
     /// </remarks>
-    public class HseqSafeHourRecord : IEntity
+    public class HseqSafeHourRecord : BaseEntity
     {
-        /// <summary> Unique primary key for the record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The reporting month (usually set to the 1st of the month). </summary>
         public DateTime Month { get; set; }
@@ -39,14 +38,6 @@ namespace OCC.Shared.Models
         /// <summary> Name of the person verifying these figures. </summary>
         public string ReportedBy { get; set; } = string.Empty;
 
-        // IEntity Implementation
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

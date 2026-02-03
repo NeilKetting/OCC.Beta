@@ -12,10 +12,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Contains multiple <see cref="WageRunLine"/> entries, one per employee. 
     /// Can be in Draft state for review before being Finalized.
     /// </remarks>
-    public class WageRun : IEntity
+    public class WageRun : BaseEntity
     {
-        /// <summary> Unique primary key for the wage run. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> The start date of the pay period (inclusive). </summary>
         public DateTime StartDate { get; set; }
@@ -35,15 +34,8 @@ namespace OCC.Shared.Models
         /// <summary> Collection of individual employee wage calculations for this run. </summary>
         public List<WageRunLine> Lines { get; set; } = new();
 
-        // IEntity Implementation
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
+        // IEntity Implementation - Replaced by BaseEntity
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last updated timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 
     /// <summary>

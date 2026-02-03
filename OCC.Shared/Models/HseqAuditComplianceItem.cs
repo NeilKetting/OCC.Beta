@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>HseqAuditComplianceItems</c> table.
     /// <b>How:</b> Linked to a parent <see cref="HseqAudit"/>. Often includes photographic evidence.
     /// </remarks>
-    public class HseqAuditComplianceItem : IEntity
+    public class HseqAuditComplianceItem : BaseEntity
     {
-        /// <summary> Unique primary key for the compliance item. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign Key linking to the parent <see cref="HseqAudit"/>. </summary>
         public Guid AuditId { get; set; }
@@ -27,13 +26,6 @@ namespace OCC.Shared.Models
         /// <summary> Base64 encoded string of the supporting photo. </summary>
         public string PhotoBase64 { get; set; } = string.Empty;
         
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

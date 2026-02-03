@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Linked to <see cref="Employee"/>. Approved requests should ideally update the 
     /// employee's leave balance in <see cref="Employee.AnnualLeaveBalance"/> or <see cref="Employee.SickLeaveBalance"/>.
     /// </remarks>
-    public class LeaveRequest : IEntity
+    public class LeaveRequest : BaseEntity
     {
-        /// <summary> Unique primary key for the leave request. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign key to the <see cref="Employee"/> requesting the leave. </summary>
         public Guid EmployeeId { get; set; }

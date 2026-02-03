@@ -22,7 +22,7 @@ namespace OCC.Client.Services
         private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
         private readonly HashSet<Guid> _notifiedTaskIds = new();
         
-        public event EventHandler<int> UnreadCountChanged;
+        public event EventHandler<int>? UnreadCountChanged;
         
         public int UnreadCount => _notifiedTaskIds.Count;
 

@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Linked to <see cref="HseqAuditSection"/> and various compliance items. 
     /// Tracks scoring against a <see cref="TargetScore"/> to determine safety health.
     /// </remarks>
-    public class HseqAudit : IEntity
+    public class HseqAudit : BaseEntity
     {
-        /// <summary> Unique primary key for the audit record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The date the audit was conducted. </summary>
         public DateTime Date { get; set; }
@@ -62,14 +61,7 @@ namespace OCC.Shared.Models
         /// <summary> Attachments linked to this audit. </summary>
         public System.Collections.Generic.List<HseqAuditAttachment> Attachments { get; set; } = new();
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Audit creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }
 

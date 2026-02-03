@@ -218,6 +218,14 @@
 									</Button>
 								</Grid>
 							</StackPanel>
+							<!-- Status -->
+							<StackPanel>
+								<TextBlock Text="Employee Status" Classes="FormLabel"/>
+								<ToggleSwitch IsChecked="{Binding IsActive}" 
+											  OnContent="Active" 
+											  OffContent="Disabled"
+											  ToolTip.Tip="Disable employee to hide them from timesheets"/>
+							</StackPanel>
 							<!-- Employment Type Section -->
 							<StackPanel>
 								<TextBlock Text="Employment Type" Classes="FormLabel"/>
@@ -454,7 +462,7 @@
 
 			<!-- Loading -->
 			<StackPanel Grid.RowSpan="5" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
-				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource OCCOrange}"/>
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource Orange}"/>
 				<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
 			</StackPanel>
 			<!-- Permissions Popup Overlay -->

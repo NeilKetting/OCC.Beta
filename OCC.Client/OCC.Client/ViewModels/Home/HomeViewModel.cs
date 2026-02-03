@@ -111,7 +111,9 @@ namespace OCC.Client.ViewModels.Home
             _teamRepository = null!;
             _dialogService = null!;
             _loggerFactory = null!;
+            _loggerFactory = null!;
             _serviceProvider = null!;
+            _attachmentService = null!;
         }
 
         public HomeViewModel(HomeMenuViewModel homeMenu,

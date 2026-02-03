@@ -9,10 +9,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>Suppliers</c> table.
     /// <b>How:</b> Linked to <see cref="Order"/> (Purchase Orders) and <see cref="InventoryItem"/>.
     /// </remarks>
-    public class Supplier : IEntity
+    public class Supplier : BaseEntity
     {
-        /// <summary> Unique primary key for the supplier. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         /// <summary> Full company or trading name of the supplier. </summary>
         public string Name { get; set; } = string.Empty;
         /// <summary> Street address of the supplier's headquarters or branch. </summary>

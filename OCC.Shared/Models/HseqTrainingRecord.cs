@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>HseqTrainingRecords</c> table.
     /// <b>How:</b> Linked to an <see cref="Employee"/>. The system can use <see cref="ValidUntil"/> and <see cref="ExpiryWarningDays"/> to alert when retraining is needed.
     /// </remarks>
-    public class HseqTrainingRecord : IEntity
+    public class HseqTrainingRecord : BaseEntity
     {
-        /// <summary> Unique primary key for the training record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Name of the employee who completed the training (snapshot or fallback). </summary>
         public string EmployeeName { get; set; } = string.Empty; 
@@ -45,13 +44,6 @@ namespace OCC.Shared.Models
         /// <summary> Number of days before expiration to trigger a warning. </summary>
         public int ExpiryWarningDays { get; set; } = 30;
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Record creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

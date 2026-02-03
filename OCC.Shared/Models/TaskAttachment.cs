@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OCC.Shared.Models
 {
-    public class TaskAttachment : IEntity
+    public class TaskAttachment : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         public Guid TaskId { get; set; }
 

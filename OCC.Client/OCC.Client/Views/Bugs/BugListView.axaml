@@ -63,7 +63,7 @@
 
                 <!-- Loading Overlay -->
                 <ProgressBar Grid.Row="1" IsIndeterminate="True" IsVisible="{Binding IsBusy}" VerticalAlignment="Top" Height="2"
-                             Foreground="{DynamicResource OCCOrange}"/>
+                             Foreground="{DynamicResource Orange}"/>
             </Grid>
         </Border>
 

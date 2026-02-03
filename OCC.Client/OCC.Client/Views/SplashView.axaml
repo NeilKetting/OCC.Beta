@@ -39,7 +39,7 @@
 			</StackPanel>
 
 			<!-- Version -->
-			<TextBlock Grid.Row="2" Text="{Binding CurrentVersion}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource OCCOrange}"/>
+			<TextBlock Grid.Row="2" Text="{Binding CurrentVersion}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Orange}"/>
 		</Grid>
 	</Border>
 </Window>

@@ -82,7 +82,7 @@ namespace OCC.API.Controllers
             existingAudit.ActualScore = audit.ActualScore;
             
             
-            existingAudit.UpdatedAt = DateTime.UtcNow;
+            existingAudit.UpdatedAtUtc = DateTime.UtcNow;
             
             // Update Sections
             foreach (var section in audit.Sections)
@@ -119,7 +119,7 @@ namespace OCC.API.Controllers
                         existingItem.TargetDate = item.TargetDate;
                         existingItem.Status = item.Status;
                         existingItem.ClosedDate = item.ClosedDate;
-                        existingItem.UpdatedAt = DateTime.UtcNow;
+                        existingItem.UpdatedAtUtc = DateTime.UtcNow;
                     }
                     else
                     {
@@ -148,7 +148,7 @@ namespace OCC.API.Controllers
         {
              var items = await _context.HseqAuditNonComplianceItems
                 .Include(i => i.Attachments)
-                .Where(i => i.AuditId == id && !i.IsDeleted)
+                .Where(i => i.AuditId == id)
                 .ToListAsync();
              return items;
         }

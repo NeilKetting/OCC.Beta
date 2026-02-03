@@ -11,12 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> It can be linked to a system login via <see cref="LinkedUserId"/>, allowing employees to access the mobile or desktop apps.
     /// It also tracks leave balances, accrual start dates, and shift patterns used by the attendance and wage run systems.
     /// </remarks>
-    public class Employee : IEntity
+    public class Employee : BaseEntity
     {
-        /// <summary>
-        /// The unique primary key for the employee record.
-        /// </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary>
         /// Optional link to a User Login (Identity).
@@ -260,7 +257,8 @@ namespace OCC.Shared.Models
         Foreman = 19,
         Welder = 20,
         SiteManager = 21,
-        BrickLayer = 22
+        BrickLayer = 22,
+        Driver = 23
     }
 
     /// <summary>

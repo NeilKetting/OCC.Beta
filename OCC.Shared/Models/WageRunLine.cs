@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Calculated based on <see cref="AttendanceRecord"/> data for the period. 
     /// Includes logic for handling "Projected Hours" (advance payment) and correcting variances from previous runs.
     /// </remarks>
-    public class WageRunLine : IEntity
+    public class WageRunLine : BaseEntity
     {
-        /// <summary> Unique primary key for the wage line item. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> Foreign Key to the parent <see cref="WageRun"/>. </summary>
         public Guid WageRunId { get; set; }
@@ -61,14 +60,7 @@ namespace OCC.Shared.Models
         /// <summary> The final calculated wage amount (Hours * Rate). </summary>
         public decimal TotalWage { get; set; }
 
-        // IEntity Implementation
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
+        // IEntity Implementation - Replaced by BaseEntity
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last updated timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Links a <see cref="ProjectTask"/> to an <see cref="Employee"/> (Assignee). 
     /// Includes the assignee's name as a snapshot for quick display.
     /// </remarks>
-    public class TaskAssignment : IEntity
+    public class TaskAssignment : BaseEntity
     {
-        /// <summary> Unique primary key for the assignment record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> Foreign Key to the <see cref="ProjectTask"/>. </summary>
         public Guid TaskId { get; set; }

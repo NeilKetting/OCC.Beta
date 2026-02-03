@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>TaskComments</c> table.
     /// <b>How:</b> Linked to a <see cref="ProjectTask"/>. Stores author details for display and history.
     /// </remarks>
-    public class TaskComment : IEntity
+    public class TaskComment : BaseEntity
     {
-        /// <summary> Unique primary key for the comment. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign Key linking to the <see cref="ProjectTask"/>. </summary>
         public Guid TaskId { get; set; }
@@ -31,8 +30,8 @@ namespace OCC.Shared.Models
         /// <summary> The actual text content of the message. </summary>
         public string Content { get; set; } = string.Empty;
 
-        /// <summary> Timestamp when the comment was created. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        // CreatedAt provided by BaseEntity (CreatedAtUtc)
+
         
         /// <summary>
         /// Generated initials of the author for UI avatars (e.g., "John Doe" -> "JD").

@@ -173,7 +173,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                         AuthorName = authorName,
                         AuthorEmail = authorEmail,
                         Content = NewCommentContent,
-                        CreatedAt = DateTime.Now
+                        CreatedAtUtc = DateTime.Now
                     };
 // ...
 
@@ -421,12 +421,8 @@ namespace OCC.Client.ViewModels.Projects.Tasks
                 // Notify tree to refresh
                 WeakReferenceMessenger.Default.Send(new Messages.TaskUpdatedMessage(newTask.Id));
 
-                // Switch to edit mode or close
-                IsCreateMode = false;
-                _currentTaskId = newTask.Id;
-                
-                // Reload to establish proper wrapper tracking and refresh from DB
-                LoadTaskById(_currentTaskId);
+                // Close the popup
+                Close();
             }
             catch (Exception ex)
             {
@@ -665,7 +661,7 @@ namespace OCC.Client.ViewModels.Projects.Tasks
              Comments.Clear();
              var comments = await _commentRepository.FindAsync(c => c.TaskId == _currentTaskId);
              
-             foreach (var comment in comments.OrderByDescending(c => c.CreatedAt))
+             foreach (var comment in comments.OrderByDescending(c => c.CreatedAtUtc))
              {
                  Comments.Add(comment);
              }

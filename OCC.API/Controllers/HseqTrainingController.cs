@@ -22,7 +22,6 @@ namespace OCC.API.Controllers
         public async Task<ActionResult<IEnumerable<HseqTrainingRecord>>> GetTrainingRecords()
         {
             return await _context.HseqTrainingRecords
-                .Where(t => !t.IsDeleted)
                 .OrderByDescending(t => t.DateCompleted)
                 .ToListAsync();
         }
@@ -34,7 +33,7 @@ namespace OCC.API.Controllers
              var today = DateTime.UtcNow;
              
              return await _context.HseqTrainingRecords
-                .Where(t => !t.IsDeleted && t.ValidUntil.HasValue && t.ValidUntil <= threshold && t.ValidUntil >= today)
+                .Where(t => t.ValidUntil.HasValue && t.ValidUntil <= threshold && t.ValidUntil >= today)
                 .ToListAsync();
         }
 
@@ -89,7 +88,7 @@ namespace OCC.API.Controllers
             var record = await _context.HseqTrainingRecords.FindAsync(id);
             if (record == null) return NotFound();
             
-            record.IsDeleted = true;
+            _context.HseqTrainingRecords.Remove(record);
             await _context.SaveChangesAsync();
             return NoContent();
         }

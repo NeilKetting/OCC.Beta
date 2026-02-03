@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>HseqAuditNonComplianceItems</c> table.
     /// <b>How:</b> Linked to an <see cref="HseqAudit"/>. Must be tracked until <see cref="Status"/> is Closed.
     /// </remarks>
-    public class HseqAuditNonComplianceItem : IEntity
+    public class HseqAuditNonComplianceItem : BaseEntity
     {
-        /// <summary> Unique primary key for the non-compliance item. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign Key linking to the parent <see cref="HseqAudit"/>. </summary>
         public Guid AuditId { get; set; }
@@ -45,13 +44,6 @@ namespace OCC.Shared.Models
         /// <summary> Current resolution status (Open, Closed). </summary>
         public AuditItemStatus Status { get; set; } = AuditItemStatus.Open;
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

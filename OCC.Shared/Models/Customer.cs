@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>Customers</c> table.
     /// <b>How:</b> Often used as a high-level grouping for projects and billing.
     /// </remarks>
-    public class Customer : IEntity
+    public class Customer : BaseEntity
     {
-        /// <summary> Unique primary key for the customer. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The full name of the customer company or individual. </summary>
         public string Name { get; set; } = string.Empty;

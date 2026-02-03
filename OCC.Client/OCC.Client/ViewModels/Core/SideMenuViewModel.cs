@@ -157,6 +157,7 @@ namespace OCC.Client.ViewModels.Core
             _logger = null!;
             _notificationViewModel = null!;
             _toastService = null!;
+            _reminderService = null!;
         }
 
         /// <summary>

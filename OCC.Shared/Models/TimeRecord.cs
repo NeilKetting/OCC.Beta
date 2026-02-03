@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Linked to a <see cref="Project"/> and <see cref="ProjectTask"/>. 
     /// Used for costing projects and analyzing efficiency.
     /// </remarks>
-    public class TimeRecord : IEntity
+    public class TimeRecord : BaseEntity
     {
-        /// <summary> Unique primary key for the time entry. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> Optional user ID if the record is linked to a system user. </summary>
         public Guid? UserId { get; set; }

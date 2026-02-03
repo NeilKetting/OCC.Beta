@@ -2,9 +2,9 @@
 
 namespace OCC.Shared.Models
 {
-    public class ProjectVariationOrder : IEntity
+    public class ProjectVariationOrder : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         public Guid ProjectId { get; set; }
         public virtual Project? Project { get; set; }

@@ -63,6 +63,10 @@ namespace OCC.API.Controllers
             try
             {
                 if (record.Id == Guid.Empty) record.Id = Guid.NewGuid();
+                
+                // Calculate hours before saving
+                CalculateHoursWorked(record);
+
                 _context.AttendanceRecords.Add(record);
                 await _context.SaveChangesAsync();
                 
@@ -82,6 +86,9 @@ namespace OCC.API.Controllers
         public async Task<IActionResult> PutAttendanceRecord(Guid id, AttendanceRecord record)
         {
             if (id != record.Id) return BadRequest();
+            // Calculate hours before saving
+            CalculateHoursWorked(record);
+
             _context.Entry(record).State = EntityState.Modified;
 
             try
@@ -146,6 +153,32 @@ namespace OCC.API.Controllers
 
             // Return relative path
             return Ok($"/uploads/notes/{uniqueFileName}");
+        }
+
+        private void CalculateHoursWorked(AttendanceRecord record)
+        {
+            if (record.CheckInTime != null && record.CheckOutTime != null)
+            {
+                var duration = record.CheckOutTime.Value - record.CheckInTime.Value;
+                if (duration.TotalHours > 0)
+                {
+                    // Subtract lunch (standard 45 mins = 0.75 hours) if worked more than 5 hours
+                    double lunchHours = 0;
+                    if (duration.TotalHours > 5)
+                    {
+                        lunchHours = 0.75;
+                    }
+                    record.HoursWorked = Math.Max(0, Math.Round(duration.TotalHours - lunchHours, 2));
+                }
+                else
+                {
+                    record.HoursWorked = 0;
+                }
+            }
+            else
+            {
+                record.HoursWorked = 0;
+            }
         }
     }
 }

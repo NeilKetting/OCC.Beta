@@ -12,7 +12,7 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>OrderLines</c> table.
     /// <b>How:</b> Manages its own change interactions to update UI totals dynamically.
     /// </remarks>
-    public class OrderLine : INotifyPropertyChanged
+    public class OrderLine : BaseEntity, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -25,8 +25,6 @@ namespace OCC.Shared.Models
         private decimal _unitPrice;
         private decimal _lineTotal;
 
-        /// <summary> Unique primary key for the order line. </summary>
-        public Guid Id { get; set; }
 
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
         public Guid OrderId { get; set; }

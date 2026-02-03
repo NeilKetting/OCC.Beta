@@ -6,9 +6,9 @@ namespace OCC.Shared.Models
     /// <summary>
     /// Represents an attachment (image or document) linked to an HSEQ Audit or a specific Non-Compliance Item.
     /// </summary>
-    public class HseqAuditAttachment : IEntity
+    public class HseqAuditAttachment : BaseEntity
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         public Guid AuditId { get; set; }
 

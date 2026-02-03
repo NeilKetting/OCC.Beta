@@ -124,6 +124,9 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private string? _emergencyContactPhone;
 
+        [ObservableProperty]
+        private EmployeeStatus _status = EmployeeStatus.Active;
+
         public void Initialize()
         {
             EmployeeNumber = _model.EmployeeNumber;
@@ -161,6 +164,7 @@ namespace OCC.Client.ModelWrappers
             NextOfKinPhone = _model.NextOfKinPhone;
             EmergencyContactName = _model.EmergencyContactName;
             EmergencyContactPhone = _model.EmergencyContactPhone;
+            Status = _model.Status;
 
             Validate();
         }
@@ -202,6 +206,7 @@ namespace OCC.Client.ModelWrappers
             _model.NextOfKinPhone = NextOfKinPhone;
             _model.EmergencyContactName = EmergencyContactName;
             _model.EmergencyContactPhone = EmergencyContactPhone;
+            _model.Status = Status;
         }
 
         public void Validate() => ValidateAllProperties();

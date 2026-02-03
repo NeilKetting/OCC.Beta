@@ -762,7 +762,7 @@ namespace OCC.Client.Services
              });
 
              // Helper for Main Cards
-             static void StatCard(IContainer c, string title, string value, string bg, string valueColor = null, bool bold = false)
+             static void StatCard(IContainer c, string title, string value, string bg, string? valueColor = null, bool bold = false)
              {
                  c.Background(bg).Border(1).BorderColor(Colors.Grey.Lighten3).Padding(10).Column(col =>
                  {

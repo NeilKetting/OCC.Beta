@@ -56,7 +56,7 @@ namespace OCC.Client.Services
                 AuthorName = (currentUser?.FirstName + " " + currentUser?.LastName)?.Trim() ?? "System",
                 AuthorEmail = currentUser?.Email ?? "",
                 IsDevComment = _permissionService.IsDev,
-                CreatedAt = DateTime.UtcNow
+                CreatedAtUtc = DateTime.UtcNow
             };
 
             var url = $"api/BugReports/{bugId}/comments";

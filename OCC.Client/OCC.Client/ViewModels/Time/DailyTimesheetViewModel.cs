@@ -108,7 +108,7 @@ namespace OCC.Client.ViewModels.Time
                 _allPendingCache.Clear();
                 _allLoggedCache.Clear();
 
-                foreach (var emp in allStaff.OrderBy(e => e.FirstName))
+                foreach (var emp in allStaff.Where(e => e.Status == EmployeeStatus.Active).OrderBy(e => e.FirstName))
                 {
                     // Leave Mapping
                     var leave = approvedLeave.FirstOrDefault(l => l.EmployeeId == emp.Id);

@@ -62,7 +62,7 @@ namespace OCC.API.Controllers
             try
             {
                 if (comment.Id == Guid.Empty) comment.Id = Guid.NewGuid();
-                comment.CreatedAt = DateTime.UtcNow; 
+                comment.CreatedAtUtc = DateTime.UtcNow; 
                 _context.TaskComments.Add(comment);
                 await _context.SaveChangesAsync();
                 

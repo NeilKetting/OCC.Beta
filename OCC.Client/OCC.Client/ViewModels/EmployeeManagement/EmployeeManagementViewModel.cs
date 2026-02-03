@@ -107,6 +107,11 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _notificationService = null!;
             _leaveService = null!;
             _importService = null!;
+            _importService = null!;
+            _timeService = null!;
+            _exportService = null!;
+            _holidayService = null!;
+            _pdfService = null!;
             CurrentContent = this!;
         }
 

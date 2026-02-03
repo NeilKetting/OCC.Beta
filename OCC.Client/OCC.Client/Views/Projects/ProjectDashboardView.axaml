@@ -60,7 +60,7 @@
                     <Border Grid.Column="6" Classes="CardMedium" Background="{DynamicResource WeatheredCementGradient}">
                         <StackPanel Spacing="10">
                             <TextBlock Text="PREDICTED COMPLETION (ETA)" Classes="LabelSmall" Foreground="{DynamicResource TextSecondaryDark}"/>
-                            <TextBlock Text="{Binding EtaDateString}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource OCCOrange}"/>
+                            <TextBlock Text="{Binding EtaDateString}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource Orange}"/>
                             <Border Background="#40FFFFFF" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left">
                                 <TextBlock Text="{Binding EtaStatus}" FontSize="12" FontWeight="SemiBold"/>
                             </Border>

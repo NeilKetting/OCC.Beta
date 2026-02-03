@@ -312,6 +312,7 @@ namespace OCC.Client.ViewModels.Projects
 
             ProjectCreated?.Invoke(this, newProject.Id);
             WeakReferenceMessenger.Default.Send(new ProjectCreatedMessage(newProject));
+            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(NavigationRoutes.Projects));
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
         

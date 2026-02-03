@@ -12,11 +12,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>NotificationDismissals</c> table.
     /// <b>How:</b> Queries check this table before generating dynamic notifications to ensure dismissed items are skipped.
     /// </remarks>
-    public class NotificationDismissal
+    public class NotificationDismissal : BaseEntity
     {
-        /// <summary> Unique primary key for the dismissal record. </summary>
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The ID of the <see cref="User"/> who performed the dismissal. </summary>
         public Guid UserId { get; set; }

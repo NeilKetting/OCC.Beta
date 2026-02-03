@@ -77,7 +77,7 @@ namespace OCC.Client.ViewModels.Time
             _holidayService = holidayService;
             _pdfService = pdfService;
 
-            LoadData();
+            _ = LoadData();
         }
 
         [RelayCommand]
@@ -86,8 +86,8 @@ namespace OCC.Client.ViewModels.Time
             await LoadData();
         }
 
-        partial void OnStartDateChanged(DateTime value) => LoadData();
-        partial void OnEndDateChanged(DateTime value) => LoadData();
+        partial void OnStartDateChanged(DateTime value) { _ = LoadData(); }
+        partial void OnEndDateChanged(DateTime value) { _ = LoadData(); }
 
         public async Task LoadData()
         {

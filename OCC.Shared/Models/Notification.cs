@@ -11,10 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Can be targeted to a specific <see cref="UserId"/>. 
     /// Includes optional <see cref="TargetAction"/> to deep-link to relevant parts of the app.
     /// </remarks>
-    public class Notification : IEntity
+    public class Notification : BaseEntity
     {
-        /// <summary> Unique primary key for the notification. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> The headline or subject of the notification. </summary>
         public string Title { get; set; } = string.Empty;

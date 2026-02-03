@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>HseqDocuments</c> table (metadata only).
     /// <b>How:</b> <see cref="FilePath"/> points to the actual blob storage location.
     /// </remarks>
-    public class HseqDocument : IEntity
+    public class HseqDocument : BaseEntity
     {
-        /// <summary> Unique primary key for the document record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Descriptive name of the document. </summary>
         public string Title { get; set; } = string.Empty;
@@ -36,13 +35,6 @@ namespace OCC.Shared.Models
         /// <summary> Display-friendly file size (e.g. "2.5 MB"). </summary>
         public string FileSize { get; set; } = "0 KB";
 
-        /// <summary> Soft-delete flag. </summary>
-        public bool IsDeleted { get; set; }
 
-        /// <summary> Creation timestamp. </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary> Last modification timestamp. </summary>
-        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -73,7 +73,7 @@ namespace OCC.API.Controllers
 
             // 3. Fetch Attendance for the Period (up to RunDate)
             var attendance = await _context.AttendanceRecords
-                .Where(a => a.Date >= request.StartDate && a.Date <= runDate && !a.IsDeleted)
+                .Where(a => a.Date >= request.StartDate && a.Date <= runDate)
                 .ToListAsync();
 
             // 4. Fetch Previous Finalized Run (for Variance)
@@ -158,8 +158,7 @@ namespace OCC.API.Controllers
                             var pastActualRecords = await _context.AttendanceRecords
                                 .Where(a => a.EmployeeId == emp.Id && 
                                             a.Date >= lastRunProjectedStart && 
-                                            a.Date <= lastRunProjectedEnd &&
-                                            !a.IsDeleted)
+                                            a.Date <= lastRunProjectedEnd)
                                 .ToListAsync();
 
                             double actualHoursInProjectedWindow = 0;

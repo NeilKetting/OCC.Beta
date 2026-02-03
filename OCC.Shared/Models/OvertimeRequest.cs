@@ -13,11 +13,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Linked to an <see cref="Employee"/>. If approved, this may feed into the <see cref="WageRun"/> 
     /// calculations depending on the business rules. Status is tracked using <see cref="LeaveStatus"/> (Pending, Approved, Rejected).
     /// </remarks>
-    public class OvertimeRequest : IEntity
+    public class OvertimeRequest : BaseEntity
     {
-        /// <summary> Unique primary key for the overtime request. </summary>
-        [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign key to the <see cref="Employee"/> requesting overtime. </summary>
         [Required]

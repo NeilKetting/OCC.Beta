@@ -164,7 +164,7 @@ namespace OCC.API.Controllers
             }
 
             comment.BugReportId = id;
-            comment.CreatedAt = DateTime.UtcNow;
+            comment.CreatedAtUtc = DateTime.UtcNow;
             
             // Ensure Author Details
             if (string.IsNullOrEmpty(comment.AuthorName))

@@ -5,14 +5,13 @@
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Home.Shared"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="900"
-             x:Class="OCC.Client.Views.Home.Shared.HomeMenuView"
-             x:DataType="vm:HomeMenuViewModel">
+			 x:Class="OCC.Client.Views.Home.Shared.HomeMenuView"
+			 x:DataType="vm:HomeMenuViewModel">
 
 	<Border Classes="TopBar" Background="{DynamicResource SurfaceLightGray}">
 		<Grid ColumnDefinitions="*,Auto, *, Auto">
-
 			<!-- Menu Buttons Area -->
-			<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">				
+			<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="2">
 				<StackPanel.Resources>
 					<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 				</StackPanel.Resources>

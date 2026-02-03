@@ -11,12 +11,9 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Integrated with the Ordering system. When <see cref="QuantityOnHand"/> falls below <see cref="ReorderPoint"/>, 
     /// the item is flagged as "Low Stock" in the dashboard.
     /// </remarks>
-    public class InventoryItem
+    public class InventoryItem : BaseEntity
     {
-        /// <summary>
-        /// Unique identifier for the inventory item.
-        /// </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary>
         /// Detailed description of the product (e.g., "Cement 50kg").

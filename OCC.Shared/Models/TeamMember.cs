@@ -10,10 +10,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>TeamMembers</c> join table.
     /// <b>How:</b> Many-to-Many relationship facilitator. An employee can belong to multiple teams if business rules allow.
     /// </remarks>
-    public class TeamMember : IEntity
+    public class TeamMember : BaseEntity
     {
-        /// <summary> Unique primary key for the membership record. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
 
         /// <summary> Foreign Key linking to the <see cref="Team"/>. </summary>
         public Guid TeamId { get; set; }

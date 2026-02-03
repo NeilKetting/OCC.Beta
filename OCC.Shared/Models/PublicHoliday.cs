@@ -9,10 +9,9 @@ namespace OCC.Shared.Models
     /// <b>Where:</b> Persisted in the <c>PublicHolidays</c> table.
     /// <b>How:</b> Used by payroll logic to determine overtime rates or paid time off entitlements.
     /// </remarks>
-    public class PublicHoliday : IEntity
+    public class PublicHoliday : BaseEntity
     {
-        /// <summary> Unique primary key for the holiday. </summary>
-        public Guid Id { get; set; } = Guid.NewGuid();
+
         
         /// <summary> The calendar date of the holiday. </summary>
         public DateTime Date { get; set; }
