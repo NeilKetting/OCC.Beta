@@ -139,12 +139,11 @@ namespace OCC.Client.Views.Orders
             {
                 // Delay slightly to ensure focus is settled before opening
                 // FIX: Do not auto-open on focus. It causes glitches when viewing existing orders.
-                /*
+                // Force close to prevent default behavior from opening it if it had a value
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    box.IsDropDownOpen = true;
+                    box.IsDropDownOpen = false;
                 });
-                */
             }
         }
 
