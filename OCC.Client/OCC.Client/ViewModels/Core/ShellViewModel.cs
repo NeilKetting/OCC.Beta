@@ -96,7 +96,28 @@ namespace OCC.Client.ViewModels.Core
         partial void OnCurrentWorkspaceChanged(WorkspaceViewModel? oldValue, WorkspaceViewModel newValue)
         {
             if (oldValue != null) oldValue.IsActive = false;
-            if (newValue != null) newValue.IsActive = true;
+            if (newValue != null) 
+            {
+                newValue.IsActive = true;
+                
+                // Sync SideMenu
+                if (_sideMenuViewModel != null)
+                {
+                    // Special case for 'CreateOrder' which has a unique ID but maps to Orders section
+                    if (newValue.Id.StartsWith("CreateOrder"))
+                    {
+                         _sideMenuViewModel.ActiveSection = Infrastructure.NavigationRoutes.Feature_OrderManagement;
+                    }
+                    else if (newValue.Id == "Beta" || newValue.Id == "ReleaseNotes")
+                    {
+                         // Maintain current or set to specific if needed
+                    }
+                    else
+                    {
+                         _sideMenuViewModel.ActiveSection = newValue.Id;
+                    }
+                }
+            }
         }
 
         [ObservableProperty]
@@ -558,6 +579,11 @@ namespace OCC.Client.ViewModels.Core
                 else
                 {
                     CurrentWorkspace = null!;
+                    // Navigate to Home if all tabs closed? Or stay empty?
+                    // Usually users expect at least one tab or Home. 
+                    // Let's default to Home if everything is closed, or just leave it empty.
+                    // But if we leave it empty, we should probably update SideMenu to something neutral or Home.
+                    NavigateTo(Infrastructure.NavigationRoutes.Home);
                 }
             }
         }

@@ -26,7 +26,7 @@
 								 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
 								 Watermark="Search..."
 								 FilterMode="None"
-								 MinimumPrefixLength="0"
+								 MinimumPrefixLength="1"
 								 KeyUp="ProductBox_KeyUp"
 								 GotFocus="AutoCompleteBox_GotFocus"
 								 SelectionChanged="GridProductBox_SelectionChanged"
@@ -179,8 +179,8 @@
 			Margin="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0"
 			VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 		<Grid RowDefinitions="Auto, Auto, *, Auto">
-			<!-- Shared Menu -->
-			<client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
+			<!-- Shared Menu Removed (Presented by Parent View) --> 
+			<!-- <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/> -->
 			<!-- Header Bar -->
 			<Border Grid.Row="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,5">
 				<Grid ColumnDefinitions="*, Auto">

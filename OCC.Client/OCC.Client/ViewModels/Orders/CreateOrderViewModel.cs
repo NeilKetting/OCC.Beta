@@ -944,6 +944,17 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public void Reset()
         {
+            // Ensure filters are clean immediately
+            _isUpdatingSearchText = true;
+            ProductSearchText = string.Empty;
+            SkuSearchText = string.Empty; 
+            IsProductDropDownOpen = false;
+            IsSkuDropDownOpen = false;
+            _isUpdatingSearchText = false;
+
+            FilteredInventoryItemsByName.Clear();
+            foreach(var item in InventoryItems) FilteredInventoryItemsByName.Add(item);
+            
             _isNewOrder = true;
             CurrentOrder = new OrderWrapper(_orderManager.CreateNewOrderTemplate());
             CurrentOrder.ExpectedDeliveryDate = DateTime.Today;
@@ -976,6 +987,20 @@ namespace OCC.Client.ViewModels.Orders
             {
                 IsBusy = true;
                 _isNewOrder = false;
+
+                // Ensure filters are reset BEFORE binding new data to avoid UI glitches
+                _isUpdatingSearchText = true;
+                ProductSearchText = string.Empty;
+                SkuSearchText = string.Empty;
+                IsProductDropDownOpen = false;
+                IsSkuDropDownOpen = false;
+                _isUpdatingSearchText = false;
+                
+                FilteredInventoryItemsByName.Clear();
+                foreach(var item in InventoryItems) FilteredInventoryItemsByName.Add(item);
+                
+                FilteredInventoryItemsBySku.Clear();
+                foreach(var item in InventoryItems) FilteredInventoryItemsBySku.Add(item);
                 
                 // Fetch full order to ensure all lines are included (List view might only provide summary)
                 var fullOrder = await _orderManager.GetOrderByIdAsync(order.Id) ?? order;

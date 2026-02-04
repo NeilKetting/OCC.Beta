@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using OCC.Client.ViewModels.Orders;
 using Avalonia.VisualTree;
+using Avalonia;
 
 namespace OCC.Client.Views.Orders
 {
@@ -17,6 +18,28 @@ namespace OCC.Client.Views.Orders
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
+            this.DetachedFromVisualTree += OnDetachedFromVisualTree;
+        }
+
+        private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            // Force close any open dropdowns when navigating away
+             if (this.DataContext is CreateOrderViewModel vm)
+             {
+                 // We can't easily iterate the virtualized DataGrid rows, 
+                 // but we can ensure the ViewModel knows to reset any state if needed.
+                 // However, for the AutoCompleteBox popup, it should close if the control is detached.
+                 // If it's "Stuck", it might be because of a bug in Avalonia where Popups don't close on detach.
+                 
+                 // Try to find any open popups in the visual tree (if possible) or just rely on the fact that
+                 // if we change IsDropDownOpen = false on the focused element it might help.
+                 
+                 var focusManager = TopLevel.GetTopLevel(this)?.FocusManager;
+                 if (focusManager?.GetFocusedElement() is AutoCompleteBox box)
+                 {
+                     box.IsDropDownOpen = false;
+                 }
+             }
         }
 
         private void SkuBox_KeyUp(object? sender, KeyEventArgs e)
@@ -92,11 +115,9 @@ namespace OCC.Client.Views.Orders
                             // 1. Focus the box first
                             acBox.Focus();
 
-                            // 2. Ensure VM knows about the text (or lack thereof) so it resets the filter to show all items
+                            // 2. Ensure VM knows about the text so it resets the filter to show all items
                             if (this.DataContext is CreateOrderViewModel vm)
                             {
-                                // If the box text is different from VM (e.g. we moved from another row), sync it.
-                                // If box is empty, this ensures VM clears the filter and shows all items.
                                 var text = acBox.Text ?? string.Empty;
                                 if (vm.ProductSearchText != text)
                                 {
@@ -105,8 +126,10 @@ namespace OCC.Client.Views.Orders
                             }
 
                             // 3. Open the dropdown
-                            // Note: If FilterMode is None and ItemSource is populated, this should work.
-                            acBox.IsDropDownOpen = !acBox.IsDropDownOpen;
+                            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => {
+                               acBox.PopulateComplete(); // Force population of all items
+                               acBox.IsDropDownOpen = true; // Use simple true setter
+                            });
                             break;
                         }
                     }
@@ -135,16 +158,7 @@ namespace OCC.Client.Views.Orders
         }
         private void AutoCompleteBox_GotFocus(object? sender, RoutedEventArgs e)
         {
-            if (sender is AutoCompleteBox box)
-            {
-                // Delay slightly to ensure focus is settled before opening
-                // FIX: Do not auto-open on focus. It causes glitches when viewing existing orders.
-                // Force close to prevent default behavior from opening it if it had a value
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    box.IsDropDownOpen = false;
-                });
-            }
+             // Logic removed to restore dropdown functionality
         }
 
         private void TextBox_GotFocus(object? sender, RoutedEventArgs e)
