@@ -16,7 +16,7 @@ namespace OCC.Client.ViewModels.Orders
     /// Root ViewModel for the Orders module, orchestrating navigation between the dashboard, order list,
     /// inventory management, and supplier directories. Manages complex view states and popup visibility.
     /// </summary>
-    public partial class OrderViewModel : ViewModelBase, IRecipient<OCC.Client.Messages.NavigationRequestMessage>
+    public partial class OrderViewModel : ViewModelBase, IRecipient<OCC.Client.Messages.NavigationRequestMessage>, IRecipient<OCC.Client.ViewModels.Messages.SwitchTabMessage>
     {
         #region Private Members
 
@@ -161,6 +161,11 @@ namespace OCC.Client.ViewModels.Orders
         [RelayCommand]
         public void SetTab(string tabName)
         {
+            // Always close overlays when switching main tabs
+            IsOrderDetailVisible = false;
+            IsSupplierDetailVisible = false;
+            IsReceiveOrderVisible = false;
+
             switch (tabName)
             {
                 case "Dashboard": 
@@ -174,11 +179,11 @@ namespace OCC.Client.ViewModels.Orders
                     break;
                 case "CreateOrder": 
                 case "New Order":
-                    // This creates a new order via the detail popup
+                    // Open as a standard view instead of a popup so navigation remains accessible
                     CreateOrderVM.Reset();
                     CreateOrderVM.IsReadOnly = false;
                     _ = CreateOrderVM.LoadData(); 
-                    IsOrderDetailVisible = true;
+                    CurrentView = CreateOrderVM;
                     break;
                 case "Inventory": 
                     CurrentView = InventoryVM;
@@ -287,6 +292,13 @@ namespace OCC.Client.ViewModels.Orders
         {
             if (message.Value == "CreateOrder") SetTab("CreateOrder");
             if (message.Value == "OrderList") SetTab("OrderList");
+            if (message.Value == "Suppliers") SetTab("Suppliers");
+            if (message.Value == "Inventory") SetTab("Inventory");
+        }
+
+        public void Receive(OCC.Client.ViewModels.Messages.SwitchTabMessage message)
+        {
+             if (message.Value == "Suppliers") SetTab("Suppliers");
         }
 
         #endregion

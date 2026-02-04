@@ -46,6 +46,8 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         [ObservableProperty]
         private int _totalStaff = 0;
 
+        public bool CanImportExport => _authService.CurrentUser?.Email?.Equals("neil@mdk.co.za", StringComparison.OrdinalIgnoreCase) ?? false;
+
         [ObservableProperty]
         private int _permanentCount = 0;
 

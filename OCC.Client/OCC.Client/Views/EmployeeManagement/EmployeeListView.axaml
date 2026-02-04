@@ -28,13 +28,13 @@
 							<TextBlock Text="Add Employee" VerticalAlignment="Center" FontWeight="SemiBold"/>
 						</StackPanel>
 					</Button>
-					<Button Command="{Binding ImportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Import from CSV">
+					<Button Command="{Binding ImportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Import from CSV" IsVisible="{Binding CanImportExport}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconUpload}" Width="16" Height="16"/>
 							<TextBlock Text="Import Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
 						</StackPanel>
 					</Button>
-					<Button Command="{Binding ExportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Export to JSON">
+					<Button Command="{Binding ExportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Export to JSON" IsVisible="{Binding CanImportExport}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
 							<TextBlock Text="Export Data" VerticalAlignment="Center" FontWeight="SemiBold"/>

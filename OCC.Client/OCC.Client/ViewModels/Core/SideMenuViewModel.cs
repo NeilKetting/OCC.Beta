@@ -376,6 +376,14 @@ namespace OCC.Client.ViewModels.Core
                 return;
             }
 
+            if (section == "Suppliers")
+            {
+                UpdateLastActionMessage("Navigating to Suppliers");
+                ActiveSection = "Orders"; // Highlight Orders in sidebar
+                WeakReferenceMessenger.Default.Send(new SwitchTabMessage("Suppliers"));
+                return;
+            }
+
             UpdateLastActionMessage($"Navigating to {section}");
             ActiveSection = section;
             
