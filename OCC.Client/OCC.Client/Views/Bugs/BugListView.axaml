@@ -25,6 +25,8 @@
                         <TextBox Text="{Binding SearchText}" Watermark="Search issues..." Classes="FormInput"/>
                         <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" 
                                   HorizontalAlignment="Stretch"/>
+                        <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SortOption}"
+                                  HorizontalAlignment="Stretch" PlaceholderText="Sort By" />
 
                         <TextBlock Text="{Binding Bugs.Count, StringFormat='{}{0} Issues'}" Classes="LabelXSM"/>
                     </StackPanel>

@@ -1156,15 +1156,15 @@ namespace OCC.Client.ViewModels.Orders
         }
 
         partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
-        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.FullAddress; } }
+        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.StreetLine1; } }
         partial void OnSelectedProjectChanged(Project? value)
         {
              if (value != null)
              {
                  CurrentOrder.ProjectId = value.Id;
                  CurrentOrder.ProjectName = value.Name;
-                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.FullAddress; }
-                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.FullAddress;
+                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.StreetLine1; }
+                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.StreetLine1;
                  OnPropertyChanged(nameof(CurrentOrder));
              }
         }

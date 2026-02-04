@@ -13,7 +13,7 @@
 		<conv:IntToBoolConverter x:Key="IntToBoolConverter"/>
 	</UserControl.Resources>
 
-	<Border Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+	<Border Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Padding="10,10,10,20">
 		<Grid ColumnDefinitions="Auto, Auto, *">
 
 			<!-- LEFT: Project Name and Members -->

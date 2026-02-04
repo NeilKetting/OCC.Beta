@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
@@ -22,6 +23,7 @@ namespace OCC.Client.ViewModels.Bugs
         private readonly IDialogService _dialogService;
         private readonly IPermissionService _permissionService;
         private readonly Microsoft.Extensions.Logging.ILogger<BugListViewModel> _logger;
+        private List<BugReport> _allBugsCache = new();
 
         #endregion
 
@@ -29,8 +31,6 @@ namespace OCC.Client.ViewModels.Bugs
 
         [ObservableProperty]
         private ObservableCollection<BugReport> _bugs = new();
-
-
 
         [ObservableProperty]
         private BugReport? _selectedBug;
@@ -52,6 +52,9 @@ namespace OCC.Client.ViewModels.Bugs
 
         [ObservableProperty]
         private string _statusFilter = "All"; // All, Open, Fixed, Resolved, Closed, Waiting for Client
+        
+        [ObservableProperty]
+        private string _sortOption = "Priority"; // Priority, Date
 
         [ObservableProperty]
         private bool _isImageZoomed;
@@ -59,6 +62,11 @@ namespace OCC.Client.ViewModels.Bugs
         public ObservableCollection<string> StatusFilters { get; } = new() 
         { 
             "All", "Open", "Fixed", "Resolved", "Closed", "Waiting for Client" 
+        };
+        
+        public ObservableCollection<string> SortOptions { get; } = new()
+        {
+            "Priority", "Date"
         };
 
         #endregion
@@ -74,8 +82,6 @@ namespace OCC.Client.ViewModels.Bugs
             _logger = logger;
             
             // Permissions: "Dev" is specifically Neil for commenting purposes now
-            // We use the email check directly here or rely on PermissionService if updated.
-            // Requirement: "Me (neil@mdk.co.za) is the only person who can reply"
             var email = _authService.CurrentUser?.Email?.ToLowerInvariant();
             IsDev = email == "neil@mdk.co.za";
 
@@ -88,39 +94,107 @@ namespace OCC.Client.ViewModels.Bugs
 
         partial void OnSearchTextChanged(string value) => ApplyFilters();
         partial void OnStatusFilterChanged(string value) => ApplyFilters();
+        partial void OnSortOptionChanged(string value) => ApplyFilters();
 
         private void ApplyFilters()
         {
-            if (Bugs == null) return;
+            if (_allBugsCache == null) return;
             
-            // We'll reload from service to get fresh data or just filter locally if we have all data.
-            // Requirement says "Refresh" shouldn't close the view, so let's filter locally if possible
-            // but LoadBugs already fetches from service. Let's make LoadBugs smarter.
-            _ = LoadBugs();
-        }
+            var filteredList = _allBugsCache.AsEnumerable();
 
-        partial void OnSelectedBugChanged(BugReport? value)
-        {
-            IsReporter = value?.ReporterId == _authService.CurrentUser?.Id;
-            
-            if (!string.IsNullOrEmpty(value?.ScreenshotBase64))
+            if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                try
-                {
-                    var bytes = Convert.FromBase64String(value.ScreenshotBase64);
-                    using (var ms = new System.IO.MemoryStream(bytes))
-                    {
-                        SelectedBugScreenshot = new Avalonia.Media.Imaging.Bitmap(ms);
-                    }
-                }
-                catch
-                {
-                    SelectedBugScreenshot = null;
-                }
+                filteredList = filteredList.Where(x => 
+                    x.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
+                    x.ViewName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    x.ReporterName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (StatusFilter != "All")
+            {
+                filteredList = filteredList.Where(x => x.Status == StatusFilter);
+            }
+
+            // sort logic
+            if (SortOption == "Date")
+            {
+                filteredList = filteredList.OrderByDescending(x => x.ReportedDate);
             }
             else
             {
-                SelectedBugScreenshot = null;
+                // Priority Sort
+                Func<string, int> getPriority = (s) => s switch {
+                    "Open" => 0,
+                    "Fixed" => 1,
+                    "Waiting for Client" => 2,
+                    "Resolved" => 3,
+                    "Closed" => 4,
+                    _ => 5
+                };
+                filteredList = filteredList
+                    .OrderBy(x => getPriority(x.Status))
+                    .ThenByDescending(x => x.ReportedDate);
+            }
+
+            Bugs = new ObservableCollection<BugReport>(filteredList);
+        }
+
+        async partial void OnSelectedBugChanged(BugReport? value)
+        {
+            IsReporter = value?.ReporterId == _authService.CurrentUser?.Id;
+            SelectedBugScreenshot = null; // Clear previous first
+
+            if (value != null)
+            {
+                // Optimization: If base64 is null, fetch full details seamlessly
+                // Or if we just want to ensure we have the latest comments etc.
+                // We'll check if we need to fetch. Ideally, the list view items don't have ScreenshotBase64 now.
+                
+                BugReport fullBug = value;
+
+                // If screenshot is missing but we expect one, or just to get comments freshly
+                // The list view didn't include comments either in my API optimization? 
+                // Wait, I only removed ScreenshotBase64. Comments were Included. 
+                // But let's be safe and fetch fresh details to be sure.
+                
+                // Only fetch if we suspect missing data or want fresh data without reloading list
+                // For now, let's always fetch detail to support the "Light List" architecture
+                try 
+                {
+                    var fresh = await _bugService.GetBugReportAsync(value.Id);
+                    if (fresh != null)
+                    {
+                        // Update the object in the list OR just use it for display?
+                        // If we update the object in the list, it might trigger this again if we replace the reference.
+                        // Better to just update properties of the reference in the list, or keep a separate "DetailedBug" property.
+                        // But existing UI binds to SelectedBug. Let's update its properties.
+                        value.Comments = fresh.Comments;
+                        value.ScreenshotBase64 = fresh.ScreenshotBase64;
+                        value.Status = fresh.Status;
+                        // Don't replace 'value' reference, just update content.
+                        fullBug = value; // Update reference for local logic
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error fetching bug details: {ex.Message}");
+                }
+
+                if (!string.IsNullOrEmpty(fullBug.ScreenshotBase64))
+                {
+                    try
+                    {
+                        var bytes = Convert.FromBase64String(fullBug.ScreenshotBase64);
+                        using (var ms = new System.IO.MemoryStream(bytes))
+                        {
+                            SelectedBugScreenshot = new Avalonia.Media.Imaging.Bitmap(ms);
+                        }
+                    }
+                    catch
+                    {
+                        SelectedBugScreenshot = null;
+                    }
+                }
             }
         }
 
@@ -134,36 +208,8 @@ namespace OCC.Client.ViewModels.Bugs
                 var previousId = SelectedBug?.Id;
                 var list = await _bugService.GetBugReportsAsync();
                 
-                // Sort Priority
-                Func<string, int> getPriority = (s) => s switch {
-                    "Open" => 0,
-                    "Fixed" => 1,
-                    "Waiting for Client" => 2,
-                    "Resolved" => 3,
-                    "Closed" => 4,
-                    _ => 5
-                };
-
-                var filteredList = list.AsEnumerable();
-
-                if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    filteredList = filteredList.Where(x => 
-                        x.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) || 
-                        x.ViewName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                        x.ReporterName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
-                }
-
-                if (StatusFilter != "All")
-                {
-                    filteredList = filteredList.Where(x => x.Status == StatusFilter);
-                }
-
-                var sortedList = filteredList
-                    .OrderBy(x => getPriority(x.Status))
-                    .ThenByDescending(x => x.ReportedDate);
-
-                Bugs = new ObservableCollection<BugReport>(sortedList);
+                _allBugsCache = list;
+                ApplyFilters();
                 
                 if (previousId.HasValue)
                 {
@@ -186,6 +232,51 @@ namespace OCC.Client.ViewModels.Bugs
             }
         }
 
+        private async Task RefreshSelectedBug()
+        {
+            if (SelectedBug == null) return;
+            try 
+            {
+                var fresh = await _bugService.GetBugReportAsync(SelectedBug.Id);
+                if (fresh != null)
+                {
+                    // Update properties that might have changed
+                    SelectedBug.Comments = fresh.Comments;
+                    SelectedBug.Status = fresh.Status;
+                    SelectedBug.ScreenshotBase64 = fresh.ScreenshotBase64; // Restore if needed
+                    
+                    // Force refresh of binding if needed (PropertyChanged?)
+                    // Since SelectedBug is an ObservableObject ideally, these would notify. 
+                    // But BugReport is just a POCO BaseEntity.
+                    // We might need to manually notify or replace the item in the collection if we want the List row to update status color.
+                    
+                    var index = _allBugsCache.FindIndex(b => b.Id == fresh.Id);
+                    if (index >= 0)
+                    {
+                         _allBugsCache[index] = fresh; // Update cache
+                    }
+                    
+                    // Update ObservableCollection
+                    var obsItem = Bugs.FirstOrDefault(b => b.Id == fresh.Id);
+                    if (obsItem != null)
+                    {
+                         // Manually update properties for UI if binding to object directly
+                         obsItem.Status = fresh.Status;
+                         obsItem.Comments = fresh.Comments;
+                         // Triggers? Collections don't observe property changes of items unless items implement INotifyPropertyChanged
+                         // Simple hack: Replace the item in the collection to force UI update
+                         var obsIndex = Bugs.IndexOf(obsItem);
+                         Bugs[obsIndex] = fresh;
+                         SelectedBug = fresh; // Reselect to keep detail view happy
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Refesh error: {ex.Message}");
+            }
+        }
+
         [RelayCommand]
         private async Task SendComment()
         {
@@ -201,7 +292,7 @@ namespace OCC.Client.ViewModels.Bugs
 
                 await _bugService.AddCommentAsync(SelectedBug.Id, NewCommentText, null);
                 NewCommentText = string.Empty;
-                await LoadBugs();
+                await RefreshSelectedBug(); // OPTIMIZATION: Only refresh this bug
             }
             catch (Exception ex)
             {
@@ -215,7 +306,7 @@ namespace OCC.Client.ViewModels.Bugs
             if (SelectedBug == null || !IsDev) return;
             var text = "Developer requested more information.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Waiting for Client");
-            await LoadBugs();
+            await RefreshSelectedBug();
         }
 
         [RelayCommand]
@@ -224,18 +315,16 @@ namespace OCC.Client.ViewModels.Bugs
             if (SelectedBug == null || !IsDev) return;
             var text = "Developer marked this issue as Fixed. Please verify and mark as Resolved.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Fixed");
-            await LoadBugs();
+            await RefreshSelectedBug();
         }
 
         [RelayCommand]
         private async Task CloseBug()
         {
-            // Only Dev (Neil) can close/reply as per strict instructions
             if (SelectedBug == null || !IsDev) return;
-            
             var text = "Developer closed the bug.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Closed");
-            await LoadBugs();
+            await RefreshSelectedBug();
         }
 
         [RelayCommand]
@@ -249,7 +338,7 @@ namespace OCC.Client.ViewModels.Bugs
              try
              {
                  await _bugService.DeleteBugAsync(SelectedBug.Id);
-                 await LoadBugs();
+                 await LoadBugs(); // Deletion still needs full reload to remove from list correctly/safely
                  SelectedBug = null;
              }
              catch(Exception ex)
@@ -264,7 +353,7 @@ namespace OCC.Client.ViewModels.Bugs
             if (SelectedBug == null) return;
             var text = $"{_authService.CurrentUser?.FirstName ?? "Reporter"} marked this issue as Resolved.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Resolved");
-            await LoadBugs();
+            await RefreshSelectedBug();
         }
 
         [RelayCommand]
@@ -273,7 +362,7 @@ namespace OCC.Client.ViewModels.Bugs
             if (SelectedBug == null) return;
             var text = $"{_authService.CurrentUser?.FirstName ?? "Reporter"} marked this issue as Still Broken.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Open");
-            await LoadBugs();
+            await RefreshSelectedBug();
         }
 
         [RelayCommand]

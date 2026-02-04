@@ -88,7 +88,7 @@ namespace OCC.Client.ViewModels.HealthSafety
         [RelayCommand]
         private async Task PickFile()
         {
-            var path = await _dialogService.PickFileAsync("Select Document", new[] { "pdf", "docx", "xlsx", "jpg", "png" });
+            var path = await _dialogService.PickFileAsync("Select Document", new[] { "*.pdf", "*.docx", "*.xlsx", "*.jpg", "*.png" });
             if (!string.IsNullOrEmpty(path))
             {
                 SelectedFilePath = path;

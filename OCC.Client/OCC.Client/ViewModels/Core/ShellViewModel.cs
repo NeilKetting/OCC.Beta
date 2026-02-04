@@ -391,10 +391,10 @@ namespace OCC.Client.ViewModels.Core
         [RelayCommand]
         public async Task About()
         {
-             await _dialogService.ShowAlertAsync("About OCC Client", 
-                 "Orange Circle Construction Client\n\n" +
-                 "Version: 1.0.0 (Beta)\n" +
-                 "Developed by: Deepmind Agent\n\n" + 
+             await _dialogService.ShowAlertAsync("About ", 
+                 "Orange Circle Construction\n\n" +
+                 "Version: 1.6.0 (Beta)\n" +
+                 "Developed by: Origize63\n\n" +
                  "© 2026 Orange Circle Construction");
         }
 

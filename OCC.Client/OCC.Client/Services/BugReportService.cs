@@ -45,6 +45,19 @@ namespace OCC.Client.Services
             return await _httpClient.GetFromJsonAsync<List<BugReport>>("api/BugReports") ?? new List<BugReport>();
         }
 
+        public async Task<BugReport?> GetBugReportAsync(Guid id)
+        {
+            EnsureAuthorization();
+            try 
+            {
+                return await _httpClient.GetFromJsonAsync<BugReport>($"api/BugReports/{id}");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+        }
+
         public async Task AddCommentAsync(Guid bugId, string comment, string? status)
         {
             EnsureAuthorization();

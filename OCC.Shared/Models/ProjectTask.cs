@@ -151,8 +151,6 @@ namespace OCC.Shared.Models
         /// <summary> Legacy property to support old database schema. </summary>
         public string AssignedTo { get; set; } = string.Empty;
 
-        /// <summary> Legacy property to support old database schema (typo in original schema). </summary>
-        public long? PlanedDurationHours { get; set; } = 0;
         #endregion
 
         #region Geofencing

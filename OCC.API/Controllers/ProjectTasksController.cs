@@ -114,8 +114,7 @@ namespace OCC.API.Controllers
                 TaskHelper.EnsureUtcDates(task);
 
                 // Legacy column protection
-                task.AssignedTo ??= string.Empty;
-                task.PlanedDurationHours ??= 0;
+                task.PlannedDurationHours ??= TimeSpan.Zero;
 
                 _context.ProjectTasks.Add(task);
                 await _context.SaveChangesAsync();

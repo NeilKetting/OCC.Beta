@@ -1,32 +1,28 @@
 using OCC.API.Data;
 using OCC.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace OCC.API.Data
 {
     public static class DbInitializer
     {
-        public static void Initialize(AppDbContext context, OCC.API.Services.PasswordHasher hasher, bool isDevelopment)
+        public static void Initialize(AppDbContext context, OCC.API.Services.PasswordHasher hasher, bool isDevelopment, ILogger logger)
         {
             // Prepare DB (Apply Migrations)
+            logger.LogInformation("Checking for pending migrations...");
             context.Database.Migrate();
-
-            // Look for any users.
-            /* 
-             * Previous check: if (context.Users.Any()) return; 
-             * This prevents seeding if ANY user exists (e.g. invalid test users).
-             * We will now explicitly ensure the Admin user exists.
-             */
 
             var adminEmail = "neil@mdk.co.za";
             var adminUser = context.Users.FirstOrDefault(u => u.Email == adminEmail);
 
             if (adminUser == null)
             {
+                logger.LogInformation("Seeding default admin user...");
                 adminUser = new User
                 {
                     Email = adminEmail,
-                    Password = hasher.HashPassword("pass"), // Hashed Password
+                    Password = hasher.HashPassword("pass"),
                     FirstName = "Neil",
                     LastName = "Admin",
                     UserRole = UserRole.Admin,
@@ -36,19 +32,7 @@ namespace OCC.API.Data
                 context.Users.Add(adminUser);
                 context.SaveChanges();
             }
-            else
-            {
-                // Optional: Ensure password matches "pass" hash if debugging, 
-                // but usually we don't overwrite passwords in prod. 
-                // For this dev request: "Can we not seed me as a user created with password hash?"
-                // Implicitly implies valid user should exist. 
-                // If the user forgot their password (likely "pass" logic from failsafe), 
-                // we could force reset it here, but that's aggressive.
-                // Assuming existence is enough given the failsafe removal.
-            }
 
-            // Ensure Admin User is linked to Admin Employee (if exists)
-            // This is crucial for "My Summary" filtering verification
             var adminEmployee = context.Employees.FirstOrDefault(e => e.Email == adminEmail);
             if (adminEmployee != null && adminEmployee.LinkedUserId != adminUser.Id)
             {
@@ -56,47 +40,26 @@ namespace OCC.API.Data
                 context.SaveChanges();
             }
 
-            // Other default users if needed...
-            // Other default users if needed...
-            
             if (isDevelopment)
             {
-               Console.WriteLine($"[Seeding] Environment is Development. Seeding checks initiating...");
-               // SAFETY LOCK: Commented out to prevent accidental production seeding.
-               // Uncomment these manually only if you intend to wipe/seed a DEV database.
-               // SeedEmployees(context);
-               // SeedAttendance(context);
+                logger.LogInformation("Environment is Development. Starting comprehensive seeding...");
+                SeedEmployees(context, logger);
+                SeedAttendance(context, logger);
+                SeedProjects(context, logger);
             }
             else
             {
-               Console.WriteLine($"[Seeding] Skipped: Not in Development Environment.");
+                logger.LogInformation("Skipped: Not in Development Environment.");
             }
-
-            if (context.Users.Count() > 1) return; // If more than just our admin, skip rest
-
-            var users = new User[]
-            {
-                // ... add other seed users here if requested ...
-            };
-            // Note: The original returned early, so users array was never reached if Any() was true.
-            // Keeping it simple.
-
-            foreach (User u in users)
-            {
-                context.Users.Add(u);
-            }
-            
-            context.SaveChanges();
         }
 
-        private static void SeedEmployees(AppDbContext context)
+        private static void SeedEmployees(AppDbContext context, ILogger logger)
         {
             int currentCount = context.Employees.Count();
-            Console.WriteLine($"[Seeding] Current Employee Count: {currentCount}");
-            if (currentCount >= 20) 
+            if (currentCount >= 20)
             {
-                Console.WriteLine($"[Seeding] Sufficient employees exist. Skipping Employee Seed.");
-                return; 
+                logger.LogInformation("Sufficient employees exist ({Count}). Skipping Employee Seed.", currentCount);
+                return;
             }
 
             var random = new Random();
@@ -104,9 +67,8 @@ namespace OCC.API.Data
             var lastNames = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin" };
             var roles = (EmployeeRole[])Enum.GetValues(typeof(EmployeeRole));
             
-            var existingCount = context.Employees.Count();
-            var toAdd = 20 - existingCount;
-            Console.WriteLine($"[Seeding] Adding {toAdd} dummy employees...");
+            int toAdd = 20 - currentCount;
+            logger.LogInformation("Adding {Count} dummy employees...", toAdd);
 
             for (int i = 0; i < toAdd; i++)
             {
@@ -118,121 +80,78 @@ namespace OCC.API.Data
                 {
                     FirstName = fn,
                     LastName = ln,
-                    EmployeeNumber = $"EMP{existingCount + i + 100:000}",
-                    IdNumber = $"{random.Next(100000, 999999)}{random.Next(1000, 9999)}08{random.Next(1, 9)}", // Fake ID
+                    EmployeeNumber = $"EMP{currentCount + i + 100:000}",
+                    IdNumber = $"{random.Next(100000, 999999)}{random.Next(1000, 9999)}08{random.Next(1, 9)}",
                     Email = $"{fn.ToLower()}.{ln.ToLower()}{random.Next(1,99)}@example.com",
                     Phone = $"08{random.Next(10000000, 99999999)}",
                     Role = role,
-                    HourlyRate = random.Next(25, 150), // R25 - R150 per hour
+                    HourlyRate = random.Next(25, 150),
                     Branch = random.NextDouble() > 0.5 ? "Johannesburg" : "Cape Town",
                     EmploymentType = EmploymentType.Permanent,
                     ShiftStartTime = new TimeSpan(7, 0, 0),
                     ShiftEndTime = new TimeSpan(16, 45, 0)
                 };
-
                 context.Employees.Add(emp);
             }
-            context.SaveChanges(); // Save here to get Ids for Attendance
-            Console.WriteLine($"[Seeding] Employees saved.");
+            context.SaveChanges();
+            logger.LogInformation("Employees seeded successfully.");
         }
 
-        private static void SeedAttendance(AppDbContext context)
+        private static void SeedAttendance(AppDbContext context, ILogger logger)
         {
-            Console.WriteLine($"[Seeding] Seeding Attendance History...");
             var employees = context.Employees.ToList();
-            if (!employees.Any()) 
+            if (!employees.Any()) return;
+
+            var existingCount = context.AttendanceRecords.Count();
+            if (existingCount > 100)
             {
-                Console.WriteLine($"[Seeding] No employees found to seed attendance for.");
-                return;
+                 logger.LogInformation("Attendance records already exist ({Count}). skipping.", existingCount);
+                 return;
             }
 
-            // Optimization: Fetch existing composite keys to memory to avoid N+1 DB calls
-            // Note: Date comparison in SQL vs C# can be tricky, ensuring .Date stripping
+            logger.LogInformation("Seeding Attendance History...");
             var existingKeys = context.AttendanceRecords
                 .Select(a => new { a.EmployeeId, Date = a.Date })
-                .AsEnumerable() // Execute query
-                .Select(x => $"{x.EmployeeId}|{x.Date.Date:yyyyMMdd}") // Create efficient key
+                .AsEnumerable()
+                .Select(x => $"{x.EmployeeId}|{x.Date.Date:yyyyMMdd}")
                 .ToHashSet();
 
-            Console.WriteLine($"[Seeding] Found {existingKeys.Count} existing attendance records.");
-
             var random = new Random();
-            var startDate = DateTime.Today.AddDays(-60); // Cover "Last Month" fully
+            var startDate = DateTime.Today.AddDays(-60);
             var endDate = DateTime.Today;
-
             int recordsAdded = 0;
 
             foreach (var emp in employees)
             {
-               // Reduced skip chance: 5%
-                if (random.NextDouble() > 0.95) 
-                {
-                    Console.WriteLine($"[Seeding] Skipping random employee: {emp.DisplayName}");
-                    continue; 
-                }
+                if (random.NextDouble() > 0.95) continue; 
 
                 for (var date = startDate; date <= endDate; date = date.AddDays(1))
                 {
-                    // Skip weekends
                     if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) continue;
-
-                    // Check for existing record using In-Memory Hash Set
-                    string key = $"{emp.Id}|{date:yyyyMMdd}";
-                    if (existingKeys.Contains(key)) continue;
-
-                    // 10% chance of being absent (no record)
+                    if (existingKeys.Contains($"{emp.Id}|{date:yyyyMMdd}")) continue;
                     if (random.NextDouble() > 0.90) continue;
 
-                    // Determine Shift Times
                     var shiftStart = emp.ShiftStartTime ?? new TimeSpan(7, 0, 0);
-                    var shiftEnd = emp.ShiftEndTime ?? new TimeSpan(16, 45, 0); // Default end
-
-                    // Randomize Arrival: 80% On Time, 20% Late
-                    TimeSpan arrival;
-                    if (random.NextDouble() > 0.2)
-                    {
-                        // On Time (arrive 0-15 mins early)
-                        arrival = shiftStart.Subtract(TimeSpan.FromMinutes(random.Next(0, 15)));
-                    }
-                    else
-                    {
-                        // Late (arrive 5-45 mins late)
-                        arrival = shiftStart.Add(TimeSpan.FromMinutes(random.Next(5, 45)));
-                    }
-
-                    // Randomize Departure: 90% On Time/Late, 10% Early
-                    TimeSpan departure;
-                    if (random.NextDouble() > 0.1)
-                    {
-                        // Leave 0-30 mins after shift end
-                        departure = shiftEnd.Add(TimeSpan.FromMinutes(random.Next(0, 30)));
-                    }
-                    else
-                    {
-                         // Leave Early (e.g. 15:30)
-                         departure = shiftEnd.Subtract(TimeSpan.FromMinutes(random.Next(15, 60)));
-                    }
+                    var shiftEnd = emp.ShiftEndTime ?? new TimeSpan(16, 45, 0);
+                    TimeSpan arrival = random.NextDouble() > 0.2 ? shiftStart.Subtract(TimeSpan.FromMinutes(random.Next(0, 15))) : shiftStart.Add(TimeSpan.FromMinutes(random.Next(5, 45)));
+                    TimeSpan departure = random.NextDouble() > 0.1 ? shiftEnd.Add(TimeSpan.FromMinutes(random.Next(0, 30))) : shiftEnd.Subtract(TimeSpan.FromMinutes(random.Next(15, 60)));
 
                     var checkIn = date.Add(arrival);
                     var checkOut = date.Add(departure);
-                    
-                    var duration = (checkOut - checkIn).TotalHours;
-                    if (duration < 0) duration = 0;
+                    var duration = Math.Max(0, (checkOut - checkIn).TotalHours);
 
-                    var record = new AttendanceRecord
+                    context.AttendanceRecords.Add(new AttendanceRecord
                     {
                         EmployeeId = emp.Id,
                         Date = date,
                         CheckInTime = checkIn,
                         CheckOutTime = checkOut,
-                        ClockInTime = arrival, // TimeSpan
+                        ClockInTime = arrival,
                         Status = (arrival > shiftStart) ? AttendanceStatus.Late : AttendanceStatus.Present,
                         Branch = emp.Branch,
                         CachedHourlyRate = (decimal)emp.HourlyRate,
                         HoursWorked = duration
-                    };
-
-                    context.AttendanceRecords.Add(record);
+                    });
                     recordsAdded++;
                 }
             }
@@ -240,12 +159,60 @@ namespace OCC.API.Data
             if (recordsAdded > 0)
             {
                 context.SaveChanges();
-                Console.WriteLine($"[Seeding] Attendance Records Added and Saved: {recordsAdded}");
+                logger.LogInformation("Added {Count} attendance records.", recordsAdded);
             }
-            else
+        }
+
+        private static void SeedProjects(AppDbContext context, ILogger logger)
+        {
+            if (context.Projects.Any()) 
             {
-                Console.WriteLine($"[Seeding] No new records needed to be added.");
+                logger.LogInformation("Projects already exist. Skipping project seed.");
+                return;
             }
+
+            SeedCustomers(context, logger);
+            SeedSuppliers(context, logger);
+
+            var customer = context.Customers.First();
+            var projects = new List<Project>
+            {
+                new Project { Name = "Engen Bendor", Description = "Fuel station renovation", StartDate = DateTime.Today.AddDays(-30), EndDate = DateTime.Today.AddDays(60), CustomerId = customer.Id, Status = "Active", Priority = "High", StreetLine1 = "123 Bendor Drive", City = "Polokwane", Country = "South Africa" },
+                new Project { Name = "Mall of North", Description = "Expansion project", StartDate = DateTime.Today.AddDays(-10), EndDate = DateTime.Today.AddDays(180), CustomerId = customer.Id, Status = "Active", Priority = "Medium", StreetLine1 = "456 Mall St", City = "Polokwane", Country = "South Africa" },
+                new Project { Name = "Savannah Office", Description = "New office complex", StartDate = DateTime.Today.AddDays(-60), EndDate = DateTime.Today.AddDays(-5), CustomerId = customer.Id, Status = "Completed", Priority = "Low", StreetLine1 = "789 Savannah Rd", City = "Polokwane", Country = "South Africa" }
+            };
+
+            foreach(var p in projects) context.Projects.Add(p);
+            context.SaveChanges();
+            logger.LogInformation("Projects seeded successfully.");
+            SeedInventory(context, logger);
+        }
+
+        private static void SeedCustomers(AppDbContext context, ILogger logger)
+        {
+            if (context.Customers.Any()) return;
+            context.Customers.Add(new Customer { Name = "Total Energies", Header = "TotalEnergies", Email = "contact@total.com", Phone = "0112223333", Address = "Johannesburg, SA" });
+            context.Customers.Add(new Customer { Name = "Standard Bank", Header = "StandardBank", Email = "procure@standardbank.co.za", Phone = "0114445555", Address = "Simmonds St, JHB" });
+            context.SaveChanges();
+            logger.LogInformation("Customers seeded.");
+        }
+
+        private static void SeedSuppliers(AppDbContext context, ILogger logger)
+        {
+            if (context.Suppliers.Any()) return;
+            context.Suppliers.Add(new Supplier { Name = "BuildIt", Address = "123 Build St", City = "Polokwane", PostalCode = "0700", Phone = "0151112222", Email = "sales@buildit.co.za", ContactPerson = "Builders", BranchCode = "001", SupplierAccountNumber = "ACC001", BankName = "FNB", BankAccountNumber = "123456789", VatNumber = "1234567890" });
+            context.Suppliers.Add(new Supplier { Name = "PPC Cement", Address = "456 PPC Way", City = "Johannesburg", PostalCode = "2000", Phone = "0113334444", Email = "orders@ppc.co.za", ContactPerson = "Cement Guy", BranchCode = "002", SupplierAccountNumber = "ACC002", BankName = "Nedbank", BankAccountNumber = "987654321", VatNumber = "0987654321" });
+            context.SaveChanges();
+            logger.LogInformation("Suppliers seeded.");
+        }
+
+        private static void SeedInventory(AppDbContext context, ILogger logger)
+        {
+            if (context.InventoryItems.Any()) return;
+            context.InventoryItems.Add(new InventoryItem { Description = "Cement 50kg PPC", Sku = "CEM-50-PPC", UnitOfMeasure = "Bag", Category = "Building", AverageCost = 110, Price = 150, QuantityOnHand = 100, JhbReorderPoint = 20, CptReorderPoint = 10, Supplier = "PPC Cement", Location = "JHB" });
+            context.InventoryItems.Add(new InventoryItem { Description = "Red Brick", Sku = "BRK-RED", UnitOfMeasure = "ea", Category = "Building", AverageCost = 2.5m, Price = 4.5m, QuantityOnHand = 5000, JhbReorderPoint = 1000, CptReorderPoint = 500, Supplier = "BuildIt", Location = "CPT" });
+            context.SaveChanges();
+            logger.LogInformation("Inventory seeded.");
         }
     }
 }

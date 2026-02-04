@@ -45,6 +45,8 @@ namespace OCC.Client.Services
                 var topLevel = TopLevel.GetTopLevel(desktop.MainWindow);
                 if (topLevel == null) return null;
 
+                var patterns = extensions?.Select(e => e.StartsWith("*.") ? e : $"*.{e.TrimStart('.')}").ToList();
+
                 var options = new FilePickerOpenOptions
                 {
                     Title = title,
@@ -53,8 +55,9 @@ namespace OCC.Client.Services
                     {
                         new FilePickerFileType("Supported Files")
                         {
-                             Patterns = extensions?.ToList() 
-                        }
+                             Patterns = patterns
+                        },
+                        FilePickerFileTypes.All
                     }
                 };
 

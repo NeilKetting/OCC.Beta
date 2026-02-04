@@ -52,9 +52,15 @@ namespace OCC.API.Controllers
                 query = query.Where(b => b.Status != "Closed");
             }
 
-            return await query
+            var list = await query
                 .OrderByDescending(b => b.ReportedDate)
+                .AsNoTracking()
                 .ToListAsync();
+
+            // Optimization: Don't send heavy screenshots in the list view
+            list.ForEach(b => b.ScreenshotBase64 = null);
+
+            return list;
         }
 
         // GET: api/BugReports/5

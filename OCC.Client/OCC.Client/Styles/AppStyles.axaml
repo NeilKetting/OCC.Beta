@@ -322,6 +322,14 @@
 
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
 	</Style>
+
+	<!-- Fix: Force TextBlock & Icon to inherit foreground from the button, overriding global styles -->
+	<Style Selector="Button.MenuTabButton TextBlock">
+		<Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
+	</Style>
+	<Style Selector="Button.MenuTabButton PathIcon">
+		<Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
+	</Style>
 	<Style Selector="Button.MenuTabButton:pressed /template/ ContentPresenter">
 		<Setter Property="Opacity" Value="0.8"/>
 		<Setter Property="RenderTransform" Value="scale(0.95)"/>
@@ -330,8 +338,8 @@
 		<Setter Property="Background" Value="{DynamicResource Orange}"/>
 		<Setter Property="Foreground" Value="White"/>
 	</Style>
-	<!-- Ensure Icon Inherits Foreground on Hover -->
-	<Style Selector="Button.MenuTabButton:pointerover PathIcon">
+	<!-- Ensure Button Content Icon Inherits Foreground on Hover - Use more specific selector to avoid Flyout inheritance -->
+	<Style Selector="Button.MenuTabButton:pointerover > StackPanel PathIcon">
 		<Setter Property="Foreground" Value="White"/>
 	</Style>
 
@@ -339,8 +347,8 @@
 		<Setter Property="Background" Value="{DynamicResource Orange}"/>
 		<Setter Property="Foreground" Value="White"/>
 	</Style>
-	<!-- Ensure Icon Inherits Foreground on Active -->
-	<Style Selector="Button.MenuTabButton.Active PathIcon">
+	<!-- Ensure Button Content Icon Inherits Foreground on Active - Use more specific selector to avoid Flyout inheritance -->
+	<Style Selector="Button.MenuTabButton.Active > StackPanel PathIcon">
 		<Setter Property="Foreground" Value="White"/>
 	</Style>
 
@@ -613,6 +621,11 @@
         <Setter Property="Padding" Value="10,4"/>
 
         <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}"/> 
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+    </Style>
+
+    <!-- Ensure MenuItem Icons are dark even if nested in an active header button -->
+    <Style Selector="MenuItem PathIcon">
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
     </Style>
     

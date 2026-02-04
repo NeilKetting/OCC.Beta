@@ -205,7 +205,8 @@
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                  <!-- Main Report View -->
                  <views:EmployeeReportView DataContext="{Binding EmployeeReportPopup}" 
-                                           Width="1000" Height="750"
+                                           MaxWidth="1100" MaxHeight="850"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Background="White"
                                            CornerRadius="8"/>
                  
