@@ -31,9 +31,13 @@ namespace OCC.Client.ViewModels.Settings
         #region Observables
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayName))]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private string _firstName = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayName))]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private string _lastName = string.Empty;
 
         [ObservableProperty]
@@ -57,10 +61,22 @@ namespace OCC.Client.ViewModels.Settings
         [ObservableProperty]
         private bool _isEmailVerified;
 
-
-
         [ObservableProperty]
         private string _saveButtonText = "Create User";
+
+
+
+        public new string Title
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(DisplayName))
+                {
+                    return _existingUserId.HasValue ? "Edit User" : "Create User";
+                }
+                return DisplayName;
+            }
+        }
 
 
 
@@ -79,7 +95,6 @@ namespace OCC.Client.ViewModels.Settings
         public UserDetailViewModel(IRepository<User> userRepository)
         {
             _userRepository = userRepository;
-            Title = "Create User";
         }
 
         public UserDetailViewModel()
@@ -178,7 +193,6 @@ namespace OCC.Client.ViewModels.Settings
             if (user == null) return;
 
             _existingUserId = user.Id;
-            Title = "Edit User";
             SaveButtonText = "Save Changes";
 
             FirstName = user.FirstName;

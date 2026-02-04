@@ -79,13 +79,8 @@
                   GridLinesVisibility="Horizontal"
                   Background="White"
                   BorderThickness="0"
-                  SelectedItem="{Binding SelectedOrder}">
-
-            <Interaction.Behaviors>
-                <EventTriggerBehavior EventName="DoubleTapped">
-                    <InvokeCommandAction Command="{Binding ViewOrderCommand}" CommandParameter="{Binding SelectedOrder}"/>
-                </EventTriggerBehavior>
-            </Interaction.Behaviors>
+                  SelectedItem="{Binding SelectedOrder}"
+                  DoubleTapped="DataGrid_DoubleTapped">
             
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>

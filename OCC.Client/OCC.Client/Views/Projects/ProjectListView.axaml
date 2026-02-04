@@ -92,32 +92,8 @@
                   HorizontalGridLinesBrush="{DynamicResource BorderGray}"
                   BorderThickness="0"
                   RowHeight="60"
-                  Margin="0">
-            
-            <!-- Fix: Move DoubleTapped to Row Style for better hit testing -->
-            <DataGrid.Styles>
-                <Style Selector="DataGridRow">
-                    <!-- Note: In Avalonia 11, we might need a different approach if Behaviors inside Styles aren't fully supported,
-                         but usually adding a handler in code-behind or using Tapped event is safer.
-                         Let's try sticking to Behaviors but attached to the DataGrid itself usually works IF SelectionMode allows it.
-                         However, user says "lost functionality", implies it WAS working.
-                         The issue might be IsReadOnly="True" or SelectionMode interactions.
-                         Alternative: Use Tapped event and check click count.
-                    -->
-                </Style>
-            </DataGrid.Styles>
-            
-            <Interaction.Behaviors>
-                <EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #Grid}">
-                     <!-- Explicitly binding SourceObject might help, or we can use the Tapped event with checking click count in code behind if this fails again.
-                          But let's try to restore the standard behavior.
-                          Actually, DoubleTapped on DataGrid works best if we don't block it.
-                          Let's try re-adding it but ensure the CommandParameter is correct.
-                          The previous code passed {Binding SelectedProject}.
-                     -->
-                    <InvokeCommandAction Command="{Binding OpenProjectCommand}" CommandParameter="{Binding SelectedProject}"/>
-                </EventTriggerBehavior>
-            </Interaction.Behaviors>
+                  Margin="0"
+                  DoubleTapped="DataGrid_DoubleTapped">
             
 
 

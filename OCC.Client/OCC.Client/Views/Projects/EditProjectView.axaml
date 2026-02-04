@@ -15,8 +15,8 @@
             <!-- Header -->
             <Grid ColumnDefinitions="*, Auto" Grid.Row="0" Margin="0,0,0,25">
                 <StackPanel>
-                    <TextBlock Text="Edit Project" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                    <TextBlock Text="{Binding Project.Name}" FontSize="13" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    <TextBlock Text="{Binding Project.Name}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                    <TextBlock Text="Edit Project" FontSize="13" Foreground="{DynamicResource TextSecondaryGray}"/>
                 </StackPanel>
                 <Button Grid.Column="1" Command="{Binding CancelCommand}" Classes="Close">
                     <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>

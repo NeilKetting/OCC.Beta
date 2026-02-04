@@ -44,6 +44,7 @@ namespace OCC.Client.ViewModels.EmployeeManagement
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        [NotifyPropertyChangedFor(nameof(DisplayName))]
         private EmployeeWrapper _wrapper = null!;
 
         [ObservableProperty]

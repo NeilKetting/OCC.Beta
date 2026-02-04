@@ -24,10 +24,23 @@ namespace OCC.Client.ViewModels.EmployeeManagement
         private Guid? _existingTeamId;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private string _name = string.Empty;
 
         [ObservableProperty]
         private string _description = string.Empty;
+
+        public new string Title
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Name))
+                {
+                    return _existingTeamId.HasValue ? "Edit Team" : "Add Team";
+                }
+                return Name;
+            }
+        }
         
         // Title Removed
 
@@ -52,7 +65,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
             _teamRepository = teamRepository;
             _teamMemberRepository = teamMemberRepository;
             _employeeRepository = employeeRepository;
-            Title = "Add Team";
             
             CommunityToolkit.Mvvm.Messaging.IMessengerExtensions.RegisterAll(CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default, this);
         }
@@ -65,7 +77,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 _existingTeamId = team.Id;
                 Name = team.Name;
                 Description = team.Description;
-                Title = "Edit Team";
                 LoadMembers();
             }
             else
@@ -73,7 +84,6 @@ namespace OCC.Client.ViewModels.EmployeeManagement
                 _existingTeamId = null;
                 Name = "";
                 Description = "";
-                Title = "Add Team";
                 Members.Clear();
             }
             LoadEmployees();

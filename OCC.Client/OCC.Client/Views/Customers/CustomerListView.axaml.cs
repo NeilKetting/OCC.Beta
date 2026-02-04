@@ -13,9 +13,10 @@ namespace OCC.Client.Views.Customers
 
         private void DataGrid_DoubleTapped(object? sender, TappedEventArgs e)
         {
-            if (DataContext is CustomerManagementViewModel vm && vm.SelectedCustomer != null)
+            if (sender is DataGrid dg && dg.SelectedItem is OCC.Shared.Models.Customer customer && 
+                DataContext is CustomerManagementViewModel vm)
             {
-                vm.EditCustomer(vm.SelectedCustomer);
+                vm.EditCustomer(customer);
             }
         }
     }

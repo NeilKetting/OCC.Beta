@@ -51,7 +51,7 @@
 			<!-- Header -->
 			<Border Grid.Row="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="15">
 				<Grid ColumnDefinitions="*, Auto">
-					<TextBlock Text="{Binding IsEditMode, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Edit Supplier|New Supplier'}"
+					<TextBlock Text="{Binding Title}"
 							   FontSize="18" FontWeight="Bold"/>
 					<Button Grid.Column="1" Command="{Binding CancelCommand}" Classes="IconButton">
 						<PathIcon Data="{StaticResource IconClose}" Width="16"/>

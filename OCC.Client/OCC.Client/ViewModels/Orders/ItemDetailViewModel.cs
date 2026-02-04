@@ -42,7 +42,20 @@ namespace OCC.Client.ViewModels.Orders
         /// Gets or sets the description of the product.
         /// </summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private string _description = string.Empty;
+
+        public new string Title
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Description))
+                {
+                    return IsEditMode ? "Edit Item" : "Add New Item";
+                }
+                return Description;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the category the item belongs to.
@@ -167,7 +180,6 @@ namespace OCC.Client.ViewModels.Orders
             _orderManager = orderManager;
             _dialogService = dialogService;
             _orderStateService = orderStateService;
-            Title = "Add New Item";
         }
 
         #endregion
@@ -270,7 +282,6 @@ namespace OCC.Client.ViewModels.Orders
             if (item == null)
             {
                 IsEditMode = false;
-                Title = "Add New Item";
                 Sku = "";
                 Description = "";
                 Category = "General";
@@ -286,7 +297,6 @@ namespace OCC.Client.ViewModels.Orders
             {
                 IsEditMode = true;
                 _editingId = item.Id;
-                Title = $"Edit {item.Description}";
                 Sku = item.Sku;
                 Description = item.Description;
                 Category = item.Category;

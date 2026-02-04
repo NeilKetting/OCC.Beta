@@ -18,14 +18,24 @@ namespace OCC.Client.ViewModels.Customers
         public event EventHandler? CloseRequested;
         public event EventHandler? Saved;
 
-        [ObservableProperty]
-        private string _title = "New Customer";
+        public new string Title
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Name))
+                {
+                    return _existingId.HasValue ? "Edit Customer" : "New Customer";
+                }
+                return Name;
+            }
+        }
 
         [ObservableProperty]
         private string _saveButtonText = "Create Customer";
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private string _name = string.Empty;
 
         [ObservableProperty]
@@ -60,7 +70,6 @@ namespace OCC.Client.ViewModels.Customers
 
         public void InitializeNew()
         {
-            Title = "New Customer";
             SaveButtonText = "Create Customer";
             _existingId = null;
         }
@@ -69,7 +78,6 @@ namespace OCC.Client.ViewModels.Customers
         {
             if (customer == null) return;
 
-            Title = "Edit Customer";
             SaveButtonText = "Save Changes";
             _existingId = customer.Id;
 

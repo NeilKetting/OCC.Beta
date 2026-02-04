@@ -11,9 +11,10 @@ namespace OCC.Client.Views.Time
 
         private void DataGrid_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
         {
-            if (DataContext is ViewModels.Time.AttendanceHistoryViewModel vm && vm.SelectedRecord != null)
+            if (sender is DataGrid dg && dg.SelectedItem is ViewModels.Time.HistoryRecordViewModel record && 
+                DataContext is ViewModels.Time.AttendanceHistoryViewModel vm)
             {
-                vm.OpenEmployeeReportCommand.Execute(vm.SelectedRecord);
+                vm.OpenEmployeeReportCommand.Execute(record);
             }
         }
     }

@@ -33,7 +33,20 @@ namespace OCC.Client.ViewModels.Orders
         /// Gets or sets the supplier being edited or created.
         /// </summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Title))]
         private Supplier _supplier = new();
+
+        public new string Title
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Supplier?.Name))
+                {
+                    return IsEditMode ? "Edit Supplier" : "New Supplier";
+                }
+                return Supplier.Name;
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether the view is in edit mode (true) or add mode (false).

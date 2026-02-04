@@ -39,7 +39,7 @@
                       ColumnDefinitions="*, Auto"
                       Margin="25">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="{Binding DisplayName}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                        <TextBlock Text="{Binding Title}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
                         <TextBlock Text="User Details &amp; Permissions" FontSize="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     </StackPanel>
                     <Button Grid.Column="1" Classes="IconButton" Command="{Binding CancelCommand}" VerticalAlignment="Top"
