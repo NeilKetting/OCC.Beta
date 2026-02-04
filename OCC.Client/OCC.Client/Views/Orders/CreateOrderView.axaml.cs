@@ -138,10 +138,13 @@ namespace OCC.Client.Views.Orders
             if (sender is AutoCompleteBox box)
             {
                 // Delay slightly to ensure focus is settled before opening
+                // FIX: Do not auto-open on focus. It causes glitches when viewing existing orders.
+                /*
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     box.IsDropDownOpen = true;
                 });
+                */
             }
         }
 

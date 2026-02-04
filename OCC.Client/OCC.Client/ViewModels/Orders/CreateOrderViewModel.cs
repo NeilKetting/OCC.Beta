@@ -39,6 +39,7 @@ namespace OCC.Client.ViewModels.Orders
         private readonly IPdfService _pdfService;
         private bool _isUpdatingSearchText;
         private List<Supplier> _allSuppliers = new();
+        private bool _isNewOrder;
 
         #endregion
 
@@ -53,7 +54,7 @@ namespace OCC.Client.ViewModels.Orders
         /// <summary>
         /// Gets the localizable text for the submission button.
         /// </summary>
-        public string SubmitButtonText => (CurrentOrder?.Id != Guid.Empty && CurrentOrder?.Id != null) ? "UPDATE ORDER" : "CREATE ORDER";
+        public string SubmitButtonText => !_isNewOrder ? "UPDATE ORDER" : "CREATE ORDER";
 
         [ObservableProperty]
         private bool _isReadOnly;
@@ -742,7 +743,7 @@ namespace OCC.Client.ViewModels.Orders
                 orderToSubmit.DestinationType = IsSiteDelivery ? OrderDestinationType.Site : OrderDestinationType.Stock;
                 
                 Order createdOrder;
-                if (orderToSubmit.Id == Guid.Empty)
+                if (_isNewOrder)
                 {
                     createdOrder = await _orderManager.CreateOrderAsync(orderToSubmit);
                 }
@@ -943,6 +944,7 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public void Reset()
         {
+            _isNewOrder = true;
             CurrentOrder = new OrderWrapper(_orderManager.CreateNewOrderTemplate());
             CurrentOrder.ExpectedDeliveryDate = DateTime.Today;
 
@@ -973,6 +975,7 @@ namespace OCC.Client.ViewModels.Orders
             try
             {
                 IsBusy = true;
+                _isNewOrder = false;
                 
                 // Fetch full order to ensure all lines are included (List view might only provide summary)
                 var fullOrder = await _orderManager.GetOrderByIdAsync(order.Id) ?? order;

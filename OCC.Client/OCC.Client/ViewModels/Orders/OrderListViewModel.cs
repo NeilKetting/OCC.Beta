@@ -36,6 +36,8 @@ namespace OCC.Client.ViewModels.Orders
         /// </summary>
         public ObservableCollection<Order> Orders { get; } = new();
 
+        public bool CanImportExport => _authService.CurrentUser?.Email?.Equals("neil@mdk.co.za", StringComparison.OrdinalIgnoreCase) ?? false;
+
         /// <summary>
         /// Gets or sets a value indicating whether an operation is currently in progress.
         /// </summary>

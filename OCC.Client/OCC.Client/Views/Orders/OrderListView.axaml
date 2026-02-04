@@ -28,7 +28,7 @@
 
                 <!-- Actions -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <Button Classes="Primary" Content="Export Data" Padding="15,8" IsEnabled="False">
+                    <Button Classes="Primary" Content="Export Data" Padding="15,8" IsEnabled="False" IsVisible="{Binding CanImportExport}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
                             <TextBlock Text="Export Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
