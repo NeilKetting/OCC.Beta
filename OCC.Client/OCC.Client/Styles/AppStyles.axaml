@@ -318,7 +318,7 @@
 		<Setter Property="CornerRadius" Value="0"/>
 		<Setter Property="Padding" Value="15,5,30,5"/>
 		<Setter Property="Height" Value="42"/>
-		<Setter Property="Margin" Value="0,-3,0,-1"/>
+		<Setter Property="Margin" Value="0,-3,2,-1"/>
 
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
 	</Style>
@@ -343,9 +343,12 @@
 		<Setter Property="Foreground" Value="White"/>
 	</Style>
 
+	<Style Selector="Button.MenuTabButton.Active">
+		<Setter Property="Foreground" Value="White"/>
+	</Style>
+
 	<Style Selector="Button.MenuTabButton.Active /template/ ContentPresenter">
 		<Setter Property="Background" Value="{DynamicResource Orange}"/>
-		<Setter Property="Foreground" Value="White"/>
 	</Style>
 	<!-- Ensure Button Content Icon Inherits Foreground on Active - Use more specific selector to avoid Flyout inheritance -->
 	<Style Selector="Button.MenuTabButton.Active > StackPanel PathIcon">

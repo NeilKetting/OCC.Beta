@@ -80,7 +80,41 @@ echo Done!
 pause
 ```
 
-## 4. Run as Administrator
+```
+
+## 4. Setting up a Staging Environment (Recommended)
+To prevent breaking the live app, set up a parallel "Staging" environment.
+
+### A. Database
+1.  **Duplicate your DB**: On your SQL server, create a new database called `OCC_Staging`. 
+2.  **Snapshot**: Periodically copy data from the live DB to Staging so you have realistic test data.
+
+### B. IIS Configuration (Staging)
+1.  **Folder**: Create `C:\inetpub\wwwroot\OCC-API-Staging`.
+2.  **Site**: In IIS, Create a new site "OCC-API-Staging" pointed to that folder.
+3.  **Port**: Use a different port (e.g., `8080`) or a different hostname (e.g., `test-api.yourdomain.com`).
+
+### C. Update Script (Staging)
+Create `C:\OCC-Source\update_staging.bat` similar to the production one, but:
+*   Set `git pull origin staging` (pull from the staging branch).
+*   Change the output path to `C:\inetpub\wwwroot\OCC-API-Staging`.
+*   Update the IIS Site/AppPool names to `OCC-API-Staging`.
+
+### D. Automatic Configuration (Environment Variables)
+To avoid changing connection strings manually:
+1.  **Open IIS Manager**.
+2.  Select the **OCC-API-Staging** site.
+3.  Double-click **Configuration Editor**.
+4.  From the `Section` dropdown, select `system.webServer/aspNetCore`.
+5.  Find `environmentVariables` and click the `...` button.
+6.  Add a new variable:
+    *   **Name**: `ASPNETCORE_ENVIRONMENT`
+    *   **Value**: `Staging`
+7.  Click **Apply**.
+
+Now, when you deploy, the API will automatically use `appsettings.Staging.json` and connect to the staging database.
+
+## 5. Run as Administrator
 **IMPORTANT**: You must right-click this `.bat` file and select **Run as administrator**. "appcmd" requires admin rights to stop/start sites.
 
 ## 5. Troubleshooting

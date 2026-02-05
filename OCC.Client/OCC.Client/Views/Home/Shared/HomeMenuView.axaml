@@ -11,7 +11,7 @@
 	<Border Classes="TopBar" Background="{DynamicResource SurfaceLightGray}">
 		<Grid ColumnDefinitions="*,Auto, *, Auto">
 			<!-- Menu Buttons Area -->
-			<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="2">
+			<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
 				<StackPanel.Resources>
 					<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 				</StackPanel.Resources>
