@@ -27,7 +27,7 @@
                                 <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" Foreground="{DynamicResource SuccessGreen}"/>
                                 <TextBlock Text="Safe Hours" Classes="H3" Foreground="{DynamicResource TextSecondary}"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding TotalSafeHours}" Classes="H1" Foreground="{DynamicResource SuccessGreen}"/>
+                            <TextBlock Text="{Binding TotalSafeHours, StringFormat=\{0:N2\}}" Classes="H1" Foreground="{DynamicResource SuccessGreen}"/>
                             <TextBlock Text="Hours without LTI" Classes="Caption"/>
                         </StackPanel>
                     </Border>

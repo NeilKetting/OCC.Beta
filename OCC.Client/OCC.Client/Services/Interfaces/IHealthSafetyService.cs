@@ -20,6 +20,7 @@ namespace OCC.Client.Services.Interfaces
         Task<HseqAudit?> GetAuditAsync(Guid id);
         Task<HseqAudit?> CreateAuditAsync(HseqAudit audit);
         Task<bool> UpdateAuditAsync(HseqAudit audit);
+        Task<bool> DeleteAuditAsync(Guid id);
         Task<IEnumerable<HseqAuditNonComplianceItem>> GetAuditDeviationsAsync(Guid auditId);
         Task<HseqAuditAttachment?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteAuditAttachmentAsync(Guid id);
@@ -28,6 +29,7 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync();
         Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days);
         Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record);
+        Task<bool> UpdateTrainingRecordAsync(HseqTrainingRecord record);
         Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteTrainingRecordAsync(Guid id);
 

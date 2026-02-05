@@ -37,6 +37,16 @@ namespace OCC.Client.ViewModels.HealthSafety
         [ObservableProperty]
         private string _certificateFileName = "No file selected";
 
+        [ObservableProperty]
+        private bool _isEditMode;
+
+        [ObservableProperty]
+        private string _categoryFilter = "All";
+
+        public ObservableCollection<string> Categories { get; } = new() { "All", "Training", "Medicals" };
+
+        private HseqTrainingRecord? _editingRecord;
+
         public TrainingViewModel()
         {
             // Design-time
@@ -123,7 +133,19 @@ namespace OCC.Client.ViewModels.HealthSafety
 
                 await Task.WhenAll(recordsTask, employeesTask);
 
-                var vms = recordsTask.Result.Select(r => new TrainingRecordViewModel(r)).ToList();
+                var records = recordsTask.Result;
+
+                // Apply filtering
+                if (CategoryFilter == "Medicals")
+                {
+                    records = records.Where(r => r.CertificateType == "Medicals");
+                }
+                else if (CategoryFilter == "Training")
+                {
+                    records = records.Where(r => r.CertificateType != "Medicals");
+                }
+
+                var vms = records.Select(r => new TrainingRecordViewModel(r)).ToList();
                 TrainingRecords = new ObservableCollection<TrainingRecordViewModel>(vms);
                 
                 Employees = new ObservableCollection<Employee>(employeesTask.Result.OrderBy(e => e.FirstName).ThenBy(e => e.LastName));
@@ -136,6 +158,11 @@ namespace OCC.Client.ViewModels.HealthSafety
             {
                 IsBusy = false;
             }
+        }
+
+        partial void OnCategoryFilterChanged(string value)
+        {
+            LoadDataCommand.Execute(null);
         }
 
         [RelayCommand]
@@ -204,6 +231,53 @@ namespace OCC.Client.ViewModels.HealthSafety
         };
 
         [RelayCommand]
+        private void ClearForm()
+        {
+            _editingRecord = null;
+            IsEditMode = false;
+            SelectedEmployee = null;
+            CertificateFileName = "No file selected";
+            NewRecord = new HseqTrainingRecord
+            {
+                DateCompleted = DateTime.Now,
+                ValidUntil = DateTime.Now
+            };
+        }
+
+        [RelayCommand]
+        private void EditRecord(TrainingRecordViewModel vm)
+        {
+            if (vm == null) return;
+
+            _editingRecord = vm.Record;
+            IsEditMode = true;
+
+            // Find matching employee
+            SelectedEmployee = Employees.FirstOrDefault(e => e.Id == vm.Record.EmployeeId);
+
+            NewRecord = new HseqTrainingRecord
+            {
+                Id = vm.Record.Id,
+                EmployeeId = vm.Record.EmployeeId,
+                EmployeeName = vm.Record.EmployeeName,
+                Role = vm.Record.Role,
+                TrainingTopic = vm.Record.TrainingTopic,
+                DateCompleted = vm.Record.DateCompleted,
+                ValidUntil = vm.Record.ValidUntil,
+                Trainer = vm.Record.Trainer,
+                CertificateUrl = vm.Record.CertificateUrl,
+                CertificateType = vm.Record.CertificateType,
+                ExpiryWarningDays = vm.Record.ExpiryWarningDays
+            };
+
+            CertificateFileName = string.IsNullOrEmpty(vm.Record.CertificateUrl) 
+                ? "No file selected" 
+                : Path.GetFileName(vm.Record.CertificateUrl);
+            
+            _toastService.ShowInfo("Editing", $"Modifying record for {vm.EmployeeName}");
+        }
+
+        [RelayCommand]
         private async Task SaveTraining()
         {
             if (string.IsNullOrWhiteSpace(NewRecord.EmployeeName) || string.IsNullOrWhiteSpace(NewRecord.CertificateType))
@@ -215,7 +289,7 @@ namespace OCC.Client.ViewModels.HealthSafety
             IsBusy = true;
             try
             {
-                // Upload Certificate if local file exists
+                // Upload Certificate if local file exists (only if changed or new)
                 if (!string.IsNullOrEmpty(NewRecord.CertificateUrl) && File.Exists(NewRecord.CertificateUrl))
                 {
                     try
@@ -238,18 +312,29 @@ namespace OCC.Client.ViewModels.HealthSafety
 
                 NewRecord.TrainingTopic = NewRecord.CertificateType; 
 
-                var created = await _hseqService.CreateTrainingRecordAsync(NewRecord);
-                if (created != null)
+                if (IsEditMode && _editingRecord != null)
                 {
-                    TrainingRecords.Insert(0, new TrainingRecordViewModel(created));
-                    _toastService.ShowSuccess("Saved", "Training record added.");
-                    NewRecord = new HseqTrainingRecord 
-                    { 
-                        DateCompleted = DateTime.Now, 
-                        ValidUntil = DateTime.Now 
-                    }; 
-                    CertificateFileName = "No file selected";
-                    SelectedEmployee = null; // Reset selection
+                    var success = await _hseqService.UpdateTrainingRecordAsync(NewRecord);
+                    if (success)
+                    {
+                        _toastService.ShowSuccess("Updated", "Training record updated.");
+                        await LoadData(); // Reload to refresh list
+                        ClearForm();
+                    }
+                    else
+                    {
+                        _toastService.ShowError("Error", "Failed to update record.");
+                    }
+                }
+                else
+                {
+                    var created = await _hseqService.CreateTrainingRecordAsync(NewRecord);
+                    if (created != null)
+                    {
+                        TrainingRecords.Insert(0, new TrainingRecordViewModel(created));
+                        _toastService.ShowSuccess("Saved", "Training record added.");
+                        ClearForm();
+                    }
                 }
             }
             catch(Exception)

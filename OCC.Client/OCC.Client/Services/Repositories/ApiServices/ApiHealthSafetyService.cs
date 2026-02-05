@@ -100,6 +100,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<bool> DeleteAuditAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/HseqAudits/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
         public async Task<IEnumerable<HseqAuditNonComplianceItem>> GetAuditDeviationsAsync(Guid auditId)
         {
              return await _httpClient.GetFromJsonAsync<IEnumerable<HseqAuditNonComplianceItem>>($"api/HseqAudits/{auditId}/deviations") ?? new List<HseqAuditNonComplianceItem>();
@@ -151,6 +157,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
                 return await response.Content.ReadFromJsonAsync<HseqTrainingRecord>();
             }
             return null;
+        }
+
+        public async Task<bool> UpdateTrainingRecordAsync(HseqTrainingRecord record)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/HseqTraining/{record.Id}", record);
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName)

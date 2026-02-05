@@ -633,6 +633,37 @@ namespace OCC.Client.ViewModels.HealthSafety
         }
 
         [RelayCommand]
+        public async Task DeleteAudit(HseqAudit audit)
+        {
+            if (audit == null) return;
+
+            try
+            {
+                IsBusy = true;
+                BusyText = "Deleting audit...";
+                var success = await _hseqService.DeleteAuditAsync(audit.Id);
+                if (success)
+                {
+                    Audits.Remove(audit);
+                    _toastService.ShowSuccess("Success", "Audit deleted.");
+                }
+                else
+                {
+                    _toastService.ShowError("Error", "Failed to delete audit.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Exception deleting audit.");
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
         public async Task DeleteAttachment(HseqAuditAttachment attachment)
         {
             if (attachment == null) return;

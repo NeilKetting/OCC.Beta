@@ -54,6 +54,17 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Classes="Card" Width="220" Margin="0,0,16,16" Padding="16">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Delete Document" 
+                                                  Command="{Binding $parent[UserControl].((vm:DocumentsViewModel)DataContext).DeleteDocumentCommand}" 
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon>
+                                                <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Border.ContextMenu>
                                 <StackPanel Spacing="12">
                                     <Grid ColumnDefinitions="*, Auto">
                                          <Border CornerRadius="4" Background="#E0F2F1" Padding="8">

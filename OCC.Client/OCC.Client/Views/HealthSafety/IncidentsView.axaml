@@ -62,6 +62,17 @@
             <DataGrid Grid.Row="2" ItemsSource="{Binding Incidents}" AutoGenerateColumns="False" 
                       Margin="10,0,10,10" Classes="AppNativeDataGrid"
                       IsReadOnly="True" GridLinesVisibility="Horizontal">
+                <DataGrid.ContextMenu>
+                   <ContextMenu>
+                       <MenuItem Header="Delete Incident" 
+                                 Command="{Binding DeleteIncidentCommand}" 
+                                 CommandParameter="{Binding $parent[ContextMenu].DataContext}">
+                           <MenuItem.Icon>
+                               <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
+                           </MenuItem.Icon>
+                       </MenuItem>
+                   </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="Auto"/>
                     <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="Auto"/>
