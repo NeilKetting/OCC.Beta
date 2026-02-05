@@ -80,7 +80,11 @@ namespace OCC.Client
                 ? new Avalonia.Markup.Xaml.Styling.ResourceInclude(new Uri("avares://OCC.Client/Styles/Themes/DarkMode.axaml")) { Source = new Uri("avares://OCC.Client/Styles/Themes/DarkMode.axaml") }
                 : new Avalonia.Markup.Xaml.Styling.ResourceInclude(new Uri("avares://OCC.Client/Styles/Themes/LightMode.axaml")) { Source = new Uri("avares://OCC.Client/Styles/Themes/LightMode.axaml") };
             
-            merged.Add(newTheme);
+            try
+            {
+                merged.Add(newTheme);
+            }
+            catch (ArgumentException ex) { System.Diagnostics.Debug.WriteLine($"Error changing theme: {ex.Message}"); }
             System.Diagnostics.Debug.WriteLine("ChangeTheme: Theme switched.");
         }
 
