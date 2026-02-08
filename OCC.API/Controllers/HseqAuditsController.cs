@@ -153,33 +153,40 @@ namespace OCC.API.Controllers
              return items;
         }
 
-        [HttpPost("attachments")]
-        public async Task<ActionResult<HseqAuditAttachment>> PostAttachment([FromForm] Guid auditId, [FromForm] Guid? nonComplianceItemId, [FromForm] IFormFile file)
+        public class HseqAuditAttachmentRequest
         {
-            if (file == null || file.Length == 0) return BadRequest("No file uploaded.");
+            [FromForm] public Guid AuditId { get; set; }
+            [FromForm] public Guid? NonComplianceItemId { get; set; }
+            [FromForm] public IFormFile File { get; set; }
+        }
 
-            var audit = await _context.HseqAudits.FindAsync(auditId);
+        [HttpPost("attachments")]
+        public async Task<ActionResult<HseqAuditAttachment>> PostAttachment([FromForm] HseqAuditAttachmentRequest request)
+        {
+            if (request.File == null || request.File.Length == 0) return BadRequest("No file uploaded.");
+
+            var audit = await _context.HseqAudits.FindAsync(request.AuditId);
             if (audit == null) return NotFound("Audit not found.");
 
             // Create uploads directory if it doesn't exist
             var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "audits");
             if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
 
-            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+            var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
             var filePath = Path.Combine(uploadsPath, fileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await request.File.CopyToAsync(stream);
             }
 
             var attachment = new HseqAuditAttachment
             {
-                AuditId = auditId,
-                NonComplianceItemId = nonComplianceItemId,
-                FileName = file.FileName,
+                AuditId = request.AuditId,
+                NonComplianceItemId = request.NonComplianceItemId,
+                FileName = request.File.FileName,
                 FilePath = $"/uploads/audits/{fileName}",
-                FileSize = $"{(file.Length / 1024.0):F2} KB",
+                FileSize = $"{(request.File.Length / 1024.0):F2} KB",
                 UploadedBy = User.Identity?.Name ?? "Admin",
                 UploadedAt = DateTime.UtcNow
             };
