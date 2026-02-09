@@ -176,9 +176,20 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     break;
                 case "OrderList": 
                 case "All Orders":
-                    if (CurrentView == OrderListVM) return;
-                    CurrentView = OrderListVM; 
-                    OrderListVM.LoadOrders(); 
+                    if (CurrentView == OrderListVM) OrderListVM.ClearReceivingMode();
+                    else 
+                    {
+                        CurrentView = OrderListVM;
+                        OrderListVM.ClearReceivingMode();
+                        OrderListVM.LoadOrders();
+                    }
+                    if (OrderMenu != null) OrderMenu.ActiveTab = "All Orders";
+                    break;
+                case "Receiving": // Support direct navigation from Dashboard
+                    CurrentView = OrderListVM;
+                    OrderListVM.SetReceivingMode();
+                    OrderListVM.LoadOrders();
+                    if (OrderMenu != null) OrderMenu.ActiveTab = "All Orders";
                     break;
                 case "CreateOrder": 
                 case "New Order":
@@ -309,7 +320,11 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             
             // Create Order Logic: Handle successful creation by returning to the list
             CreateOrderVM.OrderCreated += (s, e) => { IsOrderDetailVisible = false; SetTab("OrderList"); };
-            CreateOrderVM.CloseRequested += (s, e) => IsOrderDetailVisible = false;
+            CreateOrderVM.CloseRequested += (s, e) => 
+            {
+                if (IsOrderDetailVisible) IsOrderDetailVisible = false;
+                else if (CurrentView == CreateOrderVM) SetTab("Dashboard");
+            };
 
             // Menu Interactions
             OrderMenu.TabSelected += (s, tab) => SetTab(tab);
@@ -323,10 +338,10 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         public void Receive(OCC.Client.Messages.NavigationRequestMessage message)
         {
-            if (message.Value == "CreateOrder") SetTab("CreateOrder");
             if (message.Value == "OrderList") SetTab("OrderList");
             if (message.Value == "Suppliers") SetTab("Suppliers");
             if (message.Value == "Inventory") SetTab("Inventory");
+            if (message.Value == OCC.Client.Infrastructure.NavigationRoutes.Receiving) SetTab("Receiving");
         }
 
         public void Receive(OCC.Client.ViewModels.Messages.SwitchTabMessage message)

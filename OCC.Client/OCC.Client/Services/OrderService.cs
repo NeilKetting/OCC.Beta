@@ -72,7 +72,7 @@ namespace OCC.Client.Services
              }
         }
 
-        public async Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLine> updatedLines)
+        public async Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLineDto> updatedLines)
         {
              EnsureAuthorization();
              var response = await _httpClient.PostAsJsonAsync($"api/Orders/{orderId}/receive", updatedLines);

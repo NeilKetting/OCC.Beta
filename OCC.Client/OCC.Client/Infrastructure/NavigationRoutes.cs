@@ -11,6 +11,7 @@ namespace OCC.Client.Infrastructure
         public const string Developer = "Developer";
         public const string Customers = "Customers";
         public const string Reminders = "Reminders";
+        public const string Receiving = "Receiving";
         
         // System Routes
         public const string AccessDenied = "AccessDenied";

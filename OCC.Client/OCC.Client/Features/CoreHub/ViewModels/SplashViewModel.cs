@@ -36,15 +36,31 @@ namespace OCC.Client.Features.CoreHub.ViewModels
         {
             try
             {
-                // Artificial delay for UX (prevent flicker if too fast)
-                await Task.Delay(1500);
+                // 1. Initial delay for UX (prevent flicker if too fast)
+                await Task.Delay(1000);
 
-                var updateInfo = await _updateService.CheckForUpdatesAsync();
+                // 2. Wrap update check in a timeout task
+                var checkTask = _updateService.CheckForUpdatesAsync();
+                var timeoutTask = Task.Delay(40000); // 40 second fail-safe
+
+                var completedTask = await Task.WhenAny(checkTask, timeoutTask);
+                
+                if (completedTask == timeoutTask)
+                {
+                    // Timeout occurred
+                    System.Diagnostics.Debug.WriteLine("[Splash] Update check timed out.");
+                    StatusText = "Update check delayed... Continuing";
+                    await Task.Delay(1000);
+                    _onCompleted?.Invoke();
+                    return;
+                }
+
+                var updateInfo = await checkTask; // Get the actual result
                 
                 if (updateInfo != null)
                 {
                     StatusText = "Update found! Downloading...";
-                    IsChecking = false; // Switch to determinate progress if supported
+                    IsChecking = false; 
                     
                     await _updateService.DownloadUpdatesAsync(updateInfo, (p) => 
                     {
@@ -53,18 +69,17 @@ namespace OCC.Client.Features.CoreHub.ViewModels
 
                     StatusText = "Installing update...";
                     _updateService.ApplyUpdatesAndExit(updateInfo);
-                    // App exits here.
                 }
                 else
                 {
-                    StatusText = "Keep building... Log in"; // Easter egg or standard text
+                    StatusText = "App is ready";
                     await Task.Delay(500); 
                     _onCompleted?.Invoke();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // On error, just proceed to login
+                System.Diagnostics.Debug.WriteLine($"[Splash] Update check failed: {ex.Message}");
                 StatusText = "Continuing...";
                 await Task.Delay(1000);
                 _onCompleted?.Invoke();

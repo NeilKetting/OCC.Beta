@@ -31,13 +31,15 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public OrderMenuViewModel OrderMenu { get; }
 
         private readonly IAuthService _authService;
+        private readonly IDialogService _dialogService;
 
-        public RestockReviewViewModel(IOrderManager orderManager, OrderStateService orderStateService, OrderMenuViewModel orderMenu, IAuthService authService)
+        public RestockReviewViewModel(IOrderManager orderManager, OrderStateService orderStateService, OrderMenuViewModel orderMenu, IAuthService authService, IDialogService dialogService)
         {
             _orderManager = orderManager;
             _orderStateService = orderStateService;
             OrderMenu = orderMenu;
             _authService = authService;
+            _dialogService = dialogService;
             OrderMenu.TabSelected += OnMenuTabSelected;
         }
 
@@ -72,6 +74,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _orderStateService = null!; 
             OrderMenu = null!; 
             _authService = null!; 
+            _dialogService = null!;
         }
 
         public async Task LoadData()
@@ -107,29 +110,24 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         }
 
         [RelayCommand]
-        public void CreateOrder(SupplierRestockGroup group)
+        public async Task CreateOrder(SupplierRestockGroup group)
         {
             if (group == null) return;
 
-            // Generate Order
-            var order = _orderManager.CreateNewOrderTemplate(OrderType.PurchaseOrder);
-            order.SupplierName = group.SupplierName;
-            // Try to set ID if we can find it, but name is enough for display usually.
-            // Ideally we'd look up the supplier to get the ID.
-            // We can do that asynchronously or just ignore ID if create view handles "Name only" -> "Select Supplier".
-            // But CreateView validates "SelectedSupplier" which is an object.
-            // We'll trust that CreateOrderView tries to match SupplierName string to an object on load.
-            // (Checking CreateOrderViewModel: OnSelectedInventoryItemChanged tries to set SelectedSupplier by name match. 
-            // LoadExistingOrder tries to set by ID.
-            // If we just pass a fake order with no ID, it might not select the supplier in the dropdown.
-            // We should try to lookup the supplier ID if possible or pass it via state??
-            // Actually, we can just rely on the user selecting it if it's missing, but better to pre-fill.
-            // Since we don't have Supplier ID in InventoryItem (just name), we rely on string match.
-            // CreateOrderViewModel does not have logic to auto-select Supplier from String Name on 'LoadExistingOrder' unless we add it.
-            // Wait, CreateOrderViewModel -> LoadExistingOrder DOES NOT do name matching.
-            // I should add name matching there or do it here.
-            // I'll do it here: Get Suppliers, find match.
-            
+            var firstItem = group.Items.FirstOrDefault();
+            if (firstItem != null)
+            {
+                var userBranch = _authService?.CurrentUser?.Branch;
+                if (userBranch != null && firstItem.TargetBranch != userBranch)
+                {
+                    bool confirm = await _dialogService.ShowConfirmationAsync(
+                        "Cross-Branch Replenishment",
+                        $"You are about to create an order for {firstItem.TargetBranch}, but you are logged into {userBranch}.\n\nProceed?");
+                    
+                    if (!confirm) return;
+                }
+            }
+
             // Async workaround:
             PrepareOrderAndNavigate(group);
         }
@@ -166,39 +164,44 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                      order.Branch = firstCandidate.TargetBranch;
                 }
 
-                foreach (var candidate in group.Items)
+                // Group by Item and Branch to prevent misallocation across warehouses
+                var consolidatedItems = group.Items.GroupBy(c => new { c.Item.Id, c.TargetBranch })
+                    .Select(g => 
+                    {
+                        var first = g.First();
+                        var item = first.Item;
+                        var branch = g.Key.TargetBranch;
+
+                        // Target is now just the Threshold (no x2 multiplier)
+                        double target = branch == Branch.JHB ? item.JhbReorderPoint : item.CptReorderPoint;
+                        double currentHand = branch == Branch.JHB ? item.JhbQuantity : item.CptQuantity;
+                        
+                        // Sum on-order for this item/branch combination
+                        double onOrder = g.Sum(c => c.QuantityOnOrder);
+                        
+                        double needed = target - (currentHand + onOrder);
+                        
+                        // Only return lines that are actually needed and match the PO branch
+                        if (needed < 1 || branch != order.Branch) return null;
+
+                        return new OrderLine
+                        {
+                            InventoryItemId = item.Id,
+                            ItemCode = item.Sku,
+                            Description = item.Description,
+                            Category = item.Category,
+                            UnitOfMeasure = item.UnitOfMeasure,
+                            UnitPrice = item.AverageCost,
+                            QuantityOrdered = needed,
+                            LineTotal = (decimal)needed * item.AverageCost,
+                            VatAmount = ((decimal)needed * item.AverageCost) * 0.15m
+                        };
+                    })
+                    .Where(l => l != null);
+
+                foreach (var line in consolidatedItems)
                 {
-                    var item = candidate.Item;
-                    // Calculate Order Qty Target = ReorderPoint * 2 (as per original logic in Manager)
-                    double target = 0;
-                    double currentHand = 0;
-                    
-                    if (candidate.TargetBranch == Branch.JHB)
-                    {
-                        target = item.JhbReorderPoint * 2;
-                        currentHand = item.JhbQuantity;
-                    }
-                    else
-                    {
-                        target = item.CptReorderPoint * 2;
-                        currentHand = item.CptQuantity;
-                    }
-
-                    double needed = target - (currentHand + candidate.QuantityOnOrder);
-                    if (needed < 1) needed = 1;
-
-                    order.Lines.Add(new OrderLine
-                    {
-                        InventoryItemId = item.Id,
-                        ItemCode = item.Sku,
-                        Description = item.Description,
-                        Category = item.Category,
-                        UnitOfMeasure = item.UnitOfMeasure,
-                        UnitPrice = item.AverageCost,
-                        QuantityOrdered = needed,
-                        LineTotal = (decimal)needed * item.AverageCost,
-                        VatAmount = ((decimal)needed * item.AverageCost) * 0.15m
-                    });
+                    if (line != null) order.Lines.Add(line);
                 }
 
                 _orderStateService.SaveState(order, null);

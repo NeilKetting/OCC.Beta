@@ -173,12 +173,12 @@
 		</StackPanel>
 
 		<!-- Popup Overlay -->
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}">
+		<Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" Padding="40">
 			<Grid Background="#50000000"> <!-- Extra click shield -->
 			<views:ItemDetailView DataContext="{Binding DetailViewModel}"
-								  HorizontalAlignment="Stretch"
-								  VerticalAlignment="Stretch"/>
+								  HorizontalAlignment="Center"
+								  VerticalAlignment="Center"/>
 			</Grid>
-		</Grid>
+		</Border>
 	</Grid>
 </UserControl>

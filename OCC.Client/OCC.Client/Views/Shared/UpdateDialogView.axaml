@@ -21,11 +21,11 @@
 
 		<Border CornerRadius="8"
 				Background="{DynamicResource AppBackgroundSlate}"
-				BorderBrush="{DynamicResource BorderGray}"
-				BorderThickness="2"
+				BorderBrush="{DynamicResource SplashGradient}"
+				BorderThickness="3"
 				Padding="20"
 				Margin="15"
-				BoxShadow="0 0 10 8 #0000">
+				BoxShadow="0 4 15 8 #000">
 
 			<Grid RowDefinitions="Auto,*,Auto,Auto">
 
@@ -55,7 +55,7 @@
 				<StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
 					<Button Content="Update Now"
 							Command="{Binding StartUpdateCommand}"
-							Classes="accent"
+							Classes="Primary"
 							IsEnabled="{Binding !IsDownloading}"/>
 				</StackPanel>
 			</Grid>

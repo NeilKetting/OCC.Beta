@@ -24,13 +24,13 @@
             <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/>
 
             <!-- Header -->
-            <Border Grid.Row="1"  Background="{DynamicResource WeatheredCementGradient}" Margin="5" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20">
+            <Border Grid.Row="1"  Background="{DynamicResource PrimaryTeal}" Margin="5" CornerRadius="8" Padding="20">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel>
-                        <TextBlock Text="Restock Review" FontSize="20" FontWeight="Bold"/>
-                        <TextBlock Text="Review low stock items and creates purchase orders." Classes="Caption" Margin="0,5,0,0"/>
+                        <TextBlock Text="Restock Review" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="Review low stock items and creates purchase orders." Foreground="White" Opacity="0.8" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="Ghost">
+                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="Ghost" Foreground="White">
                         <PathIcon Data="{StaticResource IconClose}"/>
                     </Button>
                 </Grid>
@@ -69,7 +69,12 @@
                                                     
                                                     <!-- Item Info -->
                                                     <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding Item.Description}" FontWeight="SemiBold"/>
+                                                        <TextBlock FontWeight="SemiBold" VerticalAlignment="Center">
+                                                            <Run Text="{Binding Item.Description}"/>
+                                                            <Run Text=" [" Foreground="Gray"/>
+                                                            <Run Text="{Binding TargetBranch}" Foreground="{Binding TargetBranch, Converter={StaticResource BranchToColorConverter}}" FontWeight="Bold"/>
+                                                            <Run Text="]" Foreground="Gray"/>
+                                                        </TextBlock>
                                                         <TextBlock Text="{Binding Item.Sku}" Classes="Caption"/>
                                                     </StackPanel>
 

@@ -94,7 +94,22 @@ namespace OCC.Client.Services.Managers
         /// <inheritdoc/>
         public async Task ReceiveOrderAsync(Order order, List<OrderLine> receipts)
         {
-            var resultDto = await _orderService.ReceiveOrderAsync(order.Id, receipts);
+            var dtos = receipts.Select(l => new OrderLineDto
+            {
+                Id = l.Id,
+                InventoryItemId = l.InventoryItemId,
+                ItemCode = l.ItemCode,
+                Description = l.Description,
+                Category = l.Category,
+                QuantityOrdered = l.QuantityOrdered,
+                QuantityReceived = l.QuantityReceived,
+                UnitOfMeasure = l.UnitOfMeasure,
+                UnitPrice = l.UnitPrice,
+                VatAmount = l.VatAmount,
+                LineTotal = l.LineTotal
+            }).ToList();
+
+            var resultDto = await _orderService.ReceiveOrderAsync(order.Id, dtos);
             
             if (resultDto != null)
             {
@@ -233,8 +248,8 @@ namespace OCC.Client.Services.Managers
             var recentOrders = allOrders.OrderByDescending(o => o.OrderDate).Take(5).ToList();
             
             // Get Restock Candidates from API
-            var candidates = await _orderService.GetRestockCandidatesAsync(branch);
-            var lowStockItems = candidates.Select(c => c.Item).Take(5).ToList(); // DTO has Item
+            var candidates = (await _orderService.GetRestockCandidatesAsync(branch)).ToList();
+            var lowStockItems = candidates.Take(5).ToList(); 
 
             return new OrderDashboardStats(
                 ordersThisMonthCount,
@@ -245,7 +260,7 @@ namespace OCC.Client.Services.Managers
                 pendingColor,
                 recentOrders,
                 lowStockItems,
-                candidates.Count());
+                candidates.Count);
         }
 
         /// <inheritdoc/>

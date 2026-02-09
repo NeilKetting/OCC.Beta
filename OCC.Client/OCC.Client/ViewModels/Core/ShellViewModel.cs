@@ -86,6 +86,7 @@ namespace OCC.Client.ViewModels.Core
         private readonly IRepository<Project> _projectRepo;
         private string _previousSection = Infrastructure.NavigationRoutes.Home;
         private string _currentSection = Infrastructure.NavigationRoutes.Home;
+        private bool _isSyncingSideMenu;
 
         #endregion
 
@@ -108,18 +109,26 @@ namespace OCC.Client.ViewModels.Core
                 // Sync SideMenu
                 if (_sideMenuViewModel != null)
                 {
-                    // Special case for 'CreateOrder' which has a unique ID but maps to Orders section
-                    if (newValue.Id.StartsWith("CreateOrder"))
+                    _isSyncingSideMenu = true;
+                    try
                     {
-                         _sideMenuViewModel.ActiveSection = Infrastructure.NavigationRoutes.Feature_OrderManagement;
+                        // Special case for 'CreateOrder' which has a unique ID but maps to Orders section
+                        if (newValue.Id.StartsWith("CreateOrder"))
+                        {
+                            _sideMenuViewModel.ActiveSection = Infrastructure.NavigationRoutes.Feature_OrderManagement;
+                        }
+                        else if (newValue.Id == "Beta" || newValue.Id == "ReleaseNotes")
+                        {
+                            // Maintain current or set to specific if needed
+                        }
+                        else
+                        {
+                            _sideMenuViewModel.ActiveSection = newValue.Id;
+                        }
                     }
-                    else if (newValue.Id == "Beta" || newValue.Id == "ReleaseNotes")
+                    finally
                     {
-                         // Maintain current or set to specific if needed
-                    }
-                    else
-                    {
-                         _sideMenuViewModel.ActiveSection = newValue.Id;
+                        _isSyncingSideMenu = false;
                     }
                 }
             }
@@ -274,7 +283,7 @@ namespace OCC.Client.ViewModels.Core
             // Subscribe to Connection Settings
             ConnectionSettings.Instance.PropertyChanged += async (s, e) => 
             {
-               if (e.PropertyName == nameof(ConnectionSettings.UseLocalDb) || e.PropertyName == nameof(ConnectionSettings.ApiBaseUrl))
+               if (e.PropertyName == nameof(ConnectionSettings.SelectedEnvironment) || e.PropertyName == nameof(ConnectionSettings.ApiBaseUrl))
                {
                    await CheckDbConnection();
                }
@@ -329,7 +338,7 @@ namespace OCC.Client.ViewModels.Core
 
                     IsDbConnected = true;
                     // Append connection type for clarity
-                    var type = ConnectionSettings.Instance.UseLocalDb ? "(Local)" : "(Live)";
+                    var type = $"({ConnectionSettings.Instance.SelectedEnvironment})";
                     DbStatusText = $"Online: {dbName} {type}";
                 }
                 else
@@ -341,8 +350,7 @@ namespace OCC.Client.ViewModels.Core
             {
                 System.Diagnostics.Debug.WriteLine($"[ShellViewModel] DB Connection Check Failed: {ex.Message}");
                 IsDbConnected = false;
-                string dbName = ConnectionSettings.Instance.UseLocalDb ? "Local" : "Live";
-                DbStatusText = $"Offline: {dbName}";
+                DbStatusText = $"Offline: {ConnectionSettings.Instance.SelectedEnvironment}";
             }
         }
 
@@ -606,7 +614,7 @@ namespace OCC.Client.ViewModels.Core
 
         private void SideMenu_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SideMenuViewModel.ActiveSection))
+            if (e.PropertyName == nameof(SideMenuViewModel.ActiveSection) && !_isSyncingSideMenu)
             {
                 NavigateTo(SideMenuViewModel.ActiveSection);
             }
@@ -747,6 +755,7 @@ namespace OCC.Client.ViewModels.Core
                 case "Inventory":
                 case "ItemList":
                 case "Suppliers":
+                case NavigationRoutes.Receiving:
                     var orderVM = _serviceProvider.GetRequiredService<OrderViewModel>();
                     orderVM.SetTab(section);
                     vm = orderVM;
@@ -755,14 +764,22 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconCart");
                     break;
                 case "CreateOrder":
+                    id = "CreateOrder";
+                    var existingCreateOrder = Workspaces.FirstOrDefault(w => w.Id == id);
+                    if (existingCreateOrder != null)
+                    {
+                        if (existingCreateOrder.ViewModel is CreateOrderViewModel existingVM)
+                        {
+                            _ = existingVM.LoadData();
+                        }
+                        CurrentWorkspace = existingCreateOrder;
+                        return; 
+                    }
                     var createOrderVM = _serviceProvider.GetRequiredService<CreateOrderViewModel>();
                     createOrderVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
                     _ = createOrderVM.LoadData();
                     vm = createOrderVM;
                     title = "New Order";
-                    id = "CreateOrder_" + Guid.NewGuid(); // Allow multiple? Or Singleton? Let's allow multiple for now or just one.
-                    // For now, let's treat "Create Order" as a unique workspace that can be opened.
-                    id = "CreateOrder"; 
                     icon = GetResource("IconPlus");
                     break;
                 case "RestockReview":

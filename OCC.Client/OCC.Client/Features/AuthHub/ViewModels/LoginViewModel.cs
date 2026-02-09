@@ -63,8 +63,12 @@ namespace OCC.Client.Features.AuthHub.ViewModels
             // Load saved email
             Email = _localSettings.Settings.LastEmail;
             
-            // Sync with singleton
-            // UseLocalDb = _connectionSettings.UseLocalDb;
+#if DEBUG
+            IsDevUser = true;
+#else
+            IsDevUser = false;
+#endif
+
             _connectionSettings.PropertyChanged += (s, e) =>
             {
                if (e.PropertyName == nameof(ConnectionSettings.SelectedEnvironment))
@@ -73,13 +77,6 @@ namespace OCC.Client.Features.AuthHub.ViewModels
                }
             };
         }
-
-        partial void OnEmailChanged(string value)
-        {
-            IsDevUser = string.Equals(value, "neil@mdk.co.za", StringComparison.OrdinalIgnoreCase);
-        }
-
-
 
         [ObservableProperty]
         private bool _isDevUser;

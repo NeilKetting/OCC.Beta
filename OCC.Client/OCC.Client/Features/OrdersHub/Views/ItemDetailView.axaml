@@ -35,8 +35,8 @@
 	<Border Background="{DynamicResource SurfaceWhite}"
 			CornerRadius="0"
 			BoxShadow="0 2 15 5 #292828"
-			VerticalAlignment="Stretch"
-			HorizontalAlignment="Stretch"
+			VerticalAlignment="Center"
+			HorizontalAlignment="Center"
 			MaxWidth="1000">
 		<Grid RowDefinitions="Auto, *, Auto, Auto">
 

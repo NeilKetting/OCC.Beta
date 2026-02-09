@@ -182,173 +182,106 @@
 			<!-- Shared Menu Removed (Presented by Parent View) --> 
 			<!-- <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/> -->
 			<!-- Header Bar -->
-			<Border Grid.Row="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="20,5">
-				<Grid ColumnDefinitions="*, Auto">
-					<!-- Debug Validation -->
-					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-						<TextBlock Text="{Binding CurrentOrder.OrderNumber}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-						<Border Background="#5A9CB5" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" IsVisible="{Binding IsPurchaseOrder}">
-							<TextBlock Text="PURCHASE ORDER" Foreground="White" FontSize="11" FontWeight="Bold"/>
-						</Border>
-						<Border Background="#10B981" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" IsVisible="{Binding IsSalesOrder}">
-							<TextBlock Text="SALES ORDER" Foreground="White" FontSize="11" FontWeight="Bold"/>
-						</Border>
-						<Border Background="#F59E0B" CornerRadius="4" Padding="8,2" VerticalAlignment="Center" IsVisible="{Binding IsReturnOrder}">
-							<TextBlock Text="RETURN TO STOCK" Foreground="White" FontSize="11" FontWeight="Bold"/>
-						</Border>
-
+			<Border Grid.Row="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="15,4">
+				<Grid ColumnDefinitions="Auto, *, Auto, Auto">
+					<!-- Order Info -->
+					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+						<TextBlock Text="{Binding CurrentOrder.OrderNumber}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
+						
+						<!-- Order Type Selection (Compact) -->
+						<StackPanel Orientation="Horizontal" Spacing="15" Margin="20,0,0,0">
+							<RadioButton GroupName="Type" Content="Purchase" FontSize="11"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
+										 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
+							<RadioButton GroupName="Type" Content="Sales" FontSize="11"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
+										 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
+							<RadioButton GroupName="Type" Content="Return" FontSize="11"
+										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
+										 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
+						</StackPanel>
 					</StackPanel>
 
-					<Button Grid.Column="1" Command="{Binding CancelCommand}" Classes="IconButtonClose">
+					<!-- Branch -->
+					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,20,0">
+						<TextBlock Text="Branch:" FontSize="11" Classes="Label" VerticalAlignment="Center"/>
+						<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding CurrentOrder.Branch}" Width="80" Height="28" FontSize="11" Padding="5,2"/>
+					</StackPanel>
+
+					<Button Grid.Column="3" Command="{Binding CancelCommand}" Classes="IconButtonClose">
 						<PathIcon Data="{StaticResource IconClose}" Width="16"/>
 					</Button>
 				</Grid>
 			</Border>
 
 			<!-- Form -->
-			<Grid Grid.Row="2" Margin="20, 5, 20, 0" IsEnabled="{Binding !IsReadOnly}">
+			<Grid Grid.Row="2" Margin="15, 5, 15, 0" IsEnabled="{Binding !IsReadOnly}">
 				<Grid RowDefinitions="Auto, *, Auto">
 					<!-- Top Section: Inputs & Headers -->
-					<StackPanel Grid.Row="0" Spacing="5">
-
-						<!-- Order Meta Info -->
-						<Grid ColumnDefinitions="*, Auto" Margin="0,0,0,5">
-							<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
-								<RadioButton GroupName="Type" Content="Purchase Order"
-											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
-											 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
-								<RadioButton GroupName="Type" Content="Sales Order"
-											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
-											 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
-								<RadioButton GroupName="Type" Content="Inventory Return"
-											 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
-											 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
+					<StackPanel Grid.Row="0" Spacing="2">
+						<!-- Main Info Grid (3 Rows, 4 Columns) -->
+						<Grid ColumnDefinitions="*, 15, *, 15, *, 15, *" RowDefinitions="Auto, Auto, Auto">
+							
+							<!-- Row 1: Supplier, Project, Attention -->
+							<StackPanel Grid.Row="0" Grid.Column="0" Spacing="2" IsVisible="{Binding IsPurchaseOrder}">
+								<TextBlock Text="Supplier" Classes="Label" FontSize="11"/>
+								<ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
+										  HorizontalAlignment="Stretch" PlaceholderText="Select Supplier" Height="28" FontSize="11">
+									<ComboBox.ItemTemplate>
+										<DataTemplate><TextBlock Text="{Binding Name}" FontSize="11"/></DataTemplate>
+									</ComboBox.ItemTemplate>
+								</ComboBox>
 							</StackPanel>
 
-							<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-								<TextBlock Text="Branch:" VerticalAlignment="Center" Classes="Label" Margin="0,0,5,0"/>
-								<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding CurrentOrder.Branch}" Width="100"/>
+							<StackPanel Grid.Row="0" Grid.Column="2" Spacing="2">
+								<TextBlock Text="Project Reference" Classes="Label" FontSize="11"/>
+								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
+										  HorizontalAlignment="Stretch" PlaceholderText="Link Project" Height="28" FontSize="11">
+									<ComboBox.ItemTemplate>
+										<DataTemplate><TextBlock Text="{Binding Name}" FontSize="11"/></DataTemplate>
+									</ComboBox.ItemTemplate>
+								</ComboBox>
 							</StackPanel>
-						</Grid>
 
-						<!-- Entity Details -->
-						<Grid ColumnDefinitions="*, 30, *, 30,*">
-							<!-- Left Column -->
-							<StackPanel Grid.Column="0" Spacing="5">
-								<!-- Supplier (PO Only) -->
-								<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
-									<TextBlock Text="Supplier" Classes="Label"/>
-									<ComboBox Grid.Column="0"
-											  ItemsSource="{Binding Suppliers}"
-											  SelectedItem="{Binding SelectedSupplier}"
-											  HorizontalAlignment="Stretch"
-											  PlaceholderText="Select Supplier"
-											  IsTextSearchEnabled="True">
-										<ComboBox.ItemTemplate>
-											<DataTemplate>
-												<TextBlock Text="{Binding Name}"/>
-											</DataTemplate>
-										</ComboBox.ItemTemplate>
-									</ComboBox>
-								</StackPanel>
+							<StackPanel Grid.Row="0" Grid.Column="4" Spacing="2">
+								<TextBlock Text="Attention / Contact" Classes="Label" FontSize="11"/>
+								<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Name" Height="28" FontSize="11" Padding="5,2"/>
+							</StackPanel>
 
-								<!-- Customer (SO Only) - Now Project Binding -->
-								<StackPanel Spacing="5" IsVisible="{Binding IsSalesOrder}">
-									<TextBlock Text="Project / Site" Classes="Label"/>
-									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
-											  HorizontalAlignment="Stretch" PlaceholderText="Select Project"
-											  IsTextSearchEnabled="True">
-										<ComboBox.ItemTemplate>
-											<DataTemplate>
-												<TextBlock Text="{Binding Name}"/>
-											</DataTemplate>
-										</ComboBox.ItemTemplate>
-									</ComboBox>
-								</StackPanel>
-
-								<!-- Return Project (Return Only) -->
-								<StackPanel Spacing="5" IsVisible="{Binding IsReturnOrder}">
-									<TextBlock Text="Returning From Project" Classes="Label"/>
-									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding CurrentOrder.ProjectName}" HorizontalAlignment="Stretch" PlaceholderText="Select Project"/>
-								</StackPanel>
-
-								<!-- Attention Field -->
-								<StackPanel Spacing="5">
-									<TextBlock Text="Attention:" Classes="Label"/>
-									<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Contact Person (e.g. John Doe)" Classes="FormInput"/>
+							<!-- Destination (PO) / Placeholder (SO) -->
+							<StackPanel Grid.Row="0" Grid.Column="6" Spacing="2" VerticalAlignment="Bottom">
+								<StackPanel IsVisible="{Binding IsPurchaseOrder}" Orientation="Horizontal" Spacing="10">
+									<RadioButton GroupName="Dest" Content="Office" FontSize="10" IsChecked="{Binding IsOfficeDelivery}"/>
+									<RadioButton GroupName="Dest" Content="Site" FontSize="10" IsChecked="{Binding IsSiteDelivery}"/>
 								</StackPanel>
 							</StackPanel>
 
-							<!-- Middle Column -->
-							<StackPanel Grid.Column="2" Spacing="5">
-								<Grid ColumnDefinitions="*, 15, *">
-									<StackPanel Grid.Column="0" Spacing="5">
-										<TextBlock Text="Order Date" Classes="Label"/>
-										<CalendarDatePicker SelectedDate="{Binding CurrentOrder.OrderDate}" HorizontalAlignment="Stretch"/>
-									</StackPanel>
-									<StackPanel Grid.Column="2" Spacing="5">
-										<TextBlock Text="Expected Delivery" Classes="Label"/>
-										<CalendarDatePicker SelectedDate="{Binding CurrentOrder.ExpectedDeliveryDate, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
-									</StackPanel>
-								</Grid>
-
-
-								<!-- Delivery Instructions Field -->
-								<StackPanel Spacing="5">
-									<TextBlock Text="Delivery Instructions" Classes="Label"/>
-									<TextBox Text="{Binding CurrentOrder.DeliveryInstructions}" Watermark="e.g. Offload at Gate 2" Classes="FormInput"/>
-								</StackPanel>
-
-								<!-- Scope of Work Field -->
-								<StackPanel Spacing="5">
-									<TextBlock Text="Scope of Work (SOW)" Classes="Label"/>
-									<TextBox Text="{Binding CurrentOrder.ScopeOfWork}" Watermark="Describe the work (e.g. Cafe 365)" Classes="FormInput"/>
-								</StackPanel>
-
+							<!-- Row 2: Dates, Instructions -->
+							<StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
+								<TextBlock Text="Order Date" Classes="Label" FontSize="11"/>
+								<CalendarDatePicker SelectedDate="{Binding CurrentOrder.OrderDate}" HorizontalAlignment="Stretch" Height="28" FontSize="11"/>
 							</StackPanel>
-							<!-- Right Column -->
-							<StackPanel Grid.Column="4" Spacing="20">
 
-								<!-- Delivery Destination -->
-								<StackPanel Spacing="5" IsVisible="{Binding IsPurchaseOrder}">
-									<TextBlock Text="Destination" Classes="Label"/>
-									<StackPanel Orientation="Horizontal" Spacing="15">
-										<RadioButton GroupName="Dest" Content="Office Stock" IsChecked="{Binding IsOfficeDelivery}"/>
-										<RadioButton GroupName="Dest" Content="Site Delivery" IsChecked="{Binding IsSiteDelivery}"/>
-									</StackPanel>
-								</StackPanel>
+							<StackPanel Grid.Row="1" Grid.Column="2" Spacing="2">
+								<TextBlock Text="Expected Delivery" Classes="Label" FontSize="11"/>
+								<CalendarDatePicker SelectedDate="{Binding CurrentOrder.ExpectedDeliveryDate}" HorizontalAlignment="Stretch" Height="28" FontSize="11"/>
+							</StackPanel>
 
-								<!-- Project Link (Site Delivery Only) -->
-								<StackPanel Spacing="5" IsVisible="{Binding IsSiteDelivery}">
-									<TextBlock Text="Project Reference" Classes="Label"/>
-									<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
-											  HorizontalAlignment="Stretch" PlaceholderText="Link to Project" IsTextSearchEnabled="True">
-										<ComboBox.ItemTemplate>
-											<DataTemplate>
-												<TextBlock Text="{Binding Name}"/>
-											</DataTemplate>
-										</ComboBox.ItemTemplate>
-									</ComboBox>
+							<StackPanel Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="3" Spacing="2">
+								<TextBlock Text="Scope of Work (SOW)" Classes="Label" FontSize="11"/>
+								<TextBox Text="{Binding CurrentOrder.ScopeOfWork}" Watermark="Brief description" Height="28" FontSize="11" Padding="5,2"/>
+							</StackPanel>
 
-									<!-- Address Verification -->
-									<StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" IsVisible="{Binding SelectedProject, Converter={x:Static ObjectConverters.IsNotNull}}">
-										<PathIcon Data="{StaticResource IconLocation}" Width="14" Height="14" Foreground="{DynamicResource ThemeForegroundLow}"/>
-										<TextBlock Text="{Binding CurrentOrder.EntityAddress, TargetNullValue='No address on file'}"
-												   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-												   Classes="Caption" Foreground="{DynamicResource ThemeForegroundLow}" TextWrapping="Wrap" MaxWidth="300"/>
-										<TextBlock Text="No address on file for this project."
-												   IsVisible="{Binding CurrentOrder.EntityAddress, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-												   Classes="Caption" Foreground="Red" FontStyle="Italic"/>
-									</StackPanel>
-								</StackPanel>
+							<!-- Row 3: Delivery Instructions (Full Width) -->
+							<StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="7" Spacing="2">
+								<TextBlock Text="Delivery Instructions" Classes="Label" FontSize="11"/>
+								<TextBox Text="{Binding CurrentOrder.DeliveryInstructions}" Watermark="e.g. Gate 2" Height="28" FontSize="11" Padding="5,2"/>
 							</StackPanel>
 						</Grid>
 
-						<Separator Background="{DynamicResource ThemeBorderLow}" Height="1"/>
-
-						<!-- Line Items -->
-						<Grid ColumnDefinitions="*, Auto">
-							<TextBlock Text="Order Items" FontSize="14" FontWeight="SemiBold"/>
+						<!-- Line Title -->
+						<Grid ColumnDefinitions="*, Auto" Margin="0,5,0,0">
+							<TextBlock Text="Order Items" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"/>
 						</Grid>
 					</StackPanel>
 
@@ -401,23 +334,22 @@
 					<!-- Add Row Button Removed (Rows are pre-filled) -->
 
 
-					<!-- Totals -->
-					<Grid Grid.Row="2" ColumnDefinitions="*, 300" Margin="0,10,0,0">
-						<StackPanel Grid.Column="1" Spacing="10">
-							<Grid ColumnDefinitions="Auto, *">
-								<TextBlock Text="Sub Total:" Foreground="{DynamicResource ThemeForegroundLow}"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.SubTotal, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
-							</Grid>
-							<Grid ColumnDefinitions="*, Auto">
-								<TextBlock Text="VAT (15%):" Foreground="{DynamicResource ThemeForegroundLow}"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.VatTotal, StringFormat='{}{0:C}'}" FontWeight="SemiBold"/>
-							</Grid>
-							<Separator Height="1" Background="{DynamicResource ThemeBorderLow}"/>
-							<Grid ColumnDefinitions="*, Auto">
-								<TextBlock Text="TOTAL:" FontSize="16" FontWeight="Bold"/>
-								<TextBlock Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,40,0" Text="{Binding CurrentOrder.TotalAmount, StringFormat='{}{0:C}'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
-							</Grid>
-						</StackPanel>
+					<!-- Totals (Compact) -->
+					<Grid Grid.Row="2" ColumnDefinitions="*, 220" Margin="0,5,0,0">
+						<Grid Grid.Column="1" ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto" Margin="0,0,40,0">
+							<TextBlock Grid.Row="0" Grid.Column="0" Text="Sub Total:" Foreground="{DynamicResource ThemeForegroundLow}" FontSize="10" VerticalAlignment="Center"/>
+							<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentOrder.SubTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
+							
+							<TextBlock Grid.Row="1" Grid.Column="0" Text="VAT (15%):" Foreground="{DynamicResource ThemeForegroundLow}" FontSize="10" VerticalAlignment="Center" Margin="0,1,0,3"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentOrder.VatTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center" Margin="0,1,0,3"/>
+							
+							<Border Grid.Row="2" Grid.Column="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="0,3,0,0">
+								<TextBlock Text="TOTAL:" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+							</Border>
+							<Border Grid.Row="2" Grid.Column="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="0,3,0,0">
+								<TextBlock Text="{Binding CurrentOrder.TotalAmount, StringFormat='{}{0:C}'}" HorizontalAlignment="Right" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" VerticalAlignment="Center"/>
+							</Border>
+						</Grid>
 					</Grid>
 				</Grid>
 			</Grid>

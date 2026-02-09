@@ -87,7 +87,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <summary>
         /// Gets the collection of low stock items requiring attention.
         /// </summary>
-        public ObservableCollection<InventoryItem> LowStockItems { get; } = new();
+        public ObservableCollection<RestockCandidateDto> LowStockItems { get; } = new();
 
         #endregion
 
@@ -152,6 +152,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private void NavigateToOrderList()
         {
              WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("OrderList"));
+        }
+
+        [RelayCommand]
+        private void NavigateToReceiving()
+        {
+             WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(OCC.Client.Infrastructure.NavigationRoutes.Receiving));
         }
 
         #endregion

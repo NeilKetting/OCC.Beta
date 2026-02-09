@@ -12,7 +12,7 @@ namespace OCC.Client.Services.Interfaces
         Task<OrderDto?> GetOrderAsync(Guid id);
         Task<OrderDto> CreateOrderAsync(OrderDto order);
         Task UpdateOrderAsync(OrderDto order);
-        Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLine> updatedLines);
+        Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLineDto> updatedLines);
         Task DeleteOrderAsync(Guid id);
         
         Task<OrderDto> GetRestockTemplateAsync();

@@ -14,13 +14,11 @@
 		TransparencyLevelHint="Transparent"
 		Topmost="True">
 
-	<Design.DataContext>
-		<vm:SplashViewModel/>
-	</Design.DataContext>
-
-	<Border Background="{DynamicResource SideMenuGradient}" CornerRadius="12" 
-			BorderThickness="0" Padding="20" 
-			BoxShadow="0 4 20 0 #20000000">
+	<Border Background="{DynamicResource SideMenuGradient}" CornerRadius="35" 
+			BorderThickness="5"
+			BorderBrush="{DynamicResource SplashGradient}"
+			Padding="20" 
+			BoxShadow="0 4 20 10 #000">
 		<Grid RowDefinitions="*, Auto, Auto">
 
 			<!-- Logo area -->

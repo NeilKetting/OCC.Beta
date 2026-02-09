@@ -79,8 +79,28 @@
                   GridLinesVisibility="Horizontal"
                   Background="White"
                   BorderThickness="0"
-                  SelectedItem="{Binding SelectedOrder}"
-                  DoubleTapped="DataGrid_DoubleTapped">
+                  SelectedItem="{Binding SelectedOrder}">
+
+            <Interaction.Behaviors>
+                <EventTriggerBehavior EventName="DoubleTapped">
+                    <InvokeCommandAction Command="{Binding ViewOrderCommand}" CommandParameter="{Binding SelectedOrder}"/>
+                </EventTriggerBehavior>
+            </Interaction.Behaviors>
+
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="View/Edit Order" Command="{Binding ViewOrderCommand}" CommandParameter="{Binding SelectedOrder}">
+                        <MenuItem.Icon>
+                            <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Receive Stock" Command="{Binding RequestReceiveOrderCommand}" CommandParameter="{Binding SelectedOrder}">
+                        <MenuItem.Icon>
+                            <PathIcon Data="{StaticResource IconCart}" Width="16" Height="16" Foreground="{DynamicResource PrimaryTeal}"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
             
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>

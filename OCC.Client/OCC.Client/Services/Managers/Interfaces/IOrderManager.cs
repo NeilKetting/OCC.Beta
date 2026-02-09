@@ -218,6 +218,6 @@ namespace OCC.Client.Services.Managers.Interfaces
         string PendingDeliveriesText,
         string PendingDeliveriesColor,
         IEnumerable<OrderSummaryDto> RecentOrders,
-        IEnumerable<InventoryItem> LowStockItems,
+        IEnumerable<RestockCandidateDto> LowStockItems,
         int LowStockCount);
 }

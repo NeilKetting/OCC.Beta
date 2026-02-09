@@ -23,6 +23,7 @@
             <conv:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
             <conv:DoubleToStarGridLengthConverter x:Key="DoubleToStarGridLengthConverter"/>
+            <conv:BranchToColorConverter x:Key="BranchToColorConverter"/>
 
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">8</x:Double>

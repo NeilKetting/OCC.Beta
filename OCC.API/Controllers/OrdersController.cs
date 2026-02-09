@@ -39,11 +39,12 @@ namespace OCC.API.Controllers
                         Id = o.Id,
                         OrderNumber = o.OrderNumber,
                         OrderDate = o.OrderDate,
+                        ExpectedDeliveryDate = o.ExpectedDeliveryDate, // Added this field
                         SupplierName = o.SupplierName,
                         ProjectName = o.ProjectName,
                         Status = o.Status,
-                        TotalAmount = o.TotalAmount,
-                        Branch = o.Branch.ToString(), // Stored as string in DTO for display
+                        TotalAmount = o.Lines.Sum(l => l.LineTotal + l.VatAmount),
+                        Branch = o.Branch.ToString(),
                         SupplierId = o.SupplierId,
                         OrderType = o.OrderType,
                         DestinationDisplay = o.DestinationType == OrderDestinationType.Site ? $"Site: {o.ProjectName}" : "Office Stock"
@@ -91,6 +92,9 @@ namespace OCC.API.Controllers
                 // Validate order
                 if (!orderDto.Lines.Any())
                     return BadRequest("Order must have at least one line item.");
+
+                if (orderDto.ExpectedDeliveryDate.HasValue && orderDto.ExpectedDeliveryDate.Value.Date < DateTime.Today)
+                    return BadRequest("Expected delivery date (ETA) cannot be in the past.");
 
                 var order = ToEntity(orderDto);
 
@@ -179,6 +183,9 @@ namespace OCC.API.Controllers
                 existingOrder.Notes = orderDto.Notes;
                 existingOrder.DeliveryInstructions = orderDto.DeliveryInstructions;
                 existingOrder.ScopeOfWork = orderDto.ScopeOfWork;
+
+                if (orderDto.ExpectedDeliveryDate.HasValue && orderDto.ExpectedDeliveryDate.Value.Date < DateTime.Today)
+                    return BadRequest("Expected delivery date (ETA) cannot be in the past.");
 
                 // 3. Reconcile Lines (Smart Merge)
                 foreach (var lineDto in orderDto.Lines)
@@ -276,7 +283,7 @@ namespace OCC.API.Controllers
         }
         
         [HttpPost("{id}/receive")]
-        public async Task<IActionResult> ReceiveOrder(Guid id, [FromBody] List<OrderLine> receivedLines)
+        public async Task<IActionResult> ReceiveOrder(Guid id, [FromBody] List<OrderLineDto> receivedLines)
         {
             // Keeping legacy signature for now, but returning OrderDto potentially?
             // The client expects Order back.

@@ -75,8 +75,21 @@
 
 				<!-- Stat 2 -->
 				<Border Grid.Column="2" Classes="CardMedium">
+                    <Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="DoubleTapped">
+                            <InvokeCommandAction Command="{Binding NavigateToReceivingCommand}"/>
+                        </EventTriggerBehavior>
+                    </Interaction.Behaviors>
 					<StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*, Auto">
 							<TextBlock Text="PENDING DELIVERIES" Classes="Label" />
+                            <Button Grid.Column="1" Command="{Binding NavigateToReceivingCommand}" Classes="Secondary" Padding="5,2" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <PathIcon Data="{StaticResource IconCart}" Width="10" Height="10"/>
+                                    <TextBlock Text="Receive" FontSize="10"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
 						<TextBlock Text="{Binding PendingDeliveries}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource ThemeForeground}" />
 						<TextBlock Text="{Binding PendingDeliveryText}" FontSize="12" Foreground="{Binding PendingDeliveryColor}" />
 					</StackPanel>
@@ -172,12 +185,12 @@
 								<Border Margin="0,0,0,10" Padding="15" BorderBrush="Gray" BorderThickness="0,0,0,0">
 									<StackPanel Spacing="5">
 										<StackPanel Spacing="5">
-											<TextBlock Text="{Binding Description}" FontWeight="Bold" />
-											<TextBlock Text="{Binding Location}" FontSize="11" Foreground="{DynamicResource ThemeForegroundLow}" Margin="0"/>
+											<TextBlock Text="{Binding Item.Description}" FontWeight="Bold" />
+											<TextBlock Text="{Binding TargetBranch}" FontSize="11" Foreground="{DynamicResource ThemeForegroundLow}" Margin="0"/>
 										</StackPanel>
 										<StackPanel Grid.Row="1" Spacing="5">
-											<ProgressBar Margin="0" Height="4" Maximum="{Binding JhbReorderPoint}" Value="{Binding QuantityOnHand}" Foreground="#EF4444" Background="#20EF4444" />
-											<TextBlock Text="{Binding QuantityOnHand, StringFormat='{}On Hand: {0}'}" FontSize="10" Foreground="#EF4444" Margin="0" />
+											<ProgressBar Margin="0" Height="4" Maximum="{Binding TargetReorderPoint}" Value="{Binding QuantityOnHandForBranch}" Foreground="#EF4444" Background="#20EF4444" />
+											<TextBlock Text="{Binding QuantityOnHandForBranch, StringFormat='{}On Hand: {0}'}" FontSize="10" Foreground="#EF4444" Margin="0" />
 										</StackPanel>
 									</StackPanel>
 								</Border>

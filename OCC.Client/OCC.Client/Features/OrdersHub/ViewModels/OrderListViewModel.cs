@@ -70,6 +70,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private string? _selectedBranchFilter = "All";
 
         /// <summary>
+        /// Gets or sets the selected order status filter.
+        /// </summary>
+        [ObservableProperty]
+        private OrderStatus? _selectedStatusFilter;
+
+        /// <summary>
         /// Gets the available options for time-based filtering.
         /// </summary>
         public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
@@ -165,6 +171,32 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         #region Methods
 
         /// <summary>
+        /// Configures the list to show only orders that are ready to be received.
+        /// </summary>
+        public void SetReceivingMode()
+        {
+            SearchQuery = string.Empty;
+            TimeFilter = OrderDateFilter.All;
+            SelectedBranchFilter = "All";
+            SelectedStatusFilter = null; // Clear first to ensure refresh if already set to something else
+            
+            // Filter logic will be handled by FilterOrders which is triggered by property changes
+            // Here we want to show Ordered and PartialDelivery
+            // Since we only have one status filter property for now, we'll handle this in FilterOrders
+            _isReceivingOnly = true;
+            FilterOrders();
+        }
+
+        private bool _isReceivingOnly;
+
+        public void ClearReceivingMode()
+        {
+            _isReceivingOnly = false;
+            SelectedStatusFilter = null;
+            FilterOrders();
+        }
+
+        /// <summary>
         /// Asynchronously loads all orders from the Order Manager and applies the current filters.
         /// </summary>
         public async void LoadOrders()
@@ -247,6 +279,16 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 {
                      query = query.Where(o => o.Branch == branchEnum.ToString());
                 }
+            }
+
+            // 4. Status Filter
+            if (_isReceivingOnly)
+            {
+                query = query.Where(o => o.Status == OrderStatus.Ordered || o.Status == OrderStatus.PartialDelivery);
+            }
+            else if (SelectedStatusFilter.HasValue)
+            {
+                query = query.Where(o => o.Status == SelectedStatusFilter.Value);
             }
 
             // Sort results by newest first for better visibility

@@ -270,15 +270,26 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
                 if (hasProduct || hasDesc || hasPrice)
                 {
-                    var existsEmpty = CurrentOrder.Lines.Any(x => string.IsNullOrWhiteSpace(x.ItemCode) && 
-                                                                string.IsNullOrWhiteSpace(x.Description) && 
-                                                                x.LineTotal == 0);
-                    
-                    if (!existsEmpty)
-                    {
-                        CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
-                    }
+                    EnsureBlankRow();
                 }
+            }
+        }
+
+        private void EnsureBlankRow()
+        {
+            if (CurrentOrder == null || IsReadOnly) return;
+
+            var lastItem = CurrentOrder.Lines.LastOrDefault();
+            bool isLastEmpty = lastItem == null || 
+                              (string.IsNullOrWhiteSpace(lastItem.ItemCode) && 
+                               string.IsNullOrWhiteSpace(lastItem.Description) && 
+                               lastItem.LineTotal == 0);
+
+            if (!isLastEmpty)
+            {
+                var newLine = new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" });
+                newLine.PropertyChanged += OnLineChanged;
+                CurrentOrder.Lines.Add(newLine);
             }
         }
 
@@ -773,6 +784,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     catch(Exception ex) { _logger.LogError(ex, "Failed to print order"); }
                 }
 
+                Reset();
                 CloseRequested?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
@@ -787,7 +799,11 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Cancels the current operation and closes the view.
         /// </summary>
         [RelayCommand]
-        public void Cancel() => CloseRequested?.Invoke(this, EventArgs.Empty);
+        public void Cancel()
+        {
+            Reset();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Validates if the search text matches an existing item, and offers to create it if not.
@@ -959,6 +975,16 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             CurrentOrder = new OrderWrapper(_orderManager.CreateNewOrderTemplate());
             CurrentOrder.ExpectedDeliveryDate = DateTime.Today;
 
+            SelectedSupplier = null;
+            SelectedCustomer = null;
+            SelectedProject = null;
+            SelectedInventoryItem = null;
+            IsSiteDelivery = false;
+            IsOfficeDelivery = true;
+            IsAddingProjectAddress = false;
+            IsReadOnly = false;
+            NewProjectAddress = string.Empty;
+
             // Default Branch to User's Branch if available (e.g. CPT)
             if (_authService?.CurrentUser?.Branch != null)
             {
@@ -971,7 +997,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
             // Start with EXACTLY one row (TestView style)
             CurrentOrder.Lines.Clear();
-            CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
+            EnsureBlankRow();
             
             SetupLineListeners();
             OrderMenu.ActiveTab = "New Order";
@@ -1002,6 +1028,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 
                 if (CurrentOrder.SupplierId.HasValue)
                     SelectedSupplier = Suppliers.FirstOrDefault(s => s.Id == CurrentOrder.SupplierId.Value);
+                else if (!string.IsNullOrEmpty(CurrentOrder.SupplierName))
+                    SelectedSupplier = Suppliers.FirstOrDefault(s => s.Name.Equals(CurrentOrder.SupplierName, StringComparison.OrdinalIgnoreCase));
 
                 if (CurrentOrder.CustomerId.HasValue)
                     SelectedCustomer = Customers.FirstOrDefault(c => c.Id == CurrentOrder.CustomerId.Value);
@@ -1023,13 +1051,14 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 // User confirmed: "If the order says completed then we lock. Orders partial delivers we leave it unlocked."
                 IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
             
-                // If it is editable, ensure at least one row exists or add one at the end if needed
-                if (!IsReadOnly && CurrentOrder.Lines != null)
+                // If it is editable, ensure at least one row exists. 
+                // Don't auto-add a blank row if we already have pre-populated lines (like from Restock).
+                if (!IsReadOnly)
                 {
-                    // Always add an empty row for editing convenience
-                    CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" }));
-                    SetupLineListeners(); // Hook up all lines including the new one
+                    EnsureBlankRow();
                 }
+                
+                SetupLineListeners(); 
 
                 OrderMenu.ActiveTab = "New Order";
                 Initialize();
@@ -1078,6 +1107,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                    }
                 }
             }
+            EnsureBlankRow();
             _orderStateService.ClearState();
         }
 
@@ -1184,9 +1214,19 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
              {
                  CurrentOrder.ProjectId = value.Id;
                  CurrentOrder.ProjectName = value.Name;
-                 if (IsSalesOrder) { CurrentOrder.CustomerId = value.Id; CurrentOrder.EntityAddress = value.StreetLine1; }
-                 else if (IsPurchaseOrder && IsSiteDelivery) CurrentOrder.EntityAddress = value.StreetLine1;
+                 
+                 // Universal sync: if we are in Site Delivery or Sales Order, update address
+                 if (IsSalesOrder || IsSiteDelivery)
+                 {
+                     CurrentOrder.EntityAddress = value.StreetLine1;
+                 }
+
                  OnPropertyChanged(nameof(CurrentOrder));
+             }
+             else
+             {
+                 CurrentOrder.ProjectId = null;
+                 CurrentOrder.ProjectName = string.Empty;
              }
         }
         /// <summary>
@@ -1328,8 +1368,9 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("Suppliers"));
                     break;
                 case "New Order":
-                    // We are already here, maybe reset?
-                    Reset();
+                    // We are already here, do not reset automatically on tab switch 
+                    // unless the user specifically wants to start a fresh one? 
+                    // User requested: "clear state on cancel or X not when clicking the new order button"
                     IsReadOnly = false;
                     break;
             }

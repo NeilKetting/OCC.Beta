@@ -61,4 +61,17 @@
 		<GradientStop Offset="1.0" Color="#CBD5E1" />
 	</LinearGradientBrush>
 
+	<LinearGradientBrush x:Key="SplashGradient" StartPoint="0%,0%" EndPoint="100%,100%">
+		<!-- Acid Green -->
+		<GradientStop Offset="0.0" Color="#00FF6A"/>
+		<!-- Electric Cyan / Blue -->
+		<GradientStop Offset="0.22" Color="#00CFFF"/>
+		<!-- Hard Red Punch -->
+		<GradientStop Offset="0.42" Color="#FF003C"/>
+		<!-- White Flash -->
+		<GradientStop Offset="0.70" Color="#FFFFFF"/>
+		<!-- Orange -->
+		<GradientStop Offset="1.0" Color="#FF8F00"/>
+	</LinearGradientBrush>
+
 </ResourceDictionary>

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace OCC.Shared.Models
 {
@@ -28,6 +29,8 @@ namespace OCC.Shared.Models
 
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
         public Guid OrderId { get; set; }
+        
+        [JsonIgnore]
         public Order Order { get; set; } = null!;
         
         /// <summary> Link to the specific <see cref="InventoryItem"/>. Mandatory for all orders. </summary>
