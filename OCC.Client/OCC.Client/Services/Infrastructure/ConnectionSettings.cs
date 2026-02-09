@@ -58,25 +58,56 @@ namespace OCC.Client.Services.Infrastructure
         private ConnectionSettings() 
         { 
 #if DEBUG
+            _selectedEnvironment = AppEnvironment.Local;
             _apiBaseUrl = "http://localhost:5237/";
 #elif STAGING
+            _selectedEnvironment = AppEnvironment.Staging;
             _apiBaseUrl = "http://102.221.36.149:8082/";
+#else
+            _selectedEnvironment = AppEnvironment.Live;
+            _apiBaseUrl = "http://102.221.36.149:8081/";
 #endif
         }
 
-        private bool _useLocalDb;
-        public bool UseLocalDb
+        public enum AppEnvironment
         {
-            get => _useLocalDb;
+            Live,
+            Staging,
+            Local
+        }
+
+        private AppEnvironment _selectedEnvironment;
+        public AppEnvironment SelectedEnvironment
+        {
+            get => _selectedEnvironment;
             set
             {
-                if (_useLocalDb != value)
+                if (_selectedEnvironment != value)
                 {
-                    _useLocalDb = value;
-                    ApiBaseUrl = _useLocalDb ? "http://localhost:5237/" : "http://102.221.36.149:8081/";
+                    _selectedEnvironment = value;
+                    switch (_selectedEnvironment)
+                    {
+                        case AppEnvironment.Live:
+                            ApiBaseUrl = "http://102.221.36.149:8081/";
+                            break;
+                        case AppEnvironment.Staging:
+                            ApiBaseUrl = "http://102.221.36.149:8082/";
+                            break;
+                        case AppEnvironment.Local:
+                            ApiBaseUrl = "http://localhost:5237/";
+                            break;
+                    }
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(UseLocalDb)); // Backward compatibility/Binding update trigger
                 }
             }
+        }
+
+        // Backward compatibility helper if needed, or remove if fully refactored
+        public bool UseLocalDb
+        {
+            get => _selectedEnvironment == AppEnvironment.Local;
+            set => SelectedEnvironment = value ? AppEnvironment.Local : AppEnvironment.Live;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -82,11 +82,12 @@
 											   TextWrapping="Wrap"
 											   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-                                    <ToggleSwitch IsChecked="{Binding UseLocalDb}"
-                                                  OnContent="Using Local DB (Dummy)"
-                                                  OffContent="Using Live DB"
-                                                  HorizontalAlignment="Center"
-                                                  IsVisible="{Binding IsDevUser}"/>
+                                    <ComboBox ItemsSource="{Binding Environments}"
+                                              SelectedItem="{Binding SelectedEnvironment}"
+                                              IsVisible="{Binding IsDevUser}"
+                                              HorizontalAlignment="Center"
+                                              Width="200"
+                                              Margin="0,10,0,0"/>
 								</StackPanel>
 
 								<Button Command="{Binding LoginCommand}"

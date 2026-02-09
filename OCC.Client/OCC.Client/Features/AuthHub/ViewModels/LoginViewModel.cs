@@ -8,6 +8,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
@@ -62,12 +64,12 @@ namespace OCC.Client.Features.AuthHub.ViewModels
             Email = _localSettings.Settings.LastEmail;
             
             // Sync with singleton
-            UseLocalDb = _connectionSettings.UseLocalDb;
+            // UseLocalDb = _connectionSettings.UseLocalDb;
             _connectionSettings.PropertyChanged += (s, e) =>
             {
-               if (e.PropertyName == nameof(ConnectionSettings.UseLocalDb))
+               if (e.PropertyName == nameof(ConnectionSettings.SelectedEnvironment))
                {
-                   UseLocalDb = _connectionSettings.UseLocalDb;
+                   OnPropertyChanged(nameof(SelectedEnvironment));
                }
             };
         }
@@ -77,16 +79,28 @@ namespace OCC.Client.Features.AuthHub.ViewModels
             IsDevUser = string.Equals(value, "neil@mdk.co.za", StringComparison.OrdinalIgnoreCase);
         }
 
-        partial void OnUseLocalDbChanged(bool value)
-        {
-            _connectionSettings.UseLocalDb = value;
-        }
+
 
         [ObservableProperty]
         private bool _isDevUser;
 
-        [ObservableProperty]
-        private bool _useLocalDb;
+        // [ObservableProperty]
+        // private bool _useLocalDb; // Removed in favor of Enum
+
+        public ConnectionSettings.AppEnvironment SelectedEnvironment
+        {
+            get => _connectionSettings.SelectedEnvironment;
+            set
+            {
+                if (_connectionSettings.SelectedEnvironment != value)
+                {
+                    _connectionSettings.SelectedEnvironment = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public List<ConnectionSettings.AppEnvironment> Environments { get; } = Enum.GetValues<ConnectionSettings.AppEnvironment>().ToList();
 
         #endregion
 
