@@ -62,10 +62,31 @@ namespace OCC.Client.Features.AuthHub.ViewModels
             Email = _localSettings.Settings.LastEmail;
             
             // Sync with singleton
+            UseLocalDb = _connectionSettings.UseLocalDb;
             _connectionSettings.PropertyChanged += (s, e) =>
             {
+               if (e.PropertyName == nameof(ConnectionSettings.UseLocalDb))
+               {
+                   UseLocalDb = _connectionSettings.UseLocalDb;
+               }
             };
         }
+
+        partial void OnEmailChanged(string value)
+        {
+            IsDevUser = string.Equals(value, "neil@mdk.co.za", StringComparison.OrdinalIgnoreCase);
+        }
+
+        partial void OnUseLocalDbChanged(bool value)
+        {
+            _connectionSettings.UseLocalDb = value;
+        }
+
+        [ObservableProperty]
+        private bool _isDevUser;
+
+        [ObservableProperty]
+        private bool _useLocalDb;
 
         #endregion
 

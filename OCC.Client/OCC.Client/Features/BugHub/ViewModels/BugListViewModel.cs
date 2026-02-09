@@ -371,6 +371,30 @@ namespace OCC.Client.Features.BugHub.ViewModels
             IsImageZoomed = !IsImageZoomed;
         }
 
+        [RelayCommand]
+        private async Task OpenLogFolder()
+        {
+            try
+            {
+                var logPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "OCC", "logs");
+
+                if (!System.IO.Directory.Exists(logPath))
+                {
+                   System.IO.Directory.CreateDirectory(logPath);
+                }
+
+                // Use Process.Start with "explorer.exe" and the path arguments
+                // This is the most reliable way on Windows to open a folder
+                System.Diagnostics.Process.Start("explorer.exe", logPath);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to open log folder: {ex.Message}");
+            }
+        }
+
         #endregion
     }
 }

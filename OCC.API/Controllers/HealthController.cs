@@ -44,12 +44,27 @@ namespace OCC.API.Controllers
 
             try
             {
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                var databaseName = "Unknown";
+
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    var builder = new System.Data.Common.DbConnectionStringBuilder();
+                    builder.ConnectionString = connectionString;
+                    
+                    if (builder.TryGetValue("Initial Catalog", out var catalog))
+                        databaseName = catalog as string;
+                    else if (builder.TryGetValue("Database", out var db))
+                        databaseName = db as string;
+                }
+
                 var canConnect = await _context.Database.CanConnectAsync();
                 return Ok(new 
                 { 
                     result.Environment, 
                     result.ConnectionStringFound, 
                     result.ConnectionStringMasked, 
+                    DatabaseName = databaseName,
                     CanConnect = canConnect,
                     Message = canConnect ? "Successfully connected to the database." : "Database connection failed."
                 });
@@ -61,6 +76,7 @@ namespace OCC.API.Controllers
                     result.Environment, 
                     result.ConnectionStringFound, 
                     result.ConnectionStringMasked, 
+                    DatabaseName = "Error",
                     CanConnect = false,
                     Error = ex.Message,
                     StackTrace = ex.StackTrace

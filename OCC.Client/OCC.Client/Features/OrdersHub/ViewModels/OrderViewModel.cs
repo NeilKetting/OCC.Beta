@@ -170,31 +170,37 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             switch (tabName)
             {
                 case "Dashboard": 
+                    if (CurrentView == DashboardVM) return;
                     CurrentView = DashboardVM; 
                     _ = DashboardVM.LoadData();
                     break;
                 case "OrderList": 
                 case "All Orders":
+                    if (CurrentView == OrderListVM) return;
                     CurrentView = OrderListVM; 
                     OrderListVM.LoadOrders(); 
                     break;
                 case "CreateOrder": 
                 case "New Order":
+                    if (CurrentView == CreateOrderVM) return;
+                    CurrentView = CreateOrderVM;
                     // Open as a standard view instead of a popup so navigation remains accessible
                     CreateOrderVM.Reset();
                     CreateOrderVM.IsReadOnly = false;
                     _ = CreateOrderVM.LoadData(); 
-                    CurrentView = CreateOrderVM;
                     break;
                 case "Inventory": 
+                    if (CurrentView == InventoryVM) return;
                     CurrentView = InventoryVM;
                     _ = InventoryVM.LoadInventoryAsync();
                     break;
                 case "ItemList":
+                    if (CurrentView == ItemListVM) return;
                     CurrentView = ItemListVM; 
                     _ = ItemListVM.LoadItemsAsync(); 
                     break;
                 case "Suppliers": 
+                    if (CurrentView == SupplierListVM) return;
                     CurrentView = SupplierListVM; 
                     _ = SupplierListVM.LoadData(); 
                     break;

@@ -16,8 +16,11 @@
                     <StackPanel Spacing="12">
                         <Grid ColumnDefinitions="*, Auto">
                             <TextBlock Text="Bug Reports" Classes="H1" FontSize="20"/>
-                            <Button Grid.Column="1" Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center">
+                            <Button Grid.Column="1" Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center" ToolTip.Tip="Refresh List">
                                 <PathIcon Data="{StaticResource IconHistory}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
+                            </Button>
+                            <Button Grid.Column="2" Command="{Binding OpenLogFolderCommand}" Classes="IconButton" VerticalAlignment="Center" Margin="5,0,0,0" ToolTip.Tip="Open Logs Folder">
+                                <PathIcon Data="{StaticResource IconFile}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
                             </Button>
                         </Grid>
                         

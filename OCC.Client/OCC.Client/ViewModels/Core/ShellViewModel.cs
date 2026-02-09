@@ -271,6 +271,15 @@ namespace OCC.Client.ViewModels.Core
             // Check Birthdays
             CheckBirthdaysAsync(serviceProvider.GetRequiredService<IRepository<Employee>>());
 
+            // Subscribe to Connection Settings
+            ConnectionSettings.Instance.PropertyChanged += async (s, e) => 
+            {
+               if (e.PropertyName == nameof(ConnectionSettings.UseLocalDb) || e.PropertyName == nameof(ConnectionSettings.ApiBaseUrl))
+               {
+                   await CheckDbConnection();
+               }
+            };
+
             // Start DB Polling
             StartDbPolling();
         }
@@ -292,19 +301,48 @@ namespace OCC.Client.ViewModels.Core
         {
             try
             {
-                // Lightweight check: Try to get a non-existent ID. 
-                // If it returns null (or throws NotFound), DB is reachable.
-                // If it throws ConnectionException, it's not.
-                await _projectRepo.GetByIdAsync(Guid.NewGuid());
+                // Call the Health Check endpoint to get the actual DB Name
+                // We use a raw HttpClient here to avoid circular dependencies or complex service modifications for now
+                using var client = new System.Net.Http.HttpClient();
+                client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl);
                 
-                IsDbConnected = true;
-                DbStatusText = "Online";
+                var response = await client.GetAsync("api/health/db-check");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    // Simple JSON parsing to avoid pulling in models just for this
+                    // Expected: { ... "databaseName": "OCC_DB_DEV", ... }
+                    
+                    string dbName = "Unknown";
+                    try 
+                    {
+                        var json = System.Text.Json.JsonDocument.Parse(content);
+                        if (json.RootElement.TryGetProperty("databaseName", out var dbProp))
+                        {
+                            dbName = dbProp.GetString() ?? "Unknown";
+                        }
+                    }
+                    catch
+                    {
+                         dbName = "Parse Error";
+                    }
+
+                    IsDbConnected = true;
+                    // Append connection type for clarity
+                    var type = ConnectionSettings.Instance.UseLocalDb ? "(Local)" : "(Live)";
+                    DbStatusText = $"Online: {dbName} {type}";
+                }
+                else
+                {
+                    throw new Exception($"Status Code: {response.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[ShellViewModel] DB Connection Check Failed: {ex.Message}");
                 IsDbConnected = false;
-                DbStatusText = "Offline";
+                string dbName = ConnectionSettings.Instance.UseLocalDb ? "Local" : "Live";
+                DbStatusText = $"Offline: {dbName}";
             }
         }
 

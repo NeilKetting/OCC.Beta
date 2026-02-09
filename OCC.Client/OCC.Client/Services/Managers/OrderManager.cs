@@ -281,6 +281,7 @@ namespace OCC.Client.Services.Managers
 
             return new Order
             {
+                Id = Guid.Empty,
                 OrderDate = DateTime.Now,
                 OrderNumber = $"{prefix}-{DateTime.Now:yyMM}-{new Random().Next(1000, 9999)}",
                 OrderType = type,

@@ -64,6 +64,21 @@ namespace OCC.Client.Services.Infrastructure
 #endif
         }
 
+        private bool _useLocalDb;
+        public bool UseLocalDb
+        {
+            get => _useLocalDb;
+            set
+            {
+                if (_useLocalDb != value)
+                {
+                    _useLocalDb = value;
+                    ApiBaseUrl = _useLocalDb ? "http://localhost:5237/" : "http://102.221.36.149:8081/";
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

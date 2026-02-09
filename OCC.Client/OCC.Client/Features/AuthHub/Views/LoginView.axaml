@@ -81,6 +81,12 @@
 											   FontSize="12"
 											   TextWrapping="Wrap"
 											   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                    <ToggleSwitch IsChecked="{Binding UseLocalDb}"
+                                                  OnContent="Using Local DB (Dummy)"
+                                                  OffContent="Using Live DB"
+                                                  HorizontalAlignment="Center"
+                                                  IsVisible="{Binding IsDevUser}"/>
 								</StackPanel>
 
 								<Button Command="{Binding LoginCommand}"

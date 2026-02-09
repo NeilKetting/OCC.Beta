@@ -12,17 +12,15 @@
 		SystemDecorations="None"
 		Background="Transparent"
 		TransparencyLevelHint="Transparent"
-		Topmost="True"
-		>
+		Topmost="True">
 
-	<Border CornerRadius="12" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000">
-		<Border.Background>
-			<LinearGradientBrush StartPoint="0%,100%" EndPoint="100%,0%">
-				<GradientStop Offset="0" Color="#D1D5DB" />
-				<GradientStop Offset="0.5" Color="#E5E7EB" />
-				<GradientStop Offset="1" Color="#F3F4F6" />
-			</LinearGradientBrush>
-		</Border.Background>
+	<Design.DataContext>
+		<vm:SplashViewModel/>
+	</Design.DataContext>
+
+	<Border Background="{DynamicResource SideMenuGradient}" CornerRadius="12" 
+			BorderThickness="0" Padding="20" 
+			BoxShadow="0 4 20 0 #20000000">
 		<Grid RowDefinitions="*, Auto, Auto">
 
 			<!-- Logo area -->
@@ -34,8 +32,8 @@
 
 			<!-- Status -->
 			<StackPanel Grid.Row="1" Spacing="10" Margin="0,30,0,0">
-				<TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="#929292"/>
-				<ProgressBar IsIndeterminate="{Binding IsChecking}" Value="{Binding Progress}" Maximum="100" Height="4" Width="200" Foreground="{DynamicResource AccentOrange}"/>
+				<TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="{DynamicResource TextPrimaryLight}"/>
+				<ProgressBar IsIndeterminate="{Binding IsChecking}" Value="{Binding Progress}" Maximum="100" Height="4" Width="200" Foreground="{DynamicResource Orange}"/>
 			</StackPanel>
 
 			<!-- Version -->
