@@ -59,6 +59,8 @@ namespace OCC.Client.Services.Infrastructure
         { 
 #if DEBUG
             _apiBaseUrl = "http://localhost:5237/";
+#elif STAGING
+            _apiBaseUrl = "http://102.221.36.149:8082/";
 #endif
         }
 

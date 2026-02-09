@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:vm="using:OCC.Client.Features.CoreHub.ViewModels"
+		mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+		x:Class="OCC.Client.Features.CoreHub.Views.SplashView"
+		x:DataType="vm:SplashViewModel"
+		Title="Orange Circle Construction"
+		Width="400" Height="300"
+		WindowStartupLocation="CenterScreen"
+		SystemDecorations="None"
+		Background="Transparent"
+		TransparencyLevelHint="Transparent"
+		Topmost="True"
+		>
+
+	<Border CornerRadius="12" BorderThickness="0" Padding="20" BoxShadow="0 4 20 0 #20000000">
+		<Border.Background>
+			<LinearGradientBrush StartPoint="0%,100%" EndPoint="100%,0%">
+				<GradientStop Offset="0" Color="#D1D5DB" />
+				<GradientStop Offset="0.5" Color="#E5E7EB" />
+				<GradientStop Offset="1" Color="#F3F4F6" />
+			</LinearGradientBrush>
+		</Border.Background>
+		<Grid RowDefinitions="*, Auto, Auto">
+
+			<!-- Logo area -->
+			<StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="20">
+				<!-- Placeholder for Logo if available, using Text for now -->
+				<Image Source="avares://OCC.Client/Assets/Images/occ_logo2.png"
+					   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+			</StackPanel>
+
+			<!-- Status -->
+			<StackPanel Grid.Row="1" Spacing="10" Margin="0,30,0,0">
+				<TextBlock Text="{Binding StatusText}" HorizontalAlignment="Center" Foreground="#929292"/>
+				<ProgressBar IsIndeterminate="{Binding IsChecking}" Value="{Binding Progress}" Maximum="100" Height="4" Width="200" Foreground="{DynamicResource AccentOrange}"/>
+			</StackPanel>
+
+			<!-- Version -->
+			<TextBlock Grid.Row="2" Text="{Binding CurrentVersion}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource Orange}"/>
+		</Grid>
+	</Border>
+</Window>

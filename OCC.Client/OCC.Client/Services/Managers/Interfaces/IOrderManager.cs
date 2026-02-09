@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
+using OCC.Client.Models; // For RestockCandidate if needed, but we should use DTO or map
 
 namespace OCC.Client.Services.Managers.Interfaces
 {
@@ -18,8 +20,8 @@ namespace OCC.Client.Services.Managers.Interfaces
         /// <summary>
         /// Retrieves all orders from the data store asynchronously.
         /// </summary>
-        /// <returns>A collection of <see cref="Order"/> objects.</returns>
-        Task<IEnumerable<Order>> GetOrdersAsync();
+        /// <returns>A collection of <see cref="OrderSummaryDto"/> objects.</returns>
+        Task<IEnumerable<OrderSummaryDto>> GetOrdersAsync();
 
         /// <summary>
         /// Retrieves a specific order by its unique identifier.
@@ -193,7 +195,7 @@ namespace OCC.Client.Services.Managers.Interfaces
         /// Retrieves list of low stock items grouped by supplier with on-order calculations, optionally filtered by branch.
         /// </summary>
         /// <param name="branch">Optional branch to filter by.</param>
-        Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync(Branch? branch = null);
+        Task<IEnumerable<RestockCandidateDto>> GetRestockCandidatesAsync(Branch? branch = null);
     }
 
     /// <summary>
@@ -215,7 +217,7 @@ namespace OCC.Client.Services.Managers.Interfaces
         int PendingDeliveriesCount,
         string PendingDeliveriesText,
         string PendingDeliveriesColor,
-        IEnumerable<Order> RecentOrders,
+        IEnumerable<OrderSummaryDto> RecentOrders,
         IEnumerable<InventoryItem> LowStockItems,
         int LowStockCount);
 }

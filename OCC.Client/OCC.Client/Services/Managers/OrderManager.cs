@@ -2,18 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
+using OCC.Client.Models;
 
 namespace OCC.Client.Services.Managers
 {
-    /// <summary>
-    /// Implementation of <see cref="IOrderManager"/> that coordinates order operations.
-    /// This class acts as a facade, aggregating <see cref="IOrderService"/>, <see cref="IInventoryService"/>, 
-    /// <see cref="ISupplierService"/>, and repositories to provide a clean API for ViewModels.
-    /// </summary>
     public class OrderManager : IOrderManager
     {
         #region Private Members
@@ -28,14 +26,6 @@ namespace OCC.Client.Services.Managers
 
         #region Constructors
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="OrderManager"/> class.
-        /// </summary>
-        /// <param name="orderService">Service for core order operations.</param>
-        /// <param name="inventoryService">Service for inventory management.</param>
-        /// <param name="supplierService">Service for supplier management.</param>
-        /// <param name="customerRepository">Repository for customer data.</param>
-        /// <param name="projectRepository">Repository for project data.</param>
         public OrderManager(
             IOrderService orderService,
             IInventoryService inventoryService,
@@ -57,16 +47,29 @@ namespace OCC.Client.Services.Managers
         #region Order Operations
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<Order>> GetOrdersAsync() => await _orderService.GetOrdersAsync();
+        public async Task<IEnumerable<OrderSummaryDto>> GetOrdersAsync() => await _orderService.GetOrdersAsync();
 
         /// <inheritdoc/>
-        public async Task<Order?> GetOrderByIdAsync(Guid id) => await _orderService.GetOrderAsync(id);
+        public async Task<Order?> GetOrderByIdAsync(Guid id)
+        {
+            var dto = await _orderService.GetOrderAsync(id);
+            return dto == null ? null : ToEntity(dto);
+        }
 
         /// <inheritdoc/>
-        public async Task<Order> CreateOrderAsync(Order order) => await _orderService.CreateOrderAsync(order);
+        public async Task<Order> CreateOrderAsync(Order order)
+        {
+            var dto = ToDto(order);
+            var resultDto = await _orderService.CreateOrderAsync(dto);
+            return ToEntity(resultDto);
+        }
 
         /// <inheritdoc/>
-        public async Task UpdateOrderAsync(Order order) => await _orderService.UpdateOrderAsync(order);
+        public async Task UpdateOrderAsync(Order order)
+        {
+            var dto = ToDto(order);
+            await _orderService.UpdateOrderAsync(dto);
+        }
 
         /// <inheritdoc/>
         public async Task DeleteOrderAsync(Guid orderId) => await _orderService.DeleteOrderAsync(orderId);
@@ -89,25 +92,36 @@ namespace OCC.Client.Services.Managers
         }
 
         /// <inheritdoc/>
-        public async Task ReceiveOrderAsync(Order order, List<OrderLine> receipts) => await _orderService.ReceiveOrderAsync(order, receipts);
+        public async Task ReceiveOrderAsync(Order order, List<OrderLine> receipts)
+        {
+            var resultDto = await _orderService.ReceiveOrderAsync(order.Id, receipts);
+            
+            if (resultDto != null)
+            {
+                var updatedEntity = ToEntity(resultDto);
+                // Update local object to reflect status changes
+                order.Status = updatedEntity.Status;
+                
+                // Update lines quantities
+                foreach(var line in updatedEntity.Lines)
+                {
+                    var local = order.Lines.FirstOrDefault(l => l.Id == line.Id);
+                    if (local != null) 
+                    {
+                        local.QuantityReceived = line.QuantityReceived;
+                    }
+                }
+            }
+        }
 
         #endregion
 
         #region Supplier Operations
 
-        /// <inheritdoc/>
         public async Task<IEnumerable<Supplier>> GetSuppliersAsync() => await _supplierService.GetSuppliersAsync();
-
-        /// <inheritdoc/>
         public async Task DeleteSupplierAsync(Guid supplierId) => await _supplierService.DeleteSupplierAsync(supplierId);
-
-        /// <inheritdoc/>
         public async Task UpdateSupplierAsync(Supplier supplier) => await _supplierService.UpdateSupplierAsync(supplier);
-
-        /// <inheritdoc/>
         public async Task<Supplier> CreateSupplierAsync(Supplier supplier) => await _supplierService.CreateSupplierAsync(supplier);
-
-        /// <inheritdoc/>
         public async Task<Supplier> QuickCreateSupplierAsync(string name)
         {
             var supplier = new Supplier { Name = name };
@@ -118,22 +132,11 @@ namespace OCC.Client.Services.Managers
 
         #region Inventory Operations
 
-        /// <inheritdoc/>
         public async Task<IEnumerable<InventoryItem>> GetInventoryAsync() => await _inventoryService.GetInventoryAsync();
-
-        /// <inheritdoc/>
         public async Task<InventoryItem> CreateItemAsync(InventoryItem item) => await _inventoryService.CreateItemAsync(item);
-
-        /// <inheritdoc/>
         public async Task DeleteItemAsync(Guid itemId) => await _inventoryService.DeleteItemAsync(itemId);
-
-        /// <inheritdoc/>
         public async Task UpdateItemAsync(InventoryItem item) => await _inventoryService.UpdateItemAsync(item);
-
-        /// <inheritdoc/>
         public async Task UpdateInventoryItemAsync(InventoryItem item) => await _inventoryService.UpdateItemAsync(item);
-
-        /// <inheritdoc/>
         public async Task<InventoryItem> QuickCreateProductAsync(string name, string uom, string category, string supplierName)
         {
             var item = new InventoryItem
@@ -150,16 +153,9 @@ namespace OCC.Client.Services.Managers
 
         #region Project & Customer Operations
 
-        /// <inheritdoc/>
         public async Task<IEnumerable<Customer>> GetCustomersAsync() => await _customerRepository.GetAllAsync();
-
-        /// <inheritdoc/>
         public async Task<IEnumerable<Project>> GetProjectsAsync() => await _projectRepository.GetAllAsync();
-        
-        /// <inheritdoc/>
         public async Task<Project?> GetProjectByIdAsync(Guid id) => await _projectRepository.GetByIdAsync(id);
-
-        /// <inheritdoc/>
         public async Task UpdateProjectAsync(Project project) => await _projectRepository.UpdateAsync(project);
 
         #endregion
@@ -169,13 +165,14 @@ namespace OCC.Client.Services.Managers
         /// <inheritdoc/>
         public async Task<OrderDashboardStats> GetDashboardStatsAsync(Branch? branch = null)
         {
-            var allOrders = (await _orderService.GetOrdersAsync()).ToList();
-            var inventory = (await _inventoryService.GetInventoryAsync()).ToList();
+            var allOrders = (await _orderService.GetOrdersAsync()).ToList(); // Now Summary DTOs
 
             // Filter orders by branch if requested
             if (branch.HasValue)
             {
-                allOrders = allOrders.Where(o => o.Branch == branch.Value).ToList();
+                allOrders = allOrders.Where(o => o.Branch == branch.Value.ToString()).ToList(); // Branch is string in DTO? 
+                // Wait, in Controller I did: Branch = o.Branch.ToString()
+                // Let's verify DTO definition. OrderDashboardStats expects OrderSummaryDto?
             }
 
             var now = DateTime.Now;
@@ -207,6 +204,7 @@ namespace OCC.Client.Services.Managers
             string pendingColor;
 
             var today = DateTime.Today;
+            // Uses ExpectedDeliveryDate from DTO
             var arrivingTodayCount = pendingOrders.Count(o => o.ExpectedDeliveryDate?.Date == today);
 
             if (arrivingTodayCount > 0)
@@ -234,11 +232,9 @@ namespace OCC.Client.Services.Managers
 
             var recentOrders = allOrders.OrderByDescending(o => o.OrderDate).Take(5).ToList();
             
-            // Branch-aware low stock
-            var lowStockItems = inventory.Where(i => i.TrackLowStock && 
-                ((!branch.HasValue && (i.JhbQuantity <= i.JhbReorderPoint || i.CptQuantity <= i.CptReorderPoint)) ||
-                 (branch == Branch.JHB && i.JhbQuantity <= i.JhbReorderPoint) ||
-                 (branch == Branch.CPT && i.CptQuantity <= i.CptReorderPoint))).ToList();
+            // Get Restock Candidates from API
+            var candidates = await _orderService.GetRestockCandidatesAsync(branch);
+            var lowStockItems = candidates.Select(c => c.Item).Take(5).ToList(); // DTO has Item
 
             return new OrderDashboardStats(
                 ordersThisMonthCount,
@@ -248,172 +244,21 @@ namespace OCC.Client.Services.Managers
                 pendingText,
                 pendingColor,
                 recentOrders,
-                lowStockItems.Take(5).ToList(),
-                lowStockItems.Count);
+                lowStockItems,
+                candidates.Count());
         }
 
-        /// <inheritdoc/>
         /// <inheritdoc/>
         public async Task<Order> GetRestockOrderTemplateAsync()
         {
-            var inventory = await _inventoryService.GetInventoryAsync();
-            var lowStockItems = inventory.Where(i => i.TrackLowStock && (i.JhbQuantity <= i.JhbReorderPoint || i.CptQuantity <= i.CptReorderPoint)).ToList();
-
-            if (!lowStockItems.Any()) return CreateNewOrderTemplate(OrderType.PurchaseOrder);
-
-            // Group by Supplier and pick the one with most items for now (Single PO constraint)
-            var supplierGroups = lowStockItems.GroupBy(i => i.Supplier).OrderByDescending(g => g.Count());
-            var topSupplierGroup = supplierGroups.First();
-            var supplierName = topSupplierGroup.Key;
-
-            var itemsToOrder = topSupplierGroup.ToList();
-
-            var order = CreateNewOrderTemplate(OrderType.PurchaseOrder);
-            order.ExpectedDeliveryDate = DateTime.Today.AddDays(7);
-            order.Notes = $"Auto-generated restock order for {supplierName}.";
-            
-            // Try to find supplier details to pre-fill
-            var supplier = (await _supplierService.GetSuppliersAsync()).FirstOrDefault(s => s.Name == supplierName);
-            if (supplier != null)
-            {
-                order.SupplierId = supplier.Id;
-                order.SupplierName = supplier.Name;
-                // Pre-fill email, address etc if Order model supports it directly or via Id
-            }
-
-            // Fetch all orders to determine last purchase price
-            var allOrders = await _orderService.GetOrdersAsync();
-            var lastPrices = new Dictionary<Guid, decimal>();
-
-            // Helper to get last price
-            foreach(var item in itemsToOrder)
-            {
-                var lastLine = allOrders
-                    .Where(o => o.OrderType == OrderType.PurchaseOrder && o.Status != OrderStatus.Cancelled)
-                    .OrderByDescending(o => o.OrderDate)
-                    .SelectMany(o => o.Lines)
-                    .FirstOrDefault(l => l.InventoryItemId == item.Id);
-
-                if (lastLine != null && lastLine.UnitPrice > 0)
-                {
-                    lastPrices[item.Id] = lastLine.UnitPrice;
-                }
-                else
-                {
-                    lastPrices[item.Id] = item.AverageCost;
-                }
-            }
-
-            foreach (var item in itemsToOrder)
-            {
-                // Calculate restock quantity: e.g. bring up to 2x ReorderPoint or just 1.5x.
-                // For now, let's just order enough to double the ReorderPoint as a safe buffer, minus what we have.
-                // Target = ReorderPoint * 2. 
-                // QtyToOrder = Target - QtyOnHand.
-                // Min Qty = 1.
-                
-                double target = item.JhbReorderPoint * 2; 
-                double needed = target - item.JhbQuantity;
-                
-                // If JHB is fine, check CPT
-                if (needed <= 0)
-                {
-                    target = item.CptReorderPoint * 2;
-                    needed = target - item.CptQuantity;
-                }
-
-                if (needed < 1) needed = 1;
-
-                decimal unitPrice = lastPrices[item.Id];
-
-                order.Lines.Add(new OrderLine
-                {
-                    OrderId = order.Id,
-                    InventoryItemId = item.Id,
-                    ItemCode = item.Sku,
-                    Description = item.Description,
-                    Category = item.Category,
-                    UnitOfMeasure = item.UnitOfMeasure,
-                    UnitPrice = unitPrice,
-                    QuantityOrdered = needed,
-                    LineTotal = (decimal)needed * unitPrice,
-                    VatAmount = ((decimal)needed * unitPrice) * 0.15m // Approx
-                });
-            }
-
-            return order;
+            var dto = await _orderService.GetRestockTemplateAsync();
+            return ToEntity(dto);
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<OCC.Client.Models.RestockCandidate>> GetRestockCandidatesAsync(Branch? branch = null)
+        public async Task<IEnumerable<RestockCandidateDto>> GetRestockCandidatesAsync(Branch? branch = null)
         {
-            var inventory = await _inventoryService.GetInventoryAsync();
-            var orders = await _orderService.GetOrdersAsync();
-
-            // Filter for active POs
-            var activePOs = orders.Where(o => o.OrderType == OrderType.PurchaseOrder && 
-                                              (o.Status == OrderStatus.Ordered || o.Status == OrderStatus.PartialDelivery));
-
-            // Flatten lines to map: (InventoryId, Branch) -> QuantityRemaining
-            var pendingQuantities = new Dictionary<(Guid, Branch), double>();
-            
-            foreach (var order in activePOs)
-            {
-                foreach (var line in order.Lines)
-                {
-                    if (line.InventoryItemId.HasValue)
-                    {
-                        var key = (line.InventoryItemId.Value, order.Branch);
-                        if (!pendingQuantities.ContainsKey(key))
-                            pendingQuantities[key] = 0;
-                        
-                        pendingQuantities[key] += line.RemainingQuantity;
-                    }
-                }
-            }
-
-            var candidates = new List<OCC.Client.Models.RestockCandidate>();
-            
-            foreach (var item in inventory)
-            {
-                if (!item.TrackLowStock) continue;
-
-                // Evaluate JHB
-                if (!branch.HasValue || branch == Branch.JHB)
-                {
-                    if (item.JhbQuantity <= item.JhbReorderPoint)
-                    {
-                        double onOrder = 0;
-                        pendingQuantities.TryGetValue((item.Id, Branch.JHB), out onOrder);
-                        
-                        candidates.Add(new OCC.Client.Models.RestockCandidate
-                        {
-                            Item = item,
-                            QuantityOnOrder = onOrder,
-                            TargetBranch = Branch.JHB
-                        });
-                    }
-                }
-
-                // Evaluate CPT
-                if (!branch.HasValue || branch == Branch.CPT)
-                {
-                    if (item.CptQuantity <= item.CptReorderPoint)
-                    {
-                        double onOrder = 0;
-                        pendingQuantities.TryGetValue((item.Id, Branch.CPT), out onOrder);
-                        
-                        candidates.Add(new OCC.Client.Models.RestockCandidate
-                        {
-                            Item = item,
-                            QuantityOnOrder = onOrder,
-                            TargetBranch = Branch.CPT
-                        });
-                    }
-                }
-            }
-
-            return candidates;
+            return await _orderService.GetRestockCandidatesAsync(branch);
         }
 
         #endregion
@@ -425,6 +270,7 @@ namespace OCC.Client.Services.Managers
         /// <inheritdoc/>
         public Order CreateNewOrderTemplate(OrderType type = OrderType.PurchaseOrder)
         {
+            // Keeping this local helper for 'Create Order' button which might want a blank slate
             string prefix = type switch
             {
                 OrderType.PurchaseOrder => "PO",
@@ -441,6 +287,95 @@ namespace OCC.Client.Services.Managers
                 TaxRate = 0.15m,
                 DestinationType = OrderDestinationType.Stock,
                 Attention = string.Empty
+            };
+        }
+
+        private OrderDto ToDto(Order order)
+        {
+            return new OrderDto
+            {
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                OrderDate = order.OrderDate,
+                ExpectedDeliveryDate = order.ExpectedDeliveryDate,
+                OrderType = order.OrderType,
+                Branch = order.Branch,
+                SupplierId = order.SupplierId,
+                SupplierName = order.SupplierName,
+                CustomerId = order.CustomerId,
+                EntityAddress = order.EntityAddress,
+                EntityTel = order.EntityTel,
+                EntityVatNo = order.EntityVatNo,
+                DestinationType = order.DestinationType,
+                ProjectId = order.ProjectId,
+                ProjectName = order.ProjectName,
+                Attention = order.Attention,
+                TaxRate = order.TaxRate,
+                Status = order.Status,
+                Notes = order.Notes,
+                DeliveryInstructions = order.DeliveryInstructions,
+                ScopeOfWork = order.ScopeOfWork,
+                TotalAmount = order.TotalAmount,
+                Lines = order.Lines.Select(l => new OrderLineDto
+                {
+                    Id = l.Id,
+                    InventoryItemId = l.InventoryItemId,
+                    ItemCode = l.ItemCode,
+                    Description = l.Description,
+                    Category = l.Category,
+                    QuantityOrdered = l.QuantityOrdered,
+                    QuantityReceived = l.QuantityReceived,
+                    UnitOfMeasure = l.UnitOfMeasure,
+                    UnitPrice = l.UnitPrice,
+                    VatAmount = l.VatAmount,
+                    LineTotal = l.LineTotal
+                }).ToList()
+            };
+        }
+
+        private Order ToEntity(OrderDto dto)
+        {
+            return new Order
+            {
+                Id = dto.Id,
+                OrderNumber = dto.OrderNumber,
+                OrderDate = dto.OrderDate,
+                ExpectedDeliveryDate = dto.ExpectedDeliveryDate,
+                OrderType = dto.OrderType,
+                Branch = dto.Branch,
+                SupplierId = dto.SupplierId,
+                SupplierName = dto.SupplierName,
+                CustomerId = dto.CustomerId,
+                EntityAddress = dto.EntityAddress,
+                EntityTel = dto.EntityTel,
+                EntityVatNo = dto.EntityVatNo,
+                DestinationType = dto.DestinationType,
+                ProjectId = dto.ProjectId,
+                ProjectName = dto.ProjectName,
+                Attention = dto.Attention,
+                TaxRate = dto.TaxRate,
+                Status = dto.Status,
+                Notes = dto.Notes,
+                DeliveryInstructions = dto.DeliveryInstructions,
+                ScopeOfWork = dto.ScopeOfWork,
+                // Lines need to be ObservableCollection
+                Lines = new ObservableCollection<OrderLine>(
+                    dto.Lines.Select(l => new OrderLine
+                    {
+                        Id = l.Id,
+                        OrderId = dto.Id,
+                        InventoryItemId = l.InventoryItemId,
+                        ItemCode = l.ItemCode,
+                        Description = l.Description,
+                        Category = l.Category,
+                        QuantityOrdered = l.QuantityOrdered,
+                        QuantityReceived = l.QuantityReceived,
+                        UnitOfMeasure = l.UnitOfMeasure,
+                        UnitPrice = l.UnitPrice,
+                        VatAmount = l.VatAmount,
+                        LineTotal = l.LineTotal
+                    })
+                )
             };
         }
 

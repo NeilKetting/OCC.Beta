@@ -73,6 +73,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
             EnsureAuthorization();
             // Use PUT to update. Backend should handle identifying the entity from the body.
             var response = await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                throw new OCC.Client.Infrastructure.Exceptions.ConcurrencyException();
+            }
+
             response.EnsureSuccessStatusCode();
         }
 

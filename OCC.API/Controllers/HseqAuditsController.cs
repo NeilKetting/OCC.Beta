@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.Shared.Models;
 using OCC.Shared.Enums;
+using OCC.Shared.DTOs;
 
 namespace OCC.API.Controllers
 {
@@ -18,16 +19,17 @@ namespace OCC.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<HseqAudit>>> GetAudits()
+        public async Task<ActionResult<IEnumerable<AuditSummaryDto>>> GetAudits()
         {
-            return await _context.HseqAudits
-                .Include(a => a.Sections)
+            var audits = await _context.HseqAudits
                 .OrderByDescending(a => a.Date)
                 .ToListAsync();
+            
+            return audits.Select(ToSummaryDto).ToList();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<HseqAudit>> GetAudit(Guid id)
+        public async Task<ActionResult<AuditDto>> GetAudit(Guid id)
         {
             var audit = await _context.HseqAudits
                 .Include(a => a.Sections)
@@ -42,22 +44,76 @@ namespace OCC.API.Controllers
                 return NotFound();
             }
 
-            return audit;
+            return ToDetailDto(audit);
         }
 
         [HttpPost]
-        public async Task<ActionResult<HseqAudit>> PostAudit(HseqAudit audit)
+        public async Task<ActionResult<AuditDto>> PostAudit(AuditDto auditDto)
         {
+            var audit = new HseqAudit
+            {
+                Id = auditDto.Id != Guid.Empty ? auditDto.Id : Guid.NewGuid(),
+                Date = auditDto.Date,
+                SiteName = auditDto.SiteName,
+                ScopeOfWorks = auditDto.ScopeOfWorks,
+                SiteManager = auditDto.SiteManager,
+                SiteSupervisor = auditDto.SiteSupervisor,
+                HseqConsultant = auditDto.HseqConsultant,
+                AuditNumber = auditDto.AuditNumber,
+                TargetScore = auditDto.TargetScore,
+                ActualScore = auditDto.ActualScore,
+                Status = auditDto.Status,
+                CloseOutDate = auditDto.CloseOutDate,
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow
+            };
+
+            // Map Sections
+            if (auditDto.Sections != null)
+            {
+                foreach (var s in auditDto.Sections)
+                {
+                    audit.Sections.Add(new HseqAuditSection
+                    {
+                        Id = s.Id != Guid.Empty ? s.Id : Guid.NewGuid(),
+                        Name = s.Name,
+                        PossibleScore = s.PossibleScore,
+                        ActualScore = s.ActualScore
+                    });
+                }
+            }
+
+            // Map NonComplianceItems
+            if (auditDto.NonComplianceItems != null)
+            {
+                foreach (var i in auditDto.NonComplianceItems)
+                {
+                    audit.NonComplianceItems.Add(new HseqAuditNonComplianceItem
+                    {
+                        Id = i.Id != Guid.Empty ? i.Id : Guid.NewGuid(),
+                        Description = i.Description,
+                        RegulationReference = i.RegulationReference,
+                        CorrectiveAction = i.CorrectiveAction,
+                        ResponsiblePerson = i.ResponsiblePerson,
+                        TargetDate = i.TargetDate,
+                        Status = i.Status,
+                        ClosedDate = i.ClosedDate,
+                        CreatedAtUtc = DateTime.UtcNow,
+                        UpdatedAtUtc = DateTime.UtcNow
+                    });
+                }
+            }
+
             _context.HseqAudits.Add(audit);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAudit", new { id = audit.Id }, audit);
+            return CreatedAtAction("GetAudit", new { id = audit.Id }, ToDetailDto(audit));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAudit(Guid id, HseqAudit audit)
+        public async Task<IActionResult> PutAudit(Guid id, AuditDto auditDto)
         {
-            if (id != audit.Id) return BadRequest();
+            if (id != auditDto.Id) return BadRequest();
 
             var existingAudit = await _context.HseqAudits
                 .Include(a => a.Sections)
@@ -72,59 +128,76 @@ namespace OCC.API.Controllers
             }
 
             // Update properties
-            existingAudit.Date = audit.Date;
-            existingAudit.SiteName = audit.SiteName;
-            existingAudit.SiteManager = audit.SiteManager;
-            existingAudit.HseqConsultant = audit.HseqConsultant;
-            existingAudit.ScopeOfWorks = audit.ScopeOfWorks;
-            existingAudit.Status = audit.Status;
-            existingAudit.TargetScore = audit.TargetScore;
-            existingAudit.ActualScore = audit.ActualScore;
-            
-            
+            existingAudit.Date = auditDto.Date;
+            existingAudit.SiteName = auditDto.SiteName;
+            existingAudit.SiteManager = auditDto.SiteManager;
+            existingAudit.SiteSupervisor = auditDto.SiteSupervisor;
+            existingAudit.HseqConsultant = auditDto.HseqConsultant;
+            existingAudit.ScopeOfWorks = auditDto.ScopeOfWorks;
+            existingAudit.Status = auditDto.Status;
+            existingAudit.TargetScore = auditDto.TargetScore;
+            existingAudit.ActualScore = auditDto.ActualScore;
+            existingAudit.CloseOutDate = auditDto.CloseOutDate;
             existingAudit.UpdatedAtUtc = DateTime.UtcNow;
             
             // Update Sections
-            foreach (var section in audit.Sections)
+            foreach (var sectionDto in auditDto.Sections)
             {
-                // Match by ID preferred, fallback to Name
                 var existingSection = existingAudit.Sections
-                    .FirstOrDefault(s => (section.Id != Guid.Empty && s.Id == section.Id) || s.Name == section.Name);
+                    .FirstOrDefault(s => (sectionDto.Id != Guid.Empty && s.Id == sectionDto.Id) || s.Name == sectionDto.Name);
 
                 if (existingSection != null)
                 {
-                    existingSection.ActualScore = section.ActualScore;
-                    existingSection.PossibleScore = section.PossibleScore;
+                    existingSection.ActualScore = sectionDto.ActualScore;
+                    existingSection.PossibleScore = sectionDto.PossibleScore;
                 }
                 else
                 {
-                    existingAudit.Sections.Add(section);
+                    existingAudit.Sections.Add(new HseqAuditSection
+                    {
+                        Id = sectionDto.Id != Guid.Empty ? sectionDto.Id : Guid.NewGuid(),
+                        Name = sectionDto.Name,
+                        PossibleScore = sectionDto.PossibleScore,
+                        ActualScore = sectionDto.ActualScore
+                    });
                 }
             }
             
             // Update NonComplianceItems
-            if (audit.NonComplianceItems != null)
+            if (auditDto.NonComplianceItems != null)
             {
-                foreach (var item in audit.NonComplianceItems)
+                foreach (var itemDto in auditDto.NonComplianceItems)
                 {
                     var existingItem = existingAudit.NonComplianceItems
-                        .FirstOrDefault(i => (item.Id != Guid.Empty && i.Id == item.Id));
+                        .FirstOrDefault(i => (itemDto.Id != Guid.Empty && i.Id == itemDto.Id));
 
                     if (existingItem != null)
                     {
-                        existingItem.Description = item.Description;
-                        existingItem.RegulationReference = item.RegulationReference;
-                        existingItem.CorrectiveAction = item.CorrectiveAction;
-                        existingItem.ResponsiblePerson = item.ResponsiblePerson;
-                        existingItem.TargetDate = item.TargetDate;
-                        existingItem.Status = item.Status;
-                        existingItem.ClosedDate = item.ClosedDate;
+                        existingItem.Description = itemDto.Description;
+                        existingItem.RegulationReference = itemDto.RegulationReference;
+                        existingItem.CorrectiveAction = itemDto.CorrectiveAction;
+                        existingItem.ResponsiblePerson = itemDto.ResponsiblePerson;
+                        existingItem.TargetDate = itemDto.TargetDate;
+                        existingItem.Status = itemDto.Status;
+                        existingItem.ClosedDate = itemDto.ClosedDate;
                         existingItem.UpdatedAtUtc = DateTime.UtcNow;
                     }
                     else
                     {
-                        item.AuditId = existingAudit.Id;
-                        existingAudit.NonComplianceItems.Add(item);
+                        existingAudit.NonComplianceItems.Add(new HseqAuditNonComplianceItem
+                        {
+                            Id = itemDto.Id != Guid.Empty ? itemDto.Id : Guid.NewGuid(),
+                            Description = itemDto.Description,
+                            RegulationReference = itemDto.RegulationReference,
+                            CorrectiveAction = itemDto.CorrectiveAction,
+                            ResponsiblePerson = itemDto.ResponsiblePerson,
+                            TargetDate = itemDto.TargetDate,
+                            Status = itemDto.Status,
+                            ClosedDate = itemDto.ClosedDate,
+                            CreatedAtUtc = DateTime.UtcNow,
+                            UpdatedAtUtc = DateTime.UtcNow,
+                            AuditId = existingAudit.Id
+                        }); 
                     }
                 }
             }
@@ -144,14 +217,93 @@ namespace OCC.API.Controllers
 
         // Endpoint for Deviation Report
         [HttpGet("{id}/deviations")]
-        public async Task<ActionResult<IEnumerable<HseqAuditNonComplianceItem>>> GetAuditDeviations(Guid id)
+        public async Task<ActionResult<IEnumerable<AuditNonComplianceItemDto>>> GetAuditDeviations(Guid id)
         {
              var items = await _context.HseqAuditNonComplianceItems
                 .Include(i => i.Attachments)
                 .Where(i => i.AuditId == id)
                 .ToListAsync();
-             return items;
+             
+             return items.Select(ToNonComplianceItemDto).ToList();
         }
+
+        #region Mapping Helpers
+
+        private static AuditSummaryDto ToSummaryDto(HseqAudit audit)
+        {
+            return new AuditSummaryDto
+            {
+                Id = audit.Id,
+                Date = audit.Date,
+                SiteName = audit.SiteName,
+                AuditNumber = audit.AuditNumber,
+                Status = audit.Status,
+                HseqConsultant = audit.HseqConsultant,
+                TargetScore = audit.TargetScore,
+                ActualScore = audit.ActualScore
+            };
+        }
+
+        private static AuditDto ToDetailDto(HseqAudit audit)
+        {
+            return new AuditDto
+            {
+                Id = audit.Id,
+                Date = audit.Date,
+                SiteName = audit.SiteName,
+                ScopeOfWorks = audit.ScopeOfWorks,
+                SiteManager = audit.SiteManager,
+                SiteSupervisor = audit.SiteSupervisor,
+                HseqConsultant = audit.HseqConsultant,
+                AuditNumber = audit.AuditNumber,
+                TargetScore = audit.TargetScore,
+                ActualScore = audit.ActualScore,
+                Status = audit.Status,
+                CloseOutDate = audit.CloseOutDate,
+                Sections = audit.Sections.Select(s => new AuditSectionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    PossibleScore = s.PossibleScore,
+                    ActualScore = s.ActualScore
+                }).ToList(),
+                NonComplianceItems = audit.NonComplianceItems.Select(ToNonComplianceItemDto).ToList(),
+                Attachments = audit.Attachments.Select(ToAttachmentDto).ToList(),
+                RowVersion = audit.RowVersion ?? Array.Empty<byte>()
+            };
+        }
+
+        private static AuditNonComplianceItemDto ToNonComplianceItemDto(HseqAuditNonComplianceItem item)
+        {
+            return new AuditNonComplianceItemDto
+            {
+                Id = item.Id,
+                Description = item.Description,
+                RegulationReference = item.RegulationReference,
+                CorrectiveAction = item.CorrectiveAction,
+                ResponsiblePerson = item.ResponsiblePerson,
+                TargetDate = item.TargetDate,
+                Status = item.Status,
+                ClosedDate = item.ClosedDate,
+                Attachments = item.Attachments?.Select(ToAttachmentDto).ToList() ?? new List<AuditAttachmentDto>()
+            };
+        }
+
+        private static AuditAttachmentDto ToAttachmentDto(HseqAuditAttachment attachment)
+        {
+             return new AuditAttachmentDto
+             {
+                 Id = attachment.Id,
+                 NonComplianceItemId = attachment.NonComplianceItemId,
+                 FileName = attachment.FileName,
+                 FilePath = attachment.FilePath,
+                 FileSize = attachment.FileSize,
+                 UploadedBy = attachment.UploadedBy,
+                 UploadedAt = attachment.UploadedAt
+             };
+        }
+
+        #endregion
 
         public class HseqAuditAttachmentRequest
         {

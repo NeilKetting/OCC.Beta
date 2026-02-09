@@ -44,61 +44,81 @@ namespace OCC.Client.Services
             var user = _authService.CurrentUser;
             if (user == null) return false;
 
-            // 1. Dev & Admin & SiteManager (Temp) bypass everything
+            // 1. System Overrides (Bypass)
             if (IsDev || user.UserRole == UserRole.Admin || user.UserRole == UserRole.SiteManager) 
                 return true;
 
-            // 2. Core Features (Always Allowed for All Roles)
-            if (route == NavigationRoutes.Feature_BugReports || 
-                route == NavigationRoutes.Home || 
-                route == NavigationRoutes.Calendar || 
-                route == NavigationRoutes.Notifications || 
-                route == NavigationRoutes.UserPreferences || 
-                route == NavigationRoutes.Alerts)
-            {
-                return true;
-            }
+            // 2. Global Deny (Sensitive/Restricted areas for all other roles)
+            var restricted = new[] 
+            { 
+                NavigationRoutes.AuditLog, 
+                NavigationRoutes.CompanySettings, 
+                NavigationRoutes.UserManagement, 
+                NavigationRoutes.Feature_UserManagement, 
+                NavigationRoutes.Feature_UserRegistration, 
+                NavigationRoutes.Feature_WageViewing,
+                NavigationRoutes.Developer 
+            };
+            if (restricted.Contains(route, StringComparer.OrdinalIgnoreCase)) return false;
 
-            // 3. Sensitive/Restricted Features (Always Restricted except for bypassed roles above)
-            if (route == NavigationRoutes.AuditLog || 
-                route == NavigationRoutes.CompanySettings || 
-                route == NavigationRoutes.UserManagement || 
-                route == NavigationRoutes.Feature_UserManagement || 
-                route == NavigationRoutes.Feature_UserRegistration ||
-                route == NavigationRoutes.Feature_WageViewing)
-            {
-                return false;
-            }
+            // 3. Global Allow (Safe areas for all authenticated staff roles)
+            var basic = new[] 
+            { 
+                NavigationRoutes.Home, 
+                NavigationRoutes.Calendar, 
+                NavigationRoutes.Notifications, 
+                NavigationRoutes.UserPreferences, 
+                NavigationRoutes.Feature_BugReports, 
+                NavigationRoutes.Alerts, 
+                NavigationRoutes.Reminders,
+                NavigationRoutes.AccessDenied,
+                "MyProfile"
+            };
+            if (basic.Contains(route, StringComparer.OrdinalIgnoreCase)) return true;
 
-            // 4. Toggleable Role-Based Access (Office)
+            // 4. Role-Based Whitelisting (Office)
             if (user.UserRole == UserRole.Office)
             {
-                // These are the only things Office users can toggle
-                var toggleableModules = new[] 
+                // A. Handle Orders Sub-Navigation (Group logic)
+                if (route == "OrderList" || route == "Suppliers" || route == "CreateOrder")
+                    return HasPermission(user, NavigationRoutes.Feature_OrderManagement);
+
+                if (route == "Inventory" || route == "ItemList" || route == "RestockReview")
+                    return HasPermission(user, NavigationRoutes.Feature_OrderManagement) || 
+                           HasPermission(user, NavigationRoutes.Feature_OrderInventoryOnly);
+
+                // B. Handle Toggleable Modules
+                var toggleable = new[] 
                 { 
                     NavigationRoutes.Time, 
                     NavigationRoutes.StaffManagement, 
                     NavigationRoutes.Projects, 
+                    NavigationRoutes.Customers, 
+                    NavigationRoutes.HealthSafety, 
                     NavigationRoutes.Feature_OrderManagement, 
-                    NavigationRoutes.HealthSafety 
+                    NavigationRoutes.Feature_OrderInventoryOnly 
                 };
 
-                if (toggleableModules.Contains(route))
+                if (toggleable.Contains(route, StringComparer.OrdinalIgnoreCase))
                 {
-                    if (string.IsNullOrEmpty(user.Permissions)) return false;
-                    
-                    var allowedRoutes = user.Permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    return allowedRoutes.Contains(route, StringComparer.OrdinalIgnoreCase);
+                    // Special case: "Orders" hub links are allowed if they have either Full or InventoryOnly permission
+                    if (route == NavigationRoutes.Feature_OrderManagement)
+                    {
+                        return HasPermission(user, NavigationRoutes.Feature_OrderManagement) || 
+                               HasPermission(user, NavigationRoutes.Feature_OrderInventoryOnly);
+                    }
+
+                    return HasPermission(user, route);
                 }
 
-                // Default for Office for any other feature not explicitly handled above
-                return true;
+                // C. Default Deny for Office (Securely catch-all for any unhandled routes)
+                return false;
             }
 
-            // 5. Contractor/Guest Access (Fallback)
+            // 5. Contractor/Guest Access (Strict Minimal fallbacks)
             if (user.UserRole == UserRole.ExternalContractor || user.UserRole == UserRole.Guest)
             {
-                 return route switch
+                return route switch
                 {
                     NavigationRoutes.Projects => true, 
                     NavigationRoutes.Time => true, 
@@ -107,6 +127,13 @@ namespace OCC.Client.Services
             }
 
             return false;
+        }
+
+        private bool HasPermission(User user, string route)
+        {
+            if (string.IsNullOrEmpty(user.Permissions)) return false;
+            var allowed = user.Permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            return allowed.Contains(route, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

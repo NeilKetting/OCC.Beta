@@ -2,12 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Messages;
-using OCC.Client.ViewModels.Home;
-using OCC.Client.ViewModels.Projects;
-using OCC.Client.ViewModels.Time;
-using OCC.Client.ViewModels.Settings; // For UserManagementViewModel
-using OCC.Client.ViewModels.Shared;   // For ProfileViewModel
-using OCC.Client.ViewModels.EmployeeManagement;
+using OCC.Client.Features.HomeHub.ViewModels;
+using OCC.Client.Features.ProjectsHub.ViewModels;
+using OCC.Client.Features.EmployeeHub.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Services;
 using OCC.Shared.Models;
@@ -18,7 +15,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
-using OCC.Client.ViewModels.Login; // Added
+using OCC.Client.Features.AuthHub.ViewModels; // Added
 
 namespace OCC.Client.ViewModels.Core
 {

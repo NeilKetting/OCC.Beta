@@ -23,7 +23,10 @@ if (!builder.Environment.IsDevelopment())
 
 // Add services to the container.
 // Add services to the container.
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<OCC.API.Infrastructure.Filters.ConcurrencyExceptionFilter>();
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;

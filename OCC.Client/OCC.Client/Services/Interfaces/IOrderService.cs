@@ -1,4 +1,5 @@
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,11 +8,14 @@ namespace OCC.Client.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<List<Order>> GetOrdersAsync();
-        Task<Order?> GetOrderAsync(Guid id);
-        Task<Order> CreateOrderAsync(Order order);
-        Task UpdateOrderAsync(Order order);
-        Task ReceiveOrderAsync(Order order, List<OrderLine> updatedLines);
+        Task<List<OrderSummaryDto>> GetOrdersAsync();
+        Task<OrderDto?> GetOrderAsync(Guid id);
+        Task<OrderDto> CreateOrderAsync(OrderDto order);
+        Task UpdateOrderAsync(OrderDto order);
+        Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLine> updatedLines);
         Task DeleteOrderAsync(Guid id);
+        
+        Task<OrderDto> GetRestockTemplateAsync();
+        Task<IEnumerable<RestockCandidateDto>> GetRestockCandidatesAsync(Branch? branch = null);
     }
 }

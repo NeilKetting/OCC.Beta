@@ -28,6 +28,7 @@ namespace OCC.Shared.Models
 
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
         public Guid OrderId { get; set; }
+        public Order Order { get; set; } = null!;
         
         /// <summary> Link to the specific <see cref="InventoryItem"/>. Mandatory for all orders. </summary>
         public Guid? InventoryItemId { get; set; }

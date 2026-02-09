@@ -50,7 +50,11 @@ namespace OCC.Client.Services
                  // We detect if it's a GitHub URL and use the proper source
                  if (_updateUrl.Contains("github.com"))
                  {
-                     _mgr = new UpdateManager(new GithubSource(_updateUrl, null, true));
+#if STAGING
+                    _mgr = new UpdateManager(new GithubSource(_updateUrl, null, true));
+#else
+                    _mgr = new UpdateManager(new GithubSource(_updateUrl, null, false));
+#endif
                  }
                  else
                  {

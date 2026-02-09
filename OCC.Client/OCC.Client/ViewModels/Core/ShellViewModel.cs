@@ -2,12 +2,18 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using OCC.Client.ViewModels.Home;
-using OCC.Client.ViewModels.HealthSafety;
-using OCC.Client.ViewModels.Projects;
-using OCC.Client.ViewModels.EmployeeManagement;
-using OCC.Client.ViewModels.Settings;
-using OCC.Client.ViewModels; // For LoginViewModel
+using OCC.Client.Features.HomeHub.ViewModels;
+using OCC.Client.Features.HomeHub.ViewModels.Dashboard;
+using OCC.Client.Features.HomeHub.ViewModels.Calendar;
+using OCC.Client.Features.HomeHub.ViewModels.Shared;
+using OCC.Client.Features.HseqHub.ViewModels;
+using OCC.Client.Features.OrdersHub.ViewModels;
+using OCC.Client.Features.ProjectsHub.ViewModels;
+using OCC.Client.Features.BugHub.ViewModels; // Added
+using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Client.Features.CustomerHub.ViewModels;
+using OCC.Client.Features.SettingsHub.ViewModels;
+using OCC.Client.Features.AuthHub.ViewModels;
 using OCC.Client.ViewModels.Shared; // For ProfileViewModel
 using OCC.Client.ViewModels.Messages; // Corrected Namespace
 using OCC.Client.Services;
@@ -27,10 +33,8 @@ using OCC.Client.Infrastructure;
 using OCC.Client.Messages; // NEW
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.ViewModels.Core;
-using OCC.Client.Views.Core; // Added
-using OCC.Client.Views.Login; // Added
+using OCC.Client.Features.AuthHub.Views; // Added
 // using OCC.Client.Views.Login; // Removed Duplicate
-using OCC.Client.ViewModels.Login; // Added
 using OCC.Shared.Models; // Added for Employee
 
 namespace OCC.Client.ViewModels.Core
@@ -67,7 +71,8 @@ namespace OCC.Client.ViewModels.Core
         IRecipient<TestBirthdayMessage>,
         IRecipient<OpenProfileMessage>,
         IRecipient<ToastNotificationMessage>,
-        IRecipient<OpenBugReportMessage>
+        IRecipient<OpenBugReportMessage>,
+        IRecipient<ProjectSettingsRequestedMessage>
     {
 
         #region Private Members
@@ -230,9 +235,9 @@ namespace OCC.Client.ViewModels.Core
             // Default to Home (Dashboard) unless Beta Notice is pending
             var currentVersion = updateService.CurrentVersion;
             
-            if (!DevelopmentToBeDeleted.BetaNoticeViewModel.IsNoticeAccepted(currentVersion))
+            if (!ReleaseNotes.BetaNoticeViewModel.IsNoticeAccepted(currentVersion))
             {
-                var betaVM = new DevelopmentToBeDeleted.BetaNoticeViewModel(currentVersion);
+                var betaVM = new ReleaseNotes.BetaNoticeViewModel(currentVersion);
                 betaVM.Accepted += () => 
                 {
                     NavigateTo(Infrastructure.NavigationRoutes.Home);
@@ -422,6 +427,9 @@ namespace OCC.Client.ViewModels.Core
         [RelayCommand]
         public async Task ReportBug()
         {
+            // Small delay to ensure button click visual feedback finishes
+            await Task.Delay(100);
+            
             string? screenshotBase64 = null;
             try
             {
@@ -660,7 +668,7 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconTeam");
                     break;
                 case NavigationRoutes.Customers:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Customers.CustomerManagementViewModel>();
+                    vm = _serviceProvider.GetRequiredService<CustomerManagementViewModel>();
                     title = "Customers";
                     icon = GetResource("IconPortfolio");
                     break;
@@ -670,12 +678,12 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconPortfolio");
                     break;
                 case NavigationRoutes.Time:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Time.TimeAttendanceViewModel>();
+                    vm = _serviceProvider.GetRequiredService<TimeAttendanceViewModel>();
                     title = "Time & Attendance";
                     icon = GetResource("IconTime");
                     break;
                 case NavigationRoutes.Calendar: 
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Home.Calendar.CalendarViewModel>();
+                    vm = _serviceProvider.GetRequiredService<CalendarViewModel>();
                     title = "Calendar";
                     icon = GetResource("IconCalendar");
                     break;
@@ -688,12 +696,12 @@ namespace OCC.Client.ViewModels.Core
                     Receive(new OpenProfileMessage());
                     return; // Profile is an overlay, not a workspace
                 case NavigationRoutes.HealthSafety:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.HealthSafety.HealthSafetyViewModel>();
+                    vm = _serviceProvider.GetRequiredService<HealthSafetyViewModel>();
                     title = "HSEQ";
                     icon = GetResource("IconHealthSafety");
                     break;
                 case NavigationRoutes.Feature_OrderManagement:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
+                    vm = _serviceProvider.GetRequiredService<OrderViewModel>();
                     title = "Orders";
                     icon = GetResource("IconCart");
                     break;
@@ -701,7 +709,7 @@ namespace OCC.Client.ViewModels.Core
                 case "Inventory":
                 case "ItemList":
                 case "Suppliers":
-                    var orderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.OrderViewModel>();
+                    var orderVM = _serviceProvider.GetRequiredService<OrderViewModel>();
                     orderVM.SetTab(section);
                     vm = orderVM;
                     title = "Orders"; // Same workspace, just different tab
@@ -709,7 +717,7 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconCart");
                     break;
                 case "CreateOrder":
-                    var createOrderVM = _serviceProvider.GetRequiredService<ViewModels.Orders.CreateOrderViewModel>();
+                    var createOrderVM = _serviceProvider.GetRequiredService<CreateOrderViewModel>();
                     createOrderVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
                     _ = createOrderVM.LoadData();
                     vm = createOrderVM;
@@ -720,14 +728,14 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconPlus");
                     break;
                 case "RestockReview":
-                    var restockVM = _serviceProvider.GetRequiredService<ViewModels.Orders.RestockReviewViewModel>();
+                    var restockVM = _serviceProvider.GetRequiredService<RestockReviewViewModel>();
                     _ = restockVM.LoadData();
                     vm = restockVM;
                     title = "Restock Review";
                     icon = GetResource("IconList");
                     break;
                 case "Help":
-                     var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
+                     var releaseNotesVM = new OCC.Client.ViewModels.Help.ReleaseNotesViewModel();
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
                      vm = releaseNotesVM;
                      title = "Release Notes";
@@ -744,14 +752,14 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconSettings");
                     break;
                 case NavigationRoutes.UserPreferences:
-                    var userPrefsVM = _serviceProvider.GetRequiredService<ViewModels.Settings.UserPreferencesViewModel>();
+                    var userPrefsVM = _serviceProvider.GetRequiredService<UserPreferencesViewModel>();
                     userPrefsVM.CloseRequested += (s, e) => NavigateTo(_previousSection);
                     vm = userPrefsVM;
                     title = "Preferences";
                     icon = GetResource("IconGear");
                     break;
                 case NavigationRoutes.Feature_BugReports:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Bugs.BugListViewModel>();
+                    vm = _serviceProvider.GetRequiredService<BugListViewModel>();
                     title = "Bugs";
                     icon = GetResource("IconBug");
                     break;
@@ -781,7 +789,7 @@ namespace OCC.Client.ViewModels.Core
             if (route == "InventoryDetail_Create")
             {
                 // Open Item Detail as a new Workspace
-                var vm = _serviceProvider.GetRequiredService<ViewModels.Orders.ItemDetailViewModel>();
+                var vm = _serviceProvider.GetRequiredService<ItemDetailViewModel>();
                 
                 // Setup for creation with pre-filled SKU/Name
                 if (payload is string searchTerm)
@@ -852,6 +860,15 @@ namespace OCC.Client.ViewModels.Core
         public void Receive(OpenBugReportMessage message)
         {
             NavigateTo("BugList");
+        }
+
+        public void Receive(ProjectSettingsRequestedMessage message)
+        {
+            // Navigate to Company Settings (where project settings reside or are managed)
+            NavigateTo(Infrastructure.NavigationRoutes.CompanySettings);
+            
+            // If CompanySettingsViewModel has a way to focus on a project, we could pass the ID.
+            // For now, navigating to the settings section is a significant improvement over "doing nothing".
         }
 
         [RelayCommand]

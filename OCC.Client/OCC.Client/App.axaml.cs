@@ -13,22 +13,23 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.ApiServices;
 using OCC.Client.Services.Repositories.Interfaces; // Added
 using OCC.Client.ViewModels.Core; // Added for ViewModelBase/Core VMs
-using OCC.Client.ViewModels.EmployeeManagement;
-using OCC.Client.ViewModels.HealthSafety;
-using OCC.Client.ViewModels.Home;
-using OCC.Client.ViewModels.Home.Calendar;
-using OCC.Client.ViewModels.Home.Dashboard;
-using OCC.Client.ViewModels.Home.Shared;
-using OCC.Client.ViewModels.Login; // Added
+using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Client.Features.HseqHub.ViewModels;
+using OCC.Client.Features.HomeHub.ViewModels;
+using OCC.Client.Features.HomeHub.ViewModels.Dashboard;
+using OCC.Client.Features.HomeHub.ViewModels.Calendar;
+using OCC.Client.Features.HomeHub.ViewModels.Shared;
+using OCC.Client.Features.AuthHub.ViewModels;
+using OCC.Client.Features.SettingsHub.ViewModels;
+using OCC.Client.Features.BugHub.ViewModels;
+using OCC.Client.Features.CustomerHub.ViewModels;
 using OCC.Client.ViewModels.Notifications; // Added
-using OCC.Client.ViewModels.Orders;
-using OCC.Client.ViewModels.Projects;
-using OCC.Client.ViewModels.Projects.Shared;
-using OCC.Client.ViewModels.Projects.Tasks;
-using OCC.Client.ViewModels.Settings;
+using OCC.Client.Features.OrdersHub.ViewModels;
+using OCC.Client.Features.ProjectsHub.ViewModels;
+using OCC.Client.Features.TaskHub.ViewModels;
 using OCC.Client.ViewModels.Shared;
-using OCC.Client.ViewModels.Time;
 using OCC.Client.Views.Core;
+using OCC.Client.Features.CoreHub.Views; // Added
 using OCC.Shared.Models;
 using Serilog;
 using System;
@@ -106,9 +107,9 @@ namespace OCC.Client
                 // Startup Logic: Splash -> Check Updates -> Main Window
                 var updateService = Services.GetRequiredService<IUpdateService>();
                 
-                Views.SplashView? splashWindow = null;
+                SplashView? splashWindow = null;
 
-                var splashVm = new ViewModels.SplashViewModel(updateService, () =>
+                var splashVm = new OCC.Client.Features.CoreHub.ViewModels.SplashViewModel(updateService, () =>
                 {
                     // On Splash Completed (No update or skipped)
                     var mainWindow = new MainWindow
@@ -127,7 +128,7 @@ namespace OCC.Client
                     splashWindow?.Close();
                 });
 
-                splashWindow = new Views.SplashView
+                splashWindow = new SplashView
                 {
                     DataContext = splashVm
                 };
@@ -147,11 +148,26 @@ namespace OCC.Client
 
         private void ConfigureServices(IServiceCollection services)
         {
-            // Database
-            services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 
+            // --- Infrastructure & Core Services ---
+            services.AddLogging(l => l.AddSerilog());
+            services.AddSingleton(ConnectionSettings.Instance);
+            services.AddSingleton<ITimeService, TimeService>();
+            services.AddSingleton<IUpdateService, UpdateService>();
+            services.AddSingleton<IPdfService, PdfService>();
+            services.AddSingleton<IExportService, ExportService>();
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IToastService, ToastService>();
+            services.AddSingleton<UserActivityService>();
+            services.AddSingleton<SignalRNotificationService>();
+            services.AddSingleton<IPermissionService, PermissionService>();
+            services.AddSingleton<LocalSettingsService>();
+            services.AddSingleton<UserPreferencesService>();
+            services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>();
 
-            // Repositories
-            // repositories - Specific Repositories for API
+            // --- Database & Repositories ---
+            services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 
+            
+            // Repositories - API
             services.AddTransient<IRepository<User>, ApiUserRepository>();
             services.AddTransient<IRepository<Employee>, ApiEmployeeRepository>();
             services.AddTransient<IRepository<Project>, ApiProjectRepository>();
@@ -163,136 +179,110 @@ namespace OCC.Client
             services.AddTransient<IRepository<TimeRecord>, ApiTimeRecordRepository>();
             services.AddTransient<IRepository<AttendanceRecord>, ApiAttendanceRecordRepository>();
             services.AddTransient<IRepository<AppSetting>, ApiAppSettingRepository>();
-            
-            // Teams
             services.AddTransient<IRepository<Team>, ApiTeamRepository>();
             services.AddTransient<IRepository<TeamMember>, ApiTeamMemberRepository>();
-            
-            // Leave & Holidays
             services.AddTransient<IRepository<LeaveRequest>, ApiLeaveRequestRepository>();
             services.AddTransient<IRepository<PublicHoliday>, ApiPublicHolidayRepository>();
             services.AddTransient<IRepository<OvertimeRequest>, ApiOvertimeRequestRepository>();
 
-            // Fallback for any other type not explicitly mapped (e.g. TimeRecord) - though unlikely to be used if we covered main ones
-            // services.AddTransient(typeof(IRepository<>), typeof(SqlRepository<>));
-
-             // services.AddSingleton<ITimeService, TimeService>();
-             services.AddSingleton<ITimeService, TimeService>();
-             
-             // Auth Services
-             services.AddSingleton<ApiAuthService>();
-             services.AddSingleton<IAuthService>(sp => sp.GetRequiredService<ApiAuthService>());
-             services.AddSingleton<IAuditLogService, ApiAuditLogService>();
-
-            services.AddSingleton<INotificationService, ApiNotificationService>();
-            services.AddSingleton<IUpdateService, UpdateService>();
-            services.AddSingleton<UserActivityService>();
-            services.AddSingleton<OrderStateService>(); // New
-            services.AddSingleton<SignalRNotificationService>();
-            services.AddSingleton<UserActivityService>();
-            services.AddSingleton<IPermissionService, PermissionService>();
-            services.AddTransient<IHolidayService, HolidayService>();
-            services.AddSingleton<LocalSettingsService>();
-            services.AddSingleton<UserPreferencesService>(); // Local User Preferences (Timeout etc)
-            services.AddSingleton(ConnectionSettings.Instance);
-            services.AddTransient<ILeaveService, LeaveService>();
-            services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<IInventoryService, InventoryService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<ITaskAttachmentService, ApiTaskAttachmentService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddSingleton<IWageService, WageService>();
-            services.AddSingleton<IReminderService, ReminderService>();
-            services.AddSingleton<IDialogService, DialogService>();
-            
-            // ...
-
-            services.AddTransient<TeamManagementViewModel>();
-            services.AddTransient<TeamDetailViewModel>();
-            services.AddTransient<ProfileViewModel>();
-            services.AddTransient<WageRunViewModel>();
-            services.AddSingleton<IPdfService, PdfService>();
-            services.AddSingleton<IToastService, ToastService>();
-            services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>();
-            services.AddSingleton<IProjectManager, ProjectManager>();
-            services.AddSingleton<IExportService, ExportService>();
-            services.AddSingleton<ISupplierImportService, SupplierImportService>();
-            services.AddSingleton<IInventoryImportService, InventoryImportService>();
-            services.AddSingleton<IEmployeeImportService, EmployeeImportService>();
-
-            // Logging
-            services.AddLogging(l => l.AddSerilog());
-
-            // ViewModels
-
-            // Core
+            // --- Core Hub (Shell & Main) ---
             services.AddTransient<ShellViewModel>();
             services.AddTransient<MainViewModel>();
             services.AddSingleton<SideMenuViewModel>();
             services.AddTransient<AccessDeniedViewModel>();
 
-            // Login and Registration
-
-            services.AddTransient<RegisterViewModel>();
+            // --- Auth Hub ---
+            services.AddSingleton<ApiAuthService>();
+            services.AddSingleton<IAuthService>(sp => sp.GetRequiredService<ApiAuthService>());
             services.AddTransient<LoginViewModel>();
-            
-            // Home
-            services.AddTransient<HomeMenuViewModel>();
+            services.AddTransient<RegisterViewModel>();
+
+            // --- Home Hub ---
             services.AddTransient<HomeViewModel>();
+            services.AddTransient<HomeMenuViewModel>();
             services.AddTransient<SummaryViewModel>();
             services.AddTransient<TasksWidgetViewModel>();
             services.AddTransient<PulseViewModel>();
             services.AddSingleton<NotificationViewModel>();
-            
-            // Project
-            
+            services.AddSingleton<INotificationService, ApiNotificationService>();
+
+            // --- Projects & Tasks Hub ---
+            services.AddSingleton<IProjectManager, ProjectManager>();
             services.AddTransient<ProjectsViewModel>();
             services.AddTransient<ProjectMainMenuViewModel>();
-
-
-
-            services.AddTransient<TaskListViewModel>();
             services.AddTransient<ProjectListViewModel>();
-            services.AddTransient<ProjectReportViewModel>();
             services.AddTransient<ProjectDetailViewModel>();
             services.AddTransient<CreateProjectViewModel>();
             services.AddTransient<EditProjectViewModel>();
+            services.AddTransient<ProjectReportViewModel>();
             services.AddTransient<ProjectTopBarViewModel>();
-
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectCalendarViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();
-            services.AddTransient<UserManagementViewModel>();
-            services.AddTransient<ManageUsersViewModel>();
-            services.AddTransient<AuditLogViewModel>();
-            services.AddTransient<TaskDetailViewModel>(); // If needed
+            services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            
+            services.AddTransient<TaskListViewModel>();
+            services.AddTransient<TaskDetailViewModel>();
+            services.AddHttpClient<ITaskAttachmentService, ApiTaskAttachmentService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+
+            // --- Employee Hub ---
+            services.AddHttpClient<IEmployeeService, ApiEmployeeService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddTransient<EmployeeManagementViewModel>();
-            services.AddTransient<ViewModels.Customers.CustomerManagementViewModel>();
-            services.AddTransient<ViewModels.Customers.CustomerDetailViewModel>();
             services.AddTransient<EmployeeDetailViewModel>();
-            services.AddTransient<TimeLiveViewModel>();
-            services.AddTransient<TimeMenuViewModel>();
-            services.AddTransient<TimeAttendanceViewModel>();
-
-            services.AddTransient<DailyTimesheetViewModel>(); // Unified View
-
-            services.AddTransient<AttendanceHistoryViewModel>();
-            services.AddTransient<LeaveApplicationViewModel>();
-            services.AddTransient<LeaveApprovalViewModel>();
-            services.AddTransient<OvertimeViewModel>();
-            services.AddTransient<OvertimeApprovalViewModel>();
-            services.AddTransient<CalendarViewModel>();
-            services.AddTransient<LeaveCalendarViewModel>();
-            // services.AddTransient<TeamsViewModel>(); // Removed
+            services.AddSingleton<IEmployeeImportService, EmployeeImportService>();
+            
             services.AddTransient<TeamManagementViewModel>();
             services.AddTransient<TeamDetailViewModel>();
-            services.AddTransient<ProfileViewModel>();
             
-            // Health Safety
-            // Health Safety
+            services.AddTransient<IWageService, WageService>();
+            services.AddTransient<WageRunViewModel>();
+            
+            services.AddTransient<TimeAttendanceViewModel>();
+            services.AddTransient<TimeLiveViewModel>();
+            services.AddTransient<TimeMenuViewModel>();
+            services.AddTransient<DailyTimesheetViewModel>();
+            services.AddTransient<AttendanceHistoryViewModel>();
+
+            services.AddTransient<ILeaveService, LeaveService>();
+            services.AddTransient<LeaveApplicationViewModel>();
+            services.AddTransient<LeaveApprovalViewModel>();
+            services.AddTransient<LeaveCalendarViewModel>();
+            
+            services.AddTransient<IHolidayService, HolidayService>();
+            services.AddTransient<OvertimeViewModel>();
+            services.AddTransient<OvertimeApprovalViewModel>();
+            
+            services.AddTransient<CalendarViewModel>();
+            services.AddSingleton<IReminderService, ReminderService>();
+
+            // --- Customer Hub ---
+            services.AddTransient<CustomerManagementViewModel>();
+            services.AddTransient<CustomerDetailViewModel>();
+
+            // --- Orders Hub ---
+            services.AddSingleton<OrderStateService>();
+            services.AddTransient<IOrderManager, OrderManager>();
+            services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IInventoryService, InventoryService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddSingleton<IInventoryImportService, InventoryImportService>();
+            services.AddSingleton<ISupplierImportService, SupplierImportService>();
+            
+            services.AddTransient<OrderViewModel>();
+            services.AddTransient<OrderMenuViewModel>();
+            services.AddTransient<OrderDashboardViewModel>();
+            services.AddTransient<OrderListViewModel>();
+            services.AddTransient<CreateOrderViewModel>();
+            services.AddTransient<ReceiveOrderViewModel>();
+            services.AddTransient<InventoryViewModel>();
+            services.AddTransient<ItemDetailViewModel>();
+            services.AddTransient<ItemListViewModel>();
+            services.AddTransient<SupplierListViewModel>();
+            services.AddTransient<SupplierDetailViewModel>();
+            services.AddTransient<RestockReviewViewModel>();
+
+            // --- HSEQ Hub ---
+            services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddTransient<HealthSafetyViewModel>();
             services.AddTransient<HealthSafetyDashboardViewModel>();
             services.AddTransient<HealthSafetyMenuViewModel>();
@@ -302,26 +292,20 @@ namespace OCC.Client
             services.AddTransient<AuditsViewModel>();
             services.AddTransient<DocumentsViewModel>();
 
-            // Orders
-            services.AddTransient<IOrderManager, OrderManager>();
-            services.AddTransient<OrderMenuViewModel>();
-            services.AddTransient<OrderViewModel>();
-            services.AddTransient<InventoryViewModel>();
-            services.AddTransient<ItemDetailViewModel>();
-            services.AddTransient<ItemListViewModel>();
-            services.AddTransient<CreateOrderViewModel>();
-            services.AddTransient<OrderListViewModel>();
-            services.AddTransient<SupplierListViewModel>();
-            services.AddTransient<SupplierDetailViewModel>();
-            services.AddTransient<ReceiveOrderViewModel>();
-            services.AddTransient<OrderDashboardViewModel>();
-            services.AddTransient<RestockReviewViewModel>();
-            services.AddTransient<ViewModels.Bugs.BugListViewModel>();
+            // --- Bug Hub ---
+            services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddTransient<BugListViewModel>();
 
-            // Settings
+            // --- Settings & Admin Hub ---
+            services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddSingleton<IAuditLogService, ApiAuditLogService>();
+            services.AddTransient<AuditLogViewModel>();
             services.AddTransient<CompanySettingsViewModel>();
-            services.AddTransient<UserPreferencesViewModel>(); // New
-            services.AddTransient<ViewModels.Developer.DeveloperViewModel>();
+            services.AddTransient<UserManagementViewModel>();
+            services.AddTransient<ManageUsersViewModel>();
+            services.AddTransient<UserPreferencesViewModel>();
+            services.AddTransient<ProfileViewModel>();
+            services.AddTransient<OCC.Client.ViewModels.Developer.DeveloperViewModel>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

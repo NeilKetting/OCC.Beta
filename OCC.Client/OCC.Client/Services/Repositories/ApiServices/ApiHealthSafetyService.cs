@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using OCC.Client.Services.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System.Text.Json;
 
 namespace OCC.Client.Services.Repositories.ApiServices
@@ -25,22 +26,22 @@ namespace OCC.Client.Services.Repositories.ApiServices
         }
 
         // --- Incidents ---
-        public async Task<IEnumerable<Incident>> GetIncidentsAsync()
+        public async Task<IEnumerable<IncidentSummaryDto>> GetIncidentsAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Incident>>("api/Incidents", _options) ?? new List<Incident>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<IncidentSummaryDto>>("api/Incidents", _options) ?? new List<IncidentSummaryDto>();
         }
 
-        public async Task<Incident?> GetIncidentAsync(Guid id)
+        public async Task<IncidentDto?> GetIncidentAsync(Guid id)
         {
-            return await _httpClient.GetFromJsonAsync<Incident>($"api/Incidents/{id}", _options);
+            return await _httpClient.GetFromJsonAsync<IncidentDto>($"api/Incidents/{id}", _options);
         }
 
-        public async Task<Incident?> CreateIncidentAsync(Incident incident)
+        public async Task<IncidentDto?> CreateIncidentAsync(Incident incident)
         {
             var response = await _httpClient.PostAsJsonAsync("api/Incidents", incident, _options);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<Incident>(_options);
+                return await response.Content.ReadFromJsonAsync<IncidentDto>(_options);
             }
             return null;
         }
@@ -57,18 +58,39 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<IncidentPhotoDto?> UploadIncidentPhotoAsync(IncidentPhoto metadata, System.IO.Stream fileStream, string fileName)
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(metadata.IncidentId.ToString()), nameof(IncidentPhoto.IncidentId));
+            content.Add(new StringContent(metadata.Description ?? ""), nameof(IncidentPhoto.Description));
+
+            if (fileStream.CanSeek) fileStream.Position = 0;
+            using var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", fileName);
+
+            var response = await _httpClient.PostAsync("api/Incidents/photos", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<IncidentPhotoDto>(_options);
+            }
+            return null;
+        }
+
+        public async Task<bool> DeleteIncidentPhotoAsync(Guid id)
+        {
+            var response = await _httpClient.DeleteAsync($"api/Incidents/photos/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
         // --- Audits ---
-        public async Task<IEnumerable<HseqAudit>> GetAuditsAsync()
+        public async Task<IEnumerable<AuditSummaryDto>> GetAuditsAsync()
         {
             try
             {
                 var response = await _httpClient.GetAsync("api/HseqAudits");
                 if (response.IsSuccessStatusCode)
                 {
-                    // Optional: Inspect JSON if debugging needed
-                    // var json = await response.Content.ReadAsStringAsync();
-                    // System.Diagnostics.Debug.WriteLine($"[DEBUG] Audits JSON: {json}");
-                    return await response.Content.ReadFromJsonAsync<IEnumerable<HseqAudit>>(_options) ?? new List<HseqAudit>();
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<AuditSummaryDto>>(_options) ?? new List<AuditSummaryDto>();
                 }
                 System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetAudits Failed: {response.StatusCode}");
             }
@@ -76,25 +98,25 @@ namespace OCC.Client.Services.Repositories.ApiServices
             {
                  System.Diagnostics.Debug.WriteLine($"[ApiHealthSafetyService] GetAudits Exception: {ex.Message}");
             }
-            return new List<HseqAudit>();
+            return new List<AuditSummaryDto>();
         }
 
-        public async Task<HseqAudit?> GetAuditAsync(Guid id)
+        public async Task<AuditDto?> GetAuditAsync(Guid id)
         {
-            return await _httpClient.GetFromJsonAsync<HseqAudit>($"api/HseqAudits/{id}", _options);
+            return await _httpClient.GetFromJsonAsync<AuditDto>($"api/HseqAudits/{id}", _options);
         }
 
-        public async Task<HseqAudit?> CreateAuditAsync(HseqAudit audit)
+        public async Task<AuditDto?> CreateAuditAsync(AuditDto audit)
         {
             var response = await _httpClient.PostAsJsonAsync("api/HseqAudits", audit);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<HseqAudit>();
+                return await response.Content.ReadFromJsonAsync<AuditDto>();
             }
             return null;
         }
 
-        public async Task<bool> UpdateAuditAsync(HseqAudit audit)
+        public async Task<bool> UpdateAuditAsync(AuditDto audit)
         {
             var response = await _httpClient.PutAsJsonAsync($"api/HseqAudits/{audit.Id}", audit);
             return response.IsSuccessStatusCode;
@@ -106,12 +128,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<IEnumerable<HseqAuditNonComplianceItem>> GetAuditDeviationsAsync(Guid auditId)
+        public async Task<IEnumerable<AuditNonComplianceItemDto>> GetAuditDeviationsAsync(Guid auditId)
         {
-             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqAuditNonComplianceItem>>($"api/HseqAudits/{auditId}/deviations") ?? new List<HseqAuditNonComplianceItem>();
+             return await _httpClient.GetFromJsonAsync<IEnumerable<AuditNonComplianceItemDto>>($"api/HseqAudits/{auditId}/deviations") ?? new List<AuditNonComplianceItemDto>();
         }
 
-        public async Task<HseqAuditAttachment?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName)
+        public async Task<AuditAttachmentDto?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName)
         {
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(metadata.AuditId.ToString()), nameof(HseqAuditAttachment.AuditId));
@@ -127,7 +149,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             var response = await _httpClient.PostAsync("api/HseqAudits/attachments", content);
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<HseqAuditAttachment>(_options);
+                return await response.Content.ReadFromJsonAsync<AuditAttachmentDto>(_options);
             }
             return null;
         }

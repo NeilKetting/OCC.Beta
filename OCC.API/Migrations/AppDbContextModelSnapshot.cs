@@ -42,6 +42,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -113,6 +119,12 @@ namespace OCC.API.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -203,6 +215,12 @@ namespace OCC.API.Migrations
                     b.Property<bool>("IsDevComment")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -248,6 +266,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("ReporterName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("ScreenshotBase64")
                         .HasColumnType("nvarchar(max)");
@@ -310,6 +334,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -355,6 +385,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
@@ -483,6 +519,12 @@ namespace OCC.API.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<TimeSpan?>("ShiftEndTime")
                         .HasColumnType("time");
 
@@ -543,6 +585,12 @@ namespace OCC.API.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("ScopeOfWorks")
                         .IsRequired()
@@ -612,6 +660,12 @@ namespace OCC.API.Migrations
                     b.Property<Guid?>("NonComplianceItemId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -665,6 +719,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -716,6 +776,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -766,6 +832,12 @@ namespace OCC.API.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -805,6 +877,12 @@ namespace OCC.API.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -870,6 +948,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<double>("SafeWorkHours")
                         .HasColumnType("float");
 
@@ -928,6 +1012,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Trainer")
                         .IsRequired()
@@ -994,6 +1084,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("Severity")
                         .HasColumnType("int");
 
@@ -1040,6 +1136,12 @@ namespace OCC.API.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
@@ -1110,6 +1212,12 @@ namespace OCC.API.Migrations
 
                     b.Property<double>("QuantityOnHand")
                         .HasColumnType("float");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Sku")
                         .IsRequired()
@@ -1184,6 +1292,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -1225,6 +1339,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("TargetAction")
                         .HasColumnType("nvarchar(max)");
@@ -1278,6 +1398,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("NotificationType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
@@ -1361,6 +1487,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("ProjectName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("ScopeOfWork")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1436,6 +1568,12 @@ namespace OCC.API.Migrations
                     b.Property<double>("QuantityReceived")
                         .HasColumnType("float");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("UnitOfMeasure")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1504,6 +1642,12 @@ namespace OCC.API.Migrations
 
                     b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -1590,6 +1734,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("ProjectManager")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("ShortName")
                         .IsRequired()
@@ -1723,9 +1873,6 @@ namespace OCC.API.Migrations
                     b.Property<int>("PercentComplete")
                         .HasColumnType("int");
 
-                    b.Property<long?>("PlanedDurationHours")
-                        .HasColumnType("bigint");
-
                     b.Property<long?>("PlannedDurationHours")
                         .HasColumnType("bigint");
 
@@ -1739,6 +1886,12 @@ namespace OCC.API.Migrations
 
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -1802,6 +1955,12 @@ namespace OCC.API.Migrations
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1842,6 +2001,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -1856,7 +2021,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("b862c2f5-9fe1-4228-9946-4d0aa0fdb12a"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6154),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2136),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1865,7 +2030,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("a1e140e8-e1a8-4acf-b5e0-715ed41c7af3"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6484),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2886),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1874,7 +2039,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("2d50946b-c807-4e9f-a74d-a6c5493b3c94"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6486),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2889),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1883,7 +2048,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("e91fa4f6-1b80-423b-8755-c8e133c34670"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6487),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2891),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1892,7 +2057,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("3e473dfe-4182-4c81-8ba8-f5c33a9e1ed1"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6489),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2893),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1901,7 +2066,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("80ce73e9-fd26-47db-b79f-57165ba68111"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6496),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2903),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1910,7 +2075,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("7f422560-941b-4fe4-80ef-b22adeddfbee"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6497),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2952),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1919,7 +2084,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("e226a941-9246-4dd5-91ec-7dff8a5a96ca"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6499),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2954),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1928,7 +2093,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("0dc5e6d5-2530-40d7-8301-9d41f44c879b"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6500),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2956),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1937,7 +2102,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("5eb30cce-ad23-43a9-9ca2-50236232dccf"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6501),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2957),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1946,7 +2111,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("b5b21171-4284-4f14-bfa4-e8bd0cdb3264"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6502),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2959),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1955,7 +2120,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("496a7469-aa27-435d-899c-1a7c540f5187"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6504),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2960),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -1964,7 +2129,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("fcc99eac-4678-49da-9e2e-f1026fe7c867"),
-                            CreatedAtUtc = new DateTime(2026, 2, 3, 18, 17, 59, 86, DateTimeKind.Utc).AddTicks(6505),
+                            CreatedAtUtc = new DateTime(2026, 2, 9, 7, 29, 24, 443, DateTimeKind.Utc).AddTicks(2962),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2031,6 +2196,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("SupplierAccountNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2076,6 +2247,12 @@ namespace OCC.API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2119,6 +2296,12 @@ namespace OCC.API.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
@@ -2171,6 +2354,12 @@ namespace OCC.API.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2214,6 +2403,12 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -2246,6 +2441,12 @@ namespace OCC.API.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<Guid>("TeamId")
                         .HasColumnType("uniqueidentifier");
@@ -2293,6 +2494,12 @@ namespace OCC.API.Migrations
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<Guid>("TaskId")
                         .HasColumnType("uniqueidentifier");
@@ -2371,6 +2578,12 @@ namespace OCC.API.Migrations
                     b.Property<string>("ProfilePictureBase64")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -2406,6 +2619,12 @@ namespace OCC.API.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime>("RunDate")
                         .HasColumnType("datetime2");
@@ -2472,6 +2691,12 @@ namespace OCC.API.Migrations
 
                     b.Property<double>("ProjectedHours")
                         .HasColumnType("float");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<decimal>("TotalWage")
                         .HasPrecision(18, 2)

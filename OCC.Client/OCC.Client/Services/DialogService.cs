@@ -25,8 +25,8 @@ namespace OCC.Client.Services
         {
              if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
              {
-                 var dialog = new OCC.Client.Views.Bugs.BugReportDialog();
-                 var vm = new OCC.Client.ViewModels.Bugs.BugReportDialogViewModel(
+                 var dialog = new OCC.Client.Features.BugHub.Views.BugReportDialog();
+                 var vm = new OCC.Client.Features.BugHub.ViewModels.BugReportDialogViewModel(
                      Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IBugReportService>(_serviceProvider),
                      Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IAuthService>(_serviceProvider),
                      viewName,
@@ -93,7 +93,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Views.Time.LeaveEarlyReasonDialog();
+                var dialog = new OCC.Client.Features.EmployeeHub.Views.LeaveEarlyReasonDialog();
                 var result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
                 
                 if (result == true)
@@ -107,7 +107,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Views.Time.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
+                var dialog = new OCC.Client.Features.EmployeeHub.Views.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
                 var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
                 
                 if (result)

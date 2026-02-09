@@ -16,11 +16,20 @@ namespace OCC.Shared.Models
         /// <summary> Foreign Key linking to the parent <see cref="Incident"/>. </summary>
         public Guid IncidentId { get; set; }
 
-        /// <summary> The image data encoded as a Base64 string. </summary>
-        public string Base64Content { get; set; } = string.Empty;
+        /// <summary> The original file name of the photo. </summary>
+        public string FileName { get; set; } = string.Empty;
+
+        /// <summary> The relative path to the stored file. </summary>
+        public string FilePath { get; set; } = string.Empty;
+
+        /// <summary> The size of the file (e.g., "1.2 MB"). </summary>
+        public string FileSize { get; set; } = string.Empty;
 
         /// <summary> A description or caption for the photo (e.g., "Damage to left fender"). </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary> Name of the user who uploaded the photo. </summary>
+        public string UploadedBy { get; set; } = string.Empty;
 
         /// <summary> Timestamp when the photo was uploaded/captured. </summary>
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;

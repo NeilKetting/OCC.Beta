@@ -2,6 +2,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -33,19 +34,19 @@ namespace OCC.Client.Services
             }
         }
 
-        public async Task<List<Order>> GetOrdersAsync()
+        public async Task<List<OrderSummaryDto>> GetOrdersAsync()
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<List<Order>>("api/Orders") ?? new List<Order>();
+            return await _httpClient.GetFromJsonAsync<List<OrderSummaryDto>>("api/Orders") ?? new List<OrderSummaryDto>();
         }
 
-        public async Task<Order?> GetOrderAsync(Guid id)
+        public async Task<OrderDto?> GetOrderAsync(Guid id)
         {
              EnsureAuthorization();
-             return await _httpClient.GetFromJsonAsync<Order>($"api/Orders/{id}");
+             return await _httpClient.GetFromJsonAsync<OrderDto>($"api/Orders/{id}");
         }
 
-        public async Task<Order> CreateOrderAsync(Order order)
+        public async Task<OrderDto> CreateOrderAsync(OrderDto order)
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Orders", order);
@@ -56,10 +57,10 @@ namespace OCC.Client.Services
                 throw new HttpRequestException($"Failed to create order: {response.StatusCode} - {error}");
             }
             
-            return await response.Content.ReadFromJsonAsync<Order>() ?? order;
+            return await response.Content.ReadFromJsonAsync<OrderDto>() ?? order;
         }
 
-        public async Task UpdateOrderAsync(Order order)
+        public async Task UpdateOrderAsync(OrderDto order)
         {
              EnsureAuthorization();
              var response = await _httpClient.PutAsJsonAsync($"api/Orders/{order.Id}", order);
@@ -71,30 +72,34 @@ namespace OCC.Client.Services
              }
         }
 
-        public async Task ReceiveOrderAsync(Order order, List<OrderLine> updatedLines)
+        public async Task<OrderDto?> ReceiveOrderAsync(Guid orderId, List<OrderLine> updatedLines)
         {
              EnsureAuthorization();
-             var response = await _httpClient.PostAsJsonAsync($"api/Orders/{order.Id}/receive", updatedLines);
+             var response = await _httpClient.PostAsJsonAsync($"api/Orders/{orderId}/receive", updatedLines);
              response.EnsureSuccessStatusCode();
 
-             // Update local order object with response if needed, but the caller usually reloads
-             var updatedOrder = await response.Content.ReadFromJsonAsync<Order>();
-             if (updatedOrder != null) 
-             {
-                 order.Status = updatedOrder.Status;
-                 // Sync lines? Usually List ViewModel reloads, but good to keep local object fresh
-                 foreach(var line in updatedOrder.Lines)
-                 {
-                     var local = order.Lines.FirstOrDefault(l => l.Id == line.Id);
-                     if (local != null) local.QuantityReceived = line.QuantityReceived;
-                 }
-             }
+             return await response.Content.ReadFromJsonAsync<OrderDto>();
         }
 
         public async Task DeleteOrderAsync(Guid id)
         {
              var response = await _httpClient.DeleteAsync($"api/Orders/{id}");
              response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<OrderDto> GetRestockTemplateAsync()
+        {
+            EnsureAuthorization();
+            return await _httpClient.GetFromJsonAsync<OrderDto>("api/Orders/restock-template") 
+                   ?? new OrderDto();
+        }
+
+        public async Task<IEnumerable<RestockCandidateDto>> GetRestockCandidatesAsync(Branch? branch = null)
+        {
+            EnsureAuthorization();
+            var query = branch.HasValue ? $"?branch={branch}" : "";
+            return await _httpClient.GetFromJsonAsync<IEnumerable<RestockCandidateDto>>($"api/Orders/restock-candidates{query}") 
+                   ?? new List<RestockCandidateDto>();
         }
     }
 }

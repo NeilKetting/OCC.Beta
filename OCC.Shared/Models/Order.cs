@@ -81,6 +81,7 @@ namespace OCC.Shared.Models
 
     public enum OrderStatus
     {
+        Draft,
         Ordered,
         PartialDelivery,
         Completed,

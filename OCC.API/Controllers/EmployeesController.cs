@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using OCC.API.Data;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.API.Hubs;
 
 namespace OCC.API.Controllers
@@ -26,11 +27,12 @@ namespace OCC.API.Controllers
 
         // GET: api/Employees
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public async Task<ActionResult<IEnumerable<EmployeeSummaryDto>>> GetEmployees()
         {
             try
             {
-                return await _context.Employees.ToListAsync();
+                var employees = await _context.Employees.ToListAsync();
+                return Ok(employees.Select(ToSummaryDto));
             }
             catch (Exception ex)
             {
@@ -41,7 +43,7 @@ namespace OCC.API.Controllers
 
         // GET: api/Employees/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(Guid id)
+        public async Task<ActionResult<EmployeeDto>> GetEmployee(Guid id)
         {
             try
             {
@@ -52,7 +54,7 @@ namespace OCC.API.Controllers
                     return NotFound();
                 }
 
-                return employee;
+                return Ok(ToDetailDto(employee));
             }
             catch (Exception ex)
             {
@@ -64,7 +66,7 @@ namespace OCC.API.Controllers
         // POST: api/Employees
         [HttpPost]
         [Authorize(Roles = "Admin, Office")] // Admin and Office
-        public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
+        public async Task<ActionResult<EmployeeDto>> PostEmployee(Employee employee)
         {
             try
             {
@@ -73,7 +75,7 @@ namespace OCC.API.Controllers
                 
                 await _hubContext.Clients.All.SendAsync("EntityUpdate", "Employee", "Create", employee.Id);
 
-                return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
+                return CreatedAtAction("GetEmployee", new { id = employee.Id }, ToDetailDto(employee));
             }
             catch (Exception ex)
             {
@@ -169,6 +171,68 @@ namespace OCC.API.Controllers
         private bool EmployeeExists(Guid id)
         {
             return _context.Employees.Any(e => e.Id == id);
+        }
+
+        private EmployeeSummaryDto ToSummaryDto(Employee employee)
+        {
+            return new EmployeeSummaryDto
+            {
+                Id = employee.Id,
+                LinkedUserId = employee.LinkedUserId, // Added for validation
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                IdNumber = employee.IdNumber, // Added
+                Email = employee.Email,       // Added
+                EmployeeNumber = employee.EmployeeNumber,
+                Role = employee.Role,
+                Status = employee.Status,
+                EmploymentType = employee.EmploymentType,
+                Branch = employee.Branch
+            };
+        }
+
+        private EmployeeDto ToDetailDto(Employee employee)
+        {
+            return new EmployeeDto
+            {
+                Id = employee.Id,
+                LinkedUserId = employee.LinkedUserId,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                IdNumber = employee.IdNumber,
+                IdType = employee.IdType,
+                PermitNumber = employee.PermitNumber,
+                Email = employee.Email,
+                Phone = employee.Phone,
+                PhysicalAddress = employee.PhysicalAddress,
+                DoB = employee.DoB,
+                EmployeeNumber = employee.EmployeeNumber,
+                Role = employee.Role,
+                Status = employee.Status,
+                EmploymentType = employee.EmploymentType,
+                ContractDuration = employee.ContractDuration,
+                EmploymentDate = employee.EmploymentDate,
+                Branch = employee.Branch,
+                ShiftStartTime = employee.ShiftStartTime,
+                ShiftEndTime = employee.ShiftEndTime,
+                RateType = employee.RateType,
+                HourlyRate = employee.HourlyRate,
+                TaxNumber = employee.TaxNumber,
+                BankName = employee.BankName,
+                AccountNumber = employee.AccountNumber,
+                BranchCode = employee.BranchCode,
+                AccountType = employee.AccountType,
+                AnnualLeaveBalance = employee.AnnualLeaveBalance,
+                SickLeaveBalance = employee.SickLeaveBalance,
+                LeaveBalance = employee.LeaveBalance,
+                LeaveCycleStartDate = employee.LeaveCycleStartDate,
+                NextOfKinName = employee.NextOfKinName,
+                NextOfKinRelation = employee.NextOfKinRelation,
+                NextOfKinPhone = employee.NextOfKinPhone,
+                EmergencyContactName = employee.EmergencyContactName,
+                EmergencyContactPhone = employee.EmergencyContactPhone,
+                RowVersion = employee.RowVersion
+            };
         }
     }
 }

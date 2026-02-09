@@ -319,7 +319,6 @@
 		<Setter Property="Padding" Value="15,5,30,5"/>
 		<Setter Property="Height" Value="42"/>
 		<Setter Property="Margin" Value="0,-3,2,-1"/>
-
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
 	</Style>
 
@@ -517,6 +516,14 @@
 	<!-- DATAGRID STYLES -->
 	<!-- DataGrid GLOBAL STYLE!!!!!!!!! -->
 	<!-- ========================================================================= -->
+
+	<Style Selector="DataGrid">
+		<Setter Property="CanUserResizeColumns" Value="True" />
+		<Setter Property="GridLinesVisibility" Value="Horizontal" />
+		<Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderGray}" />
+		<Setter Property="VerticalGridLinesBrush" Value="{DynamicResource BorderGray}" />
+		<Setter Property="HeadersVisibility" Value="Column" />
+	</Style>
 
 	<Style Selector="DataGridColumnHeader">
 		<Setter Property="Foreground" Value="{DynamicResource TextSecondaryGray}"/>

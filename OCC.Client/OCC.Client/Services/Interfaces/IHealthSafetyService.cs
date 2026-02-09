@@ -9,20 +9,22 @@ namespace OCC.Client.Services.Interfaces
     public interface IHealthSafetyService
     {
         // Incidents
-        Task<IEnumerable<Incident>> GetIncidentsAsync();
-        Task<Incident?> GetIncidentAsync(Guid id);
-        Task<Incident?> CreateIncidentAsync(Incident incident);
+        Task<IEnumerable<IncidentSummaryDto>> GetIncidentsAsync();
+        Task<IncidentDto?> GetIncidentAsync(Guid id);
+        Task<IncidentDto?> CreateIncidentAsync(Incident incident);
         Task<bool> UpdateIncidentAsync(Incident incident);
         Task<bool> DeleteIncidentAsync(Guid id);
+        Task<IncidentPhotoDto?> UploadIncidentPhotoAsync(IncidentPhoto metadata, System.IO.Stream fileStream, string fileName);
+        Task<bool> DeleteIncidentPhotoAsync(Guid id);
 
         // Audits
-        Task<IEnumerable<HseqAudit>> GetAuditsAsync();
-        Task<HseqAudit?> GetAuditAsync(Guid id);
-        Task<HseqAudit?> CreateAuditAsync(HseqAudit audit);
-        Task<bool> UpdateAuditAsync(HseqAudit audit);
+        Task<IEnumerable<AuditSummaryDto>> GetAuditsAsync();
+        Task<AuditDto?> GetAuditAsync(Guid id);
+        Task<AuditDto?> CreateAuditAsync(AuditDto audit);
+        Task<bool> UpdateAuditAsync(AuditDto audit);
         Task<bool> DeleteAuditAsync(Guid id);
-        Task<IEnumerable<HseqAuditNonComplianceItem>> GetAuditDeviationsAsync(Guid auditId);
-        Task<HseqAuditAttachment?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName);
+        Task<IEnumerable<AuditNonComplianceItemDto>> GetAuditDeviationsAsync(Guid auditId);
+        Task<AuditAttachmentDto?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteAuditAttachmentAsync(Guid id);
 
         // Training

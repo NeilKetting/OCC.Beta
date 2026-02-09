@@ -457,3 +457,9 @@ $RECYCLE.BIN/
 # Secret configuration file
 appsettings.secrets.json
 /OCC-Enterprise/
+
+# Publishing and Releases
+publish_staging/
+publish_recovery/
+staging-releases/
+Releases/

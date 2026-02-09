@@ -22,6 +22,7 @@
             <conv:EmployeeToNameConverter x:Key="EmployeeToNameConverter"/>
             <conv:InvertBoolConverter x:Key="InvertBoolConverter"/>
             <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
+            <conv:DoubleToStarGridLengthConverter x:Key="DoubleToStarGridLengthConverter"/>
 
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">8</x:Double>

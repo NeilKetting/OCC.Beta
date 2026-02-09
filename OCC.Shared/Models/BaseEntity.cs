@@ -15,6 +15,9 @@ namespace OCC.Shared.Models
         public string? UpdatedBy { get; set; }
 
         public bool IsActive { get; set; } = true;
+        
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = null!;
 
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public DateTime CreatedAt => CreatedAtUtc.ToLocalTime();

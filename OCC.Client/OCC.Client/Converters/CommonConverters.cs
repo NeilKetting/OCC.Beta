@@ -76,4 +76,23 @@ namespace OCC.Client.Converters
             return value;
         }
     }
+
+    public class DoubleToStarGridLengthConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is double d)
+            {
+                // Ensure a minimum non-zero value for 0 stock to avoid grid sizing issues if all are 0
+                // though usually the container has a fixed height/alignment.
+                return new Avalonia.Controls.GridLength(Math.Max(0.0001, d), Avalonia.Controls.GridUnitType.Star);
+            }
+            return new Avalonia.Controls.GridLength(0, Avalonia.Controls.GridUnitType.Star);
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            return Avalonia.Data.BindingOperations.DoNothing;
+        }
+    }
 }
