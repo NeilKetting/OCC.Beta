@@ -62,7 +62,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="180"/>
                         <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
-                        <DataGridTextColumn Header="Topic" Binding="{Binding TrainingTopic}" Width="*" MinWidth="250"/>
+                        <DataGridTextColumn Header="Topic" Binding="{Binding TrainingTopic}" Width="Auto"/>
                         <DataGridTextColumn Header="Issue Date" Binding="{Binding DateCompleted, StringFormat='d MMM yyyy'}" Width="Auto"/>
                         <DataGridTextColumn Header="Expiry Date" Binding="{Binding ValidUntil, StringFormat='d MMM yyyy'}" Width="Auto"/>
                         <DataGridTextColumn Header="Validity" Binding="{Binding ValidityStatus}" Width="Auto"/>

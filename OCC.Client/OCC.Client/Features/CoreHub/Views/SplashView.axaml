@@ -7,7 +7,7 @@
 		x:Class="OCC.Client.Features.CoreHub.Views.SplashView"
 		x:DataType="vm:SplashViewModel"
 		Title="Orange Circle Construction"
-		Width="400" Height="300"
+		Width="460" Height="360"
 		WindowStartupLocation="CenterScreen"
 		SystemDecorations="None"
 		Background="Transparent"
@@ -18,7 +18,8 @@
 			BorderThickness="5"
 			BorderBrush="{DynamicResource SplashGradient}"
 			Padding="20" 
-			BoxShadow="0 4 20 10 #000">
+			Margin="30"
+			BoxShadow="0 8 24 0 #60000000">
 		<Grid RowDefinitions="*, Auto, Auto">
 
 			<!-- Logo area -->
