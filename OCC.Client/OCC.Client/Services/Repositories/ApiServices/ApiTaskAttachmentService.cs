@@ -12,14 +12,26 @@ namespace OCC.Client.Services.Repositories.ApiServices
     public class ApiTaskAttachmentService : ITaskAttachmentService
     {
         private readonly HttpClient _httpClient;
+        private readonly IAuthService _authService;
 
-        public ApiTaskAttachmentService(HttpClient httpClient)
+        public ApiTaskAttachmentService(HttpClient httpClient, IAuthService authService)
         {
             _httpClient = httpClient;
+            _authService = authService;
+        }
+
+        private void EnsureAuthorization()
+        {
+            var token = _authService.AuthToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         public async Task<IEnumerable<TaskAttachment>> GetAttachmentsForTaskAsync(Guid taskId)
         {
+            EnsureAuthorization();
             try 
             {
                return await _httpClient.GetFromJsonAsync<IEnumerable<TaskAttachment>>($"api/TaskAttachments/task/{taskId}") 
@@ -33,6 +45,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<TaskAttachment?> UploadAttachmentAsync(TaskAttachment metadata, Stream fileStream, string fileName)
         {
+            EnsureAuthorization();
             try
             {
                 using var content = new MultipartFormDataContent();
@@ -61,6 +74,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> DeleteAttachmentAsync(Guid id)
         {
+            EnsureAuthorization();
             try
             {
                 var response = await _httpClient.DeleteAsync($"api/TaskAttachments/{id}");

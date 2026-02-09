@@ -14,10 +14,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
     {
         private readonly HttpClient _httpClient; 
         private readonly JsonSerializerOptions _options;
+        private readonly IAuthService _authService;
 
-        public ApiHealthSafetyService(HttpClient httpClient)
+        public ApiHealthSafetyService(HttpClient httpClient, IAuthService authService)
         {
             _httpClient = httpClient;
+            _authService = authService;
             _options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -25,19 +27,31 @@ namespace OCC.Client.Services.Repositories.ApiServices
             };
         }
 
+        private void EnsureAuthorization()
+        {
+            var token = _authService.AuthToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
         // --- Incidents ---
         public async Task<IEnumerable<IncidentSummaryDto>> GetIncidentsAsync()
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<IEnumerable<IncidentSummaryDto>>("api/Incidents", _options) ?? new List<IncidentSummaryDto>();
         }
 
         public async Task<IncidentDto?> GetIncidentAsync(Guid id)
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<IncidentDto>($"api/Incidents/{id}", _options);
         }
 
         public async Task<IncidentDto?> CreateIncidentAsync(Incident incident)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Incidents", incident, _options);
             if (response.IsSuccessStatusCode)
             {
@@ -48,18 +62,21 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> UpdateIncidentAsync(Incident incident)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PutAsJsonAsync($"api/Incidents/{incident.Id}", incident, _options);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteIncidentAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/Incidents/{id}");
             return response.IsSuccessStatusCode;
         }
 
         public async Task<IncidentPhotoDto?> UploadIncidentPhotoAsync(IncidentPhoto metadata, System.IO.Stream fileStream, string fileName)
         {
+            EnsureAuthorization();
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(metadata.IncidentId.ToString()), nameof(IncidentPhoto.IncidentId));
             content.Add(new StringContent(metadata.Description ?? ""), nameof(IncidentPhoto.Description));
@@ -78,6 +95,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> DeleteIncidentPhotoAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/Incidents/photos/{id}");
             return response.IsSuccessStatusCode;
         }
@@ -85,6 +103,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         // --- Audits ---
         public async Task<IEnumerable<AuditSummaryDto>> GetAuditsAsync()
         {
+            EnsureAuthorization();
             try
             {
                 var response = await _httpClient.GetAsync("api/HseqAudits");
@@ -103,11 +122,13 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<AuditDto?> GetAuditAsync(Guid id)
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<AuditDto>($"api/HseqAudits/{id}", _options);
         }
 
         public async Task<AuditDto?> CreateAuditAsync(AuditDto audit)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/HseqAudits", audit);
             if (response.IsSuccessStatusCode)
             {
@@ -118,23 +139,27 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> UpdateAuditAsync(AuditDto audit)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PutAsJsonAsync($"api/HseqAudits/{audit.Id}", audit);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteAuditAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/HseqAudits/{id}");
             return response.IsSuccessStatusCode;
         }
 
         public async Task<IEnumerable<AuditNonComplianceItemDto>> GetAuditDeviationsAsync(Guid auditId)
         {
+            EnsureAuthorization();
              return await _httpClient.GetFromJsonAsync<IEnumerable<AuditNonComplianceItemDto>>($"api/HseqAudits/{auditId}/deviations") ?? new List<AuditNonComplianceItemDto>();
         }
 
         public async Task<AuditAttachmentDto?> UploadAuditAttachmentAsync(HseqAuditAttachment metadata, System.IO.Stream fileStream, string fileName)
         {
+            EnsureAuthorization();
             using var content = new MultipartFormDataContent();
             content.Add(new StringContent(metadata.AuditId.ToString()), nameof(HseqAuditAttachment.AuditId));
             if (metadata.NonComplianceItemId.HasValue)
@@ -156,6 +181,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> DeleteAuditAttachmentAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/HseqAudits/attachments/{id}");
             return response.IsSuccessStatusCode;
         }
@@ -163,16 +189,19 @@ namespace OCC.Client.Services.Repositories.ApiServices
         // --- Training ---
         public async Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync()
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingRecord>>("api/HseqTraining") ?? new List<HseqTrainingRecord>();
         }
 
         public async Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days)
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingRecord>>($"api/HseqTraining/expiring/{days}") ?? new List<HseqTrainingRecord>();
         }
 
         public async Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/HseqTraining", record);
             if (response.IsSuccessStatusCode)
             {
@@ -183,12 +212,14 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> UpdateTrainingRecordAsync(HseqTrainingRecord record)
         {
+            EnsureAuthorization();
             var response = await _httpClient.PutAsJsonAsync($"api/HseqTraining/{record.Id}", record);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName)
         {
+            EnsureAuthorization();
             try
             {
                 using var content = new MultipartFormDataContent();
@@ -223,6 +254,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> DeleteTrainingRecordAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/HseqTraining/{id}");
             return response.IsSuccessStatusCode;
         }
@@ -230,11 +262,13 @@ namespace OCC.Client.Services.Repositories.ApiServices
         // --- Documents ---
         public async Task<IEnumerable<HseqDocument>> GetDocumentsAsync()
         {
+            EnsureAuthorization();
             return await _httpClient.GetFromJsonAsync<IEnumerable<HseqDocument>>("api/HseqDocuments") ?? new List<HseqDocument>();
         }
 
         public async Task<HseqDocument?> UploadDocumentAsync(HseqDocument metadata, System.IO.Stream fileStream, string fileName)
         {
+            EnsureAuthorization();
              using var content = new MultipartFormDataContent();
              content.Add(new StringContent(metadata.Title ?? ""), nameof(HseqDocument.Title));
              content.Add(new StringContent(metadata.Category.ToString()), nameof(HseqDocument.Category));
@@ -256,6 +290,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<bool> DeleteDocumentAsync(Guid id)
         {
+            EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/HseqDocuments/{id}");
             return response.IsSuccessStatusCode;
         }
@@ -263,6 +298,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         // --- Stats ---
         public async Task<HseqDashboardStats?> GetDashboardStatsAsync()
         {
+            EnsureAuthorization();
             try
             {
                 var response = await _httpClient.GetAsync("api/HseqStats/dashboard");
@@ -281,6 +317,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public async Task<IEnumerable<HseqSafeHourRecord>> GetPerformanceHistoryAsync(int? year = null)
         {
+            EnsureAuthorization();
              return await _httpClient.GetFromJsonAsync<IEnumerable<HseqSafeHourRecord>>($"api/HseqStats/history/{year}") ?? new List<HseqSafeHourRecord>();
         }
     }
