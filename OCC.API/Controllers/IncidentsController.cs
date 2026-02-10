@@ -55,6 +55,7 @@ namespace OCC.API.Controllers
 
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutIncident(Guid id, Incident incident)
         {
             if (id != incident.Id)

@@ -87,6 +87,7 @@ namespace OCC.API.Controllers
         // PUT: api/Employees/5
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         [Authorize(Roles = "Admin, Office")] // Admin and Office
         public async Task<IActionResult> PutEmployee(Guid id, Employee employee)
         {

@@ -87,6 +87,7 @@ namespace OCC.API.Controllers
         // PUT: api/Teams/5
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutTeam(Guid id, Team team)
         {
             if (id != team.Id)

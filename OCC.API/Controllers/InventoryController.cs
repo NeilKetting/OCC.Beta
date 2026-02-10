@@ -90,6 +90,7 @@ namespace OCC.API.Controllers
 
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> UpdateItem(Guid id, InventoryItem item)
         {
             if (id != item.Id)

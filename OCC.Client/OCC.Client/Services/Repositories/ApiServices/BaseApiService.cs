@@ -76,11 +76,8 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task UpdateAsync(T entity)
         {
             EnsureAuthorization();
-            // Use POST with Method Override header to bypass IIS PUT restrictions
-            _httpClient.DefaultRequestHeaders.Remove("X-Http-Method-Override");
-            _httpClient.DefaultRequestHeaders.Add("X-Http-Method-Override", "PUT");
-            
-            var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
+            // Use POST to the explicit update fallback path to bypass IIS restrictions
+            var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}/update/{entity.Id}", entity);
             
             if (!response.IsSuccessStatusCode)
             {

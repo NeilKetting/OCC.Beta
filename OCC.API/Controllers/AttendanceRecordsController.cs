@@ -84,6 +84,7 @@ namespace OCC.API.Controllers
         // PUT: api/AttendanceRecords/5
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutAttendanceRecord(Guid id, AttendanceRecord record)
         {
             if (id != record.Id) return BadRequest();

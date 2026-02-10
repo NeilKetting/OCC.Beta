@@ -66,6 +66,7 @@ namespace OCC.API.Controllers
         // PUT: api/OvertimeRequests/5
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutOvertimeRequest(Guid id, OvertimeRequest request)
         {
             if (id != request.Id) return BadRequest();

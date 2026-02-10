@@ -80,6 +80,7 @@ namespace OCC.API.Controllers
         // PUT: api/Customers/5
         [HttpPut("{id}")]
         [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutCustomer(Guid id, Customer customer)
         {
             if (id != customer.Id) return BadRequest();
