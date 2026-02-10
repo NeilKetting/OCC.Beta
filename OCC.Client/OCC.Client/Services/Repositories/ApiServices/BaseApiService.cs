@@ -76,8 +76,11 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task UpdateAsync(T entity)
         {
             EnsureAuthorization();
-            // Use PUT to update. Backend should handle identifying the entity from the body.
-            var response = await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
+            // Use POST with Method Override header to bypass IIS PUT restrictions
+            _httpClient.DefaultRequestHeaders.Remove("X-Http-Method-Override");
+            _httpClient.DefaultRequestHeaders.Add("X-Http-Method-Override", "PUT");
+            
+            var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -94,7 +97,11 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task DeleteAsync(Guid id)
         {
             EnsureAuthorization();
-            var response = await _httpClient.DeleteAsync($"api/{ApiEndpoint}/{id}");
+            // Use POST with Method Override header to bypass IIS DELETE restrictions
+            _httpClient.DefaultRequestHeaders.Remove("X-Http-Method-Override");
+            _httpClient.DefaultRequestHeaders.Add("X-Http-Method-Override", "DELETE");
+
+            var response = await _httpClient.PostAsync($"api/{ApiEndpoint}/{id}", null);
             
             if (!response.IsSuccessStatusCode)
             {

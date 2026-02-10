@@ -159,6 +159,8 @@ app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseHttpMethodOverride();
+
 app.MapControllers();
 app.MapHub<OCC.API.Hubs.NotificationHub>("/hubs/notifications");
 
