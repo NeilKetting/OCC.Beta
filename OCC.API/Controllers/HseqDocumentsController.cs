@@ -73,6 +73,7 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteDocument(Guid id)
         {
             var document = await _context.HseqDocuments.FindAsync(id);

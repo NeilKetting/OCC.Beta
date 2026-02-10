@@ -55,6 +55,8 @@ namespace OCC.API.Controllers
 
         // PUT: api/PublicHolidays/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutPublicHoliday(Guid id, PublicHoliday holiday)
         {
             if (id != holiday.Id) return BadRequest();
@@ -77,6 +79,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/PublicHolidays/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeletePublicHoliday(Guid id)
         {
             var holiday = await _context.PublicHolidays.FindAsync(id);

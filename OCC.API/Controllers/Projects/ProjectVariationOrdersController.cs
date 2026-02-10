@@ -81,6 +81,8 @@ namespace OCC.API.Controllers.Projects
         }
 
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
+        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutVariationOrder(Guid id, ProjectVariationOrder variationOrder)
         {
             if (id != variationOrder.Id)
@@ -115,6 +117,7 @@ namespace OCC.API.Controllers.Projects
         }
 
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteVariationOrder(Guid id)
         {
             try

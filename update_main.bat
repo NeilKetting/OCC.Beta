@@ -24,10 +24,10 @@ if /i "%SYNC%"=="Y" (
 
 :: 2. Stop IIS (Requires Elevation)
 echo [DEPLOY] Stopping IIS Site...
-%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC_API"
 
 echo [DEPLOY] Stopping IIS AppPool...
-%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC_API"
 
 echo Waiting for process to release locks...
 timeout /t 5 /nobreak
@@ -44,14 +44,14 @@ git pull origin master
 
 :: 4. Publish
 echo [DEPLOY] Publishing to Live Folder...
-dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API"
+dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC_API"
 
 :: 5. Restart IIS
 echo [DEPLOY] Starting IIS AppPool...
-%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC_API"
 
 echo [DEPLOY] Starting IIS Site...
-%windir%\system32\inetsrv\appcmd start site /site.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
 
 echo [DEPLOY] Update Complete!
 pause
