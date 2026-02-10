@@ -9,11 +9,11 @@ echo [TEST] DEPLOYMENT AND SYNC AUTOMATION
 echo ========================================================
 
 :: 1. Optional Database Sync
-set /p SYNC="Sync Live DB to Staging 1:1 before deployment? (Y/N): "
+set /p SYNC="Sync Live DB to Test 1:1 before deployment? (Y/N): "
 if /i "%SYNC%"=="Y" (
     echo [SYNC] Starting Database Synchronization...
     :: Use full path to the sql file to avoid "Invalid filename" errors
-    sqlcmd -b -S "OCOR\OCC_SQL" -i "%~dp0sync_staging_db.sql"
+    sqlcmd -b -S "OCOR\OCC_SQL" -i "%~dp0sync_test_db.sql"
     if %errorlevel% neq 0 (
         echo [ERROR] Database Sync failed. Deployment aborted.
         pause
