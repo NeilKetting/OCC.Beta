@@ -10,7 +10,7 @@ DECLARE @BackupPath NVARCHAR(500) = N'C:\OCCBackups\OCC_Live_Temp.bak';
 DECLARE @MainDataPath NVARCHAR(500) = N'C:\Program Files\Microsoft SQL Server\MSSQL17.OCC_SQL\MSSQL\DATA\OCC_Main.mdf';
 DECLARE @MainLogPath NVARCHAR(500) = N'C:\Program Files\Microsoft SQL Server\MSSQL17.OCC_SQL\MSSQL\DATA\OCC_Main_log.ldf';
 
--- 1. Kick everyone off Staging DB (only if it exists)
+-- 1. Kick everyone off Main DB (only if it exists)
 IF EXISTS (SELECT name FROM sys.databases WHERE name = @MainDbName)
 BEGIN
     PRINT 'Setting Main DB to Single User Mode...';

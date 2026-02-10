@@ -32,7 +32,7 @@ Perform these steps on the **Hosted PC**:
 1.  **Clone Repo**:
     ```powershell
     cd C:\
-    git clone https://github.com/YourUsername/OCC-Rev5.git C:\OCC-Source
+    git clone https://github.com/NeilKetting/OrangeCircleConstruction.git C:\OCC-Source
     ```
 2.  **Create Publish Folder**:
     *   Create a folder where the live app will live, e.g., `C:\inetpub\wwwroot\OCC-API`.
@@ -41,8 +41,7 @@ Perform these steps on the **Hosted PC**:
     *   Right-click **Sites** -> **Add Website**.
     *   **Site name**: `OCC-API`
     *   **Physical path**: `C:\inetpub\wwwroot\OCC-API`
-    *   **Port**: `80` (or `7166` if you want to match dev, but 80 is standard).
-    *   **Host name**: Leave blank (or set to your static IP/domain).
+    *   **Port**: `8081` (Standard for OCC Live).
     *   Click OK.
 4.  **Application Pool**:
     *   Click **Application Pools**.
@@ -50,69 +49,22 @@ Perform these steps on the **Hosted PC**:
     *   Set **.NET CLR Version** to `No Managed Code`.
 
 ### B. Deploy/Update Script
-Create a file `C:\OCC-Source\update_api.bat` with the following content:
+Use the existing `update_main.bat` in the repository root. This script:
+1.  Stops the `OCC-API` site and AppPool.
+2.  Pulls latest code from `master`.
+3.  Publishes to `C:\inetpub\wwwroot\OCC-API`.
+4.  Restarts the site.
 
-```batch
-@echo off
-echo Stopping IIS Site...
-%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC_API"
+---
 
-echo Stopping IIS AppPool...
-%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC_API"
+## 4. Run as Administrator
+**IMPORTANT**: You must right-click `update_main.bat` and select **Run as administrator**. "appcmd" requires admin rights to stop/start sites.
 
-echo Waiting for process to release locks...
-timeout /t 5 /nobreak
+## 5. Troubleshooting
+*   **Error: "No .NET SDKs were found"**: Install the .NET 9 SDK.
+*   **Error: "Insufficient permissions"**: Run the batch file as Administrator.
+*   **404 Errors**: Ensure the site is published to the correct folder and that the IIS physical path matches.
 
-echo Pulling latest code...
-cd C:\OCC-Source
-git pull origin master
-
-echo Publishing...
-dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API"
-
-echo Starting IIS AppPool...
-%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC_API"
-
-echo Starting IIS Site...
-%windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
-
-echo Done!
-pause
-```
-
-```
-
-## 4. Setting up a Staging Environment (Recommended)
-To prevent breaking the live app, set up a parallel "Staging" environment.
-
-### A. Database
-1.  **Duplicate your DB**: On your SQL server, create a new database called `OCC_Staging`. 
-2.  **Snapshot**: Periodically copy data from the live DB to Staging so you have realistic test data.
-
-### B. IIS Configuration (Staging)
-1.  **Folder**: Create `C:\inetpub\wwwroot\OCC-API-Staging`.
-2.  **Site**: In IIS, Create a new site "OCC-API-Staging" pointed to that folder.
-3.  **Port**: Use a different port (e.g., `8080`) or a different hostname (e.g., `test-api.yourdomain.com`).
-
-### C. Update Script (Staging)
-Create `C:\OCC-Source\update_staging.bat` similar to the production one, but:
-*   Set `git pull origin staging` (pull from the staging branch).
-*   Change the output path to `C:\inetpub\wwwroot\OCC-API-Staging`.
-*   Update the IIS Site/AppPool names to `OCC-API-Staging`.
-
-### D. Automatic Configuration (Environment Variables)
-To avoid changing connection strings manually:
-1.  **Open IIS Manager**.
-2.  Select the **OCC-API-Staging** site.
-3.  Double-click **Configuration Editor**.
-4.  From the `Section` dropdown, select `system.webServer/aspNetCore`.
-5.  Find `environmentVariables` and click the `...` button.
-6.  Add a new variable:
-    *   **Name**: `ASPNETCORE_ENVIRONMENT`
-    *   **Value**: `Staging`
-7.  Click **Apply**.
-
-Now, when you deploy, the API will automatically use `appsettings.Staging.json` and connect to the staging database.
 
 ## 5. Run as Administrator
 **IMPORTANT**: You must right-click this `.bat` file and select **Run as administrator**. "appcmd" requires admin rights to stop/start sites.
