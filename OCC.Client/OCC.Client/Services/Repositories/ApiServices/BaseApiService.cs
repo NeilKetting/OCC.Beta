@@ -65,7 +65,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}", entity);
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+            }
         }
 
         public virtual async Task UpdateAsync(T entity)
@@ -74,19 +79,28 @@ namespace OCC.Client.Services.Repositories.ApiServices
             // Use PUT to update. Backend should handle identifying the entity from the body.
             var response = await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
             
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            if (!response.IsSuccessStatusCode)
             {
-                throw new OCC.Client.Infrastructure.Exceptions.ConcurrencyException();
-            }
+                 if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                 {
+                     throw new OCC.Client.Infrastructure.Exceptions.ConcurrencyException();
+                 }
 
-            response.EnsureSuccessStatusCode();
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+            }
         }
 
         public virtual async Task DeleteAsync(Guid id)
         {
             EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/{ApiEndpoint}/{id}");
-            response.EnsureSuccessStatusCode();
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+            }
         }
 
         public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
