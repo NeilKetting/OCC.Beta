@@ -9,9 +9,10 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
+var logPath = Path.Combine(AppContext.BaseDirectory, "logs", "log-.txt");
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2)
+    .WriteTo.File(logPath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 2)
     .CreateLogger();
 
 builder.Host.UseSerilog();
