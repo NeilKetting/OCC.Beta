@@ -25,9 +25,12 @@ END
 
 -- 2. Backup Live
 PRINT 'Backing up Live DB...';
+-- Enable explicit transaction handling for safety
+SET XACT_ABORT ON;
+
 BACKUP DATABASE @LiveDbName 
 TO DISK = @BackupPath 
-WITH FORMAT, INIT, NAME = N'Full Backup of Live for Staging Sync';
+WITH FORMAT, INIT, CHECKSUM, STATS = 10, NAME = N'Full Backup of Live for Staging Sync';
 
 -- 3. Restore to Staging (This creates the DB if it doesn't exist)
 PRINT 'Restoring to Staging DB...';
@@ -36,7 +39,7 @@ SET @LiveLogName = @LiveDbName + N'_log';
 
 RESTORE DATABASE @StagingDbName 
 FROM DISK = @BackupPath 
-WITH REPLACE, 
+WITH REPLACE, RECOVERY, CHECKSUM, STATS = 10,
 MOVE @LiveDbName TO @StagingDataPath,
 MOVE @LiveLogName TO @StagingLogPath;
 

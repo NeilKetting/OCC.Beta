@@ -33,10 +33,7 @@ namespace OCC.Client.Features.EmployeeHub.Views
             }
         }
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
+
 
         private void OnSaveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
