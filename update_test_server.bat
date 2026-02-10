@@ -5,7 +5,7 @@ setlocal
 cd /d "%~dp0"
 
 echo ========================================================
-echo [STAGING] DEPLOYMENT AND SYNC AUTOMATION
+echo [TEST] DEPLOYMENT AND SYNC AUTOMATION
 echo ========================================================
 
 :: 1. Optional Database Sync
@@ -23,36 +23,36 @@ if /i "%SYNC%"=="Y" (
 )
 
 :: 2. Stop IIS (Requires Elevation)
-echo [STAGING] Stopping IIS Site...
+echo [TEST] Stopping IIS Site...
 %windir%\system32\inetsrv\appcmd stop site /site.name:"OCC-API-Staging"
 
-echo [STAGING] Stopping IIS AppPool...
+echo [TEST] Stopping IIS AppPool...
 %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC-API-Staging"
 
 echo Waiting for process to release locks...
 timeout /t 5 /nobreak
 
 :: 3. Update Code
-echo [STAGING] Pulling latest code from STAGING branch...
+echo [TEST] Pulling latest code from MASTER branch...
 :: Ensure we are in the repo root
 if not exist ".git" (
     echo [ERROR] Not in a git repository. Checked: %cd%
     pause
     exit /b 1
 )
-git pull origin staging
+git pull origin master
 
 :: 4. Publish
-echo [STAGING] Publishing to Staging Folder...
+echo [TEST] Publishing to Test Folder...
 dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API-Staging"
 
 :: 5. Restart IIS
-echo [STAGING] Starting IIS AppPool...
+echo [TEST] Starting IIS AppPool...
 %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC-API-Staging"
 
-echo [STAGING] Starting IIS Site...
+echo [TEST] Starting IIS Site...
 %windir%\system32\inetsrv\appcmd start site /site.name:"OCC-API-Staging"
 
-echo [STAGING] Update Complete!
+echo [TEST] Update Complete!
 pause
 endlocal

@@ -337,8 +337,8 @@ namespace OCC.Client.ViewModels.Core
                     }
 
                     IsDbConnected = true;
-                    // Append connection type for clarity
-                    var type = $"({ConnectionSettings.Instance.SelectedEnvironment})";
+                    // Append connection type for clarity (Local only, Live is default)
+                    var type = ConnectionSettings.Instance.SelectedEnvironment == ConnectionSettings.AppEnvironment.Local ? "(Local)" : "";
                     DbStatusText = $"Online: {dbName} {type}";
                 }
                 else

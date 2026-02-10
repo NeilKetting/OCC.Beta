@@ -60,9 +60,6 @@ namespace OCC.Client.Services.Infrastructure
 #if DEBUG
             _selectedEnvironment = AppEnvironment.Local;
             _apiBaseUrl = "http://localhost:5237/";
-#elif STAGING
-            _selectedEnvironment = AppEnvironment.Staging;
-            _apiBaseUrl = "http://102.221.36.149:8082/";
 #else
             _selectedEnvironment = AppEnvironment.Live;
             _apiBaseUrl = "http://102.221.36.149:8081/";
@@ -72,7 +69,6 @@ namespace OCC.Client.Services.Infrastructure
         public enum AppEnvironment
         {
             Live,
-            Staging,
             Local
         }
 
@@ -89,9 +85,6 @@ namespace OCC.Client.Services.Infrastructure
                     {
                         case AppEnvironment.Live:
                             ApiBaseUrl = "http://102.221.36.149:8081/";
-                            break;
-                        case AppEnvironment.Staging:
-                            ApiBaseUrl = "http://102.221.36.149:8082/";
                             break;
                         case AppEnvironment.Local:
                             ApiBaseUrl = "http://localhost:5237/";
