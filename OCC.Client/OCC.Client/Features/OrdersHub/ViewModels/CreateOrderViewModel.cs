@@ -285,7 +285,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                                string.IsNullOrWhiteSpace(lastItem.Description) && 
                                lastItem.LineTotal == 0);
 
-            if (!isLastEmpty)
+            if (CurrentOrder.Lines.Count == 0 || !isLastEmpty)
             {
                 var newLine = new OrderLineWrapper(new OrderLine { UnitOfMeasure = "ea" });
                 newLine.PropertyChanged += OnLineChanged;

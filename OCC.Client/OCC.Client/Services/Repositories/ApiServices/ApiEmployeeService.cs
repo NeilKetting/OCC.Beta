@@ -52,25 +52,42 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             EnsureAuthorization();
             var response = await _httpClient.PostAsJsonAsync("api/Employees", employee, _options);
-            if (response.IsSuccessStatusCode)
+            
+            if (!response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<EmployeeDto>(_options);
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
             }
-            return null;
+
+            return await response.Content.ReadFromJsonAsync<EmployeeDto>(_options);
         }
 
         public async Task<bool> UpdateEmployeeAsync(Employee employee)
         {
             EnsureAuthorization();
             var response = await _httpClient.PutAsJsonAsync($"api/Employees/{employee.Id}", employee, _options);
-            return response.IsSuccessStatusCode;
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+            }
+
+            return true;
         }
 
         public async Task<bool> DeleteEmployeeAsync(Guid id)
         {
             EnsureAuthorization();
             var response = await _httpClient.DeleteAsync($"api/Employees/{id}");
-            return response.IsSuccessStatusCode;
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+            }
+
+            return true;
         }
     }
 }

@@ -132,6 +132,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/ProjectTasks/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         [Authorize]
         public async Task<IActionResult> PutProjectTask(Guid id, ProjectTask task)
         {
@@ -278,6 +279,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/ProjectTasks/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteProjectTask(Guid id)
         {
             try

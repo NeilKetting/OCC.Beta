@@ -97,11 +97,8 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task DeleteAsync(Guid id)
         {
             EnsureAuthorization();
-            // Use POST with Method Override header to bypass IIS DELETE restrictions
-            _httpClient.DefaultRequestHeaders.Remove("X-Http-Method-Override");
-            _httpClient.DefaultRequestHeaders.Add("X-Http-Method-Override", "DELETE");
-
-            var response = await _httpClient.PostAsync($"api/{ApiEndpoint}/{id}", null);
+            // Use POST to the explicit delete fallback path to bypass IIS DELETE restrictions
+            var response = await _httpClient.PostAsync($"api/{ApiEndpoint}/delete/{id}", null);
             
             if (!response.IsSuccessStatusCode)
             {

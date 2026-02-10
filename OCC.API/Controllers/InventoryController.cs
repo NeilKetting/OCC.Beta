@@ -89,6 +89,7 @@ namespace OCC.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> UpdateItem(Guid id, InventoryItem item)
         {
             if (id != item.Id)
@@ -121,6 +122,7 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteInventoryItem(Guid id)
         {
             try

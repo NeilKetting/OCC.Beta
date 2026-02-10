@@ -84,6 +84,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/Suppliers/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> PutSupplier(Guid id, Supplier supplier)
         {
             if (id != supplier.Id) return BadRequest();
@@ -109,6 +110,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/Suppliers/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteSupplier(Guid id)
         {
             try

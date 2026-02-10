@@ -125,6 +125,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/Projects/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         [Authorize(Roles = "Admin, Office, SiteManager")]
         public async Task<IActionResult> PutProject(Guid id, Project project)
         {

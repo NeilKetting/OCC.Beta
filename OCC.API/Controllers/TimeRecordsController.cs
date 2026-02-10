@@ -79,6 +79,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/TimeRecords/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> PutTimeRecord(Guid id, TimeRecord record)
         {
             if (id != record.Id) return BadRequest();
@@ -104,6 +105,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/TimeRecords/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteTimeRecord(Guid id)
         {
             try

@@ -157,10 +157,12 @@ app.UseStaticFiles();
 
 app.UseSerilogRequestLogging();
 
+app.UseHttpMethodOverride();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHttpMethodOverride();
+// app.UseHttpMethodOverride(); // Removed from here
 
 app.MapControllers();
 app.MapHub<OCC.API.Hubs.NotificationHub>("/hubs/notifications");

@@ -145,6 +145,7 @@ namespace OCC.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> UpdateOrder(Guid id, OrderDto orderDto)
         {
             if (id != orderDto.Id)
@@ -257,6 +258,7 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteOrder(Guid id)
         {
             try

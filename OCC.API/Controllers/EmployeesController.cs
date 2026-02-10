@@ -86,6 +86,7 @@ namespace OCC.API.Controllers
 
         // PUT: api/Employees/5
         [HttpPut("{id}")]
+        [HttpPost("{id}")]
         [Authorize(Roles = "Admin, Office")] // Admin and Office
         public async Task<IActionResult> PutEmployee(Guid id, Employee employee)
         {
@@ -123,6 +124,7 @@ namespace OCC.API.Controllers
 
         // DELETE: api/Employees/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         [Authorize(Roles = "Admin, Office")] // Admin and Office
         public async Task<IActionResult> DeleteEmployee(Guid id)
         {

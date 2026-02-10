@@ -216,6 +216,7 @@ namespace OCC.API.Controllers
 
         // POST: api/WageRuns/delete/5
         [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteRun(Guid id)
         {
              var run = await _context.WageRuns.FindAsync(id);
