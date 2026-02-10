@@ -11,7 +11,7 @@
 		CanResize="False"
 		SystemDecorations="None"
 		Title="Update Available"
-		TransparencyLevelHint="Mica"
+		TransparencyLevelHint="Transparent"
 		Background="Transparent"
 		ExtendClientAreaToDecorationsHint="True">
 
