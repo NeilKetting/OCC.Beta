@@ -1,6 +1,6 @@
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Shared.DTOs;
 
 namespace OCC.Client.Features.EmployeeHub.Views
 {
@@ -15,7 +15,7 @@ namespace OCC.Client.Features.EmployeeHub.Views
         {
             if (DataContext is EmployeeManagementViewModel vm && 
                 sender is DataGrid dg && 
-                dg.SelectedItem is OCC.Shared.Models.Employee emp)
+                dg.SelectedItem is EmployeeSummaryDto emp)
             {
                 vm.EditEmployeeCommand.Execute(emp);
             }

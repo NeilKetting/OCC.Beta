@@ -22,7 +22,7 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var logsPath = Path.Combine(_env.ContentRootPath, "logs");
+                var logsPath = Path.Combine(AppContext.BaseDirectory, "logs");
                 if (!Directory.Exists(logsPath))
                 {
                     return NotFound($"Logs directory not found at {logsPath}");
