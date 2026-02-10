@@ -234,7 +234,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                          CheckInTime = now,
                          ClockInTime = now.TimeOfDay,
                          CheckOutTime = null, // Open shift
-                         CachedHourlyRate = (decimal?)staff.HourlyRate // SNAPSHOT RATE
+                         CachedHourlyRate = (decimal?)staff.HourlyRate, // SNAPSHOT RATE
+                         RowVersion = Array.Empty<byte>()
                      };
 
                      await _timeService.SaveAttendanceRecordAsync(record);
@@ -350,7 +351,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                         CheckInTime = checkInTime,
                         ClockInTime = checkInTime.TimeOfDay,
                         CheckOutTime = checkOutTime, 
-                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
+                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate,
+                        RowVersion = Array.Empty<byte>()
                     };
 
                     await _timeService.SaveAttendanceRecordAsync(record);
@@ -423,7 +425,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                         CheckInTime = checkInTime,
                         ClockInTime = checkInTime.TimeOfDay,
                         CheckOutTime = null, 
-                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate 
+                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate,
+                        RowVersion = Array.Empty<byte>() 
                     };
 
                     await _timeService.SaveAttendanceRecordAsync(record);
@@ -539,7 +542,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                         Status = AttendanceStatus.Absent,
                         CheckInTime = null,
                         ClockInTime = null,
-                        CheckOutTime = Date // Closed immediately so it doesn't show as "Live"
+                        CheckOutTime = Date, // Closed immediately so it doesn't show as "Live"
+                        RowVersion = Array.Empty<byte>()
                     };
 
                     await _timeService.SaveAttendanceRecordAsync(record);
