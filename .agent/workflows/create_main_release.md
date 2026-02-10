@@ -11,5 +11,6 @@ This workflow compiles the latest code in Release mode and packages it into a st
    *Note: Update the `-v` version number as needed.*
 
 ```powershell
-dotnet publish OCC.Client/OCC.Client.csproj -c Release -o publish; vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v 1.4.5
+dotnet publish OCC.Client.Desktop/OCC.Client.Desktop.csproj -c Release -o publish; vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v 1.4.5 -o Releases
 ```
+
