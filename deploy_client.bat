@@ -1,8 +1,9 @@
 @echo off
 setlocal
 
-:: Set version - bump this manually or automate as needed
-set VERSION=1.6.12
+:: Extract version from .csproj file and trim whitespace
+for /f "tokens=2 delims=<> " %%a in ('findstr /i "<Version>" "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"') do set VERSION=%%a
+set VERSION=%VERSION: =%
 
 echo ========================================================
 echo [CLIENT] RELEASE BUILD AND PACKAGE AUTOMATION (v%VERSION%)
@@ -23,8 +24,8 @@ if %errorlevel% neq 0 (
 
 :: 2. Package with Velopack
 echo [PACKAGE] Creating Velopack installer...
-:: Update the path to vpk if it's not in your PATH
-vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v %VERSION%
+:: Adding --icon to fix branding and ensuring packId matches your old script
+vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v %VERSION% --icon "OCC.Client\OCC.Client.Desktop\Assets\app.ico"
 
 if %errorlevel% neq 0 (
     echo [ERROR] Packaging failed.

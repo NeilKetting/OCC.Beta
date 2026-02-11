@@ -1,8 +1,20 @@
 param (
-    [string]$Version = "1.0.0"
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
+
+$Project = "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"
+
+# Auto-detect version if not provided
+if (-not $Version) {
+    Write-Host "Auto-detecting version from project file..."
+    $Version = ([xml](Get-Content $Project)).Project.PropertyGroup.Version
+    if ($Version) { $Version = $Version.Trim() }
+    if (-not $Version) {
+        throw "Could not detect version in $Project. Please provide it manually."
+    }
+}
 
 # Check for vpk
 if (-not (Get-Command vpk -ErrorAction SilentlyContinue)) {
@@ -10,11 +22,10 @@ if (-not (Get-Command vpk -ErrorAction SilentlyContinue)) {
     dotnet tool install -g vpk
 }
 
-$Project = "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"
 $PublishDir = ".\publish"
 $ReleaseDir = ".\Releases"
 
-Write-Host "Building and Publishing version $Version..."
+Write-Host "Building and Publishing version $Version (Self-Contained win-x64)..."
 
 # Clean publish dir
 if (Test-Path $PublishDir) { Remove-Item $PublishDir -Recurse -Force }
@@ -28,13 +39,8 @@ Write-Host "Packing release..."
 if (-not (Test-Path $ReleaseDir)) { New-Item -ItemType Directory -Path $ReleaseDir }
 
 # Run vpk
-# -u : Package ID
-# -v : Version
-# -p : Pack directory (where the files are)
-# -e : Main executable name
-# --releaseDir : Output directory (defaults to Releases)
-
-vpk pack -u "OCC.Client" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" -o $ReleaseDir
+# Including icon and metadata to match the batch script
+vpk pack -u "OrangeCircleConstruction" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" -o $ReleaseDir --icon "OCC.Client\OCC.Client.Desktop\Assets\app.ico"
 
 Write-Host "--------------------------------------------------------"
 Write-Host "Release created in $ReleaseDir"
