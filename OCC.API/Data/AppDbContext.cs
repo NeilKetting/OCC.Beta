@@ -401,7 +401,8 @@ namespace OCC.API.Data
                     // Global Concurrency Token configuration
                     modelBuilder.Entity(entityType.ClrType)
                         .Property("RowVersion")
-                        .IsRowVersion();
+                        .IsRowVersion()
+                        .IsRequired(false);
                 }
             }
         }
