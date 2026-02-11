@@ -85,8 +85,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task UpdateAsync(T entity)
         {
             EnsureAuthorization();
-            // Use POST to the explicit update fallback path to bypass IIS restrictions
-            var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}/update/{entity.Id}", entity);
+            var response = await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -103,8 +102,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task DeleteAsync(Guid id)
         {
             EnsureAuthorization();
-            // Use POST to the explicit delete fallback path to bypass IIS DELETE restrictions
-            var response = await _httpClient.PostAsync($"api/{ApiEndpoint}/delete/{id}", null);
+            var response = await _httpClient.DeleteAsync($"api/{ApiEndpoint}/{id}");
             
             if (!response.IsSuccessStatusCode)
             {
