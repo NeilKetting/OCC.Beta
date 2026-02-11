@@ -33,9 +33,6 @@ builder.Services.AddControllers(options =>
         options.Filters.Add<OCC.API.Infrastructure.Filters.ConcurrencyExceptionFilter>();
         options.Filters.Add<OCC.API.Infrastructure.Filters.SuppressRowVersionFilter>();
         options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-        
-        // Add metadata provider to suppress RowVersion validation at the root
-        options.ModelMetadataDetailsProviders.Add(new OCC.API.Infrastructure.SuppressRowVersionMetadataProvider());
     })
     .AddJsonOptions(options =>
     {
