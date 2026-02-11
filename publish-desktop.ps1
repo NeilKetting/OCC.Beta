@@ -20,7 +20,7 @@ Write-Host "Building and Publishing version $Version..."
 if (Test-Path $PublishDir) { Remove-Item $PublishDir -Recurse -Force }
 
 # Dotnet publish
-dotnet publish $Project -c Release -o $PublishDir /p:Version=$Version
+dotnet publish $Project -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o $PublishDir /p:Version=$Version
 
 Write-Host "Packing release..."
 

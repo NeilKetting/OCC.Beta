@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.Features.HseqHub.ViewModels"
+             xmlns:dto="clr-namespace:OCC.Shared.DTOs;assembly=OCC.Shared"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="OCC.Client.Features.HseqHub.Views.AuditsView"
              x:DataType="vm:AuditsViewModel"
@@ -70,17 +71,21 @@
                           Classes="AppNativeDataGrid"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal">
-                    <DataGrid.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Delete Audit" 
-                                      Command="{Binding DeleteAuditCommand}" 
-                                      CommandParameter="{Binding $parent[ContextMenu].DataContext}">
-                                <MenuItem.Icon>
-                                    <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
-                                </MenuItem.Icon>
-                            </MenuItem>
-                        </ContextMenu>
-                    </DataGrid.ContextMenu>
+                    <DataGrid.Styles>
+                        <Style Selector="DataGridRow">
+                            <Setter Property="ContextMenu">
+                                <ContextMenu x:DataType="dto:AuditSummaryDto">
+                                    <MenuItem Header="Delete Audit" 
+                                              Command="{Binding $parent[UserControl].((vm:AuditsViewModel)DataContext).DeleteAuditCommand}" 
+                                              CommandParameter="{Binding}">
+                                        <MenuItem.Icon>
+                                            <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Setter>
+                        </Style>
+                    </DataGrid.Styles>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="Auto"/>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="Auto"/>

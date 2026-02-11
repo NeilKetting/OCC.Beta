@@ -12,8 +12,8 @@ echo ========================================================
 cd /d "%~dp0"
 
 :: 1. Clean and Build
-echo [BUILD] Compiling OCC.Client in Release mode...
-dotnet publish "OCC.Client\OCC.Client.csproj" -c Release -o publish
+echo [BUILD] Compiling OCC.Client Desktop (Self-Contained win-x64)...
+dotnet publish "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o publish
 
 if %errorlevel% neq 0 (
     echo [ERROR] Build failed. Deployment aborted.

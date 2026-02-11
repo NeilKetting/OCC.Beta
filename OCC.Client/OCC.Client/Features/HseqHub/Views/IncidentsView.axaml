@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="clr-namespace:OCC.Client.Features.HseqHub.ViewModels"
+             xmlns:dto="clr-namespace:OCC.Shared.DTOs;assembly=OCC.Shared"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="OCC.Client.Features.HseqHub.Views.IncidentsView"
              x:DataType="vm:IncidentsViewModel"
@@ -64,17 +65,21 @@
                       Margin="10,0,10,10" Classes="AppNativeDataGrid"
                       SelectedItem="{Binding SelectedSummary}"
                       IsReadOnly="True" GridLinesVisibility="Horizontal">
-                <DataGrid.ContextMenu>
-                   <ContextMenu>
-                       <MenuItem Header="Delete Incident" 
-                                 Command="{Binding DeleteIncidentCommand}" 
-                                 CommandParameter="{Binding $parent[ContextMenu].DataContext}">
-                           <MenuItem.Icon>
-                               <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
-                           </MenuItem.Icon>
-                       </MenuItem>
-                   </ContextMenu>
-                </DataGrid.ContextMenu>
+                <DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="ContextMenu">
+                            <ContextMenu x:DataType="dto:IncidentSummaryDto">
+                                <MenuItem Header="Delete Incident" 
+                                          Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).DeleteIncidentCommand}" 
+                                          CommandParameter="{Binding}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconDelete}" Foreground="{DynamicResource ErrorRed}"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Setter>
+                    </Style>
+                </DataGrid.Styles>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="Auto"/>
                     <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="Auto"/>

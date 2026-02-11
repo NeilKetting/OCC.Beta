@@ -48,17 +48,21 @@
                           IsReadOnly="True"
                           HeadersVisibility="Column"
                           GridLinesVisibility="Horizontal">
-                            <DataGrid.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Delete Record" 
-                                              Command="{Binding DeleteRecordCommand}" 
-                                              CommandParameter="{Binding $parent[ContextMenu].DataContext}">
-                                        <MenuItem.Icon>
-                                            <PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
-                                        </MenuItem.Icon>
-                                    </MenuItem>
-                                </ContextMenu>
-                            </DataGrid.ContextMenu>
+                        <DataGrid.Styles>
+                            <Style Selector="DataGridRow">
+                                <Setter Property="ContextMenu">
+                                    <ContextMenu x:DataType="vm:TrainingRecordViewModel">
+                                        <MenuItem Header="Delete Record" 
+                                                  Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).DeleteRecordCommand}" 
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon>
+                                                <PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                    </ContextMenu>
+                                </Setter>
+                            </Style>
+                        </DataGrid.Styles>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="180"/>
                         <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto"/>
