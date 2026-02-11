@@ -17,10 +17,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-if (!builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
-}
+// Always load appsettings.secrets.json if it exists (for local secrets or production overrides)
+builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 // Add services to the container.
