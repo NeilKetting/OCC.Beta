@@ -78,7 +78,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteTaskComment(Guid id)
         {
             try

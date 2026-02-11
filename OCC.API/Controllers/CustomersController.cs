@@ -79,8 +79,6 @@ namespace OCC.API.Controllers
 
         // PUT: api/Customers/5
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutCustomer(Guid id, Customer customer)
         {
             if (id != customer.Id) return BadRequest();
@@ -106,7 +104,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/Customers/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteCustomer(Guid id)
         {
             try

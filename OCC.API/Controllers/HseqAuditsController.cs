@@ -111,8 +111,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutAudit(Guid id, AuditDto auditDto)
         {
             if (id != auditDto.Id) return BadRequest();

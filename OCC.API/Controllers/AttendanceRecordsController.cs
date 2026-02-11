@@ -83,8 +83,6 @@ namespace OCC.API.Controllers
 
         // PUT: api/AttendanceRecords/5
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutAttendanceRecord(Guid id, AttendanceRecord record)
         {
             if (id != record.Id) return BadRequest();
@@ -113,7 +111,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/AttendanceRecords/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteAttendanceRecord(Guid id)
         {
             try

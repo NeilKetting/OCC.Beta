@@ -54,8 +54,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutIncident(Guid id, Incident incident)
         {
             if (id != incident.Id)
@@ -90,7 +88,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteIncident(Guid id)
         {
             var incident = await _context.Incidents.FindAsync(id);

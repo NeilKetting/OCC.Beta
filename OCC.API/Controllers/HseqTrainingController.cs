@@ -83,7 +83,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteTrainingRecord(Guid id)
         {
             var record = await _context.HseqTrainingRecords.FindAsync(id);

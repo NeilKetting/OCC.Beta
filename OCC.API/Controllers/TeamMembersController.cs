@@ -71,7 +71,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/TeamMembers/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteTeamMember(Guid id)
         {
             try

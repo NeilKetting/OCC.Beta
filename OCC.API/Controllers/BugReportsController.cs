@@ -114,7 +114,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/BugReports/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         [Authorize]
         public async Task<IActionResult> DeleteBugReport(Guid id)
         {

@@ -100,8 +100,6 @@ namespace OCC.API.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutUser(Guid id, User user)
         {
             if (id != user.Id)
@@ -199,7 +197,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {

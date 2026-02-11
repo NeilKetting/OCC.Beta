@@ -65,8 +65,6 @@ namespace OCC.API.Controllers
 
         // PUT: api/LeaveRequests/5
         [HttpPut("{id}")]
-        [HttpPost("{id}")]
-        [HttpPost("update/{id}")]
         public async Task<IActionResult> PutLeaveRequest(Guid id, LeaveRequest request)
         {
             if (id != request.Id) return BadRequest();
@@ -89,7 +87,6 @@ namespace OCC.API.Controllers
 
         // DELETE: api/LeaveRequests/5
         [HttpDelete("{id}")]
-        [HttpPost("delete/{id}")]
         public async Task<IActionResult> DeleteLeaveRequest(Guid id)
         {
             var request = await _context.LeaveRequests.FindAsync(id);
