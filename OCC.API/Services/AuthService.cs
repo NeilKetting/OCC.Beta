@@ -241,7 +241,7 @@ namespace OCC.API.Services
         private string GenerateJwtToken(User user, int days = 7)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+            var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]

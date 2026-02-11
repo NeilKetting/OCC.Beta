@@ -34,6 +34,15 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         protected virtual void EnsureAuthorization()
         {
+            // Sync BaseAddress with current settings
+            var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
+            if (!baseUrl.EndsWith("/")) baseUrl += "/";
+            var newBase = new Uri(baseUrl);
+            if (_httpClient.BaseAddress != newBase)
+            {
+                _httpClient.BaseAddress = newBase;
+            }
+
             var token = _authService.AuthToken;
             if (!string.IsNullOrEmpty(token))
             {

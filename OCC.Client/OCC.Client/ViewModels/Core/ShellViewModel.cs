@@ -286,6 +286,7 @@ namespace OCC.Client.ViewModels.Core
                if (e.PropertyName == nameof(ConnectionSettings.SelectedEnvironment) || e.PropertyName == nameof(ConnectionSettings.ApiBaseUrl))
                {
                    await CheckDbConnection();
+                   await _signalRService.RestartAsync();
                }
             };
 

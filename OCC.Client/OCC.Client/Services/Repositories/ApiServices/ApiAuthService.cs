@@ -18,9 +18,19 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public ApiAuthService()
         {
             _httpClient = new HttpClient();
+            UpdateBaseAddress();
+        }
+
+        private void UpdateBaseAddress()
+        {
             var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
-            _httpClient.BaseAddress = new Uri(baseUrl);
+            
+            var newBase = new Uri(baseUrl);
+            if (_httpClient.BaseAddress != newBase)
+            {
+                _httpClient.BaseAddress = newBase;
+            }
         }
 
         public User? CurrentUser => _currentUser;
@@ -31,6 +41,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             try
             {
+                UpdateBaseAddress();
                 var response = await _httpClient.PostAsJsonAsync("api/Auth/login", new LoginRequest { Email = email, Password = password });
                 
                 if (response.IsSuccessStatusCode)
