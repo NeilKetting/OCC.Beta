@@ -388,14 +388,20 @@ namespace OCC.API.Data
                 .HasForeignKey(tr => tr.TaskId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Apply Global Query Filter for Soft Delete (IsActive)
+            // Apply Global Query Filter and Concurrency Config for BaseEntity types
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
                 {
-                    var method = typeof(AppDbContext).GetMethod(nameof(SetGlobalQueryFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                    // Global Query Filter (Soft Delete)
+                    var filterMethod = typeof(AppDbContext).GetMethod(nameof(SetGlobalQueryFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
                         ?.MakeGenericMethod(entityType.ClrType);
-                    method?.Invoke(null, new object[] { modelBuilder });
+                    filterMethod?.Invoke(null, new object[] { modelBuilder });
+
+                    // Global Concurrency Token configuration
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property("RowVersion")
+                        .IsRowVersion();
                 }
             }
         }

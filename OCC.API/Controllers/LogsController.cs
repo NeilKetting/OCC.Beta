@@ -47,7 +47,7 @@ namespace OCC.API.Controllers
                         // Efficient reverse reading would be better, but for now just read all and take last N
                         // Beware of memory for huge files, but safe enough for text logs
                         var allLines = new List<string>();
-                        string line;
+                        string? line;
                         while ((line = sr.ReadLine()) != null)
                         {
                             allLines.Add(line);

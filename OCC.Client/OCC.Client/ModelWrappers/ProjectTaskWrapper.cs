@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
+using System.ComponentModel.DataAnnotations;
+
 namespace OCC.Client.ModelWrappers
 {
     /// <summary>
@@ -14,7 +16,7 @@ namespace OCC.Client.ModelWrappers
     /// presentation logic (like duration formatting, color coding) away from the clean data model.
     /// It ensures that the underlying Model is kept pure while the View binds to these reactive properties.
     /// </summary>
-    public partial class ProjectTaskWrapper : ObservableObject
+    public partial class ProjectTaskWrapper : ObservableValidator
     {
         private ProjectTask _model;
         private bool _isUpdatingDuration;
@@ -46,7 +48,18 @@ namespace OCC.Client.ModelWrappers
         public string DisplayId => $"T-{_model.Id.ToString().Substring(_model.Id.ToString().Length - 4)}";
 
         [ObservableProperty]
+        [Required(ErrorMessage = "Task name is required")]
         private string _name = string.Empty;
+
+        public void Validate() => ValidateAllProperties();
+
+        public bool HasErrors => GetErrors().Any();
+
+        partial void OnNameChanged(string value)
+        {
+            ValidateProperty(value, nameof(Name));
+            _model.Name = value;
+        }
 
         [ObservableProperty]
         private string _description = string.Empty;
@@ -208,7 +221,6 @@ namespace OCC.Client.ModelWrappers
 
         // --- Property Change Handlers ---
 
-        partial void OnNameChanged(string value) => _model.Name = value;
         partial void OnDescriptionChanged(string value) => _model.Description = value;
         
         partial void OnIsCompleteChanged(bool value)

@@ -6,6 +6,7 @@ using OCC.Shared.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Client.Features.CustomerHub.ViewModels
 {
@@ -36,6 +37,8 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
         [NotifyPropertyChangedFor(nameof(Title))]
+        [Required(ErrorMessage = "Customer name is required.")]
+        [MinLength(3, ErrorMessage = "Customer name must be at least 3 characters.")]
         private string _name = string.Empty;
 
         [ObservableProperty]
@@ -97,7 +100,8 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         private async Task Save()
         {
-            if (string.IsNullOrWhiteSpace(Name)) return;
+            ValidateAllProperties();
+            if (HasErrors) return;
 
             try
             {
@@ -147,7 +151,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
             if (Contacts.Contains(contact)) Contacts.Remove(contact);
         }
 
-        private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
+        private bool CanSave() => !string.IsNullOrWhiteSpace(Name) && Name.Length >= 3;
 
         private void UpdateModel(Customer model)
         {

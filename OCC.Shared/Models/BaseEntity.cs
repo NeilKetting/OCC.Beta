@@ -16,7 +16,6 @@ namespace OCC.Shared.Models
 
         public bool IsActive { get; set; } = true;
         
-        [Timestamp]
         public byte[]? RowVersion { get; set; }
 
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]

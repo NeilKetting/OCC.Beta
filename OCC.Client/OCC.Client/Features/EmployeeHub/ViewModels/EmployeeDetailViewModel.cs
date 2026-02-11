@@ -252,6 +252,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         [RelayCommand(CanExecute = nameof(CanSave))]
         private async Task Save()
         {
+            Wrapper.Validate();
+            if (Wrapper.HasErrors) return;
             // 1. Duplicate Checks - Use Summaries for efficiency
             var allStaffSummaries = await _employeeService.GetEmployeesAsync();
             var otherStaff = _existingStaffId.HasValue 

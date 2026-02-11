@@ -65,29 +65,23 @@ git fetch origin master
 echo [DEBUG] Fetch result code: %errorlevel%
 
 echo [DEPLOY] Pulling changes from MASTER...
-git pull origin master
+git pull origin master --no-edit
 echo [DEBUG] Pull finished. Code: %errorlevel%
-pause
 
 REM Try to restore stashed changes
 echo [DEPLOY] Restoring local changes...
-git stash pop
+git stash pop >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARN] Conflict or No Stash found during pop. Code: %errorlevel%
-    
-    REM Specifically try to keep local appsettings.json if it was stashed
-    echo [DEPLOY] Ensuring appsettings.json is clean...
+    REM Specifically try to keep local appsettings.json if it was stashed previously or if there's a conflict
     git checkout --ours OCC.API/appsettings.json 2>nul
-    
-    git stash drop 2>nul
+    git stash drop >nul 2>&1
 )
 echo [DEBUG] Post-stash cleanup done.
-pause
 
 REM 4. Publish
 echo [DEPLOY] Publishing to Live Folder...
 if exist "OCC.API\OCC.API.csproj" (
-    dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC_API"
+    dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC_API" --nologo
     if %errorlevel% neq 0 (
         echo [ERROR] Publish failed!
         pause
@@ -105,5 +99,5 @@ echo [DEPLOY] Starting IIS Site...
 %windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
 
 echo [DEPLOY] Update Complete!
-pause
+timeout /t 10
 endlocal

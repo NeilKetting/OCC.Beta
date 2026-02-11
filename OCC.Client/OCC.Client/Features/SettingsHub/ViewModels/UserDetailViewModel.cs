@@ -9,6 +9,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Client.Features.SettingsHub.ViewModels
 {
@@ -35,14 +36,18 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayName))]
         [NotifyPropertyChangedFor(nameof(Title))]
+        [Required(ErrorMessage = "First name is required")]
         private string _firstName = string.Empty;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(DisplayName))]
         [NotifyPropertyChangedFor(nameof(Title))]
+        [Required(ErrorMessage = "Last name is required")]
         private string _lastName = string.Empty;
 
         [ObservableProperty]
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
         private string _email = string.Empty;
 
         [ObservableProperty]
@@ -118,10 +123,10 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
         {
             try
             {
+                ValidateAllProperties();
+                if (HasErrors) return;
+
                 BusyText = "Saving user...";
-                IsBusy = true;
-                if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Email))
-                    return;
 
                 User user;
 
