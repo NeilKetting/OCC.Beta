@@ -20,7 +20,6 @@ namespace OCC.Client.Features.HseqHub.Views
             AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         private void DragOver(object? sender, DragEventArgs e)
         {
             if (e.Data.Contains(DataFormats.Files))
@@ -33,15 +32,11 @@ namespace OCC.Client.Features.HseqHub.Views
             }
         }
 
-
-#pragma warning restore CS0618
-
-#pragma warning disable CS0618 // Type or member is obsolete
         private void Drop(object? sender, DragEventArgs e)
         {
             if (DataContext is AuditsViewModel vm && e.Data.Contains(DataFormats.Files))
             {
-                var files = e.Data.GetFiles();
+                var files = e.Data.Get(DataFormats.Files);
                 if (files != null)
                 {
                     vm.UploadFilesCommand.Execute(files);

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OCC.API.Data;
@@ -36,6 +37,23 @@ builder.Services.AddControllers(options =>
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var keysToRemove = context.ModelState.Keys
+                .Where(k => k.EndsWith(".RowVersion", StringComparison.OrdinalIgnoreCase) 
+                         || k.Equals("RowVersion", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            foreach (var key in keysToRemove)
+            {
+                context.ModelState.Remove(key);
+            }
+
+            return new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));
+        };
     });
 builder.Services.AddHttpContextAccessor();
 

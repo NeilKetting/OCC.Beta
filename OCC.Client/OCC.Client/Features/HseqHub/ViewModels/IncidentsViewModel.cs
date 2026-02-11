@@ -119,20 +119,17 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             if (incident == null) return;
 
             // Handle file input (drag drop or picker)
-            System.Collections.Generic.IEnumerable<Avalonia.Platform.Storage.IStorageFile>? storageFiles = null;
+            IEnumerable<IStorageFile>? storageFiles = null;
             
-#pragma warning disable CS0618
-            if (param is Avalonia.Input.IDataObject data)
-            {
-                var files = data.GetFiles();
-                if (files != null) storageFiles = files.OfType<Avalonia.Platform.Storage.IStorageFile>();
-            }
-#pragma warning restore CS0618
-            else if (param is System.Collections.Generic.IEnumerable<Avalonia.Platform.Storage.IStorageFile> sFiles)
+            if (param is IEnumerable<IStorageFile> sFiles)
             {
                 storageFiles = sFiles;
             }
-            else if (param is Avalonia.Platform.Storage.IStorageFile sFile)
+            else if (param is IEnumerable<IStorageItem> sItems)
+            {
+                storageFiles = sItems.OfType<IStorageFile>();
+            }
+            else if (param is IStorageFile sFile)
             {
                 storageFiles = new[] { sFile };
             }

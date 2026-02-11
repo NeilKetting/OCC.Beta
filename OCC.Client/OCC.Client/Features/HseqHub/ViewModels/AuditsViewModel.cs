@@ -519,11 +519,9 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             object? files = null;
             HseqAuditNonComplianceItem? targetItem = null;
 
-#pragma warning disable CS0618
-            if (param is IDataObject data)
-#pragma warning restore CS0618
+            if (param is IEnumerable<IStorageItem> items)
             {
-                files = data.GetFiles();
+                files = items;
             }
             else if (param is IEnumerable<IStorageFile> || param is IStorageFile)
             {
@@ -537,11 +535,12 @@ namespace OCC.Client.Features.HseqHub.ViewModels
 
             if (files == null) return;
 
-            IEnumerable<Avalonia.Platform.Storage.IStorageFile>? storageFiles = null;
-            if (files is IEnumerable<Avalonia.Platform.Storage.IStorageFile> sFiles) storageFiles = sFiles;
-            else if (files is Avalonia.Platform.Storage.IStorageFile sFile) storageFiles = new[] { sFile };
+            IEnumerable<IStorageFile>? storageFiles = null;
+            if (files is IEnumerable<IStorageFile> sFiles) storageFiles = sFiles;
+            else if (files is IEnumerable<IStorageItem> sItems) storageFiles = sItems.OfType<IStorageFile>();
+            else if (files is IStorageFile sFile) storageFiles = new[] { sFile };
 
-            if (storageFiles == null) return;
+            if (storageFiles == null || !storageFiles.Any()) return;
 
             IsBusy = true;
             try

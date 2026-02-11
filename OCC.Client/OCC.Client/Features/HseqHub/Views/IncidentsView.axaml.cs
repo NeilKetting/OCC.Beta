@@ -18,7 +18,6 @@ namespace OCC.Client.Features.HseqHub.Views
             AddHandler(DragDrop.DragOverEvent, DragOver);
         }
 
-#pragma warning disable CS0618 // Type or member is obsolete
         private void DragOver(object? sender, DragEventArgs e)
         {
             if (e.Data.Contains(DataFormats.Files))
@@ -35,14 +34,13 @@ namespace OCC.Client.Features.HseqHub.Views
         {
             if (DataContext is IncidentsViewModel vm && e.Data.Contains(DataFormats.Files))
             {
-                var files = e.Data.GetFiles();
+                var files = e.Data.Get(DataFormats.Files);
                 if (files != null)
                 {
                     vm.UploadPhotosCommand.Execute(files);
                 }
             }
         }
-#pragma warning restore CS0618
 
         private async void Browse_Click(object? sender, RoutedEventArgs e)
         {
