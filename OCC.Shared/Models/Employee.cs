@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Shared.Models
 {
@@ -55,11 +56,13 @@ namespace OCC.Shared.Models
         /// <summary>
         /// Employee's first name.
         /// </summary>
+        [Required]
         public string FirstName { get; set; } = string.Empty;
 
         /// <summary>
         /// Employee's last name.
         /// </summary>
+        [Required]
         public string LastName { get; set; } = string.Empty;
 
         /// <summary>
@@ -70,6 +73,7 @@ namespace OCC.Shared.Models
         /// <summary>
         /// Employee's identification number (RSA ID or Passport Number).
         /// </summary>
+        [Required]
         public string IdNumber { get; set; } = string.Empty;
 
         /// <summary>

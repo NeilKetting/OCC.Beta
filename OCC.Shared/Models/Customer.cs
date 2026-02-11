@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Shared.Models
 {
@@ -15,6 +16,7 @@ namespace OCC.Shared.Models
 
 
         /// <summary> The full name of the customer company or individual. </summary>
+        [Required]
         public string Name { get; set; } = string.Empty;
 
         /// <summary> Optional grouping or header name for UI display. </summary>

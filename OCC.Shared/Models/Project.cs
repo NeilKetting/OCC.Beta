@@ -1,4 +1,6 @@
-﻿namespace OCC.Shared.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OCC.Shared.Models
 {
     /// <summary>
     /// Represents a construction project or site managed by Orange Circle Construction.
@@ -16,6 +18,7 @@
         /// <summary>
         /// The display name of the project (e.g., "Engen Bendor").
         /// </summary>
+        [Required]
         public string Name { get; set; } = string.Empty;
 
         /// <summary>

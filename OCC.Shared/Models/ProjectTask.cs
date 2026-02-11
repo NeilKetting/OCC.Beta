@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -37,6 +38,7 @@ namespace OCC.Shared.Models
         public string? LegacyId { get; set; }
 
         /// <summary> The name or title of the task. </summary>
+        [Required]
         public string Name { get; set; } = string.Empty;
 
         /// <summary> Scheduled start date. </summary>

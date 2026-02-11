@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace OCC.Shared.Models
 {
@@ -28,6 +29,7 @@ namespace OCC.Shared.Models
         public AssigneeType AssigneeType { get; set; }
 
         /// <summary> Cached display name of the assignee (Employee Name). </summary>
+        [Required]
         public string AssigneeName { get; set; } = string.Empty; 
     }
 
