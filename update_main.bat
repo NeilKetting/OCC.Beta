@@ -50,22 +50,30 @@ if %errorlevel% neq 0 (
 )
 
 echo [DEPLOY] Pulling latest code from MASTER branch...
-:: Stash local changes (like appsettings.json creds) to allow pull
-git stash push OCC.API/appsettings.json -m "Deployment auto-stash"
+:: Stash ALL local changes to ensure a clean pull
+echo [DEPLOY] Stashing local changes...
+git stash push -m "Deployment auto-stash %date% %time%"
+
+echo [DEPLOY] Fetching latest changes...
+git fetch origin master
+
+echo [DEPLOY] Pulling changes...
 git pull origin master --no-edit
 
 :: Try to restore stashed changes
+echo [DEPLOY] Restoring local changes...
 git stash pop
 if %errorlevel% neq 0 (
-    echo [WARN] Conflict detected in appsettings.json. Forcing production version...
-    git checkout --ours OCC.API/appsettings.json
+    echo [WARN] Conflict detected during stash pop. 
+    echo [WARN] This usually means your local config (like appsettings.json) conflicted with new code.
+    echo [WARN] Attempting to keep your local versions of config files...
+    
+    :: Specifically try to keep local appsettings.json if it was stashed
+    git checkout --ours OCC.API/appsettings.json 2>nul
+    
+    :: If there are still conflicts, you may need to resolve them manually.
+    echo [INFO] Conflicts handled where possible. If build fails, check for .merge files.
     git stash drop
-)
-
-if %errorlevel% neq 0 (
-    echo [ERROR] Git pull or stash restore failed. Deployment aborted.
-    pause
-    exit /b %errorlevel%
 )
 
 :: 4. Publish
