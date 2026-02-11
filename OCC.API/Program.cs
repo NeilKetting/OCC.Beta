@@ -33,27 +33,13 @@ builder.Services.AddControllers(options =>
         options.Filters.Add<OCC.API.Infrastructure.Filters.ConcurrencyExceptionFilter>();
         options.Filters.Add<OCC.API.Infrastructure.Filters.SuppressRowVersionFilter>();
         options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+        
+        // Add metadata provider to suppress RowVersion validation at the root
+        options.ModelMetadataDetailsProviders.Add(new OCC.API.Infrastructure.SuppressRowVersionMetadataProvider());
     })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    })
-    .ConfigureApiBehaviorOptions(options =>
-    {
-        options.InvalidModelStateResponseFactory = context =>
-        {
-            var keysToRemove = context.ModelState.Keys
-                .Where(k => k.EndsWith(".RowVersion", StringComparison.OrdinalIgnoreCase) 
-                         || k.Equals("RowVersion", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            foreach (var key in keysToRemove)
-            {
-                context.ModelState.Remove(key);
-            }
-
-            return new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));
-        };
     });
 builder.Services.AddHttpContextAccessor();
 
