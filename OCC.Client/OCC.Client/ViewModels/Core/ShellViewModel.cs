@@ -555,22 +555,13 @@ namespace OCC.Client.ViewModels.Core
             var vmType = viewModel.GetType();
             string currentName = vmType.Name.Replace("ViewModel", "View");
 
-            // 1. Check for 'CurrentView' (Sub-navigation)
-            var currentViewProp = vmType.GetProperty("CurrentView");
-            if (currentViewProp != null)
-            {
-                var val = currentViewProp.GetValue(viewModel);
-                if (val != null) return GetActiveViewName(val);
-            }
-
-            // 2. Check for Visible Popups (Boolean + ViewModel pair)
-            // Look for properties like IsXVisible = true, then find property X
+            // 1. Check for Visible Popups/Drawers (Boolean + ViewModel pair) FIRST
+            // These are overlays on top of the 'CurrentView', so they should have priority.
             var boolProps = vmType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                   .Where(p => p.PropertyType == typeof(bool));
 
-            // Sort so that properties containing "Popup" or "Dialog" are checked FIRST
-            // This prioritizes "IsAddEmployeePopupVisible" over "IsWageVisible"
-            var sortedProps = boolProps.OrderByDescending(p => p.Name.Contains("Popup") || p.Name.Contains("Dialog"));
+            // Sort so that properties containing "Popup", "Dialog", or "Detail" are checked FIRST
+            var sortedProps = boolProps.OrderByDescending(p => p.Name.Contains("Popup") || p.Name.Contains("Dialog") || p.Name.Contains("Detail"));
 
             foreach (var prop in sortedProps)
             {
@@ -584,12 +575,21 @@ namespace OCC.Client.ViewModels.Core
                     // Heuristic: Extract base name
                     var baseName = prop.Name.Replace("Is", "").Replace("Visible", "").Replace("Open", "").Replace("Show", "");
 
-                    // Look for the ViewModel property first (Strongest signal)
-                    // e.g. IsEmployeeReportPopupVisible -> EmployeeReportPopup (VM)
-                    var possibleNames = new[] { baseName, baseName + "Popup", baseName + "ViewModel", baseName + "VM" };
+                    // Look for the ViewModel property
+                    // Added "Selected..." patterns to better support drawers/details
+                    var possibleNames = new[] { 
+                        baseName, 
+                        baseName + "ViewModel", 
+                        baseName + "VM",
+                        baseName + "Popup",
+                        "Selected" + baseName + "VM",
+                        "Selected" + baseName + "ViewModel",
+                        "Selected" + baseName
+                    };
+
                     foreach (var name in possibleNames)
                     {
-                        var vmProp = vmType.GetProperty(name);
+                        var vmProp = vmType.GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                         if (vmProp != null && vmProp.GetValue(viewModel) is object subVm)
                         {
                             // If found, recurse into it
@@ -598,12 +598,19 @@ namespace OCC.Client.ViewModels.Core
                     }
 
                     // If no VM property found, ONLY return if it explicitly looks like a popup name
-                    // This prevents "IsWageVisible" from being detected as a view "Wage"
-                    if (prop.Name.Contains("Popup") || prop.Name.Contains("Dialog") || prop.Name.Contains("Modal"))
+                    if (prop.Name.Contains("Popup") || prop.Name.Contains("Dialog") || prop.Name.Contains("Modal") || prop.Name.Contains("Detail"))
                     {
                         return $"{currentName} ({baseName})";
                     }
                 }
+            }
+
+            // 2. Check for 'CurrentView' (Sub-navigation) LAST (as it's the background)
+            var currentViewProp = vmType.GetProperty("CurrentView");
+            if (currentViewProp != null)
+            {
+                var val = currentViewProp.GetValue(viewModel);
+                if (val != null) return GetActiveViewName(val);
             }
 
             return currentName;

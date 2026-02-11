@@ -46,6 +46,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         private readonly SemaphoreSlim _updateLock = new SemaphoreSlim(1, 1);
         private bool _hasPendingUpdate = false;
         private System.Threading.CancellationTokenSource? _debounceCts;
+        private bool _isSuppressingUpdates = false;
         private Guid _currentTaskId;
 
         [ObservableProperty]
@@ -482,6 +483,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             {
                 IsBusy = true;
                 BusyText = "Preparing new task...";
+                _isSuppressingUpdates = true;
                 IsCreateMode = true;
 
                 var model = new ProjectTask
@@ -569,6 +571,9 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             finally
             {
                 IsBusy = false;
+                // Keep suppressing for a short duration to let UI bindings settle
+                await System.Threading.Tasks.Task.Delay(500);
+                _isSuppressingUpdates = false;
             }
         }
 
@@ -583,6 +588,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             try 
             {
 
+                _isSuppressingUpdates = true;
                 BusyText = "Initializing task details...";
                 IsBusy = true;
                 System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Loading Task Model: {task.Name} ({task.Id})...");
@@ -618,7 +624,9 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             finally
             {
                 IsBusy = false;
-
+                // Keep suppressing for a short duration to let UI bindings settle
+                await Task.Delay(500);
+                _isSuppressingUpdates = false;
             }
         }
 
@@ -727,6 +735,8 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// </summary>
         private async void Task_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            if (_isSuppressingUpdates) return;
+
             // Debounce the update call to avoid spamming the server during typing or rapid clicks
             _debounceCts?.Cancel();
             _debounceCts = new System.Threading.CancellationTokenSource();
@@ -748,7 +758,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// Persists changes from the wrapper back to the data model/database.
         /// Uses a semaphore to ensure serial access and sends a TaskUpdatedMessage upon success.
         /// </summary>
-        public async System.Threading.Tasks.Task UpdateTask()
+        public async Task UpdateTask()
         {
             if (IsCreateMode) return;
             if (_currentTaskId == Guid.Empty) return;
@@ -832,9 +842,9 @@ namespace OCC.Client.Features.TaskHub.ViewModels
                 
                     // Save to DB
                     await _projectTaskRepository.UpdateAsync(cleanModel);
-                    
+
                     // Notify listeners
-                    CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+                    WeakReferenceMessenger.Default.Send(new TaskUpdatedMessage(_currentTaskId));
                 } while (_hasPendingUpdate);
             }
             catch (Exception ex)

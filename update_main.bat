@@ -72,5 +72,5 @@ echo [DEPLOY] Starting IIS AppPool and Site...
 %windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
 
 echo [DEPLOY] Update Complete!
-timeout /t 10
+timeout /t 30
 endlocal

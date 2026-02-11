@@ -25,6 +25,7 @@ builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, re
 builder.Services.AddControllers(options =>
     {
         options.Filters.Add<OCC.API.Infrastructure.Filters.ConcurrencyExceptionFilter>();
+        options.Filters.Add<OCC.API.Infrastructure.Filters.SuppressRowVersionFilter>();
         options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
     })
     .AddJsonOptions(options =>
