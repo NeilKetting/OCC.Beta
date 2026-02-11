@@ -62,6 +62,12 @@ if %errorlevel% neq 0 (
     git stash drop
 )
 
+if %errorlevel% neq 0 (
+    echo [ERROR] Git pull or stash restore failed. Deployment aborted.
+    pause
+    exit /b %errorlevel%
+)
+
 :: 4. Publish
 echo [DEPLOY] Publishing to Live Folder...
 dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC_API"
