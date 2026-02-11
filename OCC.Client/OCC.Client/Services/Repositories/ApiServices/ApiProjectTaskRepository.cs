@@ -19,7 +19,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public async Task<IEnumerable<ProjectTask>> GetMyTasksAsync()
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<IEnumerable<ProjectTask>>($"api/{ApiEndpoint}?assignedToMe=true") ?? new List<ProjectTask>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<ProjectTask>>(GetFullUrl($"api/{ApiEndpoint}?assignedToMe=true")) ?? new List<ProjectTask>();
         }
     }
 }

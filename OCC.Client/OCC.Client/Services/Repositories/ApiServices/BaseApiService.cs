@@ -28,7 +28,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             _httpClient = new HttpClient();
         }
 
-        private string GetFullUrl(string path)
+        protected string GetFullUrl(string path)
         {
             var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
