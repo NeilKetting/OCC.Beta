@@ -17,6 +17,11 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+var environment = builder.Environment.EnvironmentName;
+Console.WriteLine($"[STARTUP] ------------------------------------------------");
+Console.WriteLine($"[STARTUP] ASPNETCORE_ENVIRONMENT: {environment}");
+Console.WriteLine($"[STARTUP] ------------------------------------------------");
+
 // Always load appsettings.secrets.json if it exists (for local secrets or production overrides)
 builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
 

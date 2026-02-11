@@ -52,8 +52,8 @@ namespace OCC.Client.ModelWrappers
         private string _name = string.Empty;
 
         public void Validate() => ValidateAllProperties();
-
-        public bool HasErrors => GetErrors().Any();
+        
+        public new bool HasErrors => GetErrors().Any();
 
         partial void OnNameChanged(string value)
         {

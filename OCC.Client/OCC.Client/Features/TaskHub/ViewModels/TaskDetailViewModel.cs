@@ -625,7 +625,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             {
                 IsBusy = false;
                 // Keep suppressing for a short duration to let UI bindings settle
-                await Task.Delay(500);
+                await System.Threading.Tasks.Task.Delay(500);
                 _isSuppressingUpdates = false;
             }
         }
