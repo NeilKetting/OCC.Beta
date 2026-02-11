@@ -12,7 +12,7 @@ echo ========================================================
 set /p SYNC="Sync Live DB to Main 1:1 before deployment? (Y/N): "
 if /i "%SYNC%"=="Y" (
     echo [SYNC] Starting Database Synchronization...
-    :: Use full path to the sql file to avoid "Invalid filename" errors
+    REM Use full path to the sql file to avoid "Invalid filename" errors
     sqlcmd -b -S "OCOR\OCC_SQL" -i "%~dp0sync_main_db.sql"
     if %errorlevel% neq 0 (
         echo [ERROR] Database Sync failed. Deployment aborted.
@@ -68,10 +68,10 @@ if %errorlevel% neq 0 (
     echo [WARN] This usually means your local config (like appsettings.json) conflicted with new code.
     echo [WARN] Attempting to keep your local versions of config files...
     
-    :: Specifically try to keep local appsettings.json if it was stashed
+    REM Specifically try to keep local appsettings.json if it was stashed
     git checkout --ours OCC.API/appsettings.json 2>nul
     
-    :: If there are still conflicts, you may need to resolve them manually.
+    REM If there are still conflicts, you may need to resolve them manually.
     echo [INFO] Conflicts handled where possible. If build fails, check for .merge files.
     git stash drop
 )
