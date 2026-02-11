@@ -19,8 +19,16 @@ goto find_root
 echo [INFO] Repository root found at: %cd%
 
 :: 2. Pull latest code
+echo [DEPLOY] Verifying Remote URL...
+git remote get-url origin | findstr /i "OCC.Beta" >nul
+if %errorlevel% neq 0 (
+    echo [WARN] Remote 'origin' is not pointing to OCC.Beta. Updating...
+    git remote set-url origin https://github.com/NeilKetting/OCC.Beta.git
+    echo [INFO] Remote updated to OCC.Beta.
+)
+
 echo [DEPLOY] Pulling latest code from origin master...
-git pull origin master
+git pull origin master --no-edit
 
 if %errorlevel% neq 0 (
     echo [ERROR] Git pull failed.

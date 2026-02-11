@@ -33,7 +33,7 @@ namespace OCC.Shared.DTOs
         public List<AuditSectionDto> Sections { get; set; } = new();
         public List<AuditNonComplianceItemDto> NonComplianceItems { get; set; } = new();
         public List<AuditAttachmentDto> Attachments { get; set; } = new();
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+        public byte[]? RowVersion { get; set; }
     }
 
     public class AuditSectionDto

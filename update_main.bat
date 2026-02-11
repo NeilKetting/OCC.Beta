@@ -33,14 +33,24 @@ echo Waiting for process to release locks...
 timeout /t 5 /nobreak
 
 :: 3. Update Code
-echo [DEPLOY] Pulling latest code from MASTER branch...
+echo [DEPLOY] Verifying Remote URL...
 :: Ensure we are in the repo root
 if not exist ".git" (
     echo [ERROR] Not in a git repository. Checked: %cd%
     pause
     exit /b 1
 )
-git pull origin master
+
+:: Check if remote is pointing to OCC.Beta
+git remote get-url origin | findstr /i "OCC.Beta" >nul
+if %errorlevel% neq 0 (
+    echo [WARN] Remote 'origin' is not pointing to OCC.Beta. Updating...
+    git remote set-url origin https://github.com/NeilKetting/OCC.Beta.git
+    echo [INFO] Remote updated to OCC.Beta.
+)
+
+echo [DEPLOY] Pulling latest code from MASTER branch...
+git pull origin master --no-edit
 
 :: 4. Publish
 echo [DEPLOY] Publishing to Live Folder...

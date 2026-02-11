@@ -795,7 +795,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 ActualScore = entity.ActualScore,
                 Status = entity.Status,
                 CloseOutDate = entity.CloseOutDate,
-                RowVersion = entity.RowVersion,
+                RowVersion = entity.RowVersion ?? Array.Empty<byte>(),
                 Sections = entity.Sections.Select(s => new AuditSectionDto
                 {
                     Id = s.Id,

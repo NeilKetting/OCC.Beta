@@ -40,5 +40,6 @@ namespace OCC.Shared.DTOs
         public string RootCause { get; set; } = string.Empty;
         public string CorrectiveAction { get; set; } = string.Empty;
         public List<IncidentPhotoDto> Photos { get; set; } = new();
+        public byte[]? RowVersion { get; set; }
     }
 }

@@ -309,7 +309,7 @@ namespace OCC.API.Controllers
         {
             [FromForm] public Guid AuditId { get; set; }
             [FromForm] public Guid? NonComplianceItemId { get; set; }
-            [FromForm] public IFormFile File { get; set; }
+            [FromForm] public IFormFile? File { get; set; }
         }
 
         [HttpPost("attachments")]

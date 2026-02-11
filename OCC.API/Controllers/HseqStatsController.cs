@@ -123,16 +123,19 @@ namespace OCC.API.Controllers
             int updatedCount = 0;
             foreach (var record in records)
             {
-                var duration = record.CheckOutTime.Value - record.CheckInTime.Value;
-                if (duration.TotalHours > 0)
+                if (record.CheckInTime.HasValue && record.CheckOutTime.HasValue)
                 {
-                    double lunchHours = (duration.TotalHours > 5) ? 0.75 : 0;
-                    var hours = Math.Max(0, Math.Round(duration.TotalHours - lunchHours, 2));
-                    
-                    if (record.HoursWorked != hours)
+                    var duration = record.CheckOutTime.Value - record.CheckInTime.Value;
+                    if (duration.TotalHours > 0)
                     {
-                        record.HoursWorked = hours;
-                        updatedCount++;
+                        double lunchHours = (duration.TotalHours > 5) ? 0.75 : 0;
+                        var hours = Math.Max(0, Math.Round(duration.TotalHours - lunchHours, 2));
+                        
+                        if (record.HoursWorked != hours)
+                        {
+                            record.HoursWorked = hours;
+                            updatedCount++;
+                        }
                     }
                 }
             }

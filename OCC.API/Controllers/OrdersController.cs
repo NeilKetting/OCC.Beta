@@ -41,7 +41,7 @@ namespace OCC.API.Controllers
                         OrderDate = o.OrderDate,
                         ExpectedDeliveryDate = o.ExpectedDeliveryDate, // Added this field
                         SupplierName = o.SupplierName,
-                        ProjectName = o.ProjectName,
+                        ProjectName = o.ProjectName ?? string.Empty,
                         Status = o.Status,
                         TotalAmount = o.Lines.Sum(l => l.LineTotal + l.VatAmount),
                         Branch = o.Branch.ToString(),

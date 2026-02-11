@@ -49,7 +49,7 @@ namespace OCC.Shared.DTOs
         public string ScopeOfWork { get; set; } = string.Empty;
         
         public List<OrderLineDto> Lines { get; set; } = new();
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+        public byte[]? RowVersion { get; set; }
 
         // Calculated helper for convenience
         public decimal TotalAmount { get; set; }

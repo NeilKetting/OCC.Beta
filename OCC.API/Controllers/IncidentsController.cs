@@ -105,7 +105,7 @@ namespace OCC.API.Controllers
         public class IncidentPhotoUploadRequest
         {
             [FromForm] public Guid IncidentId { get; set; }
-            [FromForm] public IFormFile File { get; set; }
+            [FromForm] public IFormFile? File { get; set; }
             [FromForm] public string? Description { get; set; }
         }
 
