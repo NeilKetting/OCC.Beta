@@ -32,7 +32,7 @@ Perform these steps on the **Hosted PC**:
 1.  **Clone Repo**:
     ```powershell
     cd C:\
-    git clone https://github.com/NeilKetting/OrangeCircleConstruction.git C:\OCC-Source
+    git clone https://github.com/NeilKetting/OCC.Beta.git C:\OCC-Source
     ```
 2.  **Create Publish Folder**:
     *   Create a folder where the live app will live, e.g., `C:\inetpub\wwwroot\OCC-API`.
