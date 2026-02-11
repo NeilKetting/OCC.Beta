@@ -28,7 +28,17 @@ if %errorlevel% neq 0 (
 )
 
 echo [DEPLOY] Pulling latest code from origin master...
+:: Stash local changes (like appsettings.json creds) to allow pull
+git stash push OCC.API/appsettings.json -m "Deployment auto-stash"
 git pull origin master --no-edit
+
+:: Try to restore stashed changes
+git stash pop
+if %errorlevel% neq 0 (
+    echo [WARN] Conflict detected in appsettings.json. Forcing production version...
+    git checkout --ours OCC.API/appsettings.json
+    git stash drop
+)
 
 if %errorlevel% neq 0 (
     echo [ERROR] Git pull failed.
