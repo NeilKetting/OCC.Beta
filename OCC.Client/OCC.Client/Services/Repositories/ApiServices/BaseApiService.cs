@@ -26,23 +26,17 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             _authService = authService;
             _httpClient = new HttpClient();
-            // Use centralized setting
+        }
+
+        private string GetFullUrl(string path)
+        {
             var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
-            _httpClient.BaseAddress = new Uri(baseUrl); 
+            return $"{baseUrl}{path}";
         }
 
         protected virtual void EnsureAuthorization()
         {
-            // Sync BaseAddress with current settings
-            var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
-            if (!baseUrl.EndsWith("/")) baseUrl += "/";
-            var newBase = new Uri(baseUrl);
-            if (_httpClient.BaseAddress != newBase)
-            {
-                _httpClient.BaseAddress = newBase;
-            }
-
             var token = _authService.AuthToken;
             if (!string.IsNullOrEmpty(token))
             {
@@ -53,7 +47,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
             EnsureAuthorization();
-            var result = await _httpClient.GetFromJsonAsync<IEnumerable<T>>($"api/{ApiEndpoint}");
+            var result = await _httpClient.GetFromJsonAsync<IEnumerable<T>>(GetFullUrl($"api/{ApiEndpoint}"));
             return result ?? Enumerable.Empty<T>();
         }
 
@@ -62,7 +56,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             EnsureAuthorization();
             try
             {
-                return await _httpClient.GetFromJsonAsync<T>($"api/{ApiEndpoint}/{id}");
+                return await _httpClient.GetFromJsonAsync<T>(GetFullUrl($"api/{ApiEndpoint}/{id}"));
             }
             catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
@@ -73,7 +67,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task AddAsync(T entity)
         {
             EnsureAuthorization();
-            var response = await _httpClient.PostAsJsonAsync($"api/{ApiEndpoint}", entity);
+            var response = await _httpClient.PostAsJsonAsync(GetFullUrl($"api/{ApiEndpoint}"), entity);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -85,7 +79,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task UpdateAsync(T entity)
         {
             EnsureAuthorization();
-            var response = await _httpClient.PutAsJsonAsync($"api/{ApiEndpoint}/{entity.Id}", entity);
+            var response = await _httpClient.PutAsJsonAsync(GetFullUrl($"api/{ApiEndpoint}/{entity.Id}"), entity);
             
             if (!response.IsSuccessStatusCode)
             {
@@ -102,7 +96,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public virtual async Task DeleteAsync(Guid id)
         {
             EnsureAuthorization();
-            var response = await _httpClient.DeleteAsync($"api/{ApiEndpoint}/{id}");
+            var response = await _httpClient.DeleteAsync(GetFullUrl($"api/{ApiEndpoint}/{id}"));
             
             if (!response.IsSuccessStatusCode)
             {

@@ -33,9 +33,12 @@ This guide is intended for AI assistants and developers to quickly understand th
     - `DELETE`: Delete records (`api/AttendanceRecords/{id}`).
 - **Auth**: JWT Bearer tokens. Header: `Authorization: Bearer <token>`.
 
-### **Environment Sync (Crucial)**
-Client services MUST be dynamic. They use `ConnectionSettings.Instance.ApiBaseUrl`. 
-Singletons like `ApiAuthService` and `SignalRNotificationService` must handle updates to this URL when the user switches between "Local" and "Live" environments in the UI.
+### **API Interaction Standards (Environment Switching)**
+- **Rule**: NEVER mutate an active HttpClient's `BaseAddress` or `DefaultRequestHeaders`.
+- **Implementation**: construct the full absolute URI for every request dynamically.
+    - Example: `_httpClient.GetFromJsonAsync<T>(GetFullUrl("api/Resource"))`
+    - Use `GetFullUrl(path)` helper in base classes to prepend `ConnectionSettings.Instance.ApiBaseUrl`.
+- **SignalR**: Connections should be re-initialized (Stopped, Disposed, Re-built) when switching environments to ensure the hub URL is updated.
 
 ---
 

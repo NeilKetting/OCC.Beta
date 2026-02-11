@@ -6,6 +6,7 @@ using OCC.Shared.DTOs;
 using OCC.Shared.Models;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure;
 
 namespace OCC.Client.Services.Repositories.ApiServices
 {
@@ -18,19 +19,13 @@ namespace OCC.Client.Services.Repositories.ApiServices
         public ApiAuthService()
         {
             _httpClient = new HttpClient();
-            UpdateBaseAddress();
         }
 
-        private void UpdateBaseAddress()
+        private string GetFullUrl(string path)
         {
-            var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
+            var baseUrl = ConnectionSettings.Instance.ApiBaseUrl;
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
-            
-            var newBase = new Uri(baseUrl);
-            if (_httpClient.BaseAddress != newBase)
-            {
-                _httpClient.BaseAddress = newBase;
-            }
+            return $"{baseUrl}{path}";
         }
 
         public User? CurrentUser => _currentUser;
@@ -41,8 +36,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             try
             {
-                UpdateBaseAddress();
-                var response = await _httpClient.PostAsJsonAsync("api/Auth/login", new LoginRequest { Email = email, Password = password });
+                var response = await _httpClient.PostAsJsonAsync(GetFullUrl("api/Auth/login"), new LoginRequest { Email = email, Password = password });
                 
                 if (response.IsSuccessStatusCode)
                 {
@@ -88,7 +82,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/auth/register", user);
+                var response = await _httpClient.PostAsJsonAsync(GetFullUrl("api/auth/register"), user);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception)
@@ -103,7 +97,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             {
                 if (IsAuthenticated)
                 {
-                    await _httpClient.PostAsync("api/Auth/logout", null);
+                    await _httpClient.PostAsync(GetFullUrl("api/Auth/logout"), null);
                 }
             }
             catch
@@ -123,7 +117,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             try
             {
                 if (user == null) return false;
-                var response = await _httpClient.PutAsJsonAsync($"api/Users/{user.Id}", user);
+                var response = await _httpClient.PutAsJsonAsync(GetFullUrl($"api/Users/{user.Id}"), user);
                 if (response.IsSuccessStatusCode)
                 {
                     _currentUser = user; // Update local cache
@@ -147,7 +141,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
                     OldPassword = oldPassword, 
                     NewPassword = newPassword 
                 };
-                var response = await _httpClient.PostAsJsonAsync("api/Users/change-password", request);
+                var response = await _httpClient.PostAsJsonAsync(GetFullUrl("api/Users/change-password"), request);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
