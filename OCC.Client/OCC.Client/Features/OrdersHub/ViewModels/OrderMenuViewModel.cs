@@ -6,7 +6,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.ViewModels.Messages;
-using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Features.NotificationHub.ViewModels;
 using System;
 
 namespace OCC.Client.Features.OrdersHub.ViewModels

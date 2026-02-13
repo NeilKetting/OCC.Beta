@@ -93,7 +93,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Features.EmployeeHub.Views.LeaveEarlyReasonDialog();
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.LeaveEarlyReasonDialog();
                 var result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
                 
                 if (result == true)
@@ -107,7 +107,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Features.EmployeeHub.Views.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
                 var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
                 
                 if (result)
@@ -137,6 +137,31 @@ namespace OCC.Client.Services
                 var dialog = new OCC.Client.Views.TextInputDialog(title, message, defaultValue);
                 var result = await dialog.ShowDialog<string?>(desktop.MainWindow);
                 return result;
+            }
+            return null;
+        }
+
+        public async Task<OCC.Shared.Models.EmployeeLoan?> ShowAddLoanAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.AddLoanDialog();
+                var vm = new OCC.Client.Features.TimeAttendanceHub.ViewModels.AddLoanDialogViewModel(
+                    Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IEmployeeService>(_serviceProvider)
+                );
+                
+                var tcs = new TaskCompletionSource<OCC.Shared.Models.EmployeeLoan?>();
+                
+                vm.CloseAction = (loan) => 
+                {
+                    tcs.SetResult(loan);
+                    dialog.Close();
+                };
+                
+                dialog.DataContext = vm;
+                await dialog.ShowDialog(desktop.MainWindow);
+                
+                return await tcs.Task;
             }
             return null;
         }

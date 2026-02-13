@@ -5,7 +5,7 @@
 			 xmlns:vm="clr-namespace:OCC.Client.Features.EmployeeHub.ViewModels"
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:views="clr-namespace:OCC.Client.Features.EmployeeHub.Views"
-             xmlns:timeViews="clr-namespace:OCC.Client.Features.EmployeeHub.Views"
+             xmlns:timeViews="clr-namespace:OCC.Client.Features.TimeAttendanceHub.Views"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1200"
 			 x:Class="OCC.Client.Features.EmployeeHub.Views.EmployeeManagementView"

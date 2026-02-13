@@ -11,6 +11,7 @@ using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Client.Features.CalendarHub.ViewModels;
 using OCC.Client.Features.TaskHub.ViewModels;
 using OCC.Client.Features.BugHub.ViewModels; // Added
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using OCC.Client.Features.EmployeeHub.ViewModels;
 using OCC.Client.Features.CustomerHub.ViewModels;
 using OCC.Client.Features.SettingsHub.ViewModels;
@@ -32,7 +33,7 @@ using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.Infrastructure;
 using OCC.Client.Messages; // NEW
-using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Features.NotificationHub.ViewModels;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Features.AuthHub.Views; // Added
 // using OCC.Client.Views.Login; // Removed Duplicate
@@ -261,7 +262,7 @@ namespace OCC.Client.ViewModels.Core
                 };
                 betaVM.OpenReleaseNotesRequested += () =>
                 {
-                    var releaseNotesVM = new ViewModels.Help.ReleaseNotesViewModel();
+                    var releaseNotesVM = new OCC.Client.Features.HelpHub.ViewModels.ReleaseNotesViewModel();
                     releaseNotesVM.CloseRequested += (s, e) => 
                     {
                         // Return to Beta Notice
@@ -806,7 +807,7 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconList");
                     break;
                 case "Help":
-                     var releaseNotesVM = new OCC.Client.ViewModels.Help.ReleaseNotesViewModel();
+                     var releaseNotesVM = new OCC.Client.Features.HelpHub.ViewModels.ReleaseNotesViewModel();
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);
                      vm = releaseNotesVM;
                      title = "Release Notes";
@@ -846,7 +847,7 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconBug");
                     break;
                 case NavigationRoutes.Developer:
-                    vm = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
+                    vm = _serviceProvider.GetRequiredService<OCC.Client.Features.DeveloperHub.ViewModels.DeveloperViewModel>();
                     title = "Developer";
                     icon = GetResource("IconM");
                     break;

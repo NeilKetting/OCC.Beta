@@ -38,5 +38,6 @@ namespace OCC.Client.Infrastructure
         public const string Feature_ProjectCreation = "ProjectCreation";
         public const string Feature_ProjectDeletion = "ProjectDeletion";
         public const string Feature_UserManagement = "UserManagement";
+        public const string Feature_Loans = "Loans"; // Added
     }
 }

@@ -13,6 +13,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.ApiServices;
 using OCC.Client.Services.Repositories.Interfaces; // Added
 using OCC.Client.ViewModels.Core; // Added for ViewModelBase/Core VMs
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using OCC.Client.Features.EmployeeHub.ViewModels;
 using OCC.Client.Features.HseqHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels;
@@ -22,7 +23,7 @@ using OCC.Client.Features.AuthHub.ViewModels;
 using OCC.Client.Features.SettingsHub.ViewModels;
 using OCC.Client.Features.BugHub.ViewModels;
 using OCC.Client.Features.CustomerHub.ViewModels;
-using OCC.Client.ViewModels.Notifications; // Added
+using OCC.Client.Features.NotificationHub.ViewModels; // Added
 using OCC.Client.Features.OrdersHub.ViewModels;
 using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Client.Features.TaskHub.ViewModels;
@@ -226,6 +227,7 @@ namespace OCC.Client
 
             // --- Employee Hub ---
             services.AddHttpClient<IEmployeeService, ApiEmployeeService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddTransient<IEmployeeLoanService, ApiEmployeeLoanService>();
             services.AddTransient<EmployeeManagementViewModel>();
             services.AddTransient<EmployeeDetailViewModel>();
             services.AddSingleton<IEmployeeImportService, EmployeeImportService>();
@@ -249,6 +251,7 @@ namespace OCC.Client
             services.AddTransient<IHolidayService, HolidayService>();
             services.AddTransient<OvertimeViewModel>();
             services.AddTransient<OvertimeApprovalViewModel>();
+            services.AddTransient<LoansManagementViewModel>();
             
             services.AddSingleton<IReminderService, ReminderService>();
 
@@ -307,7 +310,7 @@ namespace OCC.Client
             services.AddTransient<ManageUsersViewModel>();
             services.AddTransient<UserPreferencesViewModel>();
             services.AddTransient<ProfileViewModel>();
-            services.AddTransient<OCC.Client.ViewModels.Developer.DeveloperViewModel>();
+            services.AddTransient<OCC.Client.Features.DeveloperHub.ViewModels.DeveloperViewModel>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

@@ -1,0 +1,3 @@
+using OCC.Client.Features.EmployeeHub.ViewModels;
+using Avalonia.Controls;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;  namespace OCC.Client.Features.TimeAttendanceHub.Views {     public partial class AttendanceHistoryView : UserControl     {         public AttendanceHistoryView()         {             InitializeComponent();         }          private void DataGrid_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)         {             if (sender is DataGrid dg && dg.SelectedItem is HistoryRecordViewModel record &&                  DataContext is AttendanceHistoryViewModel vm)             {                 vm.OpenEmployeeReportCommand.Execute(record);             }         }     } }

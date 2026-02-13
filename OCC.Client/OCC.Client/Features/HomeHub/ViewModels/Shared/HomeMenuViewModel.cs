@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Messages;
 
 using OCC.Client.ViewModels.Core;
-using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Features.NotificationHub.ViewModels;
 
 namespace OCC.Client.Features.HomeHub.ViewModels.Shared
 {

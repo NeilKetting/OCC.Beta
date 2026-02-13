@@ -98,6 +98,7 @@
                                                                         <Binding Path="Id"/>
                                                                     </MultiBinding>
                                                                 </Border.IsVisible>
+                                                            </Border>
                                                             
                                                             <StackPanel Spacing="8">
                                                                 <Grid ColumnDefinitions="*, Auto, Auto">

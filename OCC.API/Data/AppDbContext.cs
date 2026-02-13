@@ -38,6 +38,7 @@ namespace OCC.API.Data
         public DbSet<OvertimeRequest> OvertimeRequests { get; set; }
         public DbSet<WageRun> WageRuns { get; set; }
         public DbSet<WageRunLine> WageRunLines { get; set; }
+        public DbSet<EmployeeLoan> EmployeeLoans { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
@@ -277,6 +278,17 @@ namespace OCC.API.Data
             {
                 entity.Property(e => e.HourlyRate).HasPrecision(18, 2);
                 entity.Property(e => e.TotalWage).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionLoan).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionTax).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionOther).HasPrecision(18, 2);
+                entity.Property(e => e.IncentiveSupervisor).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<EmployeeLoan>(entity =>
+            {
+                entity.Property(e => e.PrincipalAmount).HasPrecision(18, 2);
+                entity.Property(e => e.MonthlyInstallment).HasPrecision(18, 2);
+                entity.Property(e => e.OutstandingBalance).HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<ProjectVariationOrder>(entity =>

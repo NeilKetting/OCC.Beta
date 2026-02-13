@@ -545,6 +545,68 @@ namespace OCC.API.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("OCC.Shared.Models.EmployeeLoan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LoanType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MonthlyInstallment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("OutstandingBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrincipalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeLoans");
+                });
+
             modelBuilder.Entity("OCC.Shared.Models.HseqAudit", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1099,25 +1161,6 @@ namespace OCC.API.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
@@ -2024,119 +2067,132 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("b862c2f5-9fe1-4228-9946-4d0aa0fdb12a"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(7625),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(1207),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "New Year's Day"
+                            Name = "New Year's Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("a1e140e8-e1a8-4acf-b5e0-715ed41c7af3"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8264),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(1970),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Human Rights Day"
+                            Name = "Human Rights Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("2d50946b-c807-4e9f-a74d-a6c5493b3c94"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8267),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(1974),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Good Friday"
+                            Name = "Good Friday",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("e91fa4f6-1b80-423b-8755-c8e133c34670"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8280),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(1976),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Family Day"
+                            Name = "Family Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("3e473dfe-4182-4c81-8ba8-f5c33a9e1ed1"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8297),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(1978),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Freedom Day"
+                            Name = "Freedom Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("80ce73e9-fd26-47db-b79f-57165ba68111"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8299),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2006),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Workers' Day"
+                            Name = "Workers' Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("7f422560-941b-4fe4-80ef-b22adeddfbee"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8300),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2008),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Youth Day"
+                            Name = "Youth Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("e226a941-9246-4dd5-91ec-7dff8a5a96ca"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8302),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2010),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "National Women's Day"
+                            Name = "National Women's Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("0dc5e6d5-2530-40d7-8301-9d41f44c879b"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8304),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2011),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Public Holiday"
+                            Name = "Public Holiday",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("5eb30cce-ad23-43a9-9ca2-50236232dccf"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8305),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2013),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Heritage Day"
+                            Name = "Heritage Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("b5b21171-4284-4f14-bfa4-e8bd0cdb3264"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8307),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2015),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Day of Reconciliation"
+                            Name = "Day of Reconciliation",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("496a7469-aa27-435d-899c-1a7c540f5187"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8310),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2017),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Christmas Day"
+                            Name = "Christmas Day",
+                            RowVersion = new byte[0]
                         },
                         new
                         {
                             Id = new Guid("fcc99eac-4678-49da-9e2e-f1026fe7c867"),
-                            CreatedAtUtc = new DateTime(2026, 2, 11, 11, 16, 14, 825, DateTimeKind.Utc).AddTicks(8312),
+                            CreatedAtUtc = new DateTime(2026, 2, 13, 8, 5, 52, 557, DateTimeKind.Utc).AddTicks(2019),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Day of Goodwill"
+                            Name = "Day of Goodwill",
+                            RowVersion = new byte[0]
                         });
                 });
 
@@ -2657,6 +2713,18 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("DeductionLoan")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DeductionOther")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DeductionTax")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2665,6 +2733,10 @@ namespace OCC.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("HourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("IncentiveSupervisor")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -2736,6 +2808,17 @@ namespace OCC.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("OCC.Shared.Models.EmployeeLoan", b =>
+                {
+                    b.HasOne("OCC.Shared.Models.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("OCC.Shared.Models.HseqAuditAttachment", b =>

@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.ViewModels.Messages;
-using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Features.NotificationHub.ViewModels;
 
 namespace OCC.Client.Features.ProjectsHub.ViewModels
 {

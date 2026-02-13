@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OCC.Client.ViewModels.Messages;
 using OCC.Shared.DTOs;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 
 namespace OCC.Client.Features.EmployeeHub.ViewModels
 {

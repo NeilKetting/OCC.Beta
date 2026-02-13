@@ -20,7 +20,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.Features.AuthHub.ViewModels;
-using OCC.Client.ViewModels.Notifications;
+using OCC.Client.Features.NotificationHub.ViewModels;
 using OCC.Client.Messages;
 
 namespace OCC.Client.ViewModels.Core
