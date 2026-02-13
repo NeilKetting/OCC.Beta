@@ -25,13 +25,19 @@ namespace OCC.API.Controllers
         [HttpGet("status")]
         public async Task<IActionResult> GetStatus()
         {
+            var serverTime = DateTime.UtcNow;
+            var assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+            var envName = _env.EnvironmentName;
+            
+            IEnumerable<string> migrations = new List<string>();
+            string? dbError = null;
+            string maskedConnection = "Hidden";
+
             try
             {
-                var migrations = await _context.Database.GetAppliedMigrationsAsync();
                 var connectionString = _context.Database.GetConnectionString();
                 
                 // Mask sensitive parts of connection string
-                var maskedConnection = "Hidden";
                 if (!string.IsNullOrEmpty(connectionString))
                 {
                     var parts = connectionString.Split(';');
@@ -40,20 +46,23 @@ namespace OCC.API.Controllers
                     maskedConnection = $"{server};{database}";
                 }
 
-                return Ok(new
-                {
-                    Environment = _env.EnvironmentName,
-                    ServerTimeUtc = DateTime.UtcNow,
-                    Database = maskedConnection,
-                    AppliedMigrations = migrations,
-                    AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(),
-                    Status = "Running"
-                });
+                migrations = await _context.Database.GetAppliedMigrationsAsync();
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Error = ex.Message, Trace = ex.StackTrace });
+                dbError = ex.Message;
             }
+
+            return Ok(new
+            {
+                Environment = envName,
+                ServerTimeUtc = serverTime,
+                Database = maskedConnection,
+                DatabaseError = dbError,
+                AppliedMigrations = migrations,
+                AssemblyVersion = assemblyVersion,
+                Status = dbError == null ? "Running" : "Degraded (DB Connection Error)"
+            });
         }
     }
 }

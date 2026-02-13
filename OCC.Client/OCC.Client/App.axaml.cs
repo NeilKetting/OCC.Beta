@@ -149,6 +149,7 @@ namespace OCC.Client
         private void ConfigureServices(IServiceCollection services)
         {
             // --- Infrastructure & Core Services ---
+            services.AddTransient<FailureLoggingHandler>();
             services.AddLogging(l => l.AddSerilog());
             services.AddSingleton(ConnectionSettings.Instance);
             services.AddSingleton<ITimeService, TimeService>();
@@ -162,7 +163,8 @@ namespace OCC.Client
             services.AddSingleton<IPermissionService, PermissionService>();
             services.AddSingleton<LocalSettingsService>();
             services.AddSingleton<UserPreferencesService>();
-            services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>();
+            services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>()
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddSingleton<ILogUploadService, LogUploadService>();
 
             // --- Database & Repositories ---
@@ -219,14 +221,17 @@ namespace OCC.Client
             services.AddTransient<ProjectTopBarViewModel>();
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();
-            services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             
             services.AddTransient<TaskListViewModel>();
             services.AddTransient<TaskDetailViewModel>();
-            services.AddHttpClient<ITaskAttachmentService, ApiTaskAttachmentService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<ITaskAttachmentService, ApiTaskAttachmentService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
 
             // --- Employee Hub ---
-            services.AddHttpClient<IEmployeeService, ApiEmployeeService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IEmployeeService, ApiEmployeeService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddTransient<EmployeeManagementViewModel>();
             services.AddTransient<EmployeeDetailViewModel>();
             services.AddSingleton<IEmployeeImportService, EmployeeImportService>();
@@ -264,9 +269,12 @@ namespace OCC.Client
             // --- Orders Hub ---
             services.AddSingleton<OrderStateService>();
             services.AddTransient<IOrderManager, OrderManager>();
-            services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<IInventoryService, InventoryService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
-            services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+            services.AddHttpClient<IInventoryService, InventoryService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+            services.AddHttpClient<ISupplierService, SupplierService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddSingleton<IInventoryImportService, InventoryImportService>();
             services.AddSingleton<ISupplierImportService, SupplierImportService>();
             
@@ -284,7 +292,8 @@ namespace OCC.Client
             services.AddTransient<RestockReviewViewModel>();
 
             // --- HSEQ Hub ---
-            services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IHealthSafetyService, ApiHealthSafetyService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddTransient<HealthSafetyViewModel>();
             services.AddTransient<HealthSafetyDashboardViewModel>();
             services.AddTransient<HealthSafetyMenuViewModel>();
@@ -295,12 +304,14 @@ namespace OCC.Client
             services.AddTransient<DocumentsViewModel>();
 
             // --- Bug Hub ---
-            services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddTransient<BugListViewModel>();
             services.AddTransient<SupportCenterViewModel>();
 
             // --- Settings & Admin Hub ---
-            services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
+            services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddSingleton<IAuditLogService, ApiAuditLogService>();
             services.AddTransient<AuditLogViewModel>();
             services.AddTransient<CompanySettingsViewModel>();

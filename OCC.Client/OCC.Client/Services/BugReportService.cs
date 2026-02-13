@@ -1,4 +1,5 @@
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Infrastructure;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
@@ -37,16 +38,43 @@ namespace OCC.Client.Services
 
         public async Task SubmitBugAsync(BugReport report)
         {
-            EnsureAuthorization();
-            var response = await _httpClient.PostAsJsonAsync("api/BugReports", report);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                EnsureAuthorization();
+                var response = await _httpClient.PostAsJsonAsync("api/BugReports", report);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ApiLogging.LogFailureAsync("SubmitBug", response);
+                }
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception ex)
+            {
+                ApiLogging.LogException("SubmitBug", ex);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<BugReport>> GetBugReportsAsync(bool includeArchived = false)
         {
-            EnsureAuthorization();
             var url = $"api/BugReports?includeArchived={includeArchived}";
-            return await _httpClient.GetFromJsonAsync<List<BugReport>>(url) ?? new List<BugReport>();
+            try
+            {
+                EnsureAuthorization();
+                var response = await _httpClient.GetAsync(url);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<List<BugReport>>() ?? new List<BugReport>();
+                }
+
+                await ApiLogging.LogFailureAsync("GetBugReports", response);
+                return new List<BugReport>();
+            }
+            catch (Exception ex)
+            {
+                ApiLogging.LogException("GetBugReports", ex, url);
+                return new List<BugReport>();
+            }
         }
 
         public async Task<IEnumerable<BugReport>> SearchSolutionsAsync(string query)
@@ -59,6 +87,7 @@ namespace OCC.Client.Services
             }
             catch (Exception ex)
             {
+                ApiLogging.LogException("SearchSolutions", ex, $"api/BugReports/solutions?q={Uri.EscapeDataString(query)}");
                 _logger.LogError(ex, "Error searching solutions");
                 return new List<BugReport>();
             }
@@ -69,36 +98,60 @@ namespace OCC.Client.Services
             EnsureAuthorization();
             try 
             {
-                return await _httpClient.GetFromJsonAsync<BugReport>($"api/BugReports/{id}");
+                EnsureAuthorization();
+                var response = await _httpClient.GetAsync($"api/BugReports/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<BugReport>();
+                }
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return null;
+
+                await ApiLogging.LogFailureAsync("GetBugReport", response);
+                return null;
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            catch (Exception ex)
             {
+                ApiLogging.LogException("GetBugReport", ex, $"api/BugReports/{id}");
                 return null;
             }
         }
 
         public async Task AddCommentAsync(Guid bugId, string comment, string? status)
         {
-            EnsureAuthorization();
-            var currentUser = _authService.CurrentUser;
-            var bugComment = new BugComment
+            try
             {
-                BugReportId = bugId,
-                Content = comment,
-                AuthorName = (currentUser?.FirstName + " " + currentUser?.LastName)?.Trim() ?? "System",
-                AuthorEmail = currentUser?.Email ?? "",
-                IsDevComment = _permissionService.IsDev,
-                CreatedAtUtc = DateTime.UtcNow
-            };
+                EnsureAuthorization();
+                var currentUser = _authService.CurrentUser;
+                var bugComment = new BugComment
+                {
+                    BugReportId = bugId,
+                    Content = comment,
+                    AuthorName = (currentUser?.FirstName + " " + currentUser?.LastName)?.Trim() ?? "System",
+                    AuthorEmail = currentUser?.Email ?? "",
+                    IsDevComment = _permissionService.IsDev,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
 
-            var url = $"api/BugReports/{bugId}/comments";
-            if (!string.IsNullOrEmpty(status))
-            {
-                url += $"?status={status}";
+                var url = $"api/BugReports/{bugId}/comments";
+                if (!string.IsNullOrEmpty(status))
+                {
+                    url += $"?status={status}";
+                }
+
+                var response = await _httpClient.PostAsJsonAsync(url, bugComment);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ApiLogging.LogFailureAsync("AddComment", response);
+                }
+                response.EnsureSuccessStatusCode();
             }
-
-            var response = await _httpClient.PostAsJsonAsync(url, bugComment);
-            response.EnsureSuccessStatusCode();
+            catch (Exception ex)
+            {
+                ApiLogging.LogException("AddComment", ex);
+                throw;
+            }
         }
 
         public async Task DeleteBugAsync(Guid bugId)

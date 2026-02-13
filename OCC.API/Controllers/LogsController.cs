@@ -142,7 +142,7 @@ namespace OCC.API.Controllers
 
         [HttpPost("upload")]
         [AllowAnonymous] 
-        public async Task<IActionResult> UploadLogs([FromForm] LogUploadRequest request, [FromForm] IFormFile? file)
+        public async Task<IActionResult> UploadLogs(LogUploadRequest request, IFormFile? file)
         {
             try
             {

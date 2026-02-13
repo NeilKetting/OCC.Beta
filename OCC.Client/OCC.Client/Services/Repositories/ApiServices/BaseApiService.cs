@@ -46,62 +46,120 @@ namespace OCC.Client.Services.Repositories.ApiServices
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
-            EnsureAuthorization();
-            var result = await _httpClient.GetFromJsonAsync<IEnumerable<T>>(GetFullUrl($"api/{ApiEndpoint}"));
-            return result ?? Enumerable.Empty<T>();
+            try
+            {
+                EnsureAuthorization();
+                var response = await _httpClient.GetAsync(GetFullUrl($"api/{ApiEndpoint}"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<T>>() ?? Enumerable.Empty<T>();
+                }
+
+                await ApiLogging.LogFailureAsync($"GetAll {ApiEndpoint}", response);
+                return Enumerable.Empty<T>();
+            }
+            catch (Exception ex)
+            {
+                ApiLogging.LogException($"GetAll {ApiEndpoint}", ex, GetFullUrl($"api/{ApiEndpoint}"));
+                return Enumerable.Empty<T>();
+            }
         }
 
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
-            EnsureAuthorization();
+            var url = GetFullUrl($"api/{ApiEndpoint}/{id}");
             try
             {
-                return await _httpClient.GetFromJsonAsync<T>(GetFullUrl($"api/{ApiEndpoint}/{id}"));
+                EnsureAuthorization();
+                var response = await _httpClient.GetAsync(url);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<T>();
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return null;
+
+                await ApiLogging.LogFailureAsync($"GetById {ApiEndpoint}", response);
+                return null;
             }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            catch (Exception ex)
             {
+                ApiLogging.LogException($"GetById {ApiEndpoint}", ex, url);
                 return null;
             }
         }
 
         public virtual async Task AddAsync(T entity)
         {
-            EnsureAuthorization();
-            var response = await _httpClient.PostAsJsonAsync(GetFullUrl($"api/{ApiEndpoint}"), entity);
-            
-            if (!response.IsSuccessStatusCode)
+            var url = GetFullUrl($"api/{ApiEndpoint}");
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                EnsureAuthorization();
+                var response = await _httpClient.PostAsJsonAsync(url, entity);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await ApiLogging.LogFailureAsync($"Add {ApiEndpoint}", response, errorContent);
+                    throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                }
+            }
+            catch (Exception ex) when (ex is not HttpRequestException)
+            {
+                ApiLogging.LogException($"Add {ApiEndpoint}", ex, url);
+                throw;
             }
         }
 
         public virtual async Task UpdateAsync(T entity)
         {
-            EnsureAuthorization();
-            var response = await _httpClient.PutAsJsonAsync(GetFullUrl($"api/{ApiEndpoint}/{entity.Id}"), entity);
-            
-            if (!response.IsSuccessStatusCode)
+            var url = GetFullUrl($"api/{ApiEndpoint}/{entity.Id}");
+            try
             {
-                 if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-                 {
-                     throw new OCC.Client.Infrastructure.Exceptions.ConcurrencyException();
-                 }
+                EnsureAuthorization();
+                var response = await _httpClient.PutAsJsonAsync(url, entity);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                    {
+                        throw new OCC.Client.Infrastructure.Exceptions.ConcurrencyException();
+                    }
 
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await ApiLogging.LogFailureAsync($"Update {ApiEndpoint}", response, errorContent);
+                    throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                }
+            }
+            catch (Exception ex) when (ex is not HttpRequestException && ex is not OCC.Client.Infrastructure.Exceptions.ConcurrencyException)
+            {
+                ApiLogging.LogException($"Update {ApiEndpoint}", ex, url);
+                throw;
             }
         }
 
         public virtual async Task DeleteAsync(Guid id)
         {
-            EnsureAuthorization();
-            var response = await _httpClient.DeleteAsync(GetFullUrl($"api/{ApiEndpoint}/{id}"));
-            
-            if (!response.IsSuccessStatusCode)
+            var url = GetFullUrl($"api/{ApiEndpoint}/{id}");
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                EnsureAuthorization();
+                var response = await _httpClient.DeleteAsync(url);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    await ApiLogging.LogFailureAsync($"Delete {ApiEndpoint}", response, errorContent);
+                    throw new HttpRequestException($"Response status code does not indicate success: {(int)response.StatusCode} ({response.ReasonPhrase}). Details: {errorContent}", null, response.StatusCode);
+                }
+            }
+            catch (Exception ex) when (ex is not HttpRequestException)
+            {
+                ApiLogging.LogException($"Delete {ApiEndpoint}", ex, url);
+                throw;
             }
         }
 

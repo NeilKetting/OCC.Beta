@@ -27,22 +27,23 @@ namespace OCC.Client.Services
 
         public async Task UploadLogsAsync()
         {
-            var logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OCC", "logs");
-            if (!Directory.Exists(logsPath)) return;
-
-            // 1. Collect Logs (Last 2 days as verified)
-            // Use glob to find all log-*.txt
-            var logFiles = Directory.GetFiles(logsPath, "log-*.txt")
-                                    .Select(f => new FileInfo(f))
-                                    .Where(f => f.LastWriteTime >= DateTime.Now.AddDays(-2)) // Safety check
-                                    .ToList();
-
-            if (!logFiles.Any()) return;
-
-            var zipPath = Path.Combine(Path.GetTempPath(), $"OCC_Logs_{Guid.NewGuid()}.zip");
-
+            string? zipPath = null;
             try
             {
+                var logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OCC", "logs");
+                if (!Directory.Exists(logsPath)) return;
+
+                // 1. Collect Logs (Last 2 days as verified)
+                // Use glob to find all log-*.txt
+                var logFiles = Directory.GetFiles(logsPath, "log-*.txt")
+                                        .Select(f => new FileInfo(f))
+                                        .Where(f => f.LastWriteTime >= DateTime.Now.AddDays(-2)) // Safety check
+                                        .ToList();
+
+                if (!logFiles.Any()) return;
+
+                zipPath = Path.Combine(Path.GetTempPath(), $"OCC_Logs_{Guid.NewGuid()}.zip");
+
                 // 2. Zip
                 using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
                 {
@@ -117,17 +118,23 @@ namespace OCC.Client.Services
                 WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Uploading logs...", true));
 
                 var response = await client.PostAsync("api/Logs/upload", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ApiLogging.LogFailureAsync("UploadLogs", response);
+                }
                 response.EnsureSuccessStatusCode();
 
                 WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Logs uploaded successfully", false, true));
             }
             catch (Exception ex)
             {
-                WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage($"Log upload failed: {ex.Message}", false, false, true));
+                ApiLogging.LogException("UploadLogs", ex);
+                WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Upload failed: " + ex.Message, false, false, true));
+                throw;
             }
             finally
             {
-                if (File.Exists(zipPath))
+                if (zipPath != null && File.Exists(zipPath))
                 {
                     try { File.Delete(zipPath); } catch { }
                 }
@@ -135,8 +142,7 @@ namespace OCC.Client.Services
         }
         public async Task<System.Collections.Generic.List<LogUploadRequest>> GetLogsAsync()
         {
-            using var client = new HttpClient();
-            client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl);
+            using var client = new HttpClient { BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl) };
             // Add auth token if needed, but endpoint is restricted so we need it. 
             // However, current implementation of HttpClient factory in this service is instantiation. 
             // We should use an injected HttpClient or add headers. 
@@ -146,21 +152,48 @@ namespace OCC.Client.Services
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
             }
 
-            return await client.GetFromJsonAsync<System.Collections.Generic.List<LogUploadRequest>>("api/Logs/list") ?? new System.Collections.Generic.List<LogUploadRequest>();
+            try
+            {
+                var response = await client.GetAsync("api/Logs/list");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<System.Collections.Generic.List<LogUploadRequest>>() ?? new System.Collections.Generic.List<LogUploadRequest>();
+                }
+
+                await ApiLogging.LogFailureAsync("GetLogs", response);
+                return new System.Collections.Generic.List<LogUploadRequest>();
+            }
+            catch (Exception ex)
+            {
+                ApiLogging.LogException("GetLogs", ex);
+                return new System.Collections.Generic.List<LogUploadRequest>();
+            }
         }
 
         public async Task DeleteLogAsync(Guid id)
         {
-            using var client = new HttpClient();
-            client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl);
-            if (!string.IsNullOrEmpty(_authService.AuthToken))
+            try
             {
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
-            }
+                using var client = new HttpClient();
+                client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl);
+                if (!string.IsNullOrEmpty(_authService.AuthToken))
+                {
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
+                }
 
             var response = await client.DeleteAsync($"api/Logs/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                await ApiLogging.LogFailureAsync("DeleteLog", response);
+            }
             response.EnsureSuccessStatusCode();
         }
+        catch (Exception ex)
+        {
+            ApiLogging.LogException("DeleteLog", ex);
+            throw;
+        }
+    }
 
         public async Task<Stream> DownloadLogAsync(Guid id)
         {

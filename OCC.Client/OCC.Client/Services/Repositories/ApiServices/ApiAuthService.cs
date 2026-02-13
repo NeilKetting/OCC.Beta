@@ -52,6 +52,8 @@ namespace OCC.Client.Services.Repositories.ApiServices
                 }
                 else
                 {
+                    await ApiLogging.LogFailureAsync("Login", response);
+
                     if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
                     {
                         return (false, "The service is currently unavailable. Please try again later.");
@@ -72,6 +74,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
             }
             catch (Exception ex)
             {
+                ApiLogging.LogException("Login", ex, GetFullUrl("api/Auth/login"));
                 // Log error
                 return (false, "Connection error: " + ex.Message);
             }
@@ -83,10 +86,15 @@ namespace OCC.Client.Services.Repositories.ApiServices
             try
             {
                 var response = await _httpClient.PostAsJsonAsync(GetFullUrl("api/auth/register"), user);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ApiLogging.LogFailureAsync("Register", response);
+                }
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                ApiLogging.LogException("Register", ex, GetFullUrl("api/auth/register"));
                 return false;
             }
         }
@@ -123,11 +131,12 @@ namespace OCC.Client.Services.Repositories.ApiServices
                     _currentUser = user; // Update local cache
                     return true;
                 }
+                await ApiLogging.LogFailureAsync("UpdateProfile", response);
                 return false;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Update Profile Error: {ex.Message}");
+                ApiLogging.LogException("UpdateProfile", ex, GetFullUrl($"api/Users/{user.Id}"));
                 return false;
             }
         }
@@ -142,11 +151,15 @@ namespace OCC.Client.Services.Repositories.ApiServices
                     NewPassword = newPassword 
                 };
                 var response = await _httpClient.PostAsJsonAsync(GetFullUrl("api/Users/change-password"), request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ApiLogging.LogFailureAsync("ChangePassword", response);
+                }
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Change Password Error: {ex.Message}");
+                ApiLogging.LogException("ChangePassword", ex, GetFullUrl("api/Users/change-password"));
                 return false;
             }
         }
