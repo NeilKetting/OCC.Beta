@@ -137,6 +137,7 @@ namespace OCC.Client.ViewModels.Core
         public bool IsDeveloper => _permissionService.IsDev;
         
         public bool CanCreateProject => _permissionService.CanAccess(NavigationRoutes.Feature_ProjectCreation);
+        public bool CanViewCalendar => _permissionService.CanAccess(NavigationRoutes.Calendar);
 
         [ObservableProperty]
         private int _reminderCount;
@@ -402,6 +403,9 @@ namespace OCC.Client.ViewModels.Core
                 case NavigationRoutes.StaffManagement:
                     WeakReferenceMessenger.Default.Send(new SwitchTabMessage("Team"));
                     break;
+                case NavigationRoutes.Calendar:
+                    // Just navigate
+                    break;
             }
         }
 
@@ -428,6 +432,15 @@ namespace OCC.Client.ViewModels.Core
             IsPreferencesOpen = false;
             UpdateLastActionMessage(IsDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled");
         }
+
+        [RelayCommand]
+        public void GoToDevTest()
+        {
+             Navigate(NavigationRoutes.Developer);
+             IsSettingsOpen = false;
+        }
+
+
 
         [RelayCommand]
         private void Customers()
@@ -466,14 +479,7 @@ namespace OCC.Client.ViewModels.Core
             UpdateLastActionMessage("Navigating to Audit Log");
         }
 
-        [RelayCommand]
-        private void ViewBugs()
-        {
-            IsQuickActionsOpen = false;
-            IsSettingsOpen = false;
-            ActiveSection = NavigationRoutes.Feature_BugReports;
-            UpdateLastActionMessage("Navigating to Bug Reports");
-        }
+
 
         [RelayCommand]
         private void CompanySettings()
@@ -572,13 +578,6 @@ namespace OCC.Client.ViewModels.Core
             WeakReferenceMessenger.Default.Send(new TestBirthdayMessage());
         }
 
-        [RelayCommand]
-        public void GoToDevTest()
-        {
-            IsQuickActionsOpen = false;
-            // Send navigation test
-            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("DevTest"));
-        }
 
         #endregion
 

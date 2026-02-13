@@ -17,7 +17,6 @@ using OCC.Client.Features.EmployeeHub.ViewModels;
 using OCC.Client.Features.HseqHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels.Dashboard;
-using OCC.Client.Features.HomeHub.ViewModels.Calendar;
 using OCC.Client.Features.HomeHub.ViewModels.Shared;
 using OCC.Client.Features.AuthHub.ViewModels;
 using OCC.Client.Features.SettingsHub.ViewModels;
@@ -27,6 +26,7 @@ using OCC.Client.ViewModels.Notifications; // Added
 using OCC.Client.Features.OrdersHub.ViewModels;
 using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Client.Features.TaskHub.ViewModels;
+using OCC.Client.Features.CalendarHub.ViewModels;
 using OCC.Client.ViewModels.Shared;
 using OCC.Client.Views.Core;
 using OCC.Client.Features.CoreHub.Views; // Added
@@ -217,7 +217,6 @@ namespace OCC.Client
             services.AddTransient<ProjectReportViewModel>();
             services.AddTransient<ProjectTopBarViewModel>();
             services.AddTransient<ProjectGanttViewModel>();
-            services.AddTransient<ProjectCalendarViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();
             services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             
@@ -246,14 +245,16 @@ namespace OCC.Client
             services.AddTransient<ILeaveService, LeaveService>();
             services.AddTransient<LeaveApplicationViewModel>();
             services.AddTransient<LeaveApprovalViewModel>();
-            services.AddTransient<LeaveCalendarViewModel>();
             
             services.AddTransient<IHolidayService, HolidayService>();
             services.AddTransient<OvertimeViewModel>();
             services.AddTransient<OvertimeApprovalViewModel>();
             
-            services.AddTransient<CalendarViewModel>();
             services.AddSingleton<IReminderService, ReminderService>();
+
+            // --- Calendar Hub ---
+            services.AddTransient<ICalendarService, CalendarService>();
+            services.AddTransient<CalendarHubViewModel>();
 
             // --- Customer Hub ---
             services.AddTransient<CustomerManagementViewModel>();
@@ -295,6 +296,7 @@ namespace OCC.Client
             // --- Bug Hub ---
             services.AddHttpClient<IBugReportService, BugReportService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));
             services.AddTransient<BugListViewModel>();
+            services.AddTransient<SupportCenterViewModel>();
 
             // --- Settings & Admin Hub ---
             services.AddHttpClient<ISettingsService, SettingsService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl));

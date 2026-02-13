@@ -1,10 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
+using OCC.Client.ViewModels.Messages;
 using OCC.Shared.Models;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -14,7 +16,14 @@ using Microsoft.Extensions.Logging;
 
 namespace OCC.Client.Features.BugHub.ViewModels
 {
-    public partial class BugListViewModel : ViewModelBase
+    public class BugGroup : ObservableObject
+    {
+        public string Title { get; set; } = string.Empty;
+        public ObservableCollection<BugReport> Items { get; set; } = new();
+        public bool IsExpanded { get; set; } = true;
+    }
+
+    public partial class BugListViewModel : ViewModelBase, IRecipient<EntityUpdatedMessage>
     {
         #region Private Members
 
@@ -31,6 +40,9 @@ namespace OCC.Client.Features.BugHub.ViewModels
 
         [ObservableProperty]
         private ObservableCollection<BugReport> _bugs = new();
+
+        [ObservableProperty]
+        private ObservableCollection<BugGroup> _groupedBugs = new();
 
         [ObservableProperty]
         private BugReport? _selectedBug;
@@ -51,17 +63,20 @@ namespace OCC.Client.Features.BugHub.ViewModels
         private string _searchText = string.Empty;
 
         [ObservableProperty]
-        private string _statusFilter = "All"; // All, Open, Fixed, Resolved, Closed, Waiting for Client
+        private string _statusFilter = "Active"; // Active, All, Open, Fixed, Resolved, Closed, Waiting for Client
         
         [ObservableProperty]
-        private string _sortOption = "Priority"; // Priority, Date
+        private string _sortOption = "Date"; // Priority, Date
 
         [ObservableProperty]
         private bool _isImageZoomed;
 
+        [ObservableProperty]
+        private bool _includeArchived;
+
         public ObservableCollection<string> StatusFilters { get; } = new() 
         { 
-            "All", "Open", "Fixed", "Resolved", "Closed", "Waiting for Client" 
+            "Active", "All", "Open", "Fixed", "Resolved", "Closed", "Waiting for Client", "In Progress", "Planning", "Feature Update"
         };
         
         public ObservableCollection<string> SortOptions { get; } = new()
@@ -85,6 +100,8 @@ namespace OCC.Client.Features.BugHub.ViewModels
             var email = _authService.CurrentUser?.Email?.ToLowerInvariant();
             IsDev = email == "neil@mdk.co.za";
 
+            WeakReferenceMessenger.Default.Register<EntityUpdatedMessage>(this);
+
             LoadBugsCommand.Execute(null);
         }
 
@@ -92,13 +109,50 @@ namespace OCC.Client.Features.BugHub.ViewModels
 
         #region Methods
 
+        public void Receive(EntityUpdatedMessage message)
+        {
+            if (message.Value.EntityType == "BugReport")
+            {
+                if (message.Value.Action == "Delete")
+                {
+                    if (SelectedBug?.Id == message.Value.Id) SelectedBug = null;
+                    LoadBugsCommand.Execute(null);
+                }
+                else if (message.Value.Action == "Update")
+                {
+                    if (SelectedBug?.Id == message.Value.Id)
+                    {
+                        RefreshSelectedBug().ConfigureAwait(false);
+                    }
+                    else 
+                    {
+                        // Refresh cache if it's not the selected one (just to keep list accurate)
+                        LoadBugsCommand.Execute(null);
+                    }
+                }
+            }
+        }
+
         partial void OnSearchTextChanged(string value) => ApplyFilters();
         partial void OnStatusFilterChanged(string value) => ApplyFilters();
         partial void OnSortOptionChanged(string value) => ApplyFilters();
+        partial void OnIncludeArchivedChanged(bool value) => LoadBugsCommand.Execute(null);
 
         private void ApplyFilters()
         {
             if (_allBugsCache == null) return;
+
+            Func<string, int> getPriority = (s) => s switch {
+                "Open" => 0,
+                "In Progress" => 1,
+                "Planning" => 2,
+                "Feature Update" => 3,
+                "Fixed" => 4,
+                "Waiting for Client" => 5,
+                "Resolved" => 6,
+                "Closed" => 7,
+                _ => 8
+            };
             
             var filteredList = _allBugsCache.AsEnumerable();
 
@@ -110,7 +164,11 @@ namespace OCC.Client.Features.BugHub.ViewModels
                     x.ReporterName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
             }
 
-            if (StatusFilter != "All")
+            if (StatusFilter == "Active")
+            {
+                filteredList = filteredList.Where(x => x.Status != "Closed" && x.Status != "Resolved");
+            }
+            else if (StatusFilter != "All")
             {
                 filteredList = filteredList.Where(x => x.Status == StatusFilter);
             }
@@ -123,20 +181,24 @@ namespace OCC.Client.Features.BugHub.ViewModels
             else
             {
                 // Priority Sort
-                Func<string, int> getPriority = (s) => s switch {
-                    "Open" => 0,
-                    "Fixed" => 1,
-                    "Waiting for Client" => 2,
-                    "Resolved" => 3,
-                    "Closed" => 4,
-                    _ => 5
-                };
                 filteredList = filteredList
                     .OrderBy(x => getPriority(x.Status))
                     .ThenByDescending(x => x.ReportedDate);
             }
 
-            Bugs = new ObservableCollection<BugReport>(filteredList);
+            var result = filteredList.ToList();
+            Bugs = new ObservableCollection<BugReport>(result);
+
+            // Grouping logic
+            var groups = result.GroupBy(x => x.Status)
+                               .OrderBy(g => getPriority(g.Key))
+                               .Select(g => new BugGroup 
+                               { 
+                                   Title = g.Key, 
+                                   Items = new ObservableCollection<BugReport>(g.ToList()) 
+                               });
+            
+            GroupedBugs = new ObservableCollection<BugGroup>(groups);
         }
 
         async partial void OnSelectedBugChanged(BugReport? value)
@@ -199,6 +261,12 @@ namespace OCC.Client.Features.BugHub.ViewModels
         }
 
         [RelayCommand]
+        private void SelectBug(BugReport bug)
+        {
+            SelectedBug = bug;
+        }
+
+        [RelayCommand]
         private async Task LoadBugs()
         {
             if (IsBusy) return;
@@ -206,9 +274,9 @@ namespace OCC.Client.Features.BugHub.ViewModels
             try
             {
                 var previousId = SelectedBug?.Id;
-                var list = await _bugService.GetBugReportsAsync();
+                var list = await _bugService.GetBugReportsAsync(IncludeArchived);
                 
-                _allBugsCache = list;
+                _allBugsCache = list.ToList();
                 ApplyFilters();
                 
                 if (previousId.HasValue)
@@ -240,40 +308,31 @@ namespace OCC.Client.Features.BugHub.ViewModels
                 var fresh = await _bugService.GetBugReportAsync(SelectedBug.Id);
                 if (fresh != null)
                 {
-                    // Update properties that might have changed
-                    SelectedBug.Comments = fresh.Comments;
-                    SelectedBug.Status = fresh.Status;
-                    SelectedBug.ScreenshotBase64 = fresh.ScreenshotBase64; // Restore if needed
-                    
-                    // Force refresh of binding if needed (PropertyChanged?)
-                    // Since SelectedBug is an ObservableObject ideally, these would notify. 
-                    // But BugReport is just a POCO BaseEntity.
-                    // We might need to manually notify or replace the item in the collection if we want the List row to update status color.
-                    
-                    var index = _allBugsCache.FindIndex(b => b.Id == fresh.Id);
-                    if (index >= 0)
+                    // Replace item in cache
+                    var cacheIndex = _allBugsCache.FindIndex(b => b.Id == fresh.Id);
+                    if (cacheIndex >= 0) _allBugsCache[cacheIndex] = fresh;
+
+                    // Update UI object properties
+                    // To ensure UI updates, we replace the item if it's in the current filtered Bugs list
+                    var bugInList = Bugs.FirstOrDefault(b => b.Id == fresh.Id);
+                    if (bugInList != null)
                     {
-                         _allBugsCache[index] = fresh; // Update cache
+                        var listIndex = Bugs.IndexOf(bugInList);
+                        Bugs[listIndex] = fresh;
                     }
-                    
-                    // Update ObservableCollection
-                    var obsItem = Bugs.FirstOrDefault(b => b.Id == fresh.Id);
-                    if (obsItem != null)
+
+                    // Refresh grouped view if status changed
+                    if (SelectedBug.Status != fresh.Status)
                     {
-                         // Manually update properties for UI if binding to object directly
-                         obsItem.Status = fresh.Status;
-                         obsItem.Comments = fresh.Comments;
-                         // Triggers? Collections don't observe property changes of items unless items implement INotifyPropertyChanged
-                         // Simple hack: Replace the item in the collection to force UI update
-                         var obsIndex = Bugs.IndexOf(obsItem);
-                         Bugs[obsIndex] = fresh;
-                         SelectedBug = fresh; // Reselect to keep detail view happy
+                        ApplyFilters();
                     }
+
+                    SelectedBug = fresh;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Refesh error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Refresh error: {ex.Message}");
             }
         }
 
@@ -292,7 +351,7 @@ namespace OCC.Client.Features.BugHub.ViewModels
 
                 await _bugService.AddCommentAsync(SelectedBug.Id, NewCommentText, null);
                 NewCommentText = string.Empty;
-                await RefreshSelectedBug(); // OPTIMIZATION: Only refresh this bug
+                // SignalR will trigger refresh
             }
             catch (Exception ex)
             {
@@ -301,12 +360,32 @@ namespace OCC.Client.Features.BugHub.ViewModels
         }
 
         [RelayCommand]
+        private async Task MoveToInProgress()
+        {
+            if (SelectedBug == null || !IsDev) return;
+            await _bugService.AddCommentAsync(SelectedBug.Id, "Moved to In Progress.", "In Progress");
+        }
+
+        [RelayCommand]
+        private async Task MoveToPlanning()
+        {
+            if (SelectedBug == null || !IsDev) return;
+            await _bugService.AddCommentAsync(SelectedBug.Id, "Moved to Planning stage.", "Planning");
+        }
+
+        [RelayCommand]
+        private async Task MoveToFeatureUpdate()
+        {
+            if (SelectedBug == null || !IsDev) return;
+            await _bugService.AddCommentAsync(SelectedBug.Id, "Reclassified as a Feature Update.", "Feature Update");
+        }
+
+        [RelayCommand]
         private async Task RequestInfo()
         {
             if (SelectedBug == null || !IsDev) return;
             var text = "Developer requested more information.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Waiting for Client");
-            await RefreshSelectedBug();
         }
 
         [RelayCommand]
@@ -315,7 +394,6 @@ namespace OCC.Client.Features.BugHub.ViewModels
             if (SelectedBug == null || !IsDev) return;
             var text = "Developer marked this issue as Fixed. Please verify and mark as Resolved.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Fixed");
-            await RefreshSelectedBug();
         }
 
         [RelayCommand]
@@ -324,22 +402,29 @@ namespace OCC.Client.Features.BugHub.ViewModels
             if (SelectedBug == null || !IsDev) return;
             var text = "Developer closed the bug.";
             await _bugService.AddCommentAsync(SelectedBug.Id, text, "Closed");
-            await RefreshSelectedBug();
         }
 
         [RelayCommand]
         private async Task DeleteBug()
         {
-             if (SelectedBug == null || !IsDev) return;
+             if (SelectedBug == null) return;
              
+             // Extra safety on deletion
+             var email = _authService.CurrentUser?.Email?.ToLowerInvariant();
+             if (email != "neil@mdk.co.za") 
+             {
+                 await _dialogService.ShowAlertAsync("Access Denied", "Only Neil can delete records.");
+                 return;
+             }
+
              var result = await _dialogService.ShowConfirmationAsync("Delete Bug Report", "Are you sure you want to permanently delete this bug report?");
              if (!result) return;
              
              try
              {
                  await _bugService.DeleteBugAsync(SelectedBug.Id);
-                 await LoadBugs(); // Deletion still needs full reload to remove from list correctly/safely
                  SelectedBug = null;
+                 // SignalR will handle list refresh
              }
              catch(Exception ex)
              {

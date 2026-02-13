@@ -63,5 +63,15 @@ namespace OCC.Client.Services.Infrastructure
     {
         public int SessionTimeoutMinutes { get; set; } = 5; // Default
         public int LastBirthdayWishYear { get; set; }
+
+        // Calendar Filters
+        public bool ShowTasks { get; set; } = true;
+        public bool ShowMeetings { get; set; } = true;
+        public bool ShowToDos { get; set; } = true;
+        public bool ShowBirthdays { get; set; } = true;
+        public bool ShowPublicHolidays { get; set; } = true;
+        public bool ShowProjectMilestones { get; set; } = true;
+        public bool ShowLeave { get; set; } = true;
+        public bool ShowOrderDeliveries { get; set; } = true;
     }
 }

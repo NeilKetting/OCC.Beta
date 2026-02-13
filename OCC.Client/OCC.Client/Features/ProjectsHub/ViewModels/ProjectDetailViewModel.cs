@@ -57,9 +57,6 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 
         [ObservableProperty]
         private ProjectDashboardViewModel _dashboardVM;
-
-        [ObservableProperty]
-        private ProjectCalendarViewModel _calendarVM;
         
         [ObservableProperty]
         private ProjectVariationOrderListViewModel _variationOrderVM;
@@ -105,7 +102,6 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel();
             _dashboardVM = new ProjectDashboardViewModel();
-            _calendarVM = new ProjectCalendarViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel();
             _currentView = _listVM;
         }
@@ -121,7 +117,6 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
             _dashboardVM = new ProjectDashboardViewModel();
-            _calendarVM = new ProjectCalendarViewModel(serviceProvider.GetRequiredService<IHolidayService>(), _projectManager);
             _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
 
             _currentView = _dashboardVM;
@@ -180,7 +175,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             }
         }
 
-        private void LoadTaskDetail(ProjectTask task, bool pin)
+        private async void LoadTaskDetail(ProjectTask task, bool pin)
         {
             if (task == null) return; 
 
@@ -195,11 +190,11 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             var vm = _serviceProvider.GetRequiredService<TaskDetailViewModel>();
             if (task.Id == Guid.Empty)
             {
-                vm.InitializeForCreation(CurrentProjectId);
+                await vm.InitializeForCreation(CurrentProjectId);
             }
             else
             {
-                vm.LoadTaskModel(task);
+                await vm.LoadTaskModel(task);
             }
             vm.CloseRequested += TaskDetailVM_CloseRequested;
             
@@ -236,12 +231,12 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             OpenNewTaskPopup();
         }
 
-        private void OpenNewTaskPopup()
+        private async void OpenNewTaskPopup()
         {
             if (CurrentProjectId == Guid.Empty) return;
 
             var vm = _serviceProvider.GetRequiredService<TaskDetailViewModel>();
-            vm.InitializeForCreation(CurrentProjectId);
+            await vm.InitializeForCreation(CurrentProjectId);
             vm.CloseRequested += TaskDetailVM_CloseRequested;
             
             SelectedTaskDetailVM = vm;
@@ -303,7 +298,6 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     RefreshDisplayList();
                     GanttVM.LoadTasks(projectId);
                     DashboardVM.UpdateProjectData(project, tasks);
-                    CalendarVM.LoadProject(projectId);
                     VariationOrderVM.LoadProject(projectId);
                 });
             }
@@ -333,9 +327,6 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                         break;
                     case "Dashboard":
                         CurrentView = DashboardVM;
-                        break;
-                    case "Calendar":
-                        CurrentView = CalendarVM;
                         break;
                     case "Sheet":
                         CurrentView = VariationOrderVM;

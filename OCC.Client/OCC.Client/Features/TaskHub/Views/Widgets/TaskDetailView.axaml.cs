@@ -37,6 +37,7 @@ namespace OCC.Client.Features.TaskHub.Views.Widgets
 
         private void DragOver(object? sender, DragEventArgs e)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             if (e.Data.Contains(DataFormats.Files))
             {
                e.DragEffects = DragDropEffects.Copy;
@@ -45,18 +46,21 @@ namespace OCC.Client.Features.TaskHub.Views.Widgets
             {
                e.DragEffects = DragDropEffects.None;
             }
+            #pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private void Drop(object? sender, DragEventArgs e)
         {
+            #pragma warning disable CS0618 // Type or member is obsolete
             if (DataContext is TaskDetailViewModel vm && e.Data.Contains(DataFormats.Files))
             {
-                var files = e.Data.Get(DataFormats.Files);
+                var files = e.Data.GetFiles();
                 if (files != null)
                 {
                     vm.UploadFilesCommand.Execute(files);
                 }
             }
+            #pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private async void Browse_Click(object? sender, RoutedEventArgs e)

@@ -24,6 +24,9 @@
             <conv:NullToBoolConverter x:Key="NullToBoolConverter"/>
             <conv:DoubleToStarGridLengthConverter x:Key="DoubleToStarGridLengthConverter"/>
             <conv:BranchToColorConverter x:Key="BranchToColorConverter"/>
+            <conv:StringToTitleCaseConverter x:Key="StringToTitleCaseConverter"/>
+            <conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
+            <conv:EqualsConverter x:Key="EqualsConverter"/>
 
             <!-- Font Sizes -->
             <x:Double x:Key="FontSizeXS">8</x:Double>

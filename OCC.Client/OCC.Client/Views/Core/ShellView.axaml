@@ -5,6 +5,7 @@
 			 xmlns:vm="clr-namespace:OCC.Client.ViewModels.Core;assembly=OCC.Client"
 			 xmlns:vmShared="clr-namespace:OCC.Client.ViewModels.Shared;assembly=OCC.Client"
 			 xmlns:viewsShared="using:OCC.Client.Views.Shared"
+			 xmlns:viewWidgets="clr-namespace:OCC.Client.Features.TaskHub.Views.Widgets;assembly=OCC.Client"
 			 xmlns:core="clr-namespace:OCC.Client.Views.Core"
 			 mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
 			 x:Class="OCC.Client.Views.Core.ShellView"
@@ -84,7 +85,7 @@
 							<PathIcon Data="{StaticResource IconList}" Width="16" Height="16"/>
 						</MenuItem.Icon>
 					</MenuItem>
-					<MenuItem Header="Bug Reports" Command="{Binding SideMenuViewModel.ViewBugsCommand}">
+					<MenuItem Header="Bug Reports" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="BugList">
 						<MenuItem.Icon>
 							<PathIcon Data="{StaticResource IconBug}" Width="16" Height="16"/>
 						</MenuItem.Icon>
@@ -95,6 +96,16 @@
 				<MenuItem Header="_About" Command="{Binding AboutCommand}">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconInformation}" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Support Center" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="SupportCenter">
+					<MenuItem.Icon>
+						<PathIcon Data="{StaticResource IconHelp}" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Reported Bugs" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="BugList">
+					<MenuItem.Icon>
+						<PathIcon Data="{StaticResource IconList}" Width="16" Height="16"/>
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator/>
@@ -209,6 +220,14 @@
 							</DataTemplate>
 						</ContentControl.DataTemplates>
 					</ContentControl>
+				</Grid>
+
+				<!-- Global Task Detail Overlay -->
+				<Grid Grid.Row="1" IsVisible="{Binding IsTaskDetailVisible}" ZIndex="300" 
+					  Background="#40000000" Name="OverlayGrid" PointerPressed="OnOverlayPointerPressed">
+					<viewWidgets:TaskDetailView x:Name="TaskDetailView" DataContext="{Binding CurrentTaskDetail}"
+												Width="1000"
+												HorizontalAlignment="Right"/>
 				</Grid>
 
 				<!-- Bottom Status Bar -->

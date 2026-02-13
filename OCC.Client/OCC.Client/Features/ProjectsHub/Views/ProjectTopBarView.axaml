@@ -150,12 +150,6 @@
 						</Grid>
 					</Button>
 
-					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Calendar" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Calendar'}" IsVisible="{Binding CanAccessCalendar}">
-						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconCalendar}" Classes="IconStyle" Width="16" Height="16"/>
-							<TextBlock Text="CALENDAR" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
 
 					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Files" Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Files'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">

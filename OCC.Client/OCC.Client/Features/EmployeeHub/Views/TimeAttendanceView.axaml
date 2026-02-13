@@ -25,9 +25,6 @@
 		<DataTemplate DataType="{x:Type vm:LeaveApplicationViewModel}">
 			<viewTime:LeaveApplicationView/>
 		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:LeaveCalendarViewModel}">
-			<viewTime:LeaveCalendarView/>
-		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:LeaveApprovalViewModel}">
 			<viewTime:LeaveApprovalView/>
 		</DataTemplate>

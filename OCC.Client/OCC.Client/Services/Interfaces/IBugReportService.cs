@@ -8,7 +8,8 @@ namespace OCC.Client.Services.Interfaces
     public interface IBugReportService
     {
         Task SubmitBugAsync(BugReport report);
-        Task<List<BugReport>> GetBugReportsAsync();
+        Task<IEnumerable<BugReport>> GetBugReportsAsync(bool includeArchived);
+        Task<IEnumerable<BugReport>> SearchSolutionsAsync(string query);
         Task<BugReport?> GetBugReportAsync(Guid id);
         Task AddCommentAsync(Guid bugId, string comment, string? status);
         Task DeleteBugAsync(Guid bugId);

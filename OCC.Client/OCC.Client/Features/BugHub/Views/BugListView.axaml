@@ -14,57 +14,117 @@
                 <!-- List Header / Filter -->
                 <Border Padding="20,15" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
                     <StackPanel Spacing="12">
-                        <Grid ColumnDefinitions="*, Auto">
+                        <Grid ColumnDefinitions="*, Auto, Auto">
                             <TextBlock Text="Bug Reports" Classes="H1" FontSize="20"/>
                             <Button Grid.Column="1" Command="{Binding LoadBugsCommand}" Classes="IconButton" VerticalAlignment="Center" ToolTip.Tip="Refresh List">
                                 <PathIcon Data="{StaticResource IconHistory}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
                             </Button>
-                            <Button Grid.Column="2" Command="{Binding OpenLogFolderCommand}" Classes="IconButton" VerticalAlignment="Center" Margin="5,0,0,0" ToolTip.Tip="Open Logs Folder">
-                                <PathIcon Data="{StaticResource IconFile}" Width="14" Height="14" Foreground="{DynamicResource TextTertiarySlate}"/>
-                            </Button>
+                            <CheckBox Grid.Column="2" IsChecked="{Binding IncludeArchived}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                      IsVisible="{Binding IsDev}" ToolTip.Tip="Include Resolved/Closed">
+                                <TextBlock Text="Archived" FontSize="11"/>
+                            </CheckBox>
                         </Grid>
                         
                         <!-- Filters -->
                         <TextBox Text="{Binding SearchText}" Watermark="Search issues..." Classes="FormInput"/>
-                        <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" 
-                                  HorizontalAlignment="Stretch"/>
-                        <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SortOption}"
-                                  HorizontalAlignment="Stretch" PlaceholderText="Sort By" />
+                        <Grid ColumnDefinitions="*, *">
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" 
+                                      HorizontalAlignment="Stretch" Margin="0,0,4,0"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SortOption}"
+                                      HorizontalAlignment="Stretch" Margin="4,0,0,0" PlaceholderText="Sort By" />
+                        </Grid>
 
-                        <TextBlock Text="{Binding Bugs.Count, StringFormat='{}{0} Issues'}" Classes="LabelXSM"/>
+                        <TextBlock Text="{Binding Bugs.Count, StringFormat='{}{0} Issues Found'}" Classes="LabelXSM" Opacity="0.6"/>
                     </StackPanel>
                 </Border>
 
-                <!-- List -->
-                <ListBox Grid.Row="1" ItemsSource="{Binding Bugs}" SelectedItem="{Binding SelectedBug}"
-                         Background="Transparent" BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="15,12" Background="Transparent">
-                                <StackPanel Spacing="8">
-                                    <Grid ColumnDefinitions="*, Auto, Auto">
-                                        <TextBlock Text="{Binding ReporterName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                        <Border Grid.Column="1" HorizontalAlignment="Right" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
-                                                Background="{Binding Type, Converter={StaticResource TypeToColorConverter}, FallbackValue='#64748B'}"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Type}" Foreground="White" FontSize="10" FontWeight="Bold"/>
-                                        </Border>
-                                        <TextBlock Grid.Column="2" Text="{Binding ReportedDate, StringFormat='{}{0:MMM dd}'}" 
-                                                   Classes="LabelXSM" VerticalAlignment="Center"/>
-                                    </Grid>
-                                    <TextBlock Text="{Binding ViewName}" Classes="LabelXSM" Foreground="{DynamicResource PrimaryTeal}"/>
-                                    <TextBlock Text="{Binding Description}" MaxLines="2" TextTrimming="CharacterEllipsis" 
-                                               FontSize="12" Foreground="{DynamicResource TextSecondaryDark}"/>
-                                    
-                                    <Border HorizontalAlignment="Left" CornerRadius="4" Padding="6,2" 
-                                            Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}">
-                                        <TextBlock Text="{Binding Status}" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                <!-- Grouped List -->
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding GroupedBugs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <!-- Group Header -->
+                                    <Border Background="#EDF2F7" Padding="15,4" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="11" Foreground="#4A5568" LetterSpacing="1"/>
                                     </Border>
+                                    
+                                    <!-- Items in Group -->
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Background="Transparent" Padding="0" BorderThickness="0" 
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                        Command="{Binding $parent[UserControl].((vm:BugListViewModel)DataContext).SelectBugCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.ContextMenu>
+                                                        <ContextMenu x:DataType="vm:BugListViewModel" DataContext="{Binding $parent[UserControl].DataContext}">
+                                                            <MenuItem Header="Move to In Progress" Command="{Binding MoveToInProgressCommand}" IsVisible="{Binding IsDev}">
+                                                                <MenuItem.Icon>
+                                                                    <PathIcon Data="{StaticResource IconPlay}" Width="12" Height="12"/>
+                                                                </MenuItem.Icon>
+                                                            </MenuItem>
+                                                            <MenuItem Header="Move to Planning" Command="{Binding MoveToPlanningCommand}" IsVisible="{Binding IsDev}">
+                                                                <MenuItem.Icon>
+                                                                    <PathIcon Data="{StaticResource IconCalendar}" Width="12" Height="12"/>
+                                                                </MenuItem.Icon>
+                                                            </MenuItem>
+                                                            <MenuItem Header="Feature Update" Command="{Binding MoveToFeatureUpdateCommand}" IsVisible="{Binding IsDev}">
+                                                                <MenuItem.Icon>
+                                                                    <PathIcon Data="{StaticResource IconPlus}" Width="12" Height="12"/>
+                                                                </MenuItem.Icon>
+                                                            </MenuItem>
+                                                            <Separator IsVisible="{Binding IsDev}"/>
+                                                            <MenuItem Header="Request Info" Command="{Binding RequestInfoCommand}" IsVisible="{Binding IsDev}"/>
+                                                            <MenuItem Header="Mark Fixed" Command="{Binding MarkFixedCommand}" IsVisible="{Binding IsDev}"/>
+                                                            <MenuItem Header="Close Bug" Command="{Binding CloseBugCommand}" IsVisible="{Binding IsDev}"/>
+                                                            <Separator IsVisible="{Binding IsDev}"/>
+                                                            <MenuItem Header="Delete Bug" Command="{Binding DeleteBugCommand}" IsVisible="{Binding IsDev}" Foreground="{DynamicResource Danger}">
+                                                                <MenuItem.Icon>
+                                                                    <PathIcon Data="{StaticResource IconTrash}" Width="12" Height="12" Foreground="{DynamicResource Danger}"/>
+                                                                </MenuItem.Icon>
+                                                            </MenuItem>
+                                                        </ContextMenu>
+                                                    </Button.ContextMenu>
+                                                    
+                                                    <Border Padding="15,12" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
+                                                        <Grid>
+                                                            <!-- Selection Indicator -->
+                                                            <Border Width="4" HorizontalAlignment="Left" Margin="-15,-12,0,-12"
+                                                                    Background="{DynamicResource PrimaryTeal}">
+                                                                <Border.IsVisible>
+                                                                    <MultiBinding Converter="{StaticResource EqualsConverter}">
+                                                                        <Binding Path="$parent[UserControl].((vm:BugListViewModel)DataContext).SelectedBug.Id"/>
+                                                                        <Binding Path="Id"/>
+                                                                    </MultiBinding>
+                                                                </Border.IsVisible>
+                                                            
+                                                            <StackPanel Spacing="8">
+                                                                <Grid ColumnDefinitions="*, Auto, Auto">
+                                                                    <TextBlock Text="{Binding ReporterName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                                                                    <Border Grid.Column="1" HorizontalAlignment="Right" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
+                                                                            Background="{Binding Type, Converter={StaticResource TypeToColorConverter}, FallbackValue='#64748B'}"
+                                                                            VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding Type}" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                                                    </Border>
+                                                                    <TextBlock Grid.Column="2" Text="{Binding ReportedDate, StringFormat='{}{0:MMM dd}'}" 
+                                                                               Classes="LabelXSM" VerticalAlignment="Center"/>
+                                                                </Grid>
+                                                                <TextBlock Text="{Binding ViewName}" Classes="LabelXSM" Foreground="{DynamicResource PrimaryTeal}"/>
+                                                                <TextBlock Text="{Binding Description}" MaxLines="2" TextTrimming="CharacterEllipsis" 
+                                                                           FontSize="12" Foreground="{DynamicResource TextSecondaryDark}"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
                                 </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
 
                 <!-- Loading Overlay -->
                 <ProgressBar Grid.Row="1" IsIndeterminate="True" IsVisible="{Binding IsBusy}" VerticalAlignment="Top" Height="2"

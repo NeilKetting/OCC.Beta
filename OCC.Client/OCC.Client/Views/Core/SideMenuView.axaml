@@ -111,6 +111,14 @@
 						</StackPanel>
 					</Button>
 
+					<!-- Global Calendar Link -->
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Calendar" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Calendar'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewCalendar}">
+						<StackPanel Orientation="Horizontal" Spacing="15">
+							<PathIcon Data="{StaticResource IconCalendar}" Classes="IconStyle"/>
+							<TextBlock Text="Global Calendar" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+
 					<!-- Time & Attendance Link -->
 					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}"
 							Command="{Binding NavigateCommand}"
@@ -177,13 +185,9 @@
 					</StackPanel>
 				</Button>
 
-				<!-- Reported Bugs Link (Duplicated for visibility) -->
-				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding ViewBugsCommand}" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Bugs'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanAccessBugs}">
-					<StackPanel Orientation="Horizontal" Spacing="15">
-						<PathIcon Data="{StaticResource IconBug}" Classes="IconStyle"/>
-						<TextBlock Text="Reported Bugs" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
+
+
+
 
 				<!-- Notifications Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">

@@ -28,9 +28,6 @@
 		<DataTemplate DataType="{x:Type vmTasks:TaskListViewModel}">
 			<viewList:TaskListView/>
 		</DataTemplate>
-		<DataTemplate DataType="{x:Type vmCal:CalendarViewModel}">
-			<viewCal:CalendarView/>
-		</DataTemplate>
 	</UserControl.DataTemplates>
 
 	<Grid>

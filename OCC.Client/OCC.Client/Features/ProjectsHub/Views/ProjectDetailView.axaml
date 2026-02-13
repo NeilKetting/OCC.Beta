@@ -221,11 +221,6 @@
 			<proj:ProjectDashboardView/>
 		</DataTemplate>
 
-		<!-- Calendar View Template -->
-		<DataTemplate DataType="{x:Type vm:ProjectCalendarViewModel}" x:DataType="vm:ProjectCalendarViewModel">
-			<proj:ProjectCalendarView/>
-		</DataTemplate>
-
 		<!-- Variation Order View Template -->
 		<DataTemplate DataType="{x:Type vm:ProjectVariationOrderListViewModel}" x:DataType="vm:ProjectVariationOrderListViewModel">
 			<proj:ProjectVariationOrderListView/>

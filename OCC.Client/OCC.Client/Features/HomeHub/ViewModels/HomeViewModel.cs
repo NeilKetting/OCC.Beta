@@ -10,6 +10,7 @@ using OCC.Client.ViewModels.Messages;
 using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Shared.Models;
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
@@ -53,10 +54,6 @@ namespace OCC.Client.Features.HomeHub.ViewModels
         [ObservableProperty]
         private MySummaryPageViewModel _mySummaryPage;
 
-
-        [ObservableProperty]
-        private Calendar.CalendarViewModel _calendar;
-
         [ObservableProperty]
         private TaskListViewModel _taskList;
 
@@ -94,7 +91,6 @@ namespace OCC.Client.Features.HomeHub.ViewModels
             Greeting = "Good day, User";
             _homeMenu = null!;
             _mySummaryPage = null!;
-            _calendar = null!;
             _taskList = null!;
             _currentView = null!;
             _authService = null!;
@@ -158,20 +154,18 @@ namespace OCC.Client.Features.HomeHub.ViewModels
             
             // Initialize Pages
             MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks);
-            Calendar = new Calendar.CalendarViewModel(_projectTaskRepository, _projectRepository, _authService);
             TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
             TaskList.MyTasksOnly = true;
             
             // Subscribe to selection
-            TaskList.TaskSelectionRequested += (s, idString) => 
+            TaskList.TaskSelectionRequested += async (s, idString) => 
             {
                 if (Guid.TryParse(idString, out var guid))
-                    OpenTaskDetail(guid);
+                    await OpenTaskDetail(guid);
             };
 
             WeakReferenceMessenger.Default.Register<CreateProjectMessage>(this, (r, m) => OpenCreateProject());
-            WeakReferenceMessenger.Default.Register<CreateNewTaskMessage>(this, (r, m) => OpenNewTaskPopup(m.ProjectId, m.InitialDate));
-            WeakReferenceMessenger.Default.Register<TaskSelectedMessage>(this, (r, m) => OpenTaskDetail(m.TaskId));
+            WeakReferenceMessenger.Default.Register<TaskSelectedMessage>(this, async (r, m) => await OpenTaskDetail(m.TaskId));
 
             HomeMenu.PropertyChanged += HomeMenu_PropertyChanged;
 
@@ -183,11 +177,11 @@ namespace OCC.Client.Features.HomeHub.ViewModels
         #region Commands
 
         [RelayCommand]
-        private void OpenTaskDetail(Guid taskId)
+        private async Task OpenTaskDetail(Guid taskId)
         {
             CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _attachmentService, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
-            CurrentTaskDetail.LoadTaskById(taskId);
+            await CurrentTaskDetail.LoadTaskById(taskId);
             IsTaskDetailVisible = true;
         }
 
@@ -224,9 +218,6 @@ namespace OCC.Client.Features.HomeHub.ViewModels
         {
             switch (HomeMenu.ActiveTab)
             {
-                case "Calendar": 
-                    CurrentView = Calendar;
-                    break;
                 case "List":
                     CurrentView = TaskList;
                     break;
@@ -246,7 +237,7 @@ namespace OCC.Client.Features.HomeHub.ViewModels
             };
 
             await _projectTaskRepository.AddAsync(newTask);
-            OpenTaskDetail(newTask.Id);
+            await OpenTaskDetail(newTask.Id);
         }
 
         private string GetGreeting(DateTime time)
@@ -258,11 +249,11 @@ namespace OCC.Client.Features.HomeHub.ViewModels
             return $"{timeGreeting}, {userName}";
         }
 
-        private void OpenNewTaskPopup(Guid? projectId = null, DateTime? initialDate = null)
+        private async void OpenNewTaskPopup(Guid? projectId = null, DateTime? initialDate = null)
         {
             CurrentTaskDetail = new TaskDetailViewModel(_projectTaskRepository, _staffRepository, _teamRepository, _userRepository, _projectRepository, _taskAssignmentRepository, _commentRepository, _attachmentService, _dialogService, _authService);
             CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
-            CurrentTaskDetail.InitializeForCreation(projectId, null, initialDate);
+            await CurrentTaskDetail.InitializeForCreation(projectId, null, initialDate);
             IsTaskDetailVisible = true;
         }
 

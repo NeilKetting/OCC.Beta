@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace OCC.Client.Services
 {
@@ -15,12 +16,14 @@ namespace OCC.Client.Services
         private readonly HttpClient _httpClient;
         private readonly IAuthService _authService;
         private readonly IPermissionService _permissionService;
+        private readonly Microsoft.Extensions.Logging.ILogger<BugReportService> _logger;
         
-        public BugReportService(HttpClient httpClient, IAuthService authService, IPermissionService permissionService)
+        public BugReportService(HttpClient httpClient, IAuthService authService, IPermissionService permissionService, Microsoft.Extensions.Logging.ILogger<BugReportService> logger)
         {
             _httpClient = httpClient;
             _authService = authService;
             _permissionService = permissionService;
+            _logger = logger;
         }
 
         private void EnsureAuthorization()
@@ -39,10 +42,26 @@ namespace OCC.Client.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<List<BugReport>> GetBugReportsAsync()
+        public async Task<IEnumerable<BugReport>> GetBugReportsAsync(bool includeArchived = false)
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<List<BugReport>>("api/BugReports") ?? new List<BugReport>();
+            var url = $"api/BugReports?includeArchived={includeArchived}";
+            return await _httpClient.GetFromJsonAsync<List<BugReport>>(url) ?? new List<BugReport>();
+        }
+
+        public async Task<IEnumerable<BugReport>> SearchSolutionsAsync(string query)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/BugReports/solutions?q={Uri.EscapeDataString(query)}");
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<IEnumerable<BugReport>>() ?? new List<BugReport>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching solutions");
+                return new List<BugReport>();
+            }
         }
 
         public async Task<BugReport?> GetBugReportAsync(Guid id)

@@ -4,11 +4,12 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Features.HomeHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels.Dashboard;
-using OCC.Client.Features.HomeHub.ViewModels.Calendar;
 using OCC.Client.Features.HomeHub.ViewModels.Shared;
 using OCC.Client.Features.HseqHub.ViewModels;
 using OCC.Client.Features.OrdersHub.ViewModels;
 using OCC.Client.Features.ProjectsHub.ViewModels;
+using OCC.Client.Features.CalendarHub.ViewModels;
+using OCC.Client.Features.TaskHub.ViewModels;
 using OCC.Client.Features.BugHub.ViewModels; // Added
 using OCC.Client.Features.EmployeeHub.ViewModels;
 using OCC.Client.Features.CustomerHub.ViewModels;
@@ -72,7 +73,8 @@ namespace OCC.Client.ViewModels.Core
         IRecipient<OpenProfileMessage>,
         IRecipient<ToastNotificationMessage>,
         IRecipient<OpenBugReportMessage>,
-        IRecipient<ProjectSettingsRequestedMessage>
+        IRecipient<ProjectSettingsRequestedMessage>,
+        IRecipient<CreateNewTaskMessage>
     {
 
         #region Private Members
@@ -148,6 +150,12 @@ namespace OCC.Client.ViewModels.Core
 
         [ObservableProperty]
         private bool _isNotificationOpen;
+
+        [ObservableProperty]
+        private TaskDetailViewModel? _currentTaskDetail;
+
+        [ObservableProperty]
+        private bool _isTaskDetailVisible;
 
         [ObservableProperty]
         private bool _isAuthenticated;
@@ -737,8 +745,8 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconTime");
                     break;
                 case NavigationRoutes.Calendar: 
-                    vm = _serviceProvider.GetRequiredService<CalendarViewModel>();
-                    title = "Calendar";
+                    vm = _serviceProvider.GetRequiredService<CalendarHubViewModel>();
+                    title = "Global Calendar";
                     icon = GetResource("IconCalendar");
                     break;
                 case NavigationRoutes.UserManagement:
@@ -822,14 +830,30 @@ namespace OCC.Client.ViewModels.Core
                     icon = GetResource("IconGear");
                     break;
                 case NavigationRoutes.Feature_BugReports:
-                    vm = _serviceProvider.GetRequiredService<BugListViewModel>();
-                    title = "Bugs";
+                    {
+                        var email = _authService.CurrentUser?.Email?.ToLowerInvariant();
+                        if (email == "neil@mdk.co.za") 
+                        {
+                            vm = _serviceProvider.GetRequiredService<BugListViewModel>();
+                            title = "Bug Hub (Dev)";
+                        }
+                        else 
+                        {
+                            vm = _serviceProvider.GetRequiredService<SupportCenterViewModel>();
+                            title = "Support Center";
+                        }
+                    }
                     icon = GetResource("IconBug");
                     break;
                 case NavigationRoutes.Developer:
                     vm = _serviceProvider.GetRequiredService<ViewModels.Developer.DeveloperViewModel>();
                     title = "Developer";
                     icon = GetResource("IconM");
+                    break;
+                case NavigationRoutes.SupportCenter:
+                    vm = _serviceProvider.GetRequiredService<SupportCenterViewModel>();
+                    title = "Support Center";
+                    icon = GetResource("IconBug");
                     break;
                  default:
                     vm = _serviceProvider.GetRequiredService<HomeViewModel>();
@@ -922,7 +946,7 @@ namespace OCC.Client.ViewModels.Core
 
         public void Receive(OpenBugReportMessage message)
         {
-            NavigateTo("BugList");
+            NavigateTo(Infrastructure.NavigationRoutes.Feature_BugReports);
         }
 
         public void Receive(ProjectSettingsRequestedMessage message)
@@ -995,5 +1019,25 @@ namespace OCC.Client.ViewModels.Core
         public record UserDisplayModel(string Name, string TimeOnline, Avalonia.Media.IBrush StatusColor);
 
         #endregion
+        public void Receive(CreateNewTaskMessage message)
+        {
+            // Instead of navigating, we open the overlay globally
+            OpenNewTaskPopup(message.ProjectId, message.InitialDate);
+        }
+
+        private async void OpenNewTaskPopup(Guid? projectId = null, DateTime? initialDate = null)
+        {
+            CurrentTaskDetail = _serviceProvider.GetRequiredService<TaskDetailViewModel>();
+            CurrentTaskDetail.CloseRequested += (s, e) => CloseTaskDetail();
+            await CurrentTaskDetail.InitializeForCreation(projectId, null, initialDate);
+            IsTaskDetailVisible = true;
+        }
+
+        [RelayCommand]
+        private void CloseTaskDetail()
+        {
+            IsTaskDetailVisible = false;
+            CurrentTaskDetail = null;
+        }
     }
 }

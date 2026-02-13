@@ -37,19 +37,20 @@ namespace OCC.API.Controllers
         // GET: api/BugReports
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<BugReport>>> GetBugReports()
+        public async Task<ActionResult<IEnumerable<BugReport>>> GetBugReports([FromQuery] bool includeArchived = false)
         {
             if (!HasViewAccess(out bool isDev))
             {
                 return Forbid();
             }
 
-            var query = _context.BugReports.Include(b => b.Comments).AsQueryable();
+            var query = _context.BugReports.AsQueryable();
 
-            // Normal users don't see Closed bugs to keep list clean
-            if (!isDev)
+            // Normal users don't see Closed bugs in their active list to keep it clean
+            // If includeArchived is true (dev only), they see everything
+            if (!isDev || !includeArchived)
             {
-                query = query.Where(b => b.Status != "Closed");
+                query = query.Where(b => b.Status != "Closed" && b.Status != "Resolved");
             }
 
             var list = await query
@@ -57,8 +58,12 @@ namespace OCC.API.Controllers
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Optimization: Don't send heavy screenshots in the list view
-            list.ForEach(b => b.ScreenshotBase64 = null);
+            // Optimization: Don't send heavy screenshots OR comments in the list view
+            list.ForEach(b => 
+            {
+                b.ScreenshotBase64 = null;
+                b.Comments = new List<BugComment>(); // Exclude comments from list for performance
+            });
 
             return list;
         }
@@ -131,6 +136,9 @@ namespace OCC.API.Controllers
             _context.BugReports.Remove(bugReport);
             await _context.SaveChangesAsync();
 
+            // Broadcast real-time update
+            await _hubContext.Clients.All.SendAsync("EntityUpdate", "BugReport", "Delete", id);
+
             return NoContent();
         }
 
@@ -193,7 +201,10 @@ namespace OCC.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Notify...
+            // Real-time broadcast for comments and status changes
+            await _hubContext.Clients.All.SendAsync("EntityUpdate", "BugReport", "Update", id);
+
+            // Notify UI...
             // If Dev replied -> Notify Reporter
             // If Reporter replied -> Notify Dev (Neil)
             
@@ -229,6 +240,41 @@ namespace OCC.API.Controllers
             }
 
             return Ok(comment);
+        }
+
+        // GET: api/BugReports/solutions?q=example
+        [HttpGet("solutions")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<BugReport>>> GetSolutions([FromQuery] string q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return Ok(new List<BugReport>());
+
+            var query = _context.BugReports
+                .Include(b => b.Comments)
+                .Where(b => b.Status == "Fixed" || b.Status == "Resolved" || b.Status == "Closed")
+                .AsQueryable();
+
+            // Case-insensitive search in various fields
+            var search = q.ToLower();
+            var results = await query
+                .Where(b => b.Description.ToLower().Contains(search) || 
+                            b.ViewName.ToLower().Contains(search) || 
+                            b.Comments.Any(c => c.Content.ToLower().Contains(search)))
+                .OrderByDescending(b => b.ReportedDate)
+                .Take(15)
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Strip heavy data for list view
+            foreach (var r in results)
+            {
+                r.ScreenshotBase64 = null;
+                // Keep only the last few comments as they likely contain the fix/explanation
+                if (r.Comments.Count > 1) 
+                    r.Comments = r.Comments.OrderBy(c => c.CreatedAtUtc).TakeLast(2).ToList();
+            }
+
+            return results;
         }
 
         #endregion

@@ -21,6 +21,7 @@ namespace OCC.Client.Infrastructure
         public const string UserPreferences = "UserPreferences";
         public const string HealthSafety = "HealthSafety";
         public const string Alerts = "Alerts";
+        public const string SupportCenter = "SupportCenter";
         
         // Special Feature Permission Keys (non-navigation)
         public const string Feature_WageViewing = "WageViewing";

@@ -57,13 +57,6 @@
                 </StackPanel>
             </Button>
             
-            <Button Classes="PopupMenuButton" Command="{Binding ViewBugsCommand}" IsVisible="{Binding CanAccessBugs}">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <PathIcon Data="{StaticResource IconBug}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
-                    <TextBlock Text="Reported Bugs" VerticalAlignment="Center" FontSize="14"/>
-                </StackPanel>
-            </Button>
-            
         </StackPanel>
     </Border>
 </UserControl>

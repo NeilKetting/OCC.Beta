@@ -36,7 +36,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
-        [ObservableProperty] private LeaveCalendarViewModel _leaveCalendarVM; // Renamed
         [ObservableProperty] private WageRunViewModel _wageRunVM; // Added
 
         [ObservableProperty]
@@ -60,7 +59,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             _leaveApprovalVM = null!;
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
-            _leaveCalendarVM = null!; // Renamed
             _wageRunVM = null!;
             _currentView = null!;
 
@@ -76,7 +74,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             LeaveApprovalViewModel leaveApprovalViewModel,
             OvertimeViewModel overtimeViewModel, // Kept one
             OvertimeApprovalViewModel overtimeApprovalViewModel, // Kept one
-            LeaveCalendarViewModel leaveCalendarViewModel, // Renamed
             WageRunViewModel wageRunViewModel,
             IAuthService authService)
         {
@@ -88,7 +85,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             _leaveApprovalVM = leaveApprovalViewModel;
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
-            _leaveCalendarVM = leaveCalendarViewModel; // Renamed
             _wageRunVM = wageRunViewModel;
             _authService = authService;
             
@@ -142,9 +138,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                     break;
                 case NavigationRoutes.Feature_LeaveApproval:
                     CurrentView = LeaveApprovalVM;
-                    break;
-                case NavigationRoutes.Calendar: // Added
-                    CurrentView = LeaveCalendarVM;
                     break;
                 case "WageRun":
                     CurrentView = WageRunVM;

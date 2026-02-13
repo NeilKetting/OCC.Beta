@@ -1,23 +1,19 @@
-using OCC.Client.Features.TaskHub.ViewModels;
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using OCC.Shared.Enums;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Linq;
-using OCC.Client.Services;
-using OCC.Shared.Models;
-using System.Threading.Tasks;
-using System.Threading;
-
+using OCC.Client.ModelWrappers;
 using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
-using OCC.Client.ModelWrappers;
 using OCC.Client.ViewModels.Messages;
+using OCC.Shared.Enums;
+using OCC.Shared.Models;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OCC.Client.Features.TaskHub.ViewModels
 {
@@ -221,11 +217,11 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// </summary>
         /// <param name="subtask">The subtask to open.</param>
         [RelayCommand]
-        private void OpenSubtask(ProjectTask subtask)
+        private async Task OpenSubtask(ProjectTask subtask)
         {
              if (subtask != null)
              {
-                 LoadTaskModel(subtask);
+                 await LoadTaskModel(subtask);
              }
         }
 
@@ -445,7 +441,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// Loads a task by its ID from the repository and initializes all related resources.
         /// </summary>
         /// <param name="taskId">The GUID of the task to load.</param>
-        public async void LoadTaskById(Guid taskId)
+        public async Task LoadTaskById(Guid taskId)
         {
             try 
             {
@@ -456,7 +452,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
                 var task = await _projectTaskRepository.GetByIdAsync(taskId);
                 if (task != null) 
                 {
-                    LoadTaskModel(task);
+                    await LoadTaskModel(task);
                 }
                 else
                 {
@@ -477,7 +473,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// <summary>
         /// Initializes the ViewModel for creating a new task.
         /// </summary>
-        public async void InitializeForCreation(Guid? projectId = null, Guid? parentTaskId = null, DateTime? initialDate = null)
+        public async Task InitializeForCreation(Guid? projectId = null, Guid? parentTaskId = null, DateTime? initialDate = null)
         {
             try 
             {
@@ -572,7 +568,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             {
                 IsBusy = false;
                 // Keep suppressing for a short duration to let UI bindings settle
-                await System.Threading.Tasks.Task.Delay(500);
+                await System.Threading.Tasks.Task.Delay(1000);
                 _isSuppressingUpdates = false;
             }
         }
@@ -581,7 +577,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// Loads a specific task model directly, preserving any child hierarchies already built.
         /// </summary>
         /// <param name="task">The pre-populated ProjectTask model.</param>
-        public async void LoadTaskModel(ProjectTask task)
+        public async Task LoadTaskModel(ProjectTask task)
         {
             if (task == null) return;
 
@@ -625,8 +621,9 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             {
                 IsBusy = false;
                 // Keep suppressing for a short duration to let UI bindings settle
-                await System.Threading.Tasks.Task.Delay(500);
+                await System.Threading.Tasks.Task.Delay(1000);
                 _isSuppressingUpdates = false;
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Update suppression lifted.");
             }
         }
 
@@ -735,7 +732,13 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// </summary>
         private async void Task_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (_isSuppressingUpdates) return;
+            if (_isSuppressingUpdates)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Suppressing change for {e.PropertyName}");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] Property Changed: {e.PropertyName}");
 
             // Debounce the update call to avoid spamming the server during typing or rapid clicks
             _debounceCts?.Cancel();
