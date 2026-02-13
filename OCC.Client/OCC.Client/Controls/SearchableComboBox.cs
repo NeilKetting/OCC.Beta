@@ -13,6 +13,8 @@ namespace OCC.Client.Controls
     [TemplatePart("PART_ToggleButton", typeof(Button))]
     public class SearchableComboBox : AutoCompleteBox
     {
+        private TextBox? _textBox;
+
         public static readonly StyledProperty<ICommand?> AddNewCommandProperty =
             AvaloniaProperty.Register<SearchableComboBox, ICommand?>(nameof(AddNewCommand));
 
@@ -58,6 +60,8 @@ namespace OCC.Client.Controls
             {
                 toggleButton.Click += ToggleButton_Click;
             }
+
+            _textBox = e.NameScope.Find<TextBox>("PART_TextBox");
         }
 
         private void ToggleButton_Click(object? sender, RoutedEventArgs e)
@@ -68,7 +72,8 @@ namespace OCC.Client.Controls
             }
             else
             {
-                Focus();
+
+                _textBox?.Focus();
                 // Logic to show all items when toggle is clicked
                 PopulateComplete();
                 IsDropDownOpen = true;

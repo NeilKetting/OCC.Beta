@@ -16,60 +16,63 @@
 
 	<Style Selector="controls|SearchableComboBox">
 		<Setter Property="VerticalAlignment" Value="Center" />
-		<Setter Property="Height" Value="32" />
+		<Setter Property="MinHeight" Value="32" />
 		<Setter Property="Padding" Value="0" />
-		<Setter Property="BorderThickness" Value="1" />
-		<Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLow}" />
+		<Setter Property="BorderThickness" Value="2" />
+		<Setter Property="BorderBrush" Value="#CCCCCC" />
 		<Setter Property="Background" Value="White" />
+		<Setter Property="MinimumPrefixLength" Value="0" />
 		<Setter Property="Template">
 			<ControlTemplate>
-				<Grid>
 					<Grid ColumnDefinitions="*, Auto">
 						<Border Name="PART_BorderElement"
 								Grid.ColumnSpan="2"
 								Background="{TemplateBinding Background}"
 								BorderBrush="{TemplateBinding BorderBrush}"
 								BorderThickness="{TemplateBinding BorderThickness}"
-								CornerRadius="4" />
+								CornerRadius="4">
+							
+							<Grid ColumnDefinitions="*, Auto">
+								<TextBox Name="PART_TextBox"
+										 Grid.Column="0"
+										 Padding="5,0"
+										 Watermark="{TemplateBinding Watermark}"
+										 BorderThickness="0"
+										 Background="Transparent"
+										 FocusAdorner="{x:Null}"
+										 VerticalContentAlignment="Center"
+										 MinHeight="0"
+										 FontSize="12" />
 
-						<TextBox Name="PART_TextBox"
-								 Grid.Column="0"
-								 Padding="8,0"
-								 Height="{TemplateBinding Height}"
-								 Watermark="{TemplateBinding Watermark}"
-								 BorderThickness="0"
-								 Background="Transparent"
-								 VerticalContentAlignment="Center"
-								 FontSize="12" />
-
-						<Border Grid.Column="1"
-								Width="1"
-								VerticalAlignment="Stretch"
-								Background="{DynamicResource ThemeBorderLow}"
-								Margin="0,4"
-								IsVisible="{TemplateBinding IsDropdownButtonVisible}"/>
-
-						<Button Name="PART_ToggleButton"
-								Grid.Column="1"
-								Width="30"
-								Height="{TemplateBinding Height}"
-								Background="LightGray"
-								BorderThickness="0"
-								CornerRadius="0,4,4,0"
-								Padding="0"
-								IsVisible="{TemplateBinding IsDropdownButtonVisible}"
-								Focusable="False"
-								Cursor="Hand">
-							<PathIcon Data="{StaticResource IconChevronDown}"
-									  Width="12"
-									  Height="12"
-									  Foreground="{DynamicResource TextSecondaryGray}" />
-						</Button>
-					</Grid>
+								<!-- Button with Left Border as Separator -->
+								<Button Name="PART_ToggleButton"
+										Grid.Column="1"
+										Width="30"
+										VerticalAlignment="Stretch"
+										Background="#F0F0F0"
+										BorderBrush="{TemplateBinding BorderBrush}"
+										BorderThickness="1,0,0,0"
+										CornerRadius="0,4,4,0"
+										Padding="0"
+										ZIndex="5"
+										MinHeight="0"
+										ClickMode="Press"
+										IsVisible="{TemplateBinding IsDropdownButtonVisible}"
+										Focusable="False"
+										Cursor="Hand">
+									<PathIcon Data="{StaticResource IconChevronDown}"
+											  Width="12"
+											  Height="12"
+											  IsHitTestVisible="False"
+											  Foreground="{DynamicResource TextSecondaryGray}" />
+								</Button>
+							</Grid>
+						</Border>
 
 					<Popup Name="PART_Popup"
 						   WindowManagerAddShadowHint="True"
 						   IsLightDismissEnabled="True"
+						   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
 						   PlacementTarget="{Binding ElementName=PART_BorderElement}"
 						   MinWidth="{Binding Bounds.Width, ElementName=PART_BorderElement}">
 						<Border Name="PART_SuggestionsContainer"
@@ -89,6 +92,7 @@
 										Background="Transparent"
 										Foreground="{DynamicResource PrimaryTeal}"
 										Command="{TemplateBinding AddNewCommand}"
+										Focusable="False"
 										IsVisible="{Binding !!AddNewCommand, RelativeSource={RelativeSource TemplatedParent}}">
 									<StackPanel Orientation="Horizontal" Spacing="8">
 										<PathIcon Data="{StaticResource IconPlus}" Width="10" Height="10" />
@@ -109,11 +113,13 @@
 										 Background="Transparent"
 										 ItemTemplate="{TemplateBinding ItemTemplate}"
 										 Padding="0,0,0,0"
+										 Focusable="False"
 										 MaxHeight="300">
 									<ListBox.Styles>
 										<Style Selector="ListBoxItem">
 											<Setter Property="Padding" Value="12,6" />
 											<Setter Property="FontSize" Value="12" />
+											<Setter Property="Focusable" Value="False" />
 										</Style>
 									</ListBox.Styles>
 								</ListBox>
@@ -126,24 +132,64 @@
 	</Style>
 
 	<!-- PointerOver State -->
-	<Style Selector="controls|SearchableComboBox:pointerover /template/ Border#PART_BorderElement">
+	<Style Selector="controls|SearchableComboBox:pointerover">
 		<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTeal}" />
 	</Style>
 
 	<!-- Focused State -->
-	<Style Selector="controls|SearchableComboBox:focus-within /template/ Border#PART_BorderElement">
+	<Style Selector="controls|SearchableComboBox:focus-within">
 		<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTeal}" />
 		<Setter Property="BorderThickness" Value="2" />
 	</Style>
 
-	<!-- Custom Button Hover Behavior to avoid standard button borders -->
+	<!-- Custom Button Styles to maintain separator and ensure hover doesn't break layout -->
+	<Style Selector="controls|SearchableComboBox:pointerover /template/ Button#PART_ToggleButton">
+		<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTeal}" />
+	</Style>
+	
 	<Style Selector="controls|SearchableComboBox /template/ Button#PART_ToggleButton:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="#10000000" />
+		<Setter Property="Background" Value="#E0E0E0" />
+		<Setter Property="BorderThickness" Value="1,0,0,0" />
+		<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTeal}" />
+	</Style>
+	
+	<Style Selector="controls|SearchableComboBox /template/ Button#PART_ToggleButton:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="#D0D0D0" />
+		<Setter Property="BorderThickness" Value="1,0,0,0" />
+	</Style>
+
+	<!-- Fix TextBox hover/focus states to prevent overlay -->
+	<Style Selector="controls|SearchableComboBox /template/ TextBox#PART_TextBox">
+		<Setter Property="FocusAdorner" Value="{x:Null}" />
+	</Style>
+	<Style Selector="controls|SearchableComboBox /template/ TextBox#PART_TextBox:pointerover">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+	</Style>
+	<Style Selector="controls|SearchableComboBox /template/ TextBox#PART_TextBox:focus">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
 	</Style>
-	<Style Selector="controls|SearchableComboBox /template/ Button#PART_ToggleButton:pressed /template/ ContentPresenter">
-		<Setter Property="Background" Value="#20000000" />
+
+	<!-- Deep selector to override the TextBox's internal border style on focus -->
+	<Style Selector="controls|SearchableComboBox /template/ TextBox#PART_TextBox:focus /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
 		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+
+	<!-- Deep selector to override the TextBox's internal border style on pointerover (hover) -->
+	<Style Selector="controls|SearchableComboBox /template/ TextBox#PART_TextBox:pointerover /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+
+	<!-- Error State: Remove default double-border adorner and use BorderBrush -->
+	<Style Selector="controls|SearchableComboBox:error">
+		<Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
+		<Setter Property="(DataValidationErrors.ErrorTemplate)" Value="{x:Null}" />
 	</Style>
 
 </Styles>
