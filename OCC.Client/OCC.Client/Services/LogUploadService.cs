@@ -88,11 +88,13 @@ namespace OCC.Client.Services
                 using var client = new HttpClient();
                 client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl);
                 
+                // Add Authorization header if available
+                if (!string.IsNullOrEmpty(_authService.AuthToken))
+                {
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
+                }
+
                 using var content = new MultipartFormDataContent();
-                
-                // Add Metadata fields individually or as one JSON field? 
-                // ASP.NET Core [FromForm] LogUploadRequest will look for fields with matching names.
-                // We must add them individually to the form data.
                 
                 content.Add(new StringContent(metadata.UserId?.ToString() ?? ""), nameof(LogUploadRequest.UserId));
                 content.Add(new StringContent(metadata.UserName), nameof(LogUploadRequest.UserName));
@@ -111,9 +113,11 @@ namespace OCC.Client.Services
                 content.Add(new StringContent(metadata.CultureName), nameof(LogUploadRequest.CultureName));
                 content.Add(new StringContent(metadata.DatePattern), nameof(LogUploadRequest.DatePattern));
 
-                // Add File
+                // Add File with explicit content type
                 using var fileStream = File.OpenRead(zipPath);
-                content.Add(new StreamContent(fileStream), "file", "logs.zip");
+                var fileContent = new StreamContent(fileStream);
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/zip");
+                content.Add(fileContent, "file", "logs.zip");
 
                 WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Uploading logs...", true));
 

@@ -41,5 +41,6 @@
         <FluentTheme DensityStyle="Compact" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://OCC.Client/Styles/AppStyles.axaml" />        
+        <StyleInclude Source="avares://OCC.Client/Styles/Controls.axaml" />
     </Application.Styles>
 </Application>

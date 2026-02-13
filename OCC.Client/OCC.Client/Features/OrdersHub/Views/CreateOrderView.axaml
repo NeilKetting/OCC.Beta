@@ -6,6 +6,7 @@
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:wrappers="using:OCC.Client.ModelWrappers"
 			 xmlns:client="using:OCC.Client"
+			 xmlns:controls="using:OCC.Client.Controls"
 			 mc:Ignorable="d"
 			 d:DesignWidth="1200" d:DesignHeight="800"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
@@ -19,43 +20,28 @@
 		<conv:ZeroToEmptyStringConverter x:Key="ZeroToEmptyStringConverter" />
 
 		<DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
-			<Grid ColumnDefinitions="*, Auto">
-				<AutoCompleteBox Grid.Column="0"
-								 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
-								 Text="{Binding ItemCode, Mode=TwoWay}"
-								 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
-								 Watermark="Search..."
-								 FilterMode="None"
-								 MinimumPrefixLength="1"
-								 KeyUp="ProductBox_KeyUp"
-								 GotFocus="AutoCompleteBox_GotFocus"
-								 SelectionChanged="GridProductBox_SelectionChanged"
-								 BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"
-								 ContextMenu="{x:Null}"
-								 x:Name="GridProductBox">
-					<AutoCompleteBox.ItemTemplate>
-						<DataTemplate x:DataType="models:InventoryItem">
-							<Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
-								<TextBlock Grid.Column="0" Text="{Binding Sku}" FontWeight="Bold" FontSize="11"/>
-								<TextBlock Grid.Column="2" Text="{Binding Description}" TextTrimming="CharacterEllipsis" FontSize="11"/>
-								<TextBlock Grid.Column="4" Text="{Binding Category}" FontStyle="Italic" Foreground="Gray" FontSize="11"/>
-							</Grid>
-						</DataTemplate>
-					</AutoCompleteBox.ItemTemplate>
-				</AutoCompleteBox>
-				<Button Grid.Column="1"
-						Content="&#xE70D;"
-						FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-						FontSize="8"
-						Background="Transparent"
-						BorderThickness="0"
-						Padding="0"
-						Margin="0"
-						Width="20"
-						IsTabStop="False"
-						Click="ToggleProductDropdown"
-						Cursor="Hand"/>
-			</Grid>
+			<controls:SearchableComboBox 
+							 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).FilteredInventoryItemsByName}"
+							 SelectedItem="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).SelectedInventoryItem}"
+							 Text="{Binding ItemCode, Mode=TwoWay}"
+							 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+							 Watermark="Search..."
+							 FilterMode="None"
+							 MinimumPrefixLength="1"
+							 SelectionChanged="GridProductBox_SelectionChanged"
+							 AddNewCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).ToggleQuickAddProductCommand}"
+							 BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" FontSize="11"
+							 x:Name="GridProductBox">
+				<controls:SearchableComboBox.ItemTemplate>
+					<DataTemplate x:DataType="models:InventoryItem">
+						<Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
+							<TextBlock Grid.Column="0" Text="{Binding Sku}" FontWeight="Bold" FontSize="11"/>
+							<TextBlock Grid.Column="2" Text="{Binding Description}" TextTrimming="CharacterEllipsis" FontSize="11"/>
+							<TextBlock Grid.Column="4" Text="{Binding Category}" FontStyle="Italic" Foreground="Gray" FontSize="11"/>
+						</Grid>
+					</DataTemplate>
+				</controls:SearchableComboBox.ItemTemplate>
+			</controls:SearchableComboBox>
 		</DataTemplate>
 
 		<DataTemplate x:Key="DescriptionTemplate" x:DataType="wrappers:OrderLineWrapper">
@@ -225,12 +211,18 @@
 							<!-- Row 1: Supplier, Project, Attention -->
 							<StackPanel Grid.Row="0" Grid.Column="0" Spacing="2" IsVisible="{Binding IsPurchaseOrder}">
 								<TextBlock Text="Supplier" Classes="Label" FontSize="11"/>
-								<ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
-										  HorizontalAlignment="Stretch" PlaceholderText="Select Supplier" Height="28" FontSize="11">
-									<ComboBox.ItemTemplate>
-										<DataTemplate><TextBlock Text="{Binding Name}" FontSize="11"/></DataTemplate>
-									</ComboBox.ItemTemplate>
-								</ComboBox>
+								<controls:SearchableComboBox ItemsSource="{Binding Suppliers}" 
+														     SelectedItem="{Binding SelectedSupplier}"
+														     Watermark="Select Supplier"
+														     AddNewCommand="{Binding ToggleQuickAddSupplierCommand}"
+														     ValueMemberBinding="{Binding Name, DataType=models:Supplier}"
+														     Height="28" FontSize="11">
+									<controls:SearchableComboBox.ItemTemplate>
+										<DataTemplate x:DataType="models:Supplier">
+											<TextBlock Text="{Binding Name}" FontSize="11"/>
+										</DataTemplate>
+									</controls:SearchableComboBox.ItemTemplate>
+								</controls:SearchableComboBox>
 							</StackPanel>
 
 							<StackPanel Grid.Row="0" Grid.Column="2" Spacing="2">
