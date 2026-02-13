@@ -116,7 +116,7 @@ namespace OCC.Client.Services
 
                 WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Uploading logs...", true));
 
-                var response = await client.PostAsync("api/logs/upload", content);
+                var response = await client.PostAsync("api/Logs/upload", content);
                 response.EnsureSuccessStatusCode();
 
                 WeakReferenceMessenger.Default.Send(new Messages.LogUploadStatusMessage("Logs uploaded successfully", false, true));
@@ -146,7 +146,7 @@ namespace OCC.Client.Services
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
             }
 
-            return await client.GetFromJsonAsync<System.Collections.Generic.List<LogUploadRequest>>("api/logs/list") ?? new System.Collections.Generic.List<LogUploadRequest>();
+            return await client.GetFromJsonAsync<System.Collections.Generic.List<LogUploadRequest>>("api/Logs/list") ?? new System.Collections.Generic.List<LogUploadRequest>();
         }
 
         public async Task DeleteLogAsync(Guid id)
@@ -158,7 +158,7 @@ namespace OCC.Client.Services
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
             }
 
-            var response = await client.DeleteAsync($"api/logs/{id}");
+            var response = await client.DeleteAsync($"api/Logs/{id}");
             response.EnsureSuccessStatusCode();
         }
 
@@ -172,7 +172,7 @@ namespace OCC.Client.Services
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.AuthToken);
             }
 
-            var response = await client.GetAsync($"api/logs/download/{id}");
+            var response = await client.GetAsync($"api/Logs/download/{id}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStreamAsync();
         }

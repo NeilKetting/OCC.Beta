@@ -246,7 +246,7 @@
 
 		<!-- Main Content Area -->
 		<Grid Grid.Row="1">
-			<TransitioningContentControl Content="{Binding CurrentView}">
+			<TransitioningContentControl Content="{Binding CurrentView}" VerticalAlignment="Stretch">
 				<TransitioningContentControl.PageTransition>
 					<CrossFade Duration="0:00:00.250" />
 				</TransitioningContentControl.PageTransition>

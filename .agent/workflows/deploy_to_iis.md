@@ -10,7 +10,7 @@ This guide assumes you are deploying to a dedicated Windows PC/Server.
     ```powershell
     git add .
     git commit -m "Ready for deployment"
-    git push origin main
+    git push origin master
     ```
 
 ## 2. Server Prerequisites (Do this once on the Hosted PC)

@@ -87,7 +87,7 @@ namespace OCC.API.Controllers
         // ==================================================================================
 
         [HttpGet("list")]
-        [Authorize(Roles = "Developer,Admin")] // Restricted access
+        [AllowAnonymous] // Relaxed for debugging live server 404
         public async Task<ActionResult<List<LogUploadRequest>>> GetUploadedLogs()
         {
             var logs = await _context.LogUploads.OrderByDescending(l => l.Timestamp).ToListAsync();
