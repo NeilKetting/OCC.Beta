@@ -11,6 +11,6 @@ namespace OCC.Client.Services.Repositories.ApiServices
         {
         }
 
-        protected override string ApiEndpoint => "Users";
+        protected override string ApiEndpoint => "users";
     }
 }

@@ -8,7 +8,7 @@ using OCC.Shared.Models;
 
 namespace OCC.API.Controllers
 {
-    [Route("api/logs")]
+    [Route("api/[controller]")]
     [ApiController]
     public class LogsController : ControllerBase
     {

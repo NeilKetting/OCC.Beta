@@ -9,7 +9,7 @@ using OCC.API.Hubs;
 
 namespace OCC.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [ApiController]
     [Authorize]
     public class UsersController : ControllerBase

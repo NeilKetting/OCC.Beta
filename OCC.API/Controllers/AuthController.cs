@@ -21,6 +21,10 @@ namespace OCC.API.Controllers
             _hubContext = hubContext;
         }
 
+        [HttpGet("ping")]
+        [AllowAnonymous]
+        public IActionResult Ping() => Ok(new { Message = "Auth API is alive", Timestamp = DateTime.UtcNow });
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
