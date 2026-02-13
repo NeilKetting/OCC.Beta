@@ -37,8 +37,8 @@ if /i "%SYNC%"=="Y" (
 
 REM 2. Stop IIS
 echo [DEPLOY] Stopping IIS Site and AppPool...
-%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC-API"
-%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd stop site /site.name:"OCC_API"
+%windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"OCC_API"
 if %errorlevel% neq 0 echo [INFO] IIS already stopped or unavailable.
 
 echo Waiting for process to release locks...
@@ -68,8 +68,8 @@ if exist "OCC.API\OCC.API.csproj" (
 
 REM 5. Restart IIS
 echo [DEPLOY] Starting IIS AppPool and Site...
-%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC-API"
-%windir%\system32\inetsrv\appcmd start site /site.name:"OCC-API"
+%windir%\system32\inetsrv\appcmd start apppool /apppool.name:"OCC_API"
+%windir%\system32\inetsrv\appcmd start site /site.name:"OCC_API"
 
 echo [DEPLOY] Update Complete!
 timeout /t 30
