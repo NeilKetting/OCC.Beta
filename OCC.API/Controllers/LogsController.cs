@@ -8,7 +8,7 @@ using OCC.Shared.Models;
 
 namespace OCC.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/logs")]
     [ApiController]
     public class LogsController : ControllerBase
     {
@@ -20,6 +20,10 @@ namespace OCC.API.Controllers
             _env = env;
             _context = context;
         }
+
+        [HttpGet("ping")]
+        [AllowAnonymous]
+        public IActionResult Ping() => Ok(new { Message = "Logs API is alive", Timestamp = DateTime.UtcNow });
 
         [HttpGet]
         [AllowAnonymous]
