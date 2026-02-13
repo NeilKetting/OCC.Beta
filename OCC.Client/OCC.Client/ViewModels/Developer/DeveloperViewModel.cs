@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Infrastructure;
+using OCC.Client.Services.Infrastructure; // For ConnectionSettings
 using OCC.Client.ViewModels.Core;
 using System;
 using System.Threading.Tasks;
@@ -16,20 +16,24 @@ namespace OCC.Client.ViewModels.Developer
         private readonly ILogger<DeveloperViewModel> _logger;
         private readonly SignalRNotificationService _signalRService;
         private readonly IDialogService _dialogService;
+        private readonly ILogUploadService _logService;
 
         [ObservableProperty]
         private string _broadcastMessage = string.Empty;
 
-
+        [ObservableProperty]
+        private System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.LogUploadRequest> _logs = new();
 
         public DeveloperViewModel(
             ILogger<DeveloperViewModel> logger,
             SignalRNotificationService signalRService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            ILogUploadService logService)
         {
             _logger = logger;
             _signalRService = signalRService;
             _dialogService = dialogService;
+            _logService = logService;
         }
 
         public DeveloperViewModel()
@@ -37,6 +41,67 @@ namespace OCC.Client.ViewModels.Developer
             _logger = null!;
             _signalRService = null!;
             _dialogService = null!;
+            _logService = null!;
+        }
+
+        [RelayCommand]
+        public async Task LoadLogs()
+        {
+            try
+            {
+                IsBusy = true;
+                var logs = await _logService.GetLogsAsync();
+                Logs = new System.Collections.ObjectModel.ObservableCollection<OCC.Shared.Models.LogUploadRequest>(logs);
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to load logs: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task DeleteLog(OCC.Shared.Models.LogUploadRequest log)
+        {
+            try
+            {
+                if (await _dialogService.ShowConfirmationAsync("Delete Log", "Are you sure you want to delete this log?"))
+                {
+                     await _logService.DeleteLogAsync(log.Id);
+                     Logs.Remove(log);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to delete log: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        public async Task DownloadLog(OCC.Shared.Models.LogUploadRequest log)
+        {
+            try
+            {
+                // Simple download: Trigger browser or save dialog? 
+                // Since this is desktop, we should probably show SaveFileDialog or just open in browser.
+                // Opening in browser is easiest if we had a direct link, but endpoint returns a file stream.
+                // Let's us the launcher to open the URL directly which will trigger browser download.
+                
+                var url = $"{ConnectionSettings.Instance.ApiBaseUrl}/api/logs/download/{log.Id}";
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                 await _dialogService.ShowAlertAsync("Error", $"Failed to download log: {ex.Message}");
+            }
         }
 
         [RelayCommand]

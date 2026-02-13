@@ -92,7 +92,7 @@
 					</MenuItem>
 				</MenuItem>
 			</MenuItem>
-			<MenuItem Header="_Help">
+				<MenuItem Header="_Help">
 				<MenuItem Header="_About" Command="{Binding AboutCommand}">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconInformation}" Width="16" Height="16"/>
@@ -109,6 +109,11 @@
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator/>
+				<MenuItem Header="Send Logs" Command="{Binding UploadLogsCommand}">
+					<MenuItem.Icon>
+						<PathIcon Data="{StaticResource IconUpload}" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="_Report Bug" Command="{Binding ReportBugCommand}">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconBug}" Width="16" Height="16"/>
@@ -257,6 +262,14 @@
 								</PathIcon>
 								<TextBlock Text="{Binding DbStatusText}" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"/>
 							</StackPanel>
+
+                            <Rectangle Width="1" Height="12" Fill="{DynamicResource BorderGray}" VerticalAlignment="Center" IsVisible="{Binding IsLogUploading}"/>
+
+                            <!-- Upload Status -->
+                            <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding IsLogUploading}">
+                                <PathIcon Data="{StaticResource IconUpload}" Width="14" Height="14" Foreground="#3B82F6"/>
+                                <TextBlock Text="{Binding LogUploadStatus}" VerticalAlignment="Center" FontSize="12" Foreground="#3B82F6"/>
+                            </StackPanel>
 						</StackPanel>
 
 						<!-- Right: Online Users -->

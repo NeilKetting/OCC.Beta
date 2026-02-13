@@ -66,6 +66,7 @@ namespace OCC.API.Data
         
         public DbSet<NotificationDismissal> NotificationDismissals { get; set; }
         public DbSet<ProjectVariationOrder> ProjectVariationOrders { get; set; }
+        public DbSet<LogUploadRequest> LogUploads { get; set; }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

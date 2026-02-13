@@ -175,6 +175,12 @@ namespace OCC.Client.ViewModels.Core
         [ObservableProperty]
         private string _dbStatusText = "Checking...";
 
+        [ObservableProperty]
+        private bool _isLogUploading;
+
+        [ObservableProperty]
+        private string _logUploadStatus = string.Empty;
+
         public System.Collections.ObjectModel.ObservableCollection<Models.ToastMessage> Toasts { get; } = new();
 
         #endregion
@@ -227,6 +233,16 @@ namespace OCC.Client.ViewModels.Core
             WeakReferenceMessenger.Default.Register<NavigationRequestMessage>(this, (r, m) =>
             {
                 HandleNavigationRequest(m.Value, m.Payload);
+            });
+            
+            // Subscribe to Log Upload Status
+            WeakReferenceMessenger.Default.Register<LogUploadStatusMessage>(this, (r, m) =>
+            {
+                IsLogUploading = m.IsUploading;
+                LogUploadStatus = m.Value;
+
+                if (m.IsSuccess) _toastService.ShowSuccess("Logs Uploaded", "Application logs have been sent successfully.");
+                if (m.IsError) _toastService.ShowError("Upload Failed", m.Value);
             });
             
             // User Activity
@@ -623,6 +639,17 @@ namespace OCC.Client.ViewModels.Core
 
             return currentName;
         }
+
+
+
+        [RelayCommand]
+        public void UploadLogs()
+        {
+            // Fire and forget - service handles UI updates via Messenger
+            var service = _serviceProvider.GetRequiredService<ILogUploadService>();
+            _ = service.UploadLogsAsync();
+        }
+
 
         #endregion
 

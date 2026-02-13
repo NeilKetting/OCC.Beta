@@ -163,6 +163,7 @@ namespace OCC.Client
             services.AddSingleton<LocalSettingsService>();
             services.AddSingleton<UserPreferencesService>();
             services.AddHttpClient<OCC.Client.Services.External.IGoogleMapsService, OCC.Client.Services.External.GoogleMapsService>();
+            services.AddSingleton<ILogUploadService, LogUploadService>();
 
             // --- Database & Repositories ---
             services.AddDbContext<Data.AppDbContext>(options => { }, ServiceLifetime.Transient); 

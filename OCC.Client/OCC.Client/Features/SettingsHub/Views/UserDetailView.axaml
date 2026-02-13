@@ -113,6 +113,14 @@
                                               OffContent="Email Unknown"
                                               HorizontalAlignment="Left"/>
                             </StackPanel>
+
+                            <!-- Module Permissions -->
+                            <StackPanel Spacing="5" Margin="0,15,0,0">
+                                <TextBlock Text="Module Access" Classes="FormLabel" FontWeight="SemiBold"/>
+                                <CheckBox IsChecked="{Binding CanAccessOrders}" Content="Orders &amp; Restocking"/>
+                                <CheckBox IsChecked="{Binding CanAccessInventoryOnly}" Content="Inventory Only"/>
+                                <CheckBox IsChecked="{Binding CanCreateProjects}" Content="Project Creation"/>
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

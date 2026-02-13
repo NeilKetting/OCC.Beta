@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services;
 using OCC.Shared.Models;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OCC.Client.Services.Interfaces;
@@ -87,6 +88,15 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
 
 
 
+        [ObservableProperty]
+        private bool _canAccessOrders;
+
+        [ObservableProperty]
+        private bool _canAccessInventoryOnly;
+
+        [ObservableProperty]
+        private bool _canCreateProjects;
+
         #endregion
 
         #region Properties
@@ -156,6 +166,14 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
                 user.IsApproved = IsApproved;
                 user.IsEmailVerified = IsEmailVerified;
 
+                // Save Permissions
+                var permsList = new System.Collections.Generic.List<string>();
+                if (CanAccessOrders) permsList.Add(Infrastructure.NavigationRoutes.Feature_OrderManagement);
+                if (CanAccessInventoryOnly) permsList.Add(Infrastructure.NavigationRoutes.Feature_OrderInventoryOnly);
+                if (CanCreateProjects) permsList.Add(Infrastructure.NavigationRoutes.Feature_ProjectCreation);
+                
+                user.Permissions = string.Join(",", permsList);
+
                 if (_existingUserId.HasValue)
                 {
                      // If updating and password field is not empty, update it
@@ -213,6 +231,12 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
             SelectedRole = user.UserRole;
             IsApproved = user.IsApproved;
             IsEmailVerified = user.IsEmailVerified;
+
+            // Load Permissions
+            var perms = (user.Permissions ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            CanAccessOrders = perms.Contains(Infrastructure.NavigationRoutes.Feature_OrderManagement);
+            CanAccessInventoryOnly = perms.Contains(Infrastructure.NavigationRoutes.Feature_OrderInventoryOnly);
+            CanCreateProjects = perms.Contains(Infrastructure.NavigationRoutes.Feature_ProjectCreation);
             
             // We typically don't load the password back into the UI
             Password = "";

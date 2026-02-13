@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Velopack;
 using Velopack.Sources;
 
@@ -13,7 +14,8 @@ namespace OCC.Client.Services
     public class UpdateService : IUpdateService
     {
         private readonly UpdateManager? _mgr;
-        private readonly string _updateUrl = "https://github.com/NeilKetting/OrangeCircleConstruction";
+        private readonly string _updateUrl = "https://github.com/NeilKetting/OCC.Beta"; // Assuming this is the repo based on context, previously likely placeholder
+        private readonly ILogger<UpdateService> _logger;
 
         public string CurrentVersion
         {
@@ -31,34 +33,40 @@ namespace OCC.Client.Services
             }
         }
 
-        public UpdateService()
+        public UpdateService(ILogger<UpdateService> logger)
         {
+            _logger = logger;
             try
             {
                 // We default to a SimpleWebSource. Ideally this is config driven.
                 // For GitHub, use new GithubSource("url", "token", prerelease)
-                // For now, we will use a placeholder or handle the exception if not installed.
                 
-                // IMPORTANT: In a real app, passing a URL here is critical.
-                // Since the user asked "How do I share", I am assuming they will put it somewhere.
-                // I'll leave a TODO or a default that doesn't crash.
-                
-                // Note: Velopack throws if not installed unless we catch it, 
-                // but UpdateManager constructor itself usually is just setup.
-                // The actual check throws if no local package.
+                _logger.LogInformation("Initializing UpdateManager...");
                 
                  // We detect if it's a GitHub URL and use the proper source
                  if (_updateUrl.Contains("github.com"))
                  {
+                    _logger.LogInformation($"Using GithubSource with URL: {_updateUrl}");
                     _mgr = new UpdateManager(new GithubSource(_updateUrl, null, false));
                  }
                  else
                  {
+                     _logger.LogInformation($"Using SimpleWebSource with URL: {_updateUrl}");
                      _mgr = new UpdateManager(new SimpleWebSource(_updateUrl));
                  }
+                 
+                 if (_mgr.IsInstalled)
+                 {
+                     _logger.LogInformation($"UpdateManager Initialized. Current Version: {_mgr.CurrentVersion}");
+                 }
+                 else
+                 {
+                     _logger.LogWarning("UpdateManager is NOT Installed (likely running in debug/portable mode).");
+                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to initialize UpdateManager.");
                 // Likely running in debug/not installed
                 _mgr = null;
             }
@@ -66,27 +74,41 @@ namespace OCC.Client.Services
 
         public async Task<UpdateInfo?> CheckForUpdatesAsync()
         {
-            if (_mgr == null || !_mgr.IsInstalled) return null;
+            if (_mgr == null || !_mgr.IsInstalled) 
+            {
+                _logger.LogWarning("CheckForUpdatesAsync skipped: UpdateManager not installed or null.");
+                return null;
+            }
 
             try
             {
+                _logger.LogInformation("Checking for updates...");
                 var updateInfo = await _mgr.CheckForUpdatesAsync();
                 
+                if (updateInfo == null)
+                {
+                     _logger.LogInformation("No updates found.");
+                     return null;
+                }
+
+                _logger.LogInformation($"Update found. Target Version: {updateInfo.TargetFullRelease.Version}");
+
                 // SAFETY CHECK: Prevent update loops
                 // Ensure the target version is actually newer than what we are running.
-                if (updateInfo != null && _mgr.CurrentVersion != null)
+                if (_mgr.CurrentVersion != null)
                 {
                     if (updateInfo.TargetFullRelease.Version <= _mgr.CurrentVersion)
                     {
-                        // We are already on this version (or newer). Do not trigger update.
+                        _logger.LogInformation($"Update version {updateInfo.TargetFullRelease.Version} is <= current version {_mgr.CurrentVersion}. Skipping.");
                         return null;
                     }
                 }
 
                 return updateInfo;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error checking for updates.");
                 return null;
             }
         }
@@ -97,17 +119,20 @@ namespace OCC.Client.Services
              
             try 
             {
+                _logger.LogInformation($"Downloading update {newVersion.TargetFullRelease.Version}...");
                 await _mgr.DownloadUpdatesAsync(newVersion, progress);
+                _logger.LogInformation("Download complete.");
             }
-            catch
+            catch (Exception ex)
             {
-                // Handle download error
+                _logger.LogError(ex, "Error downloading updates.");
                 throw;
             }
         }
 
         public void ApplyUpdatesAndExit(UpdateInfo newVersion)
         {
+             _logger.LogInformation("Applying updates and restarting...");
              _mgr?.ApplyUpdatesAndRestart(newVersion);
         }
     }
