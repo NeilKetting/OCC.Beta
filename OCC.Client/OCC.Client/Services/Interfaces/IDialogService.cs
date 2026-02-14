@@ -14,5 +14,6 @@ namespace OCC.Client.Services.Interfaces
         Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut, bool showIn = true, bool showOut = true);
         Task<bool> ShowSessionTimeoutAsync();
         Task<string?> ShowInputAsync(string title, string message, string defaultValue = "");
+        Task<OCC.Shared.Models.EmployeeLoan?> ShowAddLoanAsync();
     }
 }

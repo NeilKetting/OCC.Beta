@@ -140,5 +140,19 @@ namespace OCC.Client.Services
             }
             return null;
         }
+
+        public async Task<OCC.Shared.Models.EmployeeLoan?> ShowAddLoanAsync()
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.AddLoanDialog();
+                var vm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OCC.Client.Features.TimeAttendanceHub.ViewModels.AddLoanDialogViewModel>(_serviceProvider);
+                vm.CloseAction = (loan) => Avalonia.Threading.Dispatcher.UIThread.Post(() => dialog.Close(loan));
+                dialog.DataContext = vm;
+                var result = await dialog.ShowDialog<OCC.Shared.Models.EmployeeLoan?>(desktop.MainWindow);
+                return result;
+            }
+            return null;
+        }
     }
 }
