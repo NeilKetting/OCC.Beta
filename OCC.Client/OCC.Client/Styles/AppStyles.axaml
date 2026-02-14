@@ -323,10 +323,10 @@
 	</Style>
 
 	<!-- Fix: Force TextBlock & Icon to inherit foreground from the button, overriding global styles -->
-	<Style Selector="Button.MenuTabButton TextBlock">
+	<Style Selector="Button.MenuTabButton > StackPanel TextBlock">
 		<Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
 	</Style>
-	<Style Selector="Button.MenuTabButton PathIcon">
+	<Style Selector="Button.MenuTabButton > StackPanel PathIcon">
 		<Setter Property="Foreground" Value="{Binding $parent[Button].Foreground}"/>
 	</Style>
 	<Style Selector="Button.MenuTabButton:pressed /template/ ContentPresenter">

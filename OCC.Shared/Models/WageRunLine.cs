@@ -60,6 +60,23 @@ namespace OCC.Shared.Models
         /// <summary> The final calculated wage amount (Hours * Rate). </summary>
         public decimal TotalWage { get; set; }
 
+        /// <summary> Amount deducted for loan repayments. </summary>
+        public decimal DeductionLoan { get; set; }
+
+        /// <summary> Amount deducted for tax/PAYE/UIF. </summary>
+        public decimal DeductionTax { get; set; }
+
+        /// <summary> Other deductions (e.g., washing, damages). </summary>
+        public decimal DeductionOther { get; set; }
+
+        /// <summary> Supervisor incentive fee (e.g., R500). </summary>
+        public decimal IncentiveSupervisor { get; set; }
+
+        /// <summary> 
+        /// Final payout amount: TotalWage + Incentives - Deductions. 
+        /// </summary>
+        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionOther);
+
         // IEntity Implementation - Replaced by BaseEntity
 
     }

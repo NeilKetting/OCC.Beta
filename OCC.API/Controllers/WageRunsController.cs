@@ -76,6 +76,11 @@ namespace OCC.API.Controllers
                 .Where(a => a.Date >= request.StartDate && a.Date <= runDate)
                 .ToListAsync();
 
+            // 4. Fetch Active Loans
+            var activeLoans = await _context.EmployeeLoans
+                .Where(l => l.IsActive && l.OutstandingBalance > 0 && l.StartDate <= runDate)
+                .ToListAsync();
+
             // 4. Fetch Previous Finalized Run (for Variance)
             // We assume the run strictly before this one. Or we can look for the last finalized run *per employee*.
             var lastRun = await _context.WageRuns
@@ -190,6 +195,17 @@ namespace OCC.API.Controllers
                 line.TotalWage = (decimal)(line.NormalHours + line.ProjectedHours + line.VarianceHours) * line.HourlyRate +
                                  (decimal)line.Overtime15Hours * line.HourlyRate * 1.5m +
                                  (decimal)line.Overtime20Hours * line.HourlyRate * 2.0m;
+                    
+                // E. Loans
+                var empLoans = activeLoans.Where(l => l.EmployeeId == emp.Id).ToList();
+                decimal totalLoanDeduction = 0;
+                foreach (var loan in empLoans)
+                {
+                   var deduction = loan.MonthlyInstallment;
+                   if (deduction > loan.OutstandingBalance) deduction = loan.OutstandingBalance;
+                   totalLoanDeduction += deduction;
+                }
+                line.DeductionLoan = totalLoanDeduction;
 
                 draftRun.Lines.Add(line);
             }
