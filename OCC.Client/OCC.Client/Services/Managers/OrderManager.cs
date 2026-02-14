@@ -133,7 +133,9 @@ namespace OCC.Client.Services.Managers
 
         #region Supplier Operations
 
+        public async Task<IEnumerable<SupplierSummaryDto>> GetSupplierSummariesAsync() => await _supplierService.GetSupplierSummariesAsync();
         public async Task<IEnumerable<Supplier>> GetSuppliersAsync() => await _supplierService.GetSuppliersAsync();
+        public async Task<Supplier?> GetSupplierByIdAsync(Guid id) => await _supplierService.GetSupplierAsync(id);
         public async Task DeleteSupplierAsync(Guid supplierId) => await _supplierService.DeleteSupplierAsync(supplierId);
         public async Task UpdateSupplierAsync(Supplier supplier) => await _supplierService.UpdateSupplierAsync(supplier);
         public async Task<Supplier> CreateSupplierAsync(Supplier supplier) => await _supplierService.CreateSupplierAsync(supplier);
@@ -147,9 +149,11 @@ namespace OCC.Client.Services.Managers
 
         #region Inventory Operations
 
+        public async Task<IEnumerable<InventorySummaryDto>> GetInventorySummariesAsync() => await _inventoryService.GetInventorySummariesAsync();
         public async Task<IEnumerable<InventoryItem>> GetInventoryAsync() => await _inventoryService.GetInventoryAsync();
         public async Task<InventoryItem> CreateItemAsync(InventoryItem item) => await _inventoryService.CreateItemAsync(item);
         public async Task DeleteItemAsync(Guid itemId) => await _inventoryService.DeleteItemAsync(itemId);
+        public async Task<InventoryItem?> GetItemByIdAsync(Guid id) => await _inventoryService.GetInventoryItemAsync(id);
         public async Task UpdateItemAsync(InventoryItem item) => await _inventoryService.UpdateItemAsync(item);
         public async Task UpdateInventoryItemAsync(InventoryItem item) => await _inventoryService.UpdateItemAsync(item);
         public async Task<InventoryItem> QuickCreateProductAsync(string name, string uom, string category, string supplierName)
@@ -185,7 +189,7 @@ namespace OCC.Client.Services.Managers
             // Filter orders by branch if requested
             if (branch.HasValue)
             {
-                allOrders = allOrders.Where(o => o.Branch == branch.Value.ToString()).ToList(); // Branch is string in DTO? 
+                allOrders = allOrders.Where(o => o.Branch == branch.Value.ToString()).ToList(); 
                 // Wait, in Controller I did: Branch = o.Branch.ToString()
                 // Let's verify DTO definition. OrderDashboardStats expects OrderSummaryDto?
             }

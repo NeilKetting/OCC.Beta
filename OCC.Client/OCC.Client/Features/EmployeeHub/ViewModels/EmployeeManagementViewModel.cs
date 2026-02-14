@@ -202,7 +202,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        public async Task EditEmployee(EmployeeSummaryDto employee)
+        public virtual async Task EditEmployee(EmployeeSummaryDto employee)
         {
             if (employee == null) return;
 
@@ -232,7 +232,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        public async Task OpenEmployeeReport(EmployeeSummaryDto employee)
+        public virtual async Task OpenEmployeeReport(EmployeeSummaryDto employee)
         {
             if (employee == null) return;
 
@@ -275,7 +275,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         private string? _errorMessage;
 
         [RelayCommand]
-        public async Task DeleteEmployee(EmployeeSummaryDto employee)
+        public virtual async Task DeleteEmployee(EmployeeSummaryDto employee)
         {
             if (employee == null) return;
             
@@ -408,7 +408,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
 
 
 
-        public async void LoadData()
+        public virtual async Task LoadData()
         {
             try 
             {

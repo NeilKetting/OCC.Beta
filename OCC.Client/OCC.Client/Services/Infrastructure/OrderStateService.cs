@@ -14,7 +14,7 @@ namespace OCC.Client.Services.Infrastructure
         public bool IsReturningFromItemCreation { get; private set; }
         public string? PendingSearchTerm { get; private set; } // The term they searched for
 
-        public void SaveState(Order order, OrderLine? pendingLine, string? searchTerm = null)
+        public virtual void SaveState(Order order, OrderLine? pendingLine, string? searchTerm = null)
         {
             SavedOrder = order;
             PendingLine = pendingLine;
@@ -22,7 +22,7 @@ namespace OCC.Client.Services.Infrastructure
             IsReturningFromItemCreation = true;
         }
 
-        public void ClearState()
+        public virtual void ClearState()
         {
             SavedOrder = null;
             PendingLine = null;
@@ -30,7 +30,7 @@ namespace OCC.Client.Services.Infrastructure
             IsReturningFromItemCreation = false;
         }
 
-        public (Order? Order, OrderLine? Line, string? Term) RetrieveState()
+        public virtual (Order? Order, OrderLine? Line, string? Term) RetrieveState()
         {
             var s = SavedOrder;
             var p = PendingLine;

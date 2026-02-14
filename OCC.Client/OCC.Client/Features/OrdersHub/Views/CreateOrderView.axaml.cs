@@ -64,17 +64,27 @@ namespace OCC.Client.Features.OrdersHub.Views
              if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
              {
                  // Pass text to VM to filter the shared list
-                 if (vm.ProductSearchText != box.Text)
+                 var text = box.Text ?? string.Empty;
+                 if (vm.Lines.ProductSearchText != text)
                  {
-                     vm.ProductSearchText = box.Text ?? string.Empty;
+                     vm.Lines.ProductSearchText = text;
+                     
+                     // If it's our searchable combo, nudge it to refresh filtering results
+                     if (box is Controls.SearchableComboBox)
+                     {
+                         // Using Post to ensure VM has processed the change
+                         Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                            box.PopulateComplete();
+                         });
+                     }
                  }
                  
                  // Standard Enter key validation
                  if (e.Key == Key.Enter || e.Key == Key.Return)
                  {
-                     if (!string.IsNullOrWhiteSpace(box.Text))
+                     if (!string.IsNullOrWhiteSpace(text))
                      {
-                        vm.ValidateItemSearchCommand.Execute(box.Text);
+                        vm.ValidateItemSearchCommand.Execute(text);
                      }
                  }
              }
@@ -87,7 +97,7 @@ namespace OCC.Client.Features.OrdersHub.Views
                 box.SelectedItem is OCC.Shared.Models.InventoryItem item &&
                 this.DataContext is CreateOrderViewModel vm)
             {
-                vm.UpdateLineFromSelection(line, item);
+                vm.Lines.UpdateLineFromSelection(line, item);
                 box.IsDropDownOpen = false; 
             }
         }
@@ -98,44 +108,10 @@ namespace OCC.Client.Features.OrdersHub.Views
                 box.DataContext is OCC.Client.ModelWrappers.OrderLineWrapper line && 
                 this.DataContext is CreateOrderViewModel vm)
             {
-                vm.TryCommitAutoSelection(line);
+                vm.Lines.TryCommitAutoSelection(line);
             }
         }
 
-        public void ToggleProductDropdown(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.DataContext is OCC.Client.ModelWrappers.OrderLineWrapper /*line*/)
-            {
-                if (btn.Parent is Grid grid)
-                {
-                    foreach(var child in grid.Children)
-                    {
-                        if (child is AutoCompleteBox acBox)
-                        {
-                            // 1. Focus the box first
-                            acBox.Focus();
-
-                            // 2. Ensure VM knows about the text so it resets the filter to show all items
-                            if (this.DataContext is CreateOrderViewModel vm)
-                            {
-                                var text = acBox.Text ?? string.Empty;
-                                if (vm.ProductSearchText != text)
-                                {
-                                    vm.ProductSearchText = text;
-                                }
-                            }
-
-                            // 3. Open the dropdown
-                            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => {
-                               acBox.PopulateComplete(); // Force population of all items
-                               acBox.IsDropDownOpen = true; // Use simple true setter
-                            });
-                            break;
-                        }
-                    }
-                }
-            }
-        }
         public void UOM_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
              // Close the flyout when an item is selected

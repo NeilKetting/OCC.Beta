@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
+using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 
@@ -15,35 +17,35 @@ namespace OCC.Client.Services.Managers
     /// </summary>
     public class ProjectManager : IProjectManager
     {
-        private readonly IRepository<Project> _projectRepository;
+        private readonly IProjectService _projectService;
         private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<Employee> _employeeRepository;
 
         /// <summary>
         /// Initializes a new instance of the ProjectManager class.
         /// </summary>
-        /// <param name="projectRepository">The repository for project data.</param>
+        /// <param name="projectService">The service for project data.</param>
         /// <param name="taskRepository">The repository for task data.</param>
         public ProjectManager(
-            IRepository<Project> projectRepository,
+            IProjectService projectService,
             IRepository<ProjectTask> taskRepository,
             IRepository<Employee> employeeRepository)
         {
-            _projectRepository = projectRepository;
+            _projectService = projectService;
             _taskRepository = taskRepository;
             _employeeRepository = employeeRepository;
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<Project>> GetProjectsAsync()
+        public async Task<IEnumerable<ProjectSummaryDto>> GetProjectsAsync()
         {
-            return await _projectRepository.GetAllAsync();
+            return await _projectService.GetProjectSummariesAsync();
         }
 
         /// <inheritdoc/>
         public async Task<Project?> GetProjectByIdAsync(Guid id)
         {
-            return await _projectRepository.GetByIdAsync(id);
+            return await _projectService.GetProjectAsync(id);
         }
 
         /// <inheritdoc/>
@@ -141,7 +143,7 @@ namespace OCC.Client.Services.Managers
         /// <inheritdoc/>
         public async Task DeleteProjectAsync(Guid projectId)
         {
-            await _projectRepository.DeleteAsync(projectId);
+            await _projectService.DeleteProjectAsync(projectId);
         }
 
         /// <inheritdoc/>
@@ -154,11 +156,11 @@ namespace OCC.Client.Services.Managers
         /// <inheritdoc/>
         public async Task AssignSiteManagerAsync(Guid projectId, Guid managerId)
         {
-            var project = await _projectRepository.GetByIdAsync(projectId);
+            var project = await _projectService.GetProjectAsync(projectId);
             if (project != null)
             {
                 project.SiteManagerId = managerId;
-                await _projectRepository.UpdateAsync(project);
+                await _projectService.UpdateProjectAsync(project);
             }
         }
 

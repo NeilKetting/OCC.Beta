@@ -1,4 +1,3 @@
-using OCC.Client.Features.TaskHub.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -12,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OCC.Client.Features.TaskHub.ViewModels
 {
@@ -32,7 +32,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
 
         partial void OnMyTasksOnlyChanged(bool value)
         {
-            LoadTasks();
+            _ = LoadTasks();
         }
 
         // Changed from flat HomeTaskItem to grouped ProjectGroupViewModel
@@ -64,7 +64,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             // Subscribe to updates
             WeakReferenceMessenger.Default.Register<OCC.Client.ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
             {
-                LoadTasks();
+                _ = LoadTasks();
             });
         }
 
@@ -98,7 +98,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
 
         #region Methods
 
-        public async void LoadTasks()
+        public async Task LoadTasks()
         {
             if (_isDataLoading) return;
             _isDataLoading = true;

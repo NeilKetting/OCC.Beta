@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 
 namespace OCC.Client.Services.Managers.Interfaces
 {
@@ -13,10 +14,10 @@ namespace OCC.Client.Services.Managers.Interfaces
     public interface IProjectManager
     {
         /// <summary>
-        /// Retrieves all projects from the repository.
+        /// Retrieves all projects from the repository as lightweight summaries.
         /// </summary>
-        /// <returns>A collection of all projects.</returns>
-        Task<IEnumerable<Project>> GetProjectsAsync();
+        /// <returns>A collection of project summaries.</returns>
+        Task<IEnumerable<ProjectSummaryDto>> GetProjectsAsync();
 
         /// <summary>
         /// Retrieves a specific project by its unique identifier.

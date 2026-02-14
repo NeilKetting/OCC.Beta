@@ -109,9 +109,9 @@
                             
                             <StackPanel>
                                 <TextBlock Text="Employee Name" Classes="FormLabel"/>
-                                <AutoCompleteBox ItemsSource="{Binding Employees}"
-                                                 SelectedItem="{Binding SelectedEmployee}"
-                                                 Text="{Binding NewRecord.EmployeeName}"
+                                <AutoCompleteBox ItemsSource="{Binding Editor.Employees}"
+                                                 SelectedItem="{Binding Editor.SelectedEmployee}"
+                                                 Text="{Binding Editor.NewRecord.EmployeeName}"
                                                  Watermark="Search Employee..."
                                                  FilterMode="Contains"
                                                  ValueMemberBinding="{Binding DisplayName, DataType=models:Employee}">
@@ -125,39 +125,39 @@
                             
                             <StackPanel>
                                 <TextBlock Text="Skill / Role" Classes="FormLabel"/>
-                                <TextBox Watermark="e.g. Supervisor" Text="{Binding NewRecord.Role}" Classes="FormInput"/>
+                                <TextBox Watermark="e.g. Supervisor" Text="{Binding Editor.NewRecord.Role}" Classes="FormInput"/>
                             </StackPanel>
                             
                             <StackPanel>
                                 <TextBlock Text="Certificate Type" Classes="FormLabel"/>
-                                <ComboBox ItemsSource="{Binding CertificateTypes}" 
-                                          SelectedItem="{Binding NewRecord.CertificateType}"
+                                <ComboBox ItemsSource="{Binding Editor.CertificateTypes}" 
+                                          SelectedItem="{Binding Editor.NewRecord.CertificateType}"
                                           PlaceholderText="Select Type..."
                                           HorizontalAlignment="Stretch"/>
                             </StackPanel>
                                       
                             <StackPanel>
                                 <TextBlock Text="Issue Date" Classes="FormLabel"/>
-                                <CalendarDatePicker SelectedDate="{Binding NewRecord.DateCompleted}" HorizontalAlignment="Stretch"/>
+                                <CalendarDatePicker SelectedDate="{Binding Editor.NewRecord.DateCompleted}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
     
                             <StackPanel>
                                 <TextBlock Text="Expiry Date" Classes="FormLabel"/>
-                                <CalendarDatePicker SelectedDate="{Binding NewRecord.ValidUntil}" HorizontalAlignment="Stretch"/>
+                                <CalendarDatePicker SelectedDate="{Binding Editor.NewRecord.ValidUntil}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
                             <StackPanel>
                                 <TextBlock Text="Trainer / Provider" Classes="FormLabel"/>
-                                <TextBox Watermark="e.g. Red Cross" Text="{Binding NewRecord.Trainer}" Classes="FormInput"/>
+                                <TextBox Watermark="e.g. Red Cross" Text="{Binding Editor.NewRecord.Trainer}" Classes="FormInput"/>
                             </StackPanel>
     
                             <StackPanel Spacing="5">
                                 <TextBlock Text="Certificate Document" Classes="FormLabel"/>
                                 <Button Content="Upload Certificate" 
-                                        Command="{Binding UploadCertificateCommand}"
+                                        Command="{Binding Editor.UploadCertificateCommand}"
                                         Classes="Secondary"
                                         HorizontalAlignment="Stretch"/>
-                                <TextBlock Text="{Binding CertificateFileName}" 
+                                <TextBlock Text="{Binding Editor.CertificateFileName}" 
                                            Foreground="{DynamicResource TextSecondary}" 
                                            FontSize="12" 
                                            TextWrapping="Wrap"
@@ -166,14 +166,14 @@
     
                             <Grid ColumnDefinitions="*, *" Margin="0,20,0,0">
                                 <Button Grid.Column="0" Content="Clear" 
-                                        Command="{Binding ClearFormCommand}" 
+                                        Command="{Binding Editor.ClearFormCommand}" 
                                         Classes="Cancel"
                                         Margin="0,0,5,0"/>
                                 <Button Grid.Column="1" 
-                                        Command="{Binding SaveTrainingCommand}" 
+                                        Command="{Binding Editor.SaveTrainingCommand}" 
                                         Classes="Primary" 
                                         Margin="5,0,0,0">
-                                    <TextBlock Text="{Binding IsEditMode, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Update|Save'}"/>
+                                    <TextBlock Text="{Binding Editor.IsEditMode, Converter={StaticResource BoolToTextConverter}, ConverterParameter='Update|Save'}"/>
                                 </Button>
                             </Grid>
                         </StackPanel>

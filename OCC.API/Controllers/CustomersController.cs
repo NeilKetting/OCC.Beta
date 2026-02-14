@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.API.Hubs;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 
 namespace OCC.API.Controllers
 {
@@ -22,6 +23,32 @@ namespace OCC.API.Controllers
             _context = context;
             _hubContext = hubContext;
             _logger = logger;
+        }
+
+        [HttpGet("summaries")]
+        public async Task<ActionResult<IEnumerable<CustomerSummaryDto>>> GetCustomerSummaries()
+        {
+            try
+            {
+                return await _context.Customers
+                    .OrderBy(c => c.Name)
+                    .Select(c => new CustomerSummaryDto
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        Header = c.Header,
+                        Email = c.Email,
+                        Phone = c.Phone,
+                        Address = c.Address
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer summaries");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // GET: api/Customers

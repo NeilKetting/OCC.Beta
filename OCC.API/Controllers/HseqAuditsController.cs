@@ -22,6 +22,7 @@ namespace OCC.API.Controllers
         public async Task<ActionResult<IEnumerable<AuditSummaryDto>>> GetAudits()
         {
             var audits = await _context.HseqAudits
+                .AsNoTracking()
                 .OrderByDescending(a => a.Date)
                 .ToListAsync();
             
@@ -37,6 +38,7 @@ namespace OCC.API.Controllers
                 .Include(a => a.NonComplianceItems)
                     .ThenInclude(i => i.Attachments)
                 .Include(a => a.Attachments)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (audit == null)
@@ -221,6 +223,7 @@ namespace OCC.API.Controllers
         {
              var items = await _context.HseqAuditNonComplianceItems
                 .Include(i => i.Attachments)
+                .AsNoTracking()
                 .Where(i => i.AuditId == id)
                 .ToListAsync();
              

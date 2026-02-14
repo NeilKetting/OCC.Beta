@@ -94,7 +94,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task LoadDataAsync()
+        public virtual async Task LoadDataAsync()
         {
             IsBusy = true;
             try
@@ -196,7 +196,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task ReClockIn(StaffAttendanceViewModel item)
+        public virtual async Task ReClockIn(StaffAttendanceViewModel item)
         {
              if (item == null || _isProcessingAction) return;
              _isProcessingAction = true;
@@ -296,7 +296,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         private bool _isProcessingAction = false;
 
         [RelayCommand]
-        private async Task MarkPresent(StaffAttendanceViewModel item)
+        public virtual async Task MarkPresent(StaffAttendanceViewModel item)
         {
             if (item == null || _isProcessingAction) return;
             _isProcessingAction = true;
@@ -379,7 +379,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task ClockInSelected()
+        public virtual async Task ClockInSelected()
         {
             var toClockIn = PendingStaff.Where(s => s.IsSelected).ToList();
             if (!toClockIn.Any())
@@ -456,7 +456,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task ClockOutSelected()
+        public virtual async Task ClockOutSelected()
         {
             // Only clock out staff who are currently active (CheckOutTime is null)
             var toClockOut = LoggedStaff.Where(s => s.IsSelected && s.ClockOutTime == null).ToList();
@@ -523,7 +523,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task MarkAbsent(StaffAttendanceViewModel item)
+        public virtual async Task MarkAbsent(StaffAttendanceViewModel item)
         {
             if (item == null || _isProcessingAction) return;
             _isProcessingAction = true;
@@ -572,7 +572,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task ClockOut(StaffAttendanceViewModel item)
+        public virtual async Task ClockOut(StaffAttendanceViewModel item)
         {
             if (item == null || item.Id == Guid.Empty || _isProcessingAction) return;
             _isProcessingAction = true;
@@ -745,7 +745,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task EditEntry(StaffAttendanceViewModel item)
+        public virtual async Task EditEntry(StaffAttendanceViewModel item)
         {
             if (item == null || item.Id == Guid.Empty) return;
 

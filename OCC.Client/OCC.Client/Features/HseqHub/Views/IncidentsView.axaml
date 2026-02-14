@@ -25,7 +25,7 @@
                         <TextBlock Text="Report and track workplace incidents" Classes="TextSecondary"/>
                     </StackPanel>
 
-                    <Button Grid.Column="1" Classes="PrimaryButton" Command="{Binding ToggleAddCommand}" IsVisible="{Binding !IsAdding}"
+                    <Button Grid.Column="1" Classes="PrimaryButton" Command="{Binding ToggleAddCommand}" IsVisible="{Binding !Editor.IsOpen}"
                             VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16"/>
@@ -129,7 +129,7 @@
         <!-- Side Panel -->
         <Border Grid.Column="1" Background="{DynamicResource CardBackground}" 
                 BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0"
-                Width="400" Padding="24" IsVisible="{Binding IsAdding}">
+                Width="400" Padding="24" IsVisible="{Binding Editor.IsOpen}">
             <Grid RowDefinitions="Auto, *, Auto">
                 
                 <!-- Header -->
@@ -142,45 +142,45 @@
                         <!-- Date -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Date &amp; Time" Classes="FormLabel"/>
-                            <CalendarDatePicker SelectedDate="{Binding NewIncident.Date}" HorizontalAlignment="Stretch"/>
+                            <CalendarDatePicker SelectedDate="{Binding Editor.Incident.Date}" HorizontalAlignment="Stretch"/>
                         </StackPanel>
 
                         <!-- Type -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Incident Type" Classes="FormLabel"/>
-                            <ComboBox ItemsSource="{Binding IncidentTypes}" SelectedItem="{Binding NewIncident.Type}" HorizontalAlignment="Stretch" PlaceholderText="Select Type..."/>
+                            <ComboBox ItemsSource="{Binding Editor.IncidentTypes}" SelectedItem="{Binding Editor.Incident.Type}" HorizontalAlignment="Stretch" PlaceholderText="Select Type..."/>
                         </StackPanel>
 
                         <!-- Severity -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Severity" Classes="FormLabel"/>
-                            <ComboBox ItemsSource="{Binding IncidentSeverities}" SelectedItem="{Binding NewIncident.Severity}" HorizontalAlignment="Stretch" PlaceholderText="Select Severity..."/>
+                            <ComboBox ItemsSource="{Binding Editor.IncidentSeverities}" SelectedItem="{Binding Editor.Incident.Severity}" HorizontalAlignment="Stretch" PlaceholderText="Select Severity..."/>
                         </StackPanel>
 
                          <!-- Location -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Location / Site" Classes="FormLabel"/>
-                            <TextBox Text="{Binding NewIncident.Location}" Watermark="e.g. Warehouse Zone B"/>
+                            <TextBox Text="{Binding Editor.Incident.Location}" Watermark="e.g. Warehouse Zone B"/>
                         </StackPanel>
 
                         <!-- Description -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Description" Classes="FormLabel"/>
-                            <TextBox Text="{Binding NewIncident.Description}" Watermark="Describe what happened..." 
+                            <TextBox Text="{Binding Editor.Incident.Description}" Watermark="Describe what happened..." 
                                      AcceptsReturn="True" Height="100" TextWrapping="Wrap"/>
                         </StackPanel>
                         
                         <!-- Root Cause -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Root Cause (Optional)" Classes="FormLabel"/>
-                            <TextBox Text="{Binding NewIncident.RootCause}" Watermark="Why did it happen?" 
+                            <TextBox Text="{Binding Editor.Incident.RootCause}" Watermark="Why did it happen?" 
                                      AcceptsReturn="True" Height="80" TextWrapping="Wrap"/>
                         </StackPanel>
                         
                         <!-- Corrective Action -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Corrective Action (Optional)" Classes="FormLabel"/>
-                            <TextBox Text="{Binding NewIncident.CorrectiveAction}" Watermark="Immediate actions taken..." 
+                            <TextBox Text="{Binding Editor.Incident.CorrectiveAction}" Watermark="Immediate actions taken..." 
                                      AcceptsReturn="True" Height="80" TextWrapping="Wrap"/>
                         </StackPanel>
 
@@ -190,7 +190,7 @@
                             <TextBlock Text="INCIDENT PHOTOS" Classes="LabelSmall" FontWeight="Bold"/>
                             
                             <!-- List of Photos -->
-                            <ItemsControl ItemsSource="{Binding CurrentIncidentPhotos}">
+                            <ItemsControl ItemsSource="{Binding Editor.Photos}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Background="White" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Padding="10,5" Margin="0,0,0,5">
@@ -204,7 +204,7 @@
                                                     </StackPanel>
                                                 </StackPanel>
                                                 <Button Grid.Column="1" Classes="IconOnlyButton" 
-                                                        Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).DeletePhotoCommand}" 
+                                                        Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeletePhotoCommand}" 
                                                         CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}">
                                                     <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
                                                 </Button>
@@ -230,7 +230,7 @@
 
                 <!-- Footer Actions -->
                 <StackPanel Grid.Row="2" Spacing="12" Margin="0,24,0,0">
-                    <Button Classes="PrimaryButton" HorizontalAlignment="Stretch" Command="{Binding SaveIncidentCommand}" Content="SAVE REPORT"/>
+                    <Button Classes="PrimaryButton" HorizontalAlignment="Stretch" Command="{Binding Editor.SaveIncidentCommand}" Content="SAVE REPORT"/>
                     <Button Classes="SecondaryButton" HorizontalAlignment="Stretch" Command="{Binding CancelAddCommand}" Content="CANCEL"/>
                 </StackPanel>
 

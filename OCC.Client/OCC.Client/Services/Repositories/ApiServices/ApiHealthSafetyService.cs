@@ -187,16 +187,28 @@ namespace OCC.Client.Services.Repositories.ApiServices
         }
 
         // --- Training ---
+        public async Task<IEnumerable<HseqTrainingSummaryDto>> GetTrainingSummariesAsync()
+        {
+            EnsureAuthorization();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingSummaryDto>>("api/HseqTraining/summaries", _options) ?? new List<HseqTrainingSummaryDto>();
+        }
+
         public async Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync()
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingRecord>>("api/HseqTraining") ?? new List<HseqTrainingRecord>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingRecord>>("api/HseqTraining", _options) ?? new List<HseqTrainingRecord>();
         }
 
-        public async Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days)
+        public async Task<HseqTrainingRecord?> GetTrainingRecordAsync(Guid id)
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingRecord>>($"api/HseqTraining/expiring/{days}") ?? new List<HseqTrainingRecord>();
+            return await _httpClient.GetFromJsonAsync<HseqTrainingRecord>($"api/HseqTraining/{id}", _options);
+        }
+
+        public async Task<IEnumerable<HseqTrainingSummaryDto>> GetExpiringTrainingAsync(int days)
+        {
+            EnsureAuthorization();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<HseqTrainingSummaryDto>>($"api/HseqTraining/expiring/{days}", _options) ?? new List<HseqTrainingSummaryDto>();
         }
 
         public async Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record)

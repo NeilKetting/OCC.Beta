@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.Client.ViewModels.Core;
 using System;
 using System.Collections.ObjectModel;
@@ -23,100 +24,31 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         private ObservableCollection<TrainingRecordViewModel> _trainingRecords = new();
 
         [ObservableProperty]
-        private ObservableCollection<string> _certificateTypes = new();
-
-        [ObservableProperty]
         private int _expiryWarningDays = 30;
-
-        [ObservableProperty]
-        private ObservableCollection<Employee> _employees = new();
-
-        [ObservableProperty]
-        private Employee? _selectedEmployee;
-
-        [ObservableProperty]
-        private string _certificateFileName = "No file selected";
-
-        [ObservableProperty]
-        private bool _isEditMode;
 
         [ObservableProperty]
         private string _categoryFilter = "All";
 
         public ObservableCollection<string> Categories { get; } = new() { "All", "Training", "Medicals" };
 
-        private HseqTrainingRecord? _editingRecord;
-
-        public TrainingViewModel()
-        {
-            // Design-time
-            _hseqService = null!;
-            _dialogService = null!;
-            _toastService = null!;
-            _employeeRepository = null!;
-            InitializeCertificateTypes();
-        }
+        public TrainingEditorViewModel Editor { get; }
 
         public TrainingViewModel(
             IHealthSafetyService hseqService, 
             IDialogService dialogService, 
             IToastService toastService,
-            IRepository<Employee> employeeRepository)
+            IRepository<Employee> employeeRepository,
+            TrainingEditorViewModel editor)
         {
             _hseqService = hseqService;
             _dialogService = dialogService;
             _toastService = toastService;
             _employeeRepository = employeeRepository;
-            InitializeCertificateTypes();
+            Editor = editor;
+            
+            Editor.OnSaved = OnTrainingSaved;
+
             LoadDataCommand.ExecuteAsync(null);
-        }
-
-        private void InitializeCertificateTypes()
-        {
-            CertificateTypes = new ObservableCollection<string>
-            {
-                "Medicals",
-                "First Aid Level 1",
-                "First Aid Level 2",
-                "First Aid Level 3",
-                "SHE Representative",
-                "Basic Fire Fighting",
-                "Advanced Fire Fighting",
-                "HIRA (Hazard Identification & Risk Assessment)",
-                "Scaffolding Erector",
-                "Scaffolding Inspector",
-                "Working at Heights",
-                "Fall Protection Planner",
-                "Confined Space Entry",
-                "Incident Investigation",
-                "Legal Liability",
-                "Construction Regulations",
-                "Excavation Supervisor",
-                "Demolition Supervisor"
-            };
-        }
-
-        partial void OnSelectedEmployeeChanged(Employee? value)
-        {
-            if (value != null)
-            {
-                // Create a new instance to force UI update binding
-                NewRecord = new HseqTrainingRecord
-                {
-                    Id = NewRecord.Id,
-                    EmployeeName = value.DisplayName,
-                    Role = value.Role.ToString(),
-                    EmployeeId = value.Id,
-                    // Preserve other fields
-                    TrainingTopic = NewRecord.TrainingTopic,
-                    DateCompleted = NewRecord.DateCompleted == default ? DateTime.Now : NewRecord.DateCompleted,
-                    ValidUntil = NewRecord.ValidUntil ?? DateTime.Now,
-                    Trainer = NewRecord.Trainer,
-                    CertificateUrl = NewRecord.CertificateUrl,
-                    CertificateType = NewRecord.CertificateType,
-                    ExpiryWarningDays = NewRecord.ExpiryWarningDays
-                };
-            }
         }
 
         [RelayCommand]
@@ -127,28 +59,28 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             IsBusy = true;
             try
             {
-                // Parallel load
-                var recordsTask = _hseqService.GetTrainingRecordsAsync();
+                var summariesTask = _hseqService.GetTrainingSummariesAsync();
                 var employeesTask = _employeeRepository.GetAllAsync();
 
-                await Task.WhenAll(recordsTask, employeesTask);
+                await Task.WhenAll(summariesTask, employeesTask);
 
-                var records = recordsTask.Result;
+                var summaries = summariesTask.Result;
+                var employees = employeesTask.Result.OrderBy(e => e.FirstName).ThenBy(e => e.LastName).ToList();
 
                 // Apply filtering
                 if (CategoryFilter == "Medicals")
                 {
-                    records = records.Where(r => r.CertificateType == "Medicals");
+                    summaries = summaries.Where(r => r.CertificateType == "Medicals");
                 }
                 else if (CategoryFilter == "Training")
                 {
-                    records = records.Where(r => r.CertificateType != "Medicals");
+                    summaries = summaries.Where(r => r.CertificateType != "Medicals");
                 }
 
-                var vms = records.Select(r => new TrainingRecordViewModel(r)).ToList();
+                var vms = summaries.Select(r => new TrainingRecordViewModel(r)).ToList();
                 TrainingRecords = new ObservableCollection<TrainingRecordViewModel>(vms);
                 
-                Employees = new ObservableCollection<Employee>(employeesTask.Result.OrderBy(e => e.FirstName).ThenBy(e => e.LastName));
+                Editor.Initialize(employees);
             }
             catch (Exception ex)
             {
@@ -204,147 +136,70 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task UploadCertificate()
+        private void ToggleAdd()
         {
-            try
+            if (Editor.IsOpen)
             {
-                var path = await _dialogService.PickFileAsync("Select Certificate", new[] { "pdf", "jpg", "jpeg", "png" });
-                if (!string.IsNullOrEmpty(path))
-                {
-                    NewRecord.CertificateUrl = path;
-                    CertificateFileName = Path.GetFileName(path);
-                    _toastService.ShowSuccess("File Selected", CertificateFileName);
-                }
+                Editor.ClearForm();
             }
-            catch (Exception ex)
+            else
             {
-                _toastService.ShowError("Error", "Failed to select file.");
-                System.Diagnostics.Debug.WriteLine(ex);
+                Editor.OpenForAdd();
             }
         }
 
-        [ObservableProperty]
-        private HseqTrainingRecord _newRecord = new() 
-        { 
-            DateCompleted = DateTime.Now, 
-            ValidUntil = DateTime.Now 
-        };
-
         [RelayCommand]
-        private void ClearForm()
+        private void CancelAdd()
         {
-            _editingRecord = null;
-            IsEditMode = false;
-            SelectedEmployee = null;
-            CertificateFileName = "No file selected";
-            NewRecord = new HseqTrainingRecord
-            {
-                DateCompleted = DateTime.Now,
-                ValidUntil = DateTime.Now
-            };
+            Editor.ClearForm();
         }
 
         [RelayCommand]
-        private void EditRecord(TrainingRecordViewModel vm)
+        private async Task EditRecord(TrainingRecordViewModel vm)
         {
             if (vm == null) return;
-
-            _editingRecord = vm.Record;
-            IsEditMode = true;
-
-            // Find matching employee
-            SelectedEmployee = Employees.FirstOrDefault(e => e.Id == vm.Record.EmployeeId);
-
-            NewRecord = new HseqTrainingRecord
-            {
-                Id = vm.Record.Id,
-                EmployeeId = vm.Record.EmployeeId,
-                EmployeeName = vm.Record.EmployeeName,
-                Role = vm.Record.Role,
-                TrainingTopic = vm.Record.TrainingTopic,
-                DateCompleted = vm.Record.DateCompleted,
-                ValidUntil = vm.Record.ValidUntil,
-                Trainer = vm.Record.Trainer,
-                CertificateUrl = vm.Record.CertificateUrl,
-                CertificateType = vm.Record.CertificateType,
-                ExpiryWarningDays = vm.Record.ExpiryWarningDays
-            };
-
-            CertificateFileName = string.IsNullOrEmpty(vm.Record.CertificateUrl) 
-                ? "No file selected" 
-                : Path.GetFileName(vm.Record.CertificateUrl);
             
-            _toastService.ShowInfo("Editing", $"Modifying record for {vm.EmployeeName}");
+            BusyText = "Loading record details...";
+            IsBusy = true;
+            var full = await _hseqService.GetTrainingRecordAsync(vm.Id);
+            IsBusy = false;
+
+            if (full != null)
+            {
+                Editor.OpenForEdit(full, Editor.Employees);
+                _toastService.ShowInfo("Editing", $"Modifying record for {vm.EmployeeName}");
+            }
+            else
+            {
+                _toastService.ShowError("Error", "Could not load record details.");
+            }
         }
 
-        [RelayCommand]
-        private async Task SaveTraining()
+        private async Task OnTrainingSaved(HseqTrainingRecord record)
         {
-            if (string.IsNullOrWhiteSpace(NewRecord.EmployeeName) || string.IsNullOrWhiteSpace(NewRecord.CertificateType))
+            // Update or Insert in list
+            var existing = TrainingRecords.FirstOrDefault(r => r.Id == record.Id);
+            var summary = new HseqTrainingSummaryDto
             {
-                _toastService.ShowError("Validation", "Employee Name and Certificate Type are required.");
-                return;
-            }
+                Id = record.Id,
+                EmployeeName = record.EmployeeName,
+                TrainingTopic = record.TrainingTopic,
+                CertificateType = record.CertificateType,
+                DateCompleted = record.DateCompleted,
+                ValidUntil = record.ValidUntil,
+                Role = record.Role
+            };
 
-            IsBusy = true;
-            try
+            if (existing != null)
             {
-                // Upload Certificate if local file exists (only if changed or new)
-                if (!string.IsNullOrEmpty(NewRecord.CertificateUrl) && File.Exists(NewRecord.CertificateUrl))
-                {
-                    try
-                    {
-                        using var stream = File.OpenRead(NewRecord.CertificateUrl);
-                        var fileName = Path.GetFileName(NewRecord.CertificateUrl);
-                        var serverUrl = await _hseqService.UploadCertificateAsync(stream, fileName);
-                        
-                        if (!string.IsNullOrEmpty(serverUrl))
-                        {
-                            NewRecord.CertificateUrl = serverUrl;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _toastService.ShowError("Upload Failed", "Could not upload certificate. Saving text only.");
-                        System.Diagnostics.Debug.WriteLine($"Upload error: {ex.Message}");
-                    }
-                }
-
-                NewRecord.TrainingTopic = NewRecord.CertificateType; 
-
-                if (IsEditMode && _editingRecord != null)
-                {
-                    var success = await _hseqService.UpdateTrainingRecordAsync(NewRecord);
-                    if (success)
-                    {
-                        _toastService.ShowSuccess("Updated", "Training record updated.");
-                        await LoadData(); // Reload to refresh list
-                        ClearForm();
-                    }
-                    else
-                    {
-                        _toastService.ShowError("Error", "Failed to update record.");
-                    }
-                }
-                else
-                {
-                    var created = await _hseqService.CreateTrainingRecordAsync(NewRecord);
-                    if (created != null)
-                    {
-                        TrainingRecords.Insert(0, new TrainingRecordViewModel(created));
-                        _toastService.ShowSuccess("Saved", "Training record added.");
-                        ClearForm();
-                    }
-                }
+                var index = TrainingRecords.IndexOf(existing);
+                TrainingRecords[index] = new TrainingRecordViewModel(summary);
             }
-            catch(Exception)
+            else
             {
-                _toastService.ShowError("Error", "Failed to save record.");
+                TrainingRecords.Insert(0, new TrainingRecordViewModel(summary));
             }
-            finally
-            {
-                IsBusy = false;
-            }
+            await Task.CompletedTask;
         }
     }
 
@@ -353,21 +208,23 @@ namespace OCC.Client.Features.HseqHub.ViewModels
     /// </summary>
     public class TrainingRecordViewModel : ObservableObject
     {
-        public HseqTrainingRecord Record { get; }
+        public HseqTrainingSummaryDto Summary { get; }
 
-        public TrainingRecordViewModel(HseqTrainingRecord record)
+        public TrainingRecordViewModel(HseqTrainingSummaryDto summary)
         {
-            Record = record;
+            Summary = summary;
         }
 
         // Expose properties for binding
-        public Guid Id => Record.Id;
-        public string EmployeeName => Record.EmployeeName;
-        public string Role => Record.Role;
-        public string TrainingTopic => Record.TrainingTopic;
-        public DateTime DateCompleted => Record.DateCompleted;
-        public DateTime? ValidUntil => Record.ValidUntil;
-        public string Trainer => Record.Trainer;
+        public Guid Id => Summary.Id;
+        public string EmployeeName => Summary.EmployeeName;
+        public string Role => Summary.Role;
+        public string TrainingTopic => Summary.TrainingTopic;
+        public DateTime DateCompleted => Summary.DateCompleted;
+        public DateTime? ValidUntil => Summary.ValidUntil;
+        // Trainer not in summary, but if needed we can add it or fetch it.
+        // For now, let's keep it minimal as per the goal of lightweight lookups.
+        public string Trainer => ""; 
 
         public string ValidityStatus
         {

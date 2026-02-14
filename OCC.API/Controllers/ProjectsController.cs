@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.API.Hubs;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 
 namespace OCC.API.Controllers
 {
@@ -22,6 +23,37 @@ namespace OCC.API.Controllers
             _context = context;
             _hubContext = hubContext;
             _logger = logger;
+        }
+
+        [HttpGet("summaries")]
+        public async Task<ActionResult<IEnumerable<ProjectSummaryDto>>> GetProjectSummaries()
+        {
+            try
+            {
+                var query = _context.Projects
+                    .Include(p => p.Tasks)
+                    .AsNoTracking();
+
+                var projects = await query.ToListAsync();
+
+                var summaries = projects.Select(p => new ProjectSummaryDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Status = p.Status,
+                    ProjectManager = p.ProjectManager,
+                    TaskCount = p.Tasks.Count,
+                    Progress = p.Tasks.Any() ? (int)Math.Round(p.Tasks.Average(t => (double)t.PercentComplete)) : 0,
+                    LatestFinish = p.Tasks.Any() ? p.Tasks.Max(t => t.FinishDate) : p.EndDate
+                }).ToList();
+
+                return Ok(summaries);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving project summaries");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // GET: api/Projects

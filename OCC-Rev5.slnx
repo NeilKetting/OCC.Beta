@@ -3,4 +3,5 @@
   <Project Path="OCC.Client/OCC.Client.Desktop/OCC.Client.Desktop.csproj" />
   <Project Path="OCC.Client/OCC.Client/OCC.Client.csproj" />
   <Project Path="OCC.Shared/OCC.Shared.csproj" />
+  <Project Path="OCC.Tests/OCC.Tests.csproj" />
 </Solution>

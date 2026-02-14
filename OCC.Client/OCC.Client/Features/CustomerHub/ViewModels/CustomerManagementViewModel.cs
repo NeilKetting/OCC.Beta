@@ -1,10 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.DependencyInjection;
-using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,10 +16,10 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
     {
         #region Private Members
 
-        private readonly IRepository<Customer> _customerRepository;
+        private readonly Services.Interfaces.ICustomerService _customerService;
         private readonly Services.Interfaces.IDialogService _dialogService;
         private readonly IServiceProvider _serviceProvider;
-        private List<Customer> _allCustomers = new();
+        private List<CustomerSummaryDto> _allCustomers = new();
 
         #endregion
 
@@ -33,7 +32,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         private string _searchQuery = string.Empty;
 
         [ObservableProperty]
-        private ObservableCollection<Customer> _customers = new();
+        private ObservableCollection<CustomerSummaryDto> _customers = new();
 
         [ObservableProperty]
         private bool _isAddCustomerPopupVisible;
@@ -42,7 +41,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         private CustomerDetailViewModel? _customerDetailPopup;
 
         [ObservableProperty]
-        private Customer? _selectedCustomer;
+        private CustomerSummaryDto? _selectedCustomer;
 
         [ObservableProperty]
         private int _totalCount;
@@ -60,21 +59,21 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         public CustomerManagementViewModel()
         {
             // Designer constructor
-            _customerRepository = null!;
+            _customerService = null!; // Corrected from _customerRepository
             _dialogService = null!;
             _serviceProvider = null!;
         }
 
         public CustomerManagementViewModel(
-            IRepository<Customer> customerRepository,
+            Services.Interfaces.ICustomerService customerService,
             Services.Interfaces.IDialogService dialogService,
             IServiceProvider serviceProvider)
         {
-            _customerRepository = customerRepository;
+            _customerService = customerService;
             _dialogService = dialogService;
             _serviceProvider = serviceProvider;
-
-            LoadData();
+            
+            _ = LoadData();
 
             WeakReferenceMessenger.Default.RegisterAll(this);
         }
@@ -83,7 +82,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         {
             if (message.Value.EntityType == "Customer")
             {
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadData);
+                _ = LoadData();
             }
         }
 
@@ -92,20 +91,20 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         #region Commands
 
         [RelayCommand]
-        private void AddCustomer()
+        private async Task AddCustomer()
         {
-            OpenDetailPopup(null);
+            await OpenDetailPopup(null);
         }
 
         [RelayCommand]
-        public void EditCustomer(Customer customer)
+        public async Task EditCustomer(CustomerSummaryDto customer)
         {
             if (customer == null) return;
-            OpenDetailPopup(customer);
+            await OpenDetailPopup(customer);
         }
 
         [RelayCommand]
-        public async Task DeleteCustomer(Customer customer)
+        public async Task DeleteCustomer(CustomerSummaryDto customer)
         {
             if (customer == null) return;
 
@@ -119,12 +118,12 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
                 {
                     BusyText = $"Deleting {customer.Name}...";
                     IsBusy = true;
-                    await _customerRepository.DeleteAsync(customer.Id);
+                    await _customerService.DeleteCustomerAsync(customer.Id);
                     LoadData();
                 }
                 catch (Exception ex)
                 {
-                   await _dialogService.ShowAlertAsync("Error", $"Failed to delete customer: {ex.Message}");
+                    await _dialogService.ShowAlertAsync("Error", $"Failed to delete customer: {ex.Message}");
                 }
                 finally
                 {
@@ -144,12 +143,18 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
 
         #region Methods
 
-        private void OpenDetailPopup(Customer? customer)
+        private async Task OpenDetailPopup(CustomerSummaryDto? summary)
         {
-            var vm = new CustomerDetailViewModel(_customerRepository, _dialogService);
-            if (customer != null)
+            var vm = new CustomerDetailViewModel(_customerService, _dialogService);
+            if (summary != null)
             {
-                vm.Load(customer);
+                BusyText = "Loading details...";
+                IsBusy = true;
+                var full = await _customerService.GetCustomerAsync(summary.Id);
+                IsBusy = false;
+                
+                if (full != null) vm.Load(full);
+                else { await _dialogService.ShowAlertAsync("Error", "Could not load customer details."); return; }
             }
             else
             {
@@ -160,21 +165,24 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
             vm.Saved += (s, e) => 
             {
                 CloseDetail();
-                LoadData();
+                _ = LoadData();
             };
 
             CustomerDetailPopup = vm;
             IsAddCustomerPopupVisible = true;
         }
+        
+        // Overload for Add (no params)
+        private void OpenDetailPopup() => OpenDetailPopup(null);
 
-        public async void LoadData()
+        public async Task LoadData()
         {
             try
             {
                 BusyText = "Loading customers...";
                 IsBusy = true;
 
-                var customers = await _customerRepository.GetAllAsync();
+                var customers = await _customerService.GetCustomerSummariesAsync();
                 _allCustomers = customers.OrderBy(c => c.Name).ToList();
 
                 FilterCustomers();
@@ -211,7 +219,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
             }
 
             var resultList = filtered.ToList();
-            Customers = new ObservableCollection<Customer>(resultList);
+            Customers = new ObservableCollection<CustomerSummaryDto>(resultList);
             TotalCount = resultList.Count;
         }
 

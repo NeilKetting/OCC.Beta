@@ -2,6 +2,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -30,7 +31,13 @@ namespace OCC.Client.Services
             }
         }
 
-        public async Task<List<InventoryItem>> GetInventoryAsync()
+        public async Task<IEnumerable<InventorySummaryDto>> GetInventorySummariesAsync()
+        {
+            EnsureAuthorization();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<InventorySummaryDto>>("api/Inventory/summaries") ?? new List<InventorySummaryDto>();
+        }
+
+        public async Task<IEnumerable<InventoryItem>> GetInventoryAsync()
         {
             EnsureAuthorization();
             EnsureAuthorization();
@@ -40,7 +47,7 @@ namespace OCC.Client.Services
                 var error = await response.Content.ReadAsStringAsync();
                 throw new HttpRequestException($"Failed to get inventory: {response.StatusCode} - {error}");
             }
-            return await response.Content.ReadFromJsonAsync<List<InventoryItem>>() ?? new List<InventoryItem>();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<InventoryItem>>() ?? new List<InventoryItem>();
         }
 
         public async Task<InventoryItem?> GetInventoryItemAsync(Guid id)

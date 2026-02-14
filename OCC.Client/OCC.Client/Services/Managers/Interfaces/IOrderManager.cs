@@ -52,10 +52,17 @@ namespace OCC.Client.Services.Managers.Interfaces
         // --- Dependencies Data Access ---
 
         /// <summary>
+        /// Retrieves all registered suppliers as lightweight summaries.
+        /// </summary>
+        /// <returns>A collection of <see cref="SupplierSummaryDto"/> objects.</returns>
+        Task<IEnumerable<SupplierSummaryDto>> GetSupplierSummariesAsync();
+
+        /// <summary>
         /// Retrieves all registered suppliers.
         /// </summary>
         /// <returns>A collection of <see cref="Supplier"/> objects.</returns>
         Task<IEnumerable<Supplier>> GetSuppliersAsync();
+        Task<Supplier?> GetSupplierByIdAsync(Guid id);
 
         /// <summary>
         /// Retrieves all registered customers.
@@ -81,6 +88,12 @@ namespace OCC.Client.Services.Managers.Interfaces
         /// </summary>
         /// <param name="project">The project with updated details.</param>
         Task UpdateProjectAsync(Project project);
+
+        /// <summary>
+        /// Retrieves all inventory items available for ordering as lightweight summaries.
+        /// </summary>
+        /// <returns>A collection of <see cref="InventorySummaryDto"/> objects.</returns>
+        Task<IEnumerable<InventorySummaryDto>> GetInventorySummariesAsync();
 
         /// <summary>
         /// Retrieves all inventory items available for ordering.
@@ -160,6 +173,7 @@ namespace OCC.Client.Services.Managers.Interfaces
         /// </summary>
         /// <param name="itemId">The GUID of the inventory item to delete.</param>
         Task DeleteItemAsync(Guid itemId);
+        Task<InventoryItem?> GetItemByIdAsync(Guid id);
 
         /// <summary>
         /// Updates an existing inventory item's details.

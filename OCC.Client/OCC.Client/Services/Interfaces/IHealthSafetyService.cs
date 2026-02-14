@@ -28,8 +28,10 @@ namespace OCC.Client.Services.Interfaces
         Task<bool> DeleteAuditAttachmentAsync(Guid id);
 
         // Training
+        Task<IEnumerable<HseqTrainingSummaryDto>> GetTrainingSummariesAsync();
         Task<IEnumerable<HseqTrainingRecord>> GetTrainingRecordsAsync();
-        Task<IEnumerable<HseqTrainingRecord>> GetExpiringTrainingAsync(int days);
+        Task<HseqTrainingRecord?> GetTrainingRecordAsync(Guid id);
+        Task<IEnumerable<HseqTrainingSummaryDto>> GetExpiringTrainingAsync(int days);
         Task<HseqTrainingRecord?> CreateTrainingRecordAsync(HseqTrainingRecord record);
         Task<bool> UpdateTrainingRecordAsync(HseqTrainingRecord record);
         Task<string?> UploadCertificateAsync(System.IO.Stream fileStream, string fileName);

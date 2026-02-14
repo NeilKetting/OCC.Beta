@@ -291,7 +291,23 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         {
             // Supplier List Interactions
             SupplierListVM.AddSupplierRequested += (s, e) => { SupplierDetailVM.Load(null); IsSupplierDetailVisible = true; };
-            SupplierListVM.EditSupplierRequested += (s, o) => { SupplierDetailVM.Load(o); IsSupplierDetailVisible = true; };
+            SupplierListVM.EditSupplierRequested += async (s, summary) => 
+            {
+                IsBusy = true;
+                BusyText = "Loading supplier details...";
+                var supplier = await _orderManager.GetSupplierByIdAsync(summary.Id); // Wait, I need to check IOrderManager again
+                IsBusy = false;
+                
+                if (supplier != null)
+                {
+                    SupplierDetailVM.Load(supplier);
+                    IsSupplierDetailVisible = true;
+                }
+                else
+                {
+                    await _dialogService.ShowAlertAsync("Error", "Could not load supplier details.");
+                }
+            };
             SupplierDetailVM.CloseRequested += (s, e) => IsSupplierDetailVisible = false;
             SupplierDetailVM.Saved += async (s, e) => { await SupplierListVM.LoadData(); IsSupplierDetailVisible = false; };
 

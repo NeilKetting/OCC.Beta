@@ -31,7 +31,9 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var employees = await _context.Employees.ToListAsync();
+                var employees = await _context.Employees
+                    .AsNoTracking()
+                    .ToListAsync();
                 return Ok(employees.Select(ToSummaryDto));
             }
             catch (Exception ex)
@@ -47,7 +49,9 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var employee = await _context.Employees.FindAsync(id);
+                var employee = await _context.Employees
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (employee == null)
                 {

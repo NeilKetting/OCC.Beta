@@ -23,6 +23,7 @@ namespace OCC.API.Controllers
         {
             var incidents = await _context.Incidents
                 .Include(i => i.Photos)
+                .AsNoTracking()
                 .OrderByDescending(i => i.Date)
                 .ToListAsync();
 
@@ -34,6 +35,7 @@ namespace OCC.API.Controllers
         {
             var incident = await _context.Incidents
                 .Include(i => i.Photos)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (incident == null)

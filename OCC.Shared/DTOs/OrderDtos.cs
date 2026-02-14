@@ -20,6 +20,30 @@ namespace OCC.Shared.DTOs
         public string DestinationDisplay { get; set; } = string.Empty;
     }
 
+    public class InventorySummaryDto
+    {
+        public Guid Id { get; set; }
+        public string Sku { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public double QuantityOnHand { get; set; }
+        public decimal Price { get; set; }
+        public string Branch { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string UnitOfMeasure { get; set; } = string.Empty;
+        public InventoryStatus InventoryStatus { get; set; }
+    }
+
+    public class SupplierSummaryDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string? Branch { get; set; }
+        public string VatNumber { get; set; } = string.Empty;
+    }
+
     public class OrderDto
     {
         public Guid Id { get; set; }

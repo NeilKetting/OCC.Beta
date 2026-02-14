@@ -104,7 +104,7 @@ namespace OCC.Client.Features.AuthHub.ViewModels
         #region Commands
 
         [RelayCommand]
-        private async Task LoginAsync()
+        public virtual async Task LoginAsync()
         {
             if (string.IsNullOrWhiteSpace(Email))
             {

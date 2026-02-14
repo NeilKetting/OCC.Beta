@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 
+using OCC.Shared.DTOs;
+
 namespace OCC.Client.ModelWrappers
 {
     public partial class HseqAuditNonComplianceItemWrapper : ObservableObject
@@ -45,7 +47,7 @@ namespace OCC.Client.ModelWrappers
         private string _statusColor = "#EF4444"; // Default Red
 
         [ObservableProperty]
-        private ObservableCollection<HseqAuditAttachment> _attachments = new();
+        private ObservableCollection<AuditAttachmentDto> _attachments = new();
 
         private void Initialize()
         {
@@ -57,7 +59,18 @@ namespace OCC.Client.ModelWrappers
             ClosedDate = _model.ClosedDate;
             Status = _model.Status;
             
-            Attachments = new ObservableCollection<HseqAuditAttachment>(_model.Attachments ?? new List<HseqAuditAttachment>());
+            Attachments = new ObservableCollection<AuditAttachmentDto>(
+                (_model.Attachments ?? new List<HseqAuditAttachment>())
+                .Select(a => new AuditAttachmentDto
+                {
+                    Id = a.Id,
+                    NonComplianceItemId = a.NonComplianceItemId,
+                    FileName = a.FileName,
+                    FilePath = a.FilePath,
+                    FileSize = a.FileSize,
+                    UploadedBy = a.UploadedBy,
+                    UploadedAt = a.UploadedAt
+                }));
             
             UpdateStatusColor();
         }
@@ -71,7 +84,16 @@ namespace OCC.Client.ModelWrappers
             _model.TargetDate = TargetDate;
             _model.ClosedDate = ClosedDate;
             _model.Status = Status;
-            _model.Attachments = Attachments.ToList();
+            _model.Attachments = Attachments.Select(d => new HseqAuditAttachment
+            {
+                Id = d.Id,
+                NonComplianceItemId = d.NonComplianceItemId,
+                FileName = d.FileName,
+                FilePath = d.FilePath,
+                FileSize = d.FileSize,
+                UploadedBy = d.UploadedBy,
+                UploadedAt = d.UploadedAt
+            }).ToList();
         }
 
         partial void OnDescriptionChanged(string value) => _model.Description = value;

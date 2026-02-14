@@ -2,6 +2,7 @@ using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -30,10 +31,16 @@ namespace OCC.Client.Services
             }
         }
 
-        public async Task<List<Supplier>> GetSuppliersAsync()
+        public async Task<IEnumerable<SupplierSummaryDto>> GetSupplierSummariesAsync()
         {
             EnsureAuthorization();
-            return await _httpClient.GetFromJsonAsync<List<Supplier>>("api/Suppliers") ?? new List<Supplier>();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<SupplierSummaryDto>>("api/Suppliers/summaries") ?? new List<SupplierSummaryDto>();
+        }
+
+        public async Task<IEnumerable<Supplier>> GetSuppliersAsync()
+        {
+            EnsureAuthorization();
+            return await _httpClient.GetFromJsonAsync<IEnumerable<Supplier>>("api/Suppliers") ?? new List<Supplier>();
         }
 
         public async Task<Supplier?> GetSupplierAsync(Guid id)

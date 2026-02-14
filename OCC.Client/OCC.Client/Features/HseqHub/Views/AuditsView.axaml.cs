@@ -42,7 +42,7 @@ namespace OCC.Client.Features.HseqHub.Views
                 var files = e.Data.GetFiles();
                 if (files != null)
                 {
-                    vm.UploadFilesCommand.Execute(files);
+                    vm.Editor.UploadFilesCommand.Execute(files);
                 }
             }
             #pragma warning restore CS0618 // Type or member is obsolete
@@ -64,7 +64,7 @@ namespace OCC.Client.Features.HseqHub.Views
 
             if (files != null && files.Any())
             {
-                vm.UploadFilesCommand.Execute(files);
+                vm.Editor.UploadFilesCommand.Execute(files);
             }
         }
 
@@ -84,7 +84,7 @@ namespace OCC.Client.Features.HseqHub.Views
 
                 if (files != null && files.Any())
                 {
-                    vm.UploadFilesCommand.Execute(new Tuple<object, HseqAuditNonComplianceItem>(files, itemWrapper.Model));
+                    vm.Editor.UploadFilesCommand.Execute(new Tuple<object, HseqAuditNonComplianceItem>(files, itemWrapper.Model));
                 }
             }
         }

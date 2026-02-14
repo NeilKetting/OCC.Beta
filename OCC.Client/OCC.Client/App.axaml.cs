@@ -24,6 +24,7 @@ using OCC.Client.Features.BugHub.ViewModels;
 using OCC.Client.Features.CustomerHub.ViewModels;
 using OCC.Client.ViewModels.Notifications; // Added
 using OCC.Client.Features.OrdersHub.ViewModels;
+using OCC.Client.Features.OrdersHub.UseCases;
 using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Client.Features.TaskHub.ViewModels;
 using OCC.Client.Features.CalendarHub.ViewModels;
@@ -93,7 +94,11 @@ namespace OCC.Client
         {
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
-            Services = serviceCollection.BuildServiceProvider();
+            Services = serviceCollection.BuildServiceProvider(new ServiceProviderOptions
+            {
+                ValidateOnBuild = true,
+                ValidateScopes = true
+            });
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -146,7 +151,7 @@ namespace OCC.Client
             base.OnFrameworkInitializationCompleted();
         }
 
-        private void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             // --- Infrastructure & Core Services ---
             services.AddTransient<FailureLoggingHandler>();
@@ -221,6 +226,8 @@ namespace OCC.Client
             services.AddTransient<ProjectTopBarViewModel>();
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();
+            services.AddHttpClient<IProjectService, ProjectService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
                 .AddHttpMessageHandler<FailureLoggingHandler>();
             
@@ -263,11 +270,14 @@ namespace OCC.Client
             services.AddTransient<CalendarHubViewModel>();
 
             // --- Customer Hub ---
+            services.AddHttpClient<ICustomerService, CustomerService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddTransient<CustomerManagementViewModel>();
             services.AddTransient<CustomerDetailViewModel>();
 
             // --- Orders Hub ---
             services.AddSingleton<OrderStateService>();
+            services.AddTransient<IOrderLifecycleService, OrderLifecycleService>();
             services.AddTransient<IOrderManager, OrderManager>();
             services.AddHttpClient<IOrderService, OrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
                 .AddHttpMessageHandler<FailureLoggingHandler>();
@@ -282,6 +292,11 @@ namespace OCC.Client
             services.AddTransient<OrderMenuViewModel>();
             services.AddTransient<OrderDashboardViewModel>();
             services.AddTransient<OrderListViewModel>();
+            services.AddSingleton<IOrderCalculationService, OrderCalculationService>();
+            services.AddTransient<OrderLinesViewModel>();
+            services.AddTransient<InventoryLookupViewModel>();
+            services.AddTransient<SupplierSelectorViewModel>();
+            services.AddTransient<OrderSubmissionUseCase>();
             services.AddTransient<CreateOrderViewModel>();
             services.AddTransient<ReceiveOrderViewModel>();
             services.AddTransient<InventoryViewModel>();
@@ -299,8 +314,12 @@ namespace OCC.Client
             services.AddTransient<HealthSafetyMenuViewModel>();
             services.AddTransient<PerformanceMonitoringViewModel>();
             services.AddTransient<IncidentsViewModel>();
+            services.AddTransient<IncidentEditorViewModel>();
             services.AddTransient<TrainingViewModel>();
+            services.AddTransient<TrainingEditorViewModel>();
             services.AddTransient<AuditsViewModel>();
+            services.AddTransient<AuditEditorViewModel>();
+            services.AddTransient<AuditDeviationsViewModel>();
             services.AddTransient<DocumentsViewModel>();
 
             // --- Bug Hub ---

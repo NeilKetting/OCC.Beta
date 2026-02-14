@@ -40,7 +40,7 @@ namespace OCC.Client.Features.HseqHub.Views
                 var files = e.Data.GetFiles();
                 if (files != null)
                 {
-                    vm.UploadPhotosCommand.Execute(files);
+                    vm.Editor.UploadPhotosCommand.Execute(files);
                 }
             }
             #pragma warning restore CS0618 // Type or member is obsolete
@@ -62,7 +62,7 @@ namespace OCC.Client.Features.HseqHub.Views
 
             if (files != null && files.Any())
             {
-                vm.UploadPhotosCommand.Execute(files);
+                vm.Editor.UploadPhotosCommand.Execute(files);
             }
         }
     }

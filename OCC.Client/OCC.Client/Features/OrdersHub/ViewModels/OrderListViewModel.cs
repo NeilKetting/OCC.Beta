@@ -7,7 +7,6 @@ using OCC.Shared.DTOs;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
@@ -110,7 +109,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             // Register for Real-time Updates to ensure the list remains synchronized with server changes
             WeakReferenceMessenger.Default.Register(this);
             
-            LoadOrders();
+            _ = LoadOrders();
         }
 
         #endregion
@@ -199,7 +198,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <summary>
         /// Asynchronously loads all orders from the Order Manager and applies the current filters.
         /// </summary>
-        public async void LoadOrders()
+        public async Task LoadOrders()
         {
             try
             {
@@ -310,7 +309,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         {
             if (message.Value.EntityType == "Order")
             {
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadOrders);
+                _ = LoadOrders();
             }
         }
 

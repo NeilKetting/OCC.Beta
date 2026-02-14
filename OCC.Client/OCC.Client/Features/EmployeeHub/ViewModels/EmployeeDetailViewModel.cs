@@ -213,7 +213,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             Wrapper = new EmployeeWrapper(new Employee());
         }
 
-        public async Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             try
             {
@@ -226,7 +226,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             }
         }
 
-        public async Task InitializeForNew()
+        public virtual async Task InitializeForNew()
         {
             await InitializeAsync();
             // Reset wrapper for new entry
@@ -250,7 +250,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         #region Commands
 
         [RelayCommand(CanExecute = nameof(CanSave))]
-        private async Task Save()
+        public virtual async Task Save()
         {
             Wrapper.Validate();
             if (Wrapper.HasErrors) return;
@@ -385,7 +385,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task Print()
+        public virtual async Task Print()
         {
             if (Wrapper == null || _exportService == null) return;
             
@@ -421,7 +421,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
 
         #region Methods
 
-        public async Task Load(Guid employeeId)
+        public virtual async Task Load(Guid employeeId)
         {
             try 
             {

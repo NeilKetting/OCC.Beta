@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using OCC.API.Data;
 using OCC.API.Hubs;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System.Security.Claims;
 
 namespace OCC.API.Controllers
@@ -25,12 +26,44 @@ namespace OCC.API.Controllers
             _hubContext = hubContext;
         }
 
+        [HttpGet("summaries")]
+        public async Task<ActionResult<IEnumerable<InventorySummaryDto>>> GetInventorySummaries()
+        {
+            try
+                {
+                var summaries = await _context.InventoryItems
+                    .OrderBy(i => i.Description)
+                    .Select(i => new InventorySummaryDto
+                    {
+                        Id = i.Id,
+                        Sku = i.Sku,
+                        Description = i.Description,
+                        Category = i.Category,
+                        QuantityOnHand = i.QuantityOnHand,
+                        Price = i.Price,
+                        Location = i.Location,
+                        UnitOfMeasure = i.UnitOfMeasure,
+                        InventoryStatus = i.InventoryStatus
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return Ok(summaries);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving inventory summaries");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult<List<InventoryItem>>> GetInventory()
         {
             try
             {
                 var items = await _context.InventoryItems
+                    .AsNoTracking()
                     .OrderBy(i => i.Description)
                     .ToListAsync();
 
@@ -48,7 +81,9 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var item = await _context.InventoryItems.FindAsync(id);
+                var item = await _context.InventoryItems
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(i => i.Id == id);
 
                 if (item == null)
                     return NotFound();

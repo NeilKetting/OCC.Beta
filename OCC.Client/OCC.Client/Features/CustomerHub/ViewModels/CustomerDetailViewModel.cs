@@ -12,7 +12,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
 {
     public partial class CustomerDetailViewModel : ViewModelBase
     {
-        private readonly IRepository<Customer> _customerRepository;
+        private readonly Services.Interfaces.ICustomerService _customerService;
         private readonly Services.Interfaces.IDialogService _dialogService;
         private Guid? _existingId;
 
@@ -59,15 +59,15 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         [ObservableProperty]
         private bool _isBusy;
 
-        public CustomerDetailViewModel(IRepository<Customer> customerRepository, Services.Interfaces.IDialogService dialogService)
+        public CustomerDetailViewModel(Services.Interfaces.ICustomerService customerService, Services.Interfaces.IDialogService dialogService)
         {
-            _customerRepository = customerRepository;
+            _customerService = customerService;
             _dialogService = dialogService;
         }
 
         public CustomerDetailViewModel()
         {
-             _customerRepository = null!;
+             _customerService = null!;
              _dialogService = null!;
         }
 
@@ -109,18 +109,18 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
 
                 if (_existingId.HasValue)
                 {
-                    var existing = await _customerRepository.GetByIdAsync(_existingId.Value);
+                    var existing = await _customerService.GetCustomerAsync(_existingId.Value);
                     if (existing != null)
                     {
                         UpdateModel(existing);
-                        await _customerRepository.UpdateAsync(existing);
+                        await _customerService.UpdateCustomerAsync(existing);
                     }
                 }
                 else
                 {
                     var newCustomer = new Customer();
                     UpdateModel(newCustomer);
-                    await _customerRepository.AddAsync(newCustomer);
+                    await _customerService.CreateCustomerAsync(newCustomer);
                 }
 
                 Saved?.Invoke(this, EventArgs.Empty);

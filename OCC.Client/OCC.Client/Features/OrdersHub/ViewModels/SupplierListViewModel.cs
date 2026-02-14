@@ -2,9 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -29,7 +29,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private readonly ISupplierImportService _importService;
         private readonly ILogger<SupplierListViewModel> _logger;
         private readonly IAuthService _authService;
-        private List<Supplier> _allSuppliers = new();
+        private List<SupplierSummaryDto> _allSuppliers = new();
 
         #endregion
 
@@ -38,7 +38,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <summary>
         /// Gets the collection of suppliers currently displayed in the list.
         /// </summary>
-        public ObservableCollection<Supplier> Suppliers { get; } = new();
+        public ObservableCollection<SupplierSummaryDto> Suppliers { get; } = new();
 
         /// <summary>
         /// Gets or sets a value indicating whether the ViewModel is busy with an asynchronous operation.
@@ -55,7 +55,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Gets or sets the currently selected supplier in the list.
         /// </summary>
         [ObservableProperty]
-        private Supplier? _selectedSupplier;
+        private SupplierSummaryDto? _selectedSupplier;
 
         #endregion
 
@@ -80,7 +80,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         #region Commands
 
         [RelayCommand]
-        private async Task ImportSuppliers()
+        public virtual async Task ImportSuppliers()
         {
             try
             {
@@ -124,7 +124,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Command to initiate the process of adding a new supplier.
         /// </summary>
         [RelayCommand]
-        public void AddSupplier()
+        public virtual void AddSupplier()
         {
             AddSupplierRequested?.Invoke(this, EventArgs.Empty);
         }
@@ -134,7 +134,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         /// <param name="supplier">The supplier to be edited.</param>
         [RelayCommand]
-        private void EditSupplier(Supplier supplier)
+        public virtual void EditSupplier(SupplierSummaryDto supplier)
         {
              if (supplier == null) return;
              EditSupplierRequested?.Invoke(this, supplier);
@@ -146,12 +146,17 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <param name="supplier">The supplier to be deleted.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         [RelayCommand]
-        private async Task DeleteSupplier(Supplier supplier)
+        public virtual async Task DeleteSupplier(SupplierSummaryDto supplier)
         {
              if (supplier == null) return;
 
              try 
              {
+                 BusyText = "Checking dependencies...";
+                 IsBusy = true;
+                 
+                 // Note: Ideally the server should handle the dependency check on delete.
+                 // For now, we'll keep the client-side check but use the ID.
                  var allOrders = await _orderManager.GetOrdersAsync();
                  if (allOrders.Any(o => o.SupplierId == supplier.Id))
                  {
@@ -164,6 +169,10 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                   _logger.LogError(ex, "Failed to check orders during supplier delete for {SupplierName}", supplier.Name);
                   await _dialogService.ShowAlertAsync("Error", "Could not verify dependencies. Delete operation aborted for safety.");
                   return;
+             }
+             finally
+             {
+                 IsBusy = false;
              }
 
              var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", $"Are you sure you want to delete supplier '{supplier.Name}'? This action cannot be undone.");
@@ -195,13 +204,13 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Asynchronously loads all suppliers from the Order Manager and applies the current search filter.
         /// </summary>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task LoadData()
+        public virtual async Task LoadData()
         {
             try
             {
                 BusyText = "Loading suppliers...";
                 IsBusy = true;
-                _allSuppliers = (await _orderManager.GetSuppliersAsync()).ToList();
+                _allSuppliers = (await _orderManager.GetSupplierSummariesAsync()).ToList();
                 FilterSuppliers();
             }
             catch(Exception ex)
@@ -238,7 +247,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                  // I'll include null branch suppliers always? Or only if filtering for "All"?
                  // Creating Order logic: `s.Branch == null || s.Branch == targetBranch`
                  // So here: `s.Branch == null || s.Branch == branch`
-                 query = query.Where(s => s.Branch == null || s.Branch == branch);
+                 query = query.Where(s => s.Branch == null || s.Branch == branch.ToString());
             }
 
             foreach (var s in query.OrderBy(s => s.Name))
@@ -266,7 +275,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <summary>
         /// Event raised when the user requests to edit an existing supplier.
         /// </summary>
-        public event EventHandler<Supplier>? EditSupplierRequested;
+        public event EventHandler<SupplierSummaryDto>? EditSupplierRequested;
 
         /// <summary>
         /// Handles changes to the search query by reapplying the supplier filter.

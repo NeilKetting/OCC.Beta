@@ -192,7 +192,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         /// <returns>A task representing the asynchronous operation.</returns>
         [RelayCommand]
-        public async Task Save()
+        public virtual async Task Save()
         {
             if (string.IsNullOrWhiteSpace(Description))
             {
@@ -269,7 +269,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         /// <param name="item">The item to edit, or null to create a new item.</param>
         /// <param name="categories">Optional list of existing categories to populate the dropdown.</param>
-        public void Load(InventoryItem? item, System.Collections.Generic.List<string>? categories = null)
+        public virtual void Load(InventoryItem? item, System.Collections.Generic.List<string>? categories = null)
         {
             AvailableCategories.Clear();
             if (categories != null)

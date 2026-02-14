@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using OCC.Shared.DTOs;
 
 namespace OCC.API.Controllers
 {
@@ -27,6 +28,32 @@ namespace OCC.API.Controllers
             _context = context;
             _hubContext = hubContext;
             _logger = logger;
+        }
+
+        [HttpGet("summaries")]
+        public async Task<ActionResult<IEnumerable<SupplierSummaryDto>>> GetSupplierSummaries()
+        {
+            try
+            {
+                return await _context.Suppliers
+                    .OrderBy(s => s.Name)
+                    .Select(s => new SupplierSummaryDto
+                    {
+                        Id = s.Id,
+                        Name = s.Name,
+                        Email = s.Email,
+                        Phone = s.Phone,
+                        Branch = s.Branch.ToString(),
+                        VatNumber = s.VatNumber
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplier summaries");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         // GET: api/Suppliers
@@ -50,7 +77,10 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var supplier = await _context.Suppliers.FindAsync(id);
+                var supplier = await _context.Suppliers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == id);
+                
                 if (supplier == null) return NotFound();
                 return supplier;
             }

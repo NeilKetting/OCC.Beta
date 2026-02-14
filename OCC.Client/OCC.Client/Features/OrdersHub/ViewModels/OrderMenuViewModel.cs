@@ -57,6 +57,15 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <param name="notificationVM">ViewModel for the notification system.</param>
         /// <param name="authService">Service for retrieving current user information.</param>
         /// <param name="permissionService">Service for checking granular access permissions.</param>
+        /// <summary>
+        /// Protected constructor for mocking.
+        /// </summary>
+        protected OrderMenuViewModel() 
+        { 
+            NotificationVM = null!;
+            _permissionService = null!;
+        }
+
         public OrderMenuViewModel(NotificationViewModel notificationVM, IAuthService authService, IPermissionService permissionService)
         {
             NotificationVM = notificationVM;

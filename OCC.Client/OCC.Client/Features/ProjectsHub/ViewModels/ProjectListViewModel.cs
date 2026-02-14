@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Shared.Models;
 using System;
@@ -80,39 +79,18 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             IsBusy = true;
             try 
             {
-                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Projects...");
-                var projects = await _projectManager.GetProjectsAsync();
+                System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Loading Project Summaries...");
+                var summaries = await _projectManager.GetProjectsAsync();
                 
-                var dashboardItems = new System.Collections.Generic.List<ProjectDashboardItemViewModel>();
-
-                foreach (var p in projects)
+                var dashboardItems = summaries.Select(s => new ProjectDashboardItemViewModel
                 {
-                    // Calculate Progress and Latest Finish
-                    var taskList = (await _projectManager.GetTasksForProjectAsync(p.Id))?.ToList() ?? new List<ProjectTask>();
-                    int progress = 0;
-                    DateTime? latestFinish = p.EndDate;
-                    
-                    if (taskList.Any())
-                    {
-                        progress = (int)Math.Round(taskList.Average(t => t.PercentComplete));
-                        
-                        var taskLatest = taskList.Max(t => t.FinishDate);
-                        if (taskLatest > DateTime.MinValue)
-                        {
-                            latestFinish = taskLatest;
-                        }
-                    }
-
-                    dashboardItems.Add(new ProjectDashboardItemViewModel
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        Progress = progress,
-                        ProjectManagerInitials = !string.IsNullOrEmpty(p.ProjectManager) ? p.ProjectManager.Substring(0, Math.Min(2, p.ProjectManager.Length)).ToUpper() : "OR",
-                        Status = p.Status,
-                        LatestFinish = latestFinish
-                    });
-                }
+                    Id = s.Id,
+                    Name = s.Name,
+                    Progress = s.Progress,
+                    ProjectManagerInitials = !string.IsNullOrEmpty(s.ProjectManager) ? s.ProjectManager.Substring(0, Math.Min(2, s.ProjectManager.Length)).ToUpper() : "OR",
+                    Status = s.Status,
+                    LatestFinish = s.LatestFinish
+                }).ToList();
 
                 Projects = new ObservableCollection<ProjectDashboardItemViewModel>(dashboardItems);
                 System.Diagnostics.Debug.WriteLine($"[ProjectsListViewModel] Load Projects Complete. Count: {Projects.Count}");

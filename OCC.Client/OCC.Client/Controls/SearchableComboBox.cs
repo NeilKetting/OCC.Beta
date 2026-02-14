@@ -24,6 +24,9 @@ namespace OCC.Client.Controls
         public static readonly StyledProperty<bool> IsDropdownButtonVisibleProperty =
             AvaloniaProperty.Register<SearchableComboBox, bool>(nameof(IsDropdownButtonVisible), true);
 
+        public static readonly StyledProperty<ICommand?> DropdownOpeningCommandProperty =
+            AvaloniaProperty.Register<SearchableComboBox, ICommand?>(nameof(DropdownOpeningCommand));
+
         public static readonly StyledProperty<string?> WatermarkProperty =
             AvaloniaProperty.Register<SearchableComboBox, string?>(nameof(Watermark));
 
@@ -43,6 +46,12 @@ namespace OCC.Client.Controls
         {
             get => GetValue(IsDropdownButtonVisibleProperty);
             set => SetValue(IsDropdownButtonVisibleProperty, value);
+        }
+
+        public ICommand? DropdownOpeningCommand
+        {
+            get => GetValue(DropdownOpeningCommandProperty);
+            set => SetValue(DropdownOpeningCommandProperty, value);
         }
 
         public string? Watermark
@@ -72,11 +81,20 @@ namespace OCC.Client.Controls
             }
             else
             {
+                // Execute command if set (e.g. to clear filters in VM)
+                if (DropdownOpeningCommand?.CanExecute(null) == true)
+                {
+                    DropdownOpeningCommand.Execute(null);
+                }
 
                 _textBox?.Focus();
-                // Logic to show all items when toggle is clicked
-                PopulateComplete();
-                IsDropDownOpen = true;
+                
+                // Use Post to ensure focus and command execution are processed
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+                {
+                    PopulateComplete();
+                    IsDropDownOpen = true;
+                });
             }
         }
 

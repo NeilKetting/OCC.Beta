@@ -186,10 +186,123 @@
 		<Setter Property="BorderThickness" Value="0" />
 	</Style>
 
+	<!-- DataGrid Integration Style -->
+	<Style Selector="controls|SearchableComboBox.DataGrid">
+		<Setter Property="MinHeight" Value="0" />
+		<Setter Property="Height" Value="30" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Padding" Value="0" />
+	</Style>
+
+	<Style Selector="controls|SearchableComboBox.DataGrid:pointerover /template/ Border#PART_BorderElement,
+				   controls|SearchableComboBox.DataGrid:focus /template/ Border#PART_BorderElement,
+				   controls|SearchableComboBox.DataGrid:focus-within /template/ Border#PART_BorderElement">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="Background" Value="White" />
+	</Style>
+
+	<Style Selector="controls|SearchableComboBox.DataGrid /template/ TextBox#PART_TextBox">
+		<Setter Property="Padding" Value="4,0" />
+		<Setter Property="FontSize" Value="11" />
+	</Style>
+
+	<Style Selector="controls|SearchableComboBox.DataGrid /template/ Button#PART_ToggleButton">
+		<Setter Property="Width" Value="24" />
+		<Setter Property="Background" Value="#F5F5F5" />
+		<Setter Property="BorderThickness" Value="0" />
+	</Style>
+
+	<!-- Shared DataGrid Input Style (TextBox, NumericUpDown, etc.) -->
+	<Style Selector="TextBox.DataGrid">
+		<Setter Property="MinHeight" Value="0" />
+		<Setter Property="Height" Value="30" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Padding" Value="4,0" />
+		<Setter Property="FontSize" Value="11" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="NumericUpDown.DataGrid">
+		<Setter Property="MinHeight" Value="0" />
+		<Setter Property="Height" Value="30" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Padding" Value="4,0" />
+		<Setter Property="FontSize" Value="11" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="TextBox.DataGrid:pointerover /template/ Border#PART_BorderElement,
+				   TextBox.DataGrid:focus /template/ Border#PART_BorderElement">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="Background" Value="White" />
+	</Style>
+
+	<Style Selector="NumericUpDown.DataGrid:pointerover /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid:focus /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid:focus-within /template/ Border#PART_BorderElement">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="Background" Value="White" />
+	</Style>
+
+	<!-- Safer suppression for internal elements inside NumericUpDown -->
+	<Style Selector="NumericUpDown.DataGrid /template/ TextBox">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+		<Setter Property="Background" Value="Transparent" />
+	</Style>
+
+	<!-- Button version for DataGrid (e.g. UOM) -->
+	<Style Selector="Button.DataGrid">
+		<Setter Property="MinHeight" Value="28" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Padding" Value="5,0" />
+		<Setter Property="FontSize" Value="11" />
+		<Setter Property="CornerRadius" Value="0" />
+		<Setter Property="FocusAdorner" Value="{x:Null}" />
+		<Setter Property="VerticalContentAlignment" Value="Center" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="Button.DataGrid:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="White" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+	</Style>
+
+	<Style Selector="Button.DataGrid:focus /template/ ContentPresenter">
+		<Setter Property="Background" Value="White" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+	</Style>
+
+	<Style Selector="Button.DataGrid:pressed /template/ ContentPresenter">
+		<Setter Property="Background" Value="White" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
+	</Style>
 	<!-- Error State: Remove default double-border adorner and use BorderBrush -->
 	<Style Selector="controls|SearchableComboBox:error">
 		<Setter Property="BorderBrush" Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-		<Setter Property="(DataValidationErrors.ErrorTemplate)" Value="{x:Null}" />
+		<Setter Property="DataValidationErrors.ErrorTemplate" Value="{x:Null}" />
+	</Style>
+
+	<!-- Aggressive Border Removal for DataGrid Inputs -->
+	<Style Selector="TextBox.DataGrid /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid /template/ TextBox /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid:pointerover /template/ TextBox /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid:focus /template/ TextBox /template/ Border#PART_BorderElement,
+				   NumericUpDown.DataGrid:focus-within /template/ TextBox /template/ Border#PART_BorderElement">
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="BorderBrush" Value="Transparent" />
 	</Style>
 
 </Styles>

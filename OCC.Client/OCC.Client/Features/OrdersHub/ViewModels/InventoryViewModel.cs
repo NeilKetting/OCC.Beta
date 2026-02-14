@@ -2,10 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -32,7 +32,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private readonly ILogger<InventoryViewModel> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IAuthService _authService;
-        private List<InventoryItem> _allItems = new();
+        private List<InventorySummaryDto> _allItems = new();
 
         #endregion
 
@@ -41,7 +41,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <summary>
         /// Gets the collection of inventory items matching the current filter.
         /// </summary>
-        public ObservableCollection<InventoryItem> InventoryItems { get; } = new();
+        public ObservableCollection<InventorySummaryDto> InventoryItems { get; } = new();
 
         /// <summary>
         /// Gets or sets the search query to filter inventory items by name.
@@ -72,7 +72,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Gets or sets the inventory item currently selected for viewing or editing.
         /// </summary>
         [ObservableProperty]
-        private InventoryItem? _selectedInventoryItem;
+        private InventorySummaryDto? _selectedInventoryItem;
 
         /// <summary>
         /// Gets or sets the ViewModel for the inventory item detail view.
@@ -121,7 +121,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Command to manually refresh the inventory list.
         /// </summary>
         [RelayCommand]
-        public async Task ImportInventory()
+        public virtual async Task ImportInventory()
         {
             try
             {
@@ -203,14 +203,25 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         /// <param name="item">The inventory item to edit.</param>
         [RelayCommand]
-        public void EditInventoryItem(InventoryItem item)
+        public virtual async Task EditInventoryItem(InventorySummaryDto summary)
         {
-            if (item == null) return;
+            if (summary == null) return;
             
+            BusyText = "Loading item details...";
+            IsBusy = true;
+            var item = await _orderManager.GetItemByIdAsync(summary.Id);
+            IsBusy = false;
+
+            if (item == null)
+            {
+                await _dialogService.ShowAlertAsync("Error", "Could not load inventory item details.");
+                return;
+            }
+
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 
             DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemDetailViewModel>(_serviceProvider);
-            DetailViewModel.Load(item, categories); // Pass branch if needed, or item has it all
+            DetailViewModel.Load(item, categories); 
             
             DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
             DetailViewModel.ItemSaved += (s, e) => 
@@ -228,9 +239,9 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// <param name="item">The item to be deleted.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         [RelayCommand]
-        public async Task DeleteInventoryItem(InventoryItem item)
+        public virtual async Task DeleteInventoryItem(InventorySummaryDto summary)
         {
-             if (item == null) return;
+             if (summary == null) return;
              await _dialogService.ShowAlertAsync("Locked", "Inventory item deletion is currently disabled to maintain historical stock integrity.");
         }
 
@@ -242,13 +253,13 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Asynchronously loads all inventory items from the Order Manager and applies the current search filter.
         /// </summary>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task LoadInventoryAsync()
+        public virtual async Task LoadInventoryAsync()
         {
             try
             {
                 BusyText = "Loading inventory...";
                 IsBusy = true;
-                _allItems = (await _orderManager.GetInventoryAsync()).ToList();
+                _allItems = (await _orderManager.GetInventorySummariesAsync()).ToList();
                 FilterItems();
             }
             catch (Exception ex)

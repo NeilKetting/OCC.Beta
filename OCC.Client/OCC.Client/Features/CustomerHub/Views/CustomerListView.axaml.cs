@@ -13,10 +13,10 @@ namespace OCC.Client.Features.CustomerHub.Views
 
         private void DataGrid_DoubleTapped(object? sender, TappedEventArgs e)
         {
-            if (sender is DataGrid dg && dg.SelectedItem is OCC.Shared.Models.Customer customer && 
+            if (sender is DataGrid dg && dg.SelectedItem is OCC.Shared.DTOs.CustomerSummaryDto customer && 
                 DataContext is CustomerManagementViewModel vm)
             {
-                vm.EditCustomer(customer);
+                vm.EditCustomerCommand.Execute(customer);
             }
         }
     }
