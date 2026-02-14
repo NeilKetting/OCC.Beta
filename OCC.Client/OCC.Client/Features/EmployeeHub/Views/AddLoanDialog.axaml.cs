@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace OCC.Client.Features.TimeAttendanceHub.Views
+namespace OCC.Client.Features.EmployeeHub.Views
 {
     public partial class AddLoanDialog : Window
     {

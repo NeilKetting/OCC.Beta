@@ -76,10 +76,16 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                 Lines.Clear();
                 foreach (var line in draft.Lines.OrderBy(l => l.EmployeeName))
                 {
-                    Lines.Add(new WageRunLineViewModel(line));
+                    var vm = new WageRunLineViewModel(line);
+                    vm.PropertyChanged += (s, e) => 
+                    {
+                        if (e.PropertyName == nameof(WageRunLineViewModel.NetPay))
+                            GrandTotalWage = Lines.Sum(x => x.NetPay);
+                    };
+                    Lines.Add(vm);
                 }
                 
-                GrandTotalWage = Lines.Sum(x => x.TotalWage);
+                GrandTotalWage = Lines.Sum(x => x.NetPay);
                 IsGenerated = true;
             }
             catch (Exception ex)

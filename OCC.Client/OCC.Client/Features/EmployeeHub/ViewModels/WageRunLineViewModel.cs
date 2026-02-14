@@ -35,6 +35,26 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         
         public decimal TotalWage => Model.TotalWage;
 
+        public decimal DeductionLoan => Model.DeductionLoan;
+        public decimal DeductionTax => Model.DeductionTax;
+        public decimal DeductionOther => Model.DeductionOther;
+
+        public decimal IncentiveSupervisor
+        {
+            get => Model.IncentiveSupervisor;
+            set
+            {
+                if (Model.IncentiveSupervisor != value)
+                {
+                    Model.IncentiveSupervisor = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(NetPay));
+                }
+            }
+        }
+
+        public decimal NetPay => Model.NetPay;
+
         public bool HasVariance => System.Math.Abs(VarianceHours) > 0.01;
 
         public string VarianceColor

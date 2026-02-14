@@ -248,6 +248,12 @@ namespace OCC.Client
             
             services.AddTransient<IWageService, WageService>();
             services.AddTransient<WageRunViewModel>();
+            services.AddTransient<WageRunLineViewModel>();
+
+            services.AddHttpClient<IEmployeeLoanService, ApiEmployeeLoanService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+            services.AddTransient<LoansManagementViewModel>();
+            services.AddTransient<AddLoanDialogViewModel>();
             
             services.AddTransient<TimeAttendanceViewModel>();
             services.AddTransient<TimeLiveViewModel>();

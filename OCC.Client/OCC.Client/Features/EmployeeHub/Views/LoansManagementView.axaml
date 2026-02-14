@@ -2,10 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:OCC.Client.Features.TimeAttendanceHub.ViewModels"
+             xmlns:vm="clr-namespace:OCC.Client.Features.EmployeeHub.ViewModels"
              xmlns:conv="clr-namespace:OCC.Client.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-             x:Class="OCC.Client.Features.TimeAttendanceHub.Views.LoansManagementView"
+             x:Class="OCC.Client.Features.EmployeeHub.Views.LoansManagementView"
              x:DataType="vm:LoansManagementViewModel">
 
     <UserControl.Resources>

@@ -36,7 +36,8 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
-        [ObservableProperty] private WageRunViewModel _wageRunVM; // Added
+        [ObservableProperty] private WageRunViewModel _wageRunVM;
+        [ObservableProperty] private LoansManagementViewModel _loansVM; // Added
 
         [ObservableProperty]
         private string _greeting = string.Empty;
@@ -60,6 +61,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
             _wageRunVM = null!;
+            _loansVM = null!;
             _currentView = null!;
 
             _authService = null!;
@@ -72,9 +74,10 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             AttendanceHistoryViewModel attendanceHistoryView,
             LeaveApplicationViewModel leaveApplicationView,
             LeaveApprovalViewModel leaveApprovalViewModel,
-            OvertimeViewModel overtimeViewModel, // Kept one
-            OvertimeApprovalViewModel overtimeApprovalViewModel, // Kept one
+            OvertimeViewModel overtimeViewModel, 
+            OvertimeApprovalViewModel overtimeApprovalViewModel, 
             WageRunViewModel wageRunViewModel,
+            LoansManagementViewModel loansManagementViewModel,
             IAuthService authService)
         {
             _timeMenu = timeMenu;
@@ -86,6 +89,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
             _wageRunVM = wageRunViewModel;
+            _loansVM = loansManagementViewModel;
             _authService = authService;
             
             // Default View
@@ -96,10 +100,6 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
 
             _timeMenu.PropertyChanged += TimeMenu_PropertyChanged;
             
-            // Handle Close/Save from Daily Timesheet tab
-            // _dailyTimesheetView events if needed or just handle navigation
-            // _dailyTimesheetView.CloseRequested += (s, e) => { TimeMenu.ActiveTab = "Live"; };
-
             Initialize();
         }
 
@@ -141,6 +141,9 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                     break;
                 case "WageRun":
                     CurrentView = WageRunVM;
+                    break;
+                case "Loans":
+                    CurrentView = LoansVM;
                     break;
                 case "Overtime":
                     CurrentView = OvertimeVM;

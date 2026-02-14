@@ -9,7 +9,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
+namespace OCC.Client.Features.EmployeeHub.ViewModels
 {
     public partial class LoansManagementViewModel : ViewModelBase,
         IRecipient<EntityUpdatedMessage>

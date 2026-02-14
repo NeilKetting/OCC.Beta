@@ -49,6 +49,11 @@
                                     <PathIcon Data="{StaticResource IconWagesDollar}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Header="Loans" Command="{Binding SetActiveTabCommand}" CommandParameter="Loans">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconWagesBill}" Classes="IconStyle" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </MenuFlyout>
                     </Button.Flyout>
                 </Button>

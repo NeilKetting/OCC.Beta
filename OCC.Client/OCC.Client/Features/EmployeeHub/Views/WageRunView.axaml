@@ -2,7 +2,7 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:OCC.Client.Features.EmployeeHub.ViewModels"
+			 xmlns:vm="clr-namespace:OCC.Client.Features.EmployeeHub.ViewModels"
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
 			 x:Class="OCC.Client.Features.EmployeeHub.Views.WageRunView"
 			 x:DataType="vm:WageRunViewModel">
@@ -77,6 +77,14 @@
 				<DataGridTextColumn Header="Total Paid Hrs" Binding="{Binding TotalPaidHours, StringFormat={}{0:F1}}" Width="Auto" FontWeight="Bold"/>
 				<DataGridTextColumn Header="Rate" Binding="{Binding HourlyRate, StringFormat={}{0:C}}" Width="Auto"/>
 				<DataGridTextColumn Header="Total Wage" Binding="{Binding TotalWage, StringFormat={}{0:C}}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource PrimaryAccent}"/>
+                
+                <DataGridTextColumn Header="Sup. Fee" Binding="{Binding IncentiveSupervisor, StringFormat={}{0:F2}}" Width="Auto" IsReadOnly="False"/>
+                <DataGridTextColumn Header="Loan" Binding="{Binding DeductionLoan, StringFormat={}{0:F2}}" Width="Auto" Foreground="#EF4444"/>
+                <!-- <DataGridTextColumn Header="Tax" Binding="{Binding DeductionTax, StringFormat={}{0:F2}}" Width="Auto" Foreground="#EF4444"/> -->
+                <!-- <DataGridTextColumn Header="Other" Binding="{Binding DeductionOther, StringFormat={}{0:F2}}" Width="Auto" Foreground="#EF4444"/> -->
+                
+                <DataGridTextColumn Header="Net Pay" Binding="{Binding NetPay, StringFormat={}{0:C}}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource Green}"/>
+
 				<DataGridTextColumn Header="Notes" Binding="{Binding Model.VarianceNotes}" Width="*"/>
 			</DataGrid.Columns>
 		</DataGrid>
