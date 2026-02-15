@@ -37,6 +37,10 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             Editor = editor;
             
             Editor.OnSaved = OnIncidentSaved;
+
+            System.Diagnostics.Debug.WriteLine("IncidentsViewModel: Constructor called. Triggering LoadIncidents.");
+            // Trigger load immediately
+            _ = LoadIncidents();
         }
 
         [RelayCommand]
