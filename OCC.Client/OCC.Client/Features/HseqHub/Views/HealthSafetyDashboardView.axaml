@@ -14,7 +14,7 @@
                 
                 <!-- 1. Header -->
                 <StackPanel Spacing="4">
-                    <TextBlock Text="HSEQ DASHBOARD" Classes="H1"/>
+                    <TextBlock Text="HSEQ Dashboard" Classes="H1"/>
                     <TextBlock Text="Health, Safety, Environment &amp; Quality Overview" Classes="TextSecondary"/>
                 </StackPanel>
 

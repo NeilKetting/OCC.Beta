@@ -18,7 +18,7 @@
             <Border Grid.Row="0" Margin="24">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="DOCUMENT CONTROL" Classes="H1"/>
+                        <TextBlock Text="Document Control" Classes="H1"/>
                         <TextBlock Text="Policies, Templates, and Registers" Classes="TextSecondary"/>
                     </StackPanel>
                     
