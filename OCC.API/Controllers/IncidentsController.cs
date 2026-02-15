@@ -19,8 +19,6 @@ namespace OCC.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<IncidentSummaryDto>>> GetIncidents()
-        {
             var incidents = await _context.Incidents
                 .IgnoreQueryFilters() // <--- Temporary Diagnostic: Force show all
                 .Include(i => i.Photos)
