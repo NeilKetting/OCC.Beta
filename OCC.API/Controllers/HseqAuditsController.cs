@@ -12,10 +12,12 @@ namespace OCC.API.Controllers
     public class HseqAuditsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<HseqAuditsController> _logger;
 
-        public HseqAuditsController(AppDbContext context)
+        public HseqAuditsController(AppDbContext context, ILogger<HseqAuditsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -227,8 +229,14 @@ namespace OCC.API.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
+                var entry = ex.Entries.FirstOrDefault();
+                var tableName = entry?.Metadata.GetTableName();
+                var dbValues = await entry?.GetDatabaseValuesAsync();
+                _logger.LogError(ex, "Concurrency conflict updating HSEQ Audit {AuditId}. Table: {TableName}, Id: {EntryId}. DB RowVersion: {DbRv}", 
+                    id, tableName, entry?.Property("Id").CurrentValue, dbValues?["RowVersion"]);
+
                 if (!_context.HseqAudits.Any(e => e.Id == id)) return NotFound();
                 else throw;
             }
@@ -322,7 +330,8 @@ namespace OCC.API.Controllers
                     Id = s.Id,
                     Name = s.Name,
                     PossibleScore = s.PossibleScore,
-                    ActualScore = s.ActualScore
+                    ActualScore = s.ActualScore,
+                    RowVersion = s.RowVersion ?? Array.Empty<byte>()
                 }).ToList(),
                 NonComplianceItems = audit.NonComplianceItems.Select(ToNonComplianceItemDto).ToList(),
                 Attachments = audit.Attachments.Select(ToAttachmentDto).ToList(),
@@ -342,7 +351,8 @@ namespace OCC.API.Controllers
                 TargetDate = item.TargetDate,
                 Status = item.Status,
                 ClosedDate = item.ClosedDate,
-                Attachments = item.Attachments?.Select(ToAttachmentDto).ToList() ?? new List<AuditAttachmentDto>()
+                Attachments = item.Attachments?.Select(ToAttachmentDto).ToList() ?? new List<AuditAttachmentDto>(),
+                RowVersion = item.RowVersion ?? Array.Empty<byte>()
             };
         }
 
