@@ -294,6 +294,7 @@ namespace OCC.API.Controllers
 
         // Maintenance Endpoint to Fix Data
         [HttpPost("fix-concurrency")]
+        [HttpGet("fix-concurrency")] // Allow browser execution
         public async Task<IActionResult> FixConcurrencyData()
         {
             var sections = await _context.HseqAuditSections.ToListAsync();
