@@ -22,11 +22,21 @@ namespace OCC.API.Controllers
         public async Task<ActionResult<IEnumerable<IncidentSummaryDto>>> GetIncidents()
         {
             var incidents = await _context.Incidents
-                .IgnoreQueryFilters() // <--- Temporary Diagnostic: Force show all
                 .Include(i => i.Photos)
                 .AsNoTracking()
                 .OrderByDescending(i => i.Date)
                 .ToListAsync();
+
+            // DIAGNOSTIC LOGGING
+            var conn = _context.Database.GetConnectionString();
+            var maskedConn = conn?.Length > 20 ? conn.Substring(0, 20) + "..." : "Unknown";
+            Console.WriteLine($"[DEBUG] GetIncidents: Found {incidents.Count} records. DB: {maskedConn}");
+            if (incidents.Count == 0)
+            {
+                // Double check bare metal count
+                var rawCount = await _context.Incidents.IgnoreQueryFilters().CountAsync();
+                Console.WriteLine($"[DEBUG] GetIncidents: IgnoreQueryFilters Count = {rawCount}");
+            }
 
             return Ok(incidents.Select(ToSummaryDto));
         }
