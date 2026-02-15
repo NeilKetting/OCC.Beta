@@ -117,6 +117,7 @@ namespace OCC.API.Controllers
         {
             if (id != auditDto.Id) return BadRequest();
 
+            // Load existing audit with children
             var existingAudit = await _context.HseqAudits
                 .Include(a => a.Sections)
                 .Include(a => a.NonComplianceItems)
@@ -129,27 +130,10 @@ namespace OCC.API.Controllers
                 return NotFound();
             }
 
-            // Update properties
-            existingAudit.Date = auditDto.Date;
-            existingAudit.SiteName = auditDto.SiteName;
-            existingAudit.SiteManager = auditDto.SiteManager;
-            existingAudit.SiteSupervisor = auditDto.SiteSupervisor;
-            existingAudit.HseqConsultant = auditDto.HseqConsultant;
-            existingAudit.ScopeOfWorks = auditDto.ScopeOfWorks;
-            existingAudit.Status = auditDto.Status;
-            existingAudit.TargetScore = auditDto.TargetScore;
-            existingAudit.ActualScore = auditDto.ActualScore;
-            existingAudit.CloseOutDate = auditDto.CloseOutDate;
-            existingAudit.UpdatedAtUtc = DateTime.UtcNow;
+            // 1. Handle Collection Updates First
+            // This allows triggers to fire and update the parent record's RowVersion in the DB
 
-            // Set RowVersion for concurrency check
-            if (auditDto.RowVersion != null && auditDto.RowVersion.Length > 0)
-            {
-                _context.Entry(existingAudit).Property("RowVersion").OriginalValue = auditDto.RowVersion;
-            }
-            
             // Update Sections
-            // Remove deleted sections
             var sectionIdsInDto = auditDto.Sections.Where(s => s.Id != Guid.Empty).Select(s => s.Id).ToList();
             var sectionsToRemove = existingAudit.Sections.Where(s => !sectionIdsInDto.Contains(s.Id)).ToList();
             foreach (var s in sectionsToRemove) existingAudit.Sections.Remove(s);
@@ -157,12 +141,12 @@ namespace OCC.API.Controllers
             foreach (var sectionDto in auditDto.Sections)
             {
                 var existingSection = existingAudit.Sections.FirstOrDefault(s => s.Id == sectionDto.Id);
-
                 if (existingSection != null)
                 {
                     existingSection.ActualScore = sectionDto.ActualScore;
                     existingSection.PossibleScore = sectionDto.PossibleScore;
                     existingSection.Name = sectionDto.Name;
+                    existingSection.UpdatedAtUtc = DateTime.UtcNow;
                 }
                 else
                 {
@@ -172,7 +156,9 @@ namespace OCC.API.Controllers
                         Name = sectionDto.Name,
                         PossibleScore = sectionDto.PossibleScore,
                         ActualScore = sectionDto.ActualScore,
-                        AuditId = existingAudit.Id
+                        AuditId = existingAudit.Id,
+                        CreatedAtUtc = DateTime.UtcNow,
+                        UpdatedAtUtc = DateTime.UtcNow
                     });
                 }
             }
@@ -180,7 +166,6 @@ namespace OCC.API.Controllers
             // Update NonComplianceItems
             if (auditDto.NonComplianceItems != null)
             {
-                // Remove deleted items
                 var itemIdsInDto = auditDto.NonComplianceItems.Where(i => i.Id != Guid.Empty).Select(i => i.Id).ToList();
                 var itemsToRemove = existingAudit.NonComplianceItems.Where(i => !itemIdsInDto.Contains(i.Id)).ToList();
                 foreach (var i in itemsToRemove) existingAudit.NonComplianceItems.Remove(i);
@@ -188,7 +173,6 @@ namespace OCC.API.Controllers
                 foreach (var itemDto in auditDto.NonComplianceItems)
                 {
                     var existingItem = existingAudit.NonComplianceItems.FirstOrDefault(i => i.Id == itemDto.Id);
-
                     if (existingItem != null)
                     {
                         existingItem.Description = itemDto.Description;
@@ -222,6 +206,42 @@ namespace OCC.API.Controllers
             else
             {
                 existingAudit.NonComplianceItems.Clear();
+            }
+
+            // Save child changes first to let triggers update the audit row (e.g. roll up scores)
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.HseqAudits.Any(e => e.Id == id)) return NotFound();
+                else throw;
+            }
+
+            // 2. Update Parent Properties
+            // Reload the audit to get the LATEST RowVersion (potentially changed by triggers)
+            await _context.Entry(existingAudit).ReloadAsync();
+
+            // Apply values from DTO to re-synched entity
+            existingAudit.Date = auditDto.Date;
+            existingAudit.SiteName = auditDto.SiteName;
+            existingAudit.SiteManager = auditDto.SiteManager;
+            existingAudit.SiteSupervisor = auditDto.SiteSupervisor;
+            existingAudit.HseqConsultant = auditDto.HseqConsultant;
+            existingAudit.ScopeOfWorks = auditDto.ScopeOfWorks;
+            existingAudit.Status = auditDto.Status;
+            existingAudit.TargetScore = auditDto.TargetScore;
+            existingAudit.ActualScore = auditDto.ActualScore;
+            existingAudit.CloseOutDate = auditDto.CloseOutDate;
+            existingAudit.UpdatedAtUtc = DateTime.UtcNow;
+
+            // Use the client's RowVersion as the basis for the final concurrency check 
+            // but we must be careful: if we reload, EF will use the NEW RowVersion from DB.
+            // We WANT to ensure no OTHER user changed it between the client's load and our update.
+            if (auditDto.RowVersion != null && auditDto.RowVersion.Length > 0)
+            {
+                _context.Entry(existingAudit).Property("RowVersion").OriginalValue = auditDto.RowVersion;
             }
 
             try

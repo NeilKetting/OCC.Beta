@@ -159,16 +159,30 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             // Commit all findings
             foreach(var f in Findings) f.CommitToModel();
 
-            // Calculate Total Score
-            if (CurrentAudit.Sections.Any(s => s.PossibleScore > 0))
+            // Clamp section scores and calculate Total Score
+            if (CurrentAudit.Sections != null && CurrentAudit.Sections.Any())
             {
-                decimal totalActual = CurrentAudit.Sections.Sum(s => s.ActualScore);
-                decimal totalPossible = CurrentAudit.Sections.Sum(s => s.PossibleScore);
+                decimal totalActual = 0;
+                decimal totalPossible = 0;
+
+                foreach (var section in CurrentAudit.Sections)
+                {
+                    // Ensure scores are within valid range (0-100)
+                    section.ActualScore = Math.Max(0, Math.Min(section.PossibleScore, section.ActualScore));
+                    
+                    totalActual += section.ActualScore;
+                    totalPossible += section.PossibleScore;
+                }
                 
                 if (totalPossible > 0)
                 {
-                    CurrentAudit.ActualScore = (totalActual / totalPossible) * 100m;
+                    // Cap final score at 100%
+                    CurrentAudit.ActualScore = Math.Min(100m, (totalActual / totalPossible) * 100m);
                     CurrentAudit.ActualScore = Math.Round(CurrentAudit.ActualScore, 2);
+                }
+                else
+                {
+                    CurrentAudit.ActualScore = 0;
                 }
             }
             
