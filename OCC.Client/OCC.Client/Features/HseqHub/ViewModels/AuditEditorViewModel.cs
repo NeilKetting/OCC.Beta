@@ -216,19 +216,17 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 }
                 else
                 {
-                     // Could be new (if we assigned ID in ctor) or existing.
                      // Try Update.
                      bool success = await _hseqService.UpdateAuditAsync(ToDto(CurrentAudit));
                      if (success)
                      {
                          _toastService.ShowSuccess("Saved", "Audit updated.");
+                         await InitializeForEdit(CurrentAudit.Id); // Reload to get latest RowVersion
                          AuditSaved?.Invoke(this, EventArgs.Empty);
                      }
                      else
                      {
-                         // Update failed. Try Create?
-                         // If Update failed it might be because ID doesn't exist.
-                         await CreateInternal();
+                         _toastService.ShowError("Error", "Failed to update audit. This might be a concurrency conflict; please refresh and try again.");
                      }
                 }
             }

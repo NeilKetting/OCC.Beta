@@ -147,6 +147,12 @@ namespace OCC.Client.Services.Managers
         }
 
         /// <inheritdoc/>
+        public async Task DeleteTaskAsync(Guid taskId)
+        {
+            await _taskRepository.DeleteAsync(taskId);
+        }
+
+        /// <inheritdoc/>
         public void ToggleExpand(ProjectTask task)
         {
             if (task == null) return;

@@ -17,7 +17,7 @@ namespace OCC.Shared.Models
     public class EmployeeLoan : BaseEntity
     {
         public Guid EmployeeId { get; set; }
-        public virtual Employee Employee { get; set; }
+        public virtual Employee? Employee { get; set; }
 
         public decimal PrincipalAmount { get; set; }
         public decimal MonthlyInstallment { get; set; }
@@ -28,7 +28,7 @@ namespace OCC.Shared.Models
 
         public LoanType LoanType { get; set; } = LoanType.CashAdvance;
         
-        public bool IsActive { get; set; } = true;
+        public new bool IsActive { get; set; } = true;
         public string Notes { get; set; } = string.Empty;
     }
 }

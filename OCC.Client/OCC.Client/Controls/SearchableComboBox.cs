@@ -27,7 +27,7 @@ namespace OCC.Client.Controls
         public static readonly StyledProperty<ICommand?> DropdownOpeningCommandProperty =
             AvaloniaProperty.Register<SearchableComboBox, ICommand?>(nameof(DropdownOpeningCommand));
 
-        public static readonly StyledProperty<string?> WatermarkProperty =
+        public static new readonly StyledProperty<string?> WatermarkProperty =
             AvaloniaProperty.Register<SearchableComboBox, string?>(nameof(Watermark));
 
         public ICommand? AddNewCommand
@@ -54,7 +54,7 @@ namespace OCC.Client.Controls
             set => SetValue(DropdownOpeningCommandProperty, value);
         }
 
-        public string? Watermark
+        public new string? Watermark
         {
             get => GetValue(WatermarkProperty);
             set => SetValue(WatermarkProperty, value);

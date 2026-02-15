@@ -141,17 +141,28 @@ namespace OCC.API.Controllers
             existingAudit.ActualScore = auditDto.ActualScore;
             existingAudit.CloseOutDate = auditDto.CloseOutDate;
             existingAudit.UpdatedAtUtc = DateTime.UtcNow;
+
+            // Set RowVersion for concurrency check
+            if (auditDto.RowVersion != null && auditDto.RowVersion.Length > 0)
+            {
+                _context.Entry(existingAudit).Property("RowVersion").OriginalValue = auditDto.RowVersion;
+            }
             
             // Update Sections
+            // Remove deleted sections
+            var sectionIdsInDto = auditDto.Sections.Where(s => s.Id != Guid.Empty).Select(s => s.Id).ToList();
+            var sectionsToRemove = existingAudit.Sections.Where(s => !sectionIdsInDto.Contains(s.Id)).ToList();
+            foreach (var s in sectionsToRemove) existingAudit.Sections.Remove(s);
+
             foreach (var sectionDto in auditDto.Sections)
             {
-                var existingSection = existingAudit.Sections
-                    .FirstOrDefault(s => (sectionDto.Id != Guid.Empty && s.Id == sectionDto.Id) || s.Name == sectionDto.Name);
+                var existingSection = existingAudit.Sections.FirstOrDefault(s => s.Id == sectionDto.Id);
 
                 if (existingSection != null)
                 {
                     existingSection.ActualScore = sectionDto.ActualScore;
                     existingSection.PossibleScore = sectionDto.PossibleScore;
+                    existingSection.Name = sectionDto.Name;
                 }
                 else
                 {
@@ -160,7 +171,8 @@ namespace OCC.API.Controllers
                         Id = sectionDto.Id != Guid.Empty ? sectionDto.Id : Guid.NewGuid(),
                         Name = sectionDto.Name,
                         PossibleScore = sectionDto.PossibleScore,
-                        ActualScore = sectionDto.ActualScore
+                        ActualScore = sectionDto.ActualScore,
+                        AuditId = existingAudit.Id
                     });
                 }
             }
@@ -168,10 +180,14 @@ namespace OCC.API.Controllers
             // Update NonComplianceItems
             if (auditDto.NonComplianceItems != null)
             {
+                // Remove deleted items
+                var itemIdsInDto = auditDto.NonComplianceItems.Where(i => i.Id != Guid.Empty).Select(i => i.Id).ToList();
+                var itemsToRemove = existingAudit.NonComplianceItems.Where(i => !itemIdsInDto.Contains(i.Id)).ToList();
+                foreach (var i in itemsToRemove) existingAudit.NonComplianceItems.Remove(i);
+
                 foreach (var itemDto in auditDto.NonComplianceItems)
                 {
-                    var existingItem = existingAudit.NonComplianceItems
-                        .FirstOrDefault(i => (itemDto.Id != Guid.Empty && i.Id == itemDto.Id));
+                    var existingItem = existingAudit.NonComplianceItems.FirstOrDefault(i => i.Id == itemDto.Id);
 
                     if (existingItem != null)
                     {
@@ -202,6 +218,10 @@ namespace OCC.API.Controllers
                         }); 
                     }
                 }
+            }
+            else
+            {
+                existingAudit.NonComplianceItems.Clear();
             }
 
             try

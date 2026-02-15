@@ -4,12 +4,14 @@
 
 
 	<Design.PreviewWith>
-<Button Classes="MenuTabButton">
-						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
-							<TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
-						</StackPanel>
-					</Button>
+		<Grid Height="400" Width="400">
+		<Border Classes="Card" Padding="10" Margin="30">
+			<TextBlock Text="This is a preview of the global styles defined in AppStyles.axaml. These styles include text styles, button styles, input styles, and more. You can use these styles throughout the application to maintain a consistent look and feel." 
+					   TextWrapping="Wrap" Margin="20" FontSize="{DynamicResource FontSizeMedium}"/>
+		</Border>
+			
+		</Grid>
+
 	</Design.PreviewWith>
 
 
@@ -500,7 +502,7 @@
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
 		<Setter Property="Padding" Value="30" />
 		<Setter Property="CornerRadius" Value="8" />
-		<Setter Property="BoxShadow" Value="0 10 30 0 #20000000" />
+		<Setter Property="BoxShadow" Value="0 2 4 2 #20000000" />
 	</Style>
 
 	<Style Selector="Border.CardMedium">

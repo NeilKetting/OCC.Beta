@@ -13,7 +13,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using OCC.Client.ViewModels.Messages;
 using OCC.Shared.DTOs;
-using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 
 using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 
@@ -164,7 +163,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                 });
             };
 
-            LoadData();
+            _ = LoadData();
 
             // Register for real-time updates
             IMessengerExtensions.RegisterAll(messenger: WeakReferenceMessenger.Default, this);
@@ -177,7 +176,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             if (message.Value.EntityType == "Employee")
             {
                 // Refresh data on any employee change
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadData);
+                _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(LoadData);
             }
         }
 
@@ -197,7 +196,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
              AddEmployeePopup.EmployeeAdded += (s, e) => {
                   IsAddEmployeePopupVisible = false;
                   // Refresh list?
-                  LoadData();
+                  _ = LoadData();
              };
              AddEmployeePopup.CloseRequested += (s, e) => IsAddEmployeePopupVisible = false;
 
@@ -222,7 +221,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                 AddEmployeePopup.EmployeeAdded += (s, e) => 
                 {
                     IsAddEmployeePopupVisible = false;
-                    LoadData(); 
+                    _ = LoadData(); 
                 };
                 IsAddEmployeePopupVisible = true;
             }
@@ -289,7 +288,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                 BusyText = $"Deleting {employee.FirstName}...";
                 IsBusy = true;
                 await _employeeService.DeleteEmployeeAsync(employee.Id);
-                LoadData();
+                await LoadData();
             }
             catch (System.Net.Http.HttpRequestException ex)
             {
@@ -390,7 +389,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                         await _dialogService.ShowAlertAsync("Import Result", errorMsg);
                     }
 
-                    LoadData();
+                    await LoadData();
                 }
             }
             catch (Exception ex)

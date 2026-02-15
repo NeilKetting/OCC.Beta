@@ -1,8 +1,0 @@
-﻿C:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Client\OCC.Client\Services\DialogService.cs(148,54): error CS0234: The type or namespace name 'TimeAttendanceHub' does not exist in the namespace 'OCC.Client.Features' (are you missing an assembly reference?) [C:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Client\OCC.Client\OCC.Client.csproj]
-C:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Client\OCC.Client\Services\DialogService.cs(149,139): error CS0234: The type or namespace name 'TimeAttendanceHub' does not exist in the namespace 'OCC.Client.Features' (are you missing an assembly reference?) [C:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Client\OCC.Client\OCC.Client.csproj]
-
-Build FAILED.
-    14 Warning(s)
-    2 Error(s)
-
-Time Elapsed 00:00:01.61

@@ -162,6 +162,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             OrderMenu = null!;
             Inventory = null!;
             Suppliers = null!;
+            Lines = null!;
             CurrentOrder = new OrderWrapper(new Order { OrderNumber = "DEMO-0000" });
         }
 

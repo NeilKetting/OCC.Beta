@@ -181,14 +181,14 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     {
                         CurrentView = OrderListVM;
                         OrderListVM.ClearReceivingMode();
-                        OrderListVM.LoadOrders();
+                        _ = OrderListVM.LoadOrders();
                     }
                     if (OrderMenu != null) OrderMenu.ActiveTab = "All Orders";
                     break;
                 case "Receiving": // Support direct navigation from Dashboard
                     CurrentView = OrderListVM;
                     OrderListVM.SetReceivingMode();
-                    OrderListVM.LoadOrders();
+                    _ = OrderListVM.LoadOrders();
                     if (OrderMenu != null) OrderMenu.ActiveTab = "All Orders";
                     break;
                 case "CreateOrder": 
@@ -329,7 +329,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             ReceiveOrderVM.OrderReceived += (s, e) => 
             { 
                 IsReceiveOrderVisible = false; 
-                OrderListVM.LoadOrders(); 
+                _ = OrderListVM.LoadOrders(); 
                 _ = InventoryVM.LoadInventoryAsync();
                 _ = ItemListVM.LoadItemsAsync();
             };

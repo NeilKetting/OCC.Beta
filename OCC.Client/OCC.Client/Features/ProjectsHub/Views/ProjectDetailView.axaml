@@ -36,6 +36,21 @@
 			<Setter Property="Background" Value="White"/>
 			<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
 			<Setter Property="Padding" Value="5,8"/>
+			<Setter Property="ContextMenu">
+				<ContextMenu>
+					<MenuItem Header="Open Task" Command="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).OpenTaskCommand}" CommandParameter="{Binding}">
+						<MenuItem.Icon>
+							<PathIcon Data="{StaticResource IconExternalLink}" Width="12" Height="12"/>
+						</MenuItem.Icon>
+					</MenuItem>
+					<Separator/>
+					<MenuItem Header="Delete Task" Command="{Binding $parent[UserControl].((vm:ProjectDetailViewModel)DataContext).DeleteTaskCommand}" CommandParameter="{Binding}" Foreground="{DynamicResource Danger}">
+						<MenuItem.Icon>
+							<PathIcon Data="{StaticResource IconTrash}" Width="12" Height="12" Foreground="{DynamicResource Danger}"/>
+						</MenuItem.Icon>
+					</MenuItem>
+				</ContextMenu>
+			</Setter>
 		</Style>
 		<Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
 			<Setter Property="Fill" Value="{DynamicResource PrimaryTealLight}"/>

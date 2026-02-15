@@ -119,7 +119,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
                     BusyText = $"Deleting {customer.Name}...";
                     IsBusy = true;
                     await _customerService.DeleteCustomerAsync(customer.Id);
-                    LoadData();
+                    await LoadData();
                 }
                 catch (Exception ex)
                 {
@@ -173,7 +173,7 @@ namespace OCC.Client.Features.CustomerHub.ViewModels
         }
         
         // Overload for Add (no params)
-        private void OpenDetailPopup() => OpenDetailPopup(null);
+        private void OpenDetailPopup() => _ = OpenDetailPopup(null);
 
         public async Task LoadData()
         {

@@ -54,7 +54,8 @@
                              <TextBlock Grid.Row="0" Text="Audit Score Trends" Classes="H3" Margin="0,0,0,16"/>
                              <lvc:CartesianChart Grid.Row="1" 
                                                 Series="{Binding AuditScoreSeries}" 
-                                                XAxes="{Binding AuditXAxes}"/>
+                                                XAxes="{Binding AuditXAxes}"
+                                                YAxes="{Binding AuditYAxes}"/>
                         </Grid>
                     </Border>
 
@@ -64,7 +65,8 @@
                              <TextBlock Grid.Row="0" Text="Incident Types" Classes="H3" Margin="0,0,0,16"/>
                              <lvc:CartesianChart Grid.Row="1" 
                                                 Series="{Binding IncidentSeries}" 
-                                                XAxes="{Binding IncidentXAxes}"/>
+                                                XAxes="{Binding IncidentXAxes}"
+                                                YAxes="{Binding IncidentYAxes}"/>
                         </Grid>
                     </Border>
                 </Grid>

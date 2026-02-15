@@ -8,6 +8,11 @@
 			 x:Class="OCC.Client.Features.HseqHub.Views.AuditsView"
 			 x:DataType="vm:AuditsViewModel"
 			 DragDrop.AllowDrop="True">
+
+	<Design.DataContext>
+		<vm:AuditsViewModel/>
+		</Design.DataContext>
+
 	<Grid Background="{DynamicResource AppBackgroundSlate}">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*"/>
@@ -132,7 +137,7 @@
 		<!-- Audit Editor Panel -->
 		<Border Grid.Column="1" Background="{DynamicResource CardBackground}"
 				BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0"
-				Width="650" Padding="0" IsVisible="{Binding IsEditorOpen, FallbackValue=false}">
+				Width="650" Padding="0" IsVisible="{Binding IsEditorOpen}">
 			<Grid RowDefinitions="Auto, *, Auto">
 
 				<!-- Header -->
@@ -361,7 +366,6 @@
 					</Grid>
 				</Border>
 
-				<!-- List -->
 				<!-- List -->
 				<ScrollViewer Grid.Row="1" Padding="24">
 					<ItemsControl ItemsSource="{Binding Deviations.Deviations}">

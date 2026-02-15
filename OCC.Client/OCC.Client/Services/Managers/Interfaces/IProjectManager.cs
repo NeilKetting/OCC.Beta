@@ -62,6 +62,12 @@ namespace OCC.Client.Services.Managers.Interfaces
         Task DeleteProjectAsync(Guid projectId);
 
         /// <summary>
+        /// Deletes a specific project task.
+        /// </summary>
+        /// <param name="taskId">The ID of the task to delete.</param>
+        Task DeleteTaskAsync(Guid taskId);
+
+        /// <summary>
         /// Toggles the expanded/collapsed state of a task in the UI hierarchy.
         /// </summary>
         /// <param name="task">The task to toggle.</param>

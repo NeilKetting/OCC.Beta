@@ -104,9 +104,9 @@
                                                                 <Grid ColumnDefinitions="*, Auto, Auto">
                                                                     <TextBlock Text="{Binding ReporterName}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
                                                                     <Border Grid.Column="1" HorizontalAlignment="Right" CornerRadius="4" Padding="6,2" Margin="0,0,8,0"
-                                                                            Background="{Binding Type, Converter={StaticResource TypeToColorConverter}, FallbackValue='#64748B'}"
+                                                                            Background="{Binding Converter={StaticResource BugStatusBadgeConverter}, ConverterParameter='Background'}"
                                                                             VerticalAlignment="Center">
-                                                                        <TextBlock Text="{Binding Type}" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                                                        <TextBlock Text="{Binding Converter={StaticResource BugStatusBadgeConverter}, ConverterParameter='Text'}" Foreground="White" FontSize="10" FontWeight="Bold"/>
                                                                     </Border>
                                                                     <TextBlock Grid.Column="2" Text="{Binding ReportedDate, StringFormat='{}{0:MMM dd}'}" 
                                                                                Classes="LabelXSM" VerticalAlignment="Center"/>

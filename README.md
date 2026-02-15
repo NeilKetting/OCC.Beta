@@ -35,4 +35,4 @@ To build a new version and installer for clients:
 ## License
 
 Copyright (c) 2026 Origize63. All rights reserved.
-Licensed under the MIT License.
+Proprietary and Confidential. Unauthorized copying of this project, via any medium, is strictly prohibited.

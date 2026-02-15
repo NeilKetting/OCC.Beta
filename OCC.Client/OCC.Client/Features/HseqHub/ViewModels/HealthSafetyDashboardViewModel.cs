@@ -22,10 +22,12 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         // 1. Audit Scores
         public ObservableCollection<ISeries> AuditScoreSeries { get; set; } = new();
         public ObservableCollection<Axis> AuditXAxes { get; set; } = new();
+        public ObservableCollection<Axis> AuditYAxes { get; set; } = new();
 
         // 2. Incident Statistics
         public ObservableCollection<ISeries> IncidentSeries { get; set; } = new();
         public ObservableCollection<Axis> IncidentXAxes { get; set; } = new();
+        public ObservableCollection<Axis> IncidentYAxes { get; set; } = new();
 
         // 3. Stats Cards
         [ObservableProperty]
@@ -44,7 +46,10 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             
             // Initial Axis Setup
             AuditXAxes.Add(new Axis { LabelsRotation = 0, Labels = new List<string>() });
+            AuditYAxes.Add(new Axis { MinLimit = 0, MaxLimit = 100, Labeler = v => $"{v}%" });
+
             IncidentXAxes.Add(new Axis { Labels = new[] { "Incidents", "Near Misses", "Injuries" } });
+            IncidentYAxes.Add(new Axis { MinLimit = 0, MinStep = 1 });
         }
 
         // Design-time

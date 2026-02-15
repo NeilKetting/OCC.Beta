@@ -43,7 +43,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public ObservableCollection<InventoryItem> FilteredInventoryItemsByName { get; } = new();
         public ObservableCollection<string> AvailableUOMs { get; } = new();
 
-        private bool _isUpdatingSearchText;
 
         protected OrderLinesViewModel() 
         {
@@ -325,7 +324,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         partial void OnProductSearchTextChanged(string value)
         {
-            if (_isUpdatingSearchText) return;
             Dispatcher.UIThread.Post(FilterInventory);
         }
 

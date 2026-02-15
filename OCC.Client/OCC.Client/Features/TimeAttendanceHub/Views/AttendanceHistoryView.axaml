@@ -64,19 +64,19 @@
 						<StackPanel Spacing="2">
 							<TextBlock Text="Period" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}"/>
 							<ComboBox ItemsSource="{Binding RangeOptions}" SelectedItem="{Binding SelectedRange}"
-									  Width="120" Classes="FormInput" PlaceholderText="Range"/>
+									  Width="120" Classes="FormInput" PlaceholderText="Range" FontSize="{DynamicResource FontSizeXS}"/>
 						</StackPanel>
 
 						<StackPanel Spacing="2">
 							<TextBlock Text="Branch" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}"/>
 							<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}"
-									  Width="140" Classes="FormInput" PlaceholderText="Branch"/>
+									  Width="140" Classes="FormInput" PlaceholderText="Branch" FontSize="{DynamicResource FontSizeXS}"/>
 						</StackPanel>
 
 						<StackPanel Spacing="2">
 							<TextBlock Text="Wage Type" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}"/>
 							<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}"
-									  Width="100" Classes="FormInput" PlaceholderText="Pay Type"/>
+									  Width="100" Classes="FormInput" PlaceholderText="Pay Type"  FontSize="{DynamicResource FontSizeXS}"/>
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsCustomDateEnabled}">

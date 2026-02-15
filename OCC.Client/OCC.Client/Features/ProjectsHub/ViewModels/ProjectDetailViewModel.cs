@@ -259,6 +259,37 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             RefreshDisplayList();
         }
 
+        [RelayCommand]
+        private async Task DeleteTask(ProjectTask task)
+        {
+            if (task == null) return;
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Delete Task", $"Are you sure you want to delete '{task.Name}'?");
+            if (confirm)
+            {
+                try
+                {
+                    await _projectManager.DeleteTaskAsync(task.Id);
+                    if (SelectedTaskDetailVM?.Task?.Id == task.Id)
+                    {
+                        CloseTaskDetail();
+                    }
+                    LoadTasks(CurrentProjectId);
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowAlertAsync("Error", $"Failed to delete task: {ex.Message}");
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void OpenTask(ProjectTask task)
+        {
+            if (task == null) return;
+            PinTaskDetail(task); // Reusing existing logic to open/pin the task detail overlay
+        }
+
         private async void OnEditProjectRequested(object? sender, EventArgs e)
         {
             if (CurrentProjectId == Guid.Empty) return;
