@@ -22,6 +22,7 @@ namespace OCC.API.Controllers
         public async Task<ActionResult<IEnumerable<IncidentSummaryDto>>> GetIncidents()
         {
             var incidents = await _context.Incidents
+                .IgnoreQueryFilters() // <--- Temporary Diagnostic: Force show all
                 .Include(i => i.Photos)
                 .AsNoTracking()
                 .OrderByDescending(i => i.Date)
@@ -218,5 +219,6 @@ namespace OCC.API.Controllers
                 UploadedAt = photo.UploadedAt
             };
         }
+
     }
 }

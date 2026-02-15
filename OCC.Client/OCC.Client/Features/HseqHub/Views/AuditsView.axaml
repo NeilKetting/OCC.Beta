@@ -24,7 +24,7 @@
 			<Border Grid.Row="0" Margin="2" Background="{DynamicResource MainPageGradient}" Classes="TopHeader">
 				<Grid ColumnDefinitions="*, Auto">
 					<StackPanel Spacing="4">
-						<TextBlock Text="AUDITS &amp; INSPECTIONS" Classes="H1"/>
+						<TextBlock Text="Audits &amp; Inspections" Classes="H1"/>
 						<TextBlock Text="Track compliance and deviations across sites" Classes="TextSecondary"/>
 					</StackPanel>
 
