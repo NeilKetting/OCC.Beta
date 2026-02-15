@@ -1,2 +1,0 @@
-using OCC.Client.Features.EmployeeHub.ViewModels;
-using Avalonia.Controls; using Avalonia.Markup.Xaml;  namespace OCC.Client.Features.EmployeeHub.Views {     public partial class LeaveApplicationView : UserControl     {         public LeaveApplicationView()         {             InitializeComponent();         }          private void InitializeComponent()         {             AvaloniaXamlLoader.Load(this);         }     } }

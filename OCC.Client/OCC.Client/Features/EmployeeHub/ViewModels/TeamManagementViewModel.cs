@@ -13,6 +13,8 @@ using OCC.Client.Services.Infrastructure;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.ViewModels.Messages;
 
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
+
 namespace OCC.Client.Features.EmployeeHub.ViewModels
 {
     public partial class TeamManagementViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<EntityUpdatedMessage>

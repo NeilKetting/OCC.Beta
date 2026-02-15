@@ -4,9 +4,12 @@
 
 
 	<Design.PreviewWith>
-		<StackPanel Width="100">
-			<Button Classes="SidebarButton" Content="Test 1" />
-		</StackPanel>
+<Button Classes="MenuTabButton">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<PathIcon Data="{StaticResource IconDashboard}" Classes="IconStyle" Width="16" Height="16"/>
+							<TextBlock Text="DASHBOARD" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
 	</Design.PreviewWith>
 
 
@@ -313,13 +316,16 @@
 	<Style Selector="Button.MenuTabButton">
 		<Setter Property="Background" Value="#A8F1FF"/>
 		<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+		<Setter Property="BorderBrush" Value="{DynamicResource SurfaceWhite}"/>
+		<Setter Property="BorderThickness" Value="2,2,2,1"/>
 		<Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}"/>
 		<Setter Property="FontWeight" Value="SemiBold"/>
-		<Setter Property="CornerRadius" Value="0"/>
+		<Setter Property="CornerRadius" Value="12,12,0,0"/>
 		<Setter Property="Padding" Value="15,5,30,5"/>
-		<Setter Property="Height" Value="42"/>
-		<Setter Property="Margin" Value="0,-3,2,-1"/>
+		<Setter Property="Height" Value="40"/>
+		<Setter Property="Margin" Value="0"/>
 		<Setter Property="VerticalContentAlignment" Value="Center"/>
+		<Setter Property="VerticalAlignment" Value="Bottom"/>
 	</Style>
 
 	<!-- Fix: Force TextBlock & Icon to inherit foreground from the button, overriding global styles -->
@@ -340,6 +346,8 @@
 	<!-- Ensure Button Content Icon Inherits Foreground on Hover - Use more specific selector to avoid Flyout inheritance -->
 	<Style Selector="Button.MenuTabButton:pointerover > StackPanel PathIcon">
 		<Setter Property="Foreground" Value="White"/>
+		<!--<Setter Property="BorderBrush" Value="#A8F1FF"/>
+		<Setter Property="BorderThickness" Value="2,2,2,0"/>-->
 	</Style>
 
 	<Style Selector="Button.MenuTabButton.Active">
@@ -348,6 +356,8 @@
 
 	<Style Selector="Button.MenuTabButton.Active /template/ ContentPresenter">
 		<Setter Property="Background" Value="{DynamicResource Orange}"/>
+		<!--<Setter Property="BorderBrush" Value="#A8F1FF"/>
+		<Setter Property="BorderThickness" Value="2,2,2,0"/>-->
 	</Style>
 	<!-- Ensure Button Content Icon Inherits Foreground on Active - Use more specific selector to avoid Flyout inheritance -->
 	<Style Selector="Button.MenuTabButton.Active > StackPanel PathIcon">
@@ -470,7 +480,7 @@
 	</Style>
 
 	<Style Selector="Border.TopHeader">
-		<Setter Property="Background" Value="{DynamicResource SurfaceLightGray}"/>
+		<Setter Property="Background" Value="{DynamicResource PrimaryTealLight}"/>
 		<Setter Property="Padding" Value="10"/>
 	</Style>
 
@@ -482,13 +492,13 @@
 	</Style>
 
 	<Style Selector="Border.TopBar">
-		<Setter Property="Background" Value="{DynamicResource SurfaceLightGray}"/>
+		<Setter Property="Background" Value="{DynamicResource TopMenuGradient}"/>
 		<Setter Property="Margin" Value="0"/>
 	</Style>
 
 	<Style Selector="Border.Card">
 		<Setter Property="Background" Value="{DynamicResource SurfaceWhite}" />
-		<Setter Property="Padding" Value="40" />
+		<Setter Property="Padding" Value="30" />
 		<Setter Property="CornerRadius" Value="8" />
 		<Setter Property="BoxShadow" Value="0 10 30 0 #20000000" />
 	</Style>

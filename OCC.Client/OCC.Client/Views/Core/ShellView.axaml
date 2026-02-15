@@ -70,7 +70,7 @@
 				<MenuItem Header="Management">
 					<MenuItem Header="Users &amp; Teams" Command="{Binding SideMenuViewModel.UsersTeamsCommand}">
 						<MenuItem.Icon>
-							<PathIcon Data="{StaticResource IconUser}" Width="16" Height="16"/>
+							<PathIcon Data="{StaticResource IconUserManagement}" Width="16" Height="16"/>
 						</MenuItem.Icon>
 					</MenuItem>
 					<MenuItem Header="Company Settings" Command="{Binding SideMenuViewModel.CompanySettingsCommand}">

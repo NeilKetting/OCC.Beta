@@ -10,10 +10,10 @@
 			 x:Class="OCC.Client.Features.OrdersHub.Views.SupplierListView"
 			 x:DataType="vm:SupplierListViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, *" Margin="5">
+	<Grid RowDefinitions="Auto, Auto, *" Margin="2">
 		<!-- Header / Tools -->
-		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
-			<Grid ColumnDefinitions="Auto, *, Auto">
+		<Border Grid.Row="0" Margin="0,0,0,10" Classes="TopHeader" Background="{DynamicResource MainPageGradient}">
+			<Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
 					<StackPanel Spacing="5">
 						<TextBlock Text="Supplier List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold"/>
@@ -21,15 +21,26 @@
 					</StackPanel>
 				</StackPanel>
 
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
-					<!-- Filter -->
-					<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranchFilter}" 
-							  PlaceholderText="Branch" Width="120" VerticalAlignment="Center"/>
-					
-					<!-- Search -->
-					<TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search by name or email..." Classes="SearchBox" VerticalAlignment="Center"/>
-					<Button Content="Import CSV" Classes="Secondary" Command="{Binding ImportSuppliersCommand}" ToolTip.Tip="Import suppliers from CSV file"/>
+				<StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="10">
+					<Button Content="Import CSV" Classes="Secondary" Command="{Binding ImportSuppliersCommand}"
+							ToolTip.Tip="Import suppliers from CSV file"/>
 					<Button Content="Add Supplier" Classes="Primary" IsEnabled="True" Command="{Binding AddSupplierCommand}"/>
+				</StackPanel>
+				<StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0">
+					<StackPanel>
+						<!-- Search -->
+						<TextBlock Text="Search" Classes="LabelSmall" FontSize="10"
+								   Foreground="#64748B"/>
+						<TextBox Width="250" Text="{Binding SearchQuery}" Watermark="Search by name or email..." Classes="SearchBox" VerticalAlignment="Center"/>
+					</StackPanel>
+
+					<!-- Filter -->
+					<StackPanel>
+						<TextBlock Text="Branch" Classes="LabelSmall" FontSize="10"
+								   Foreground="#64748B"/>
+						<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranchFilter}"
+								  PlaceholderText="Branch" Width="120" VerticalAlignment="Center"/>
+					</StackPanel>
 				</StackPanel>
 			</Grid>
 		</Border>

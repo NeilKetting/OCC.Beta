@@ -20,6 +20,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.Features.AuthHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using OCC.Client.ViewModels.Notifications;
 using OCC.Client.Messages;
 

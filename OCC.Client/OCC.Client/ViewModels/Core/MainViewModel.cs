@@ -5,6 +5,7 @@ using OCC.Client.ViewModels.Messages;
 using OCC.Client.Features.HomeHub.ViewModels;
 using OCC.Client.Features.ProjectsHub.ViewModels;
 using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.Client.Services;
 using OCC.Shared.Models;

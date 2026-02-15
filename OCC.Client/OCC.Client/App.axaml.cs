@@ -14,6 +14,8 @@ using OCC.Client.Services.Repositories.ApiServices;
 using OCC.Client.Services.Repositories.Interfaces; // Added
 using OCC.Client.ViewModels.Core; // Added for ViewModelBase/Core VMs
 using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.Views;
 using OCC.Client.Features.HseqHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels;
 using OCC.Client.Features.HomeHub.ViewModels.Dashboard;
@@ -226,6 +228,7 @@ namespace OCC.Client
             services.AddTransient<ProjectTopBarViewModel>();
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();
+            services.AddTransient<ProjectFilesViewModel>();
             services.AddHttpClient<IProjectService, ProjectService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
                 .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddHttpClient<IProjectVariationOrderService, ProjectVariationOrderService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
@@ -248,7 +251,6 @@ namespace OCC.Client
             
             services.AddTransient<IWageService, WageService>();
             services.AddTransient<WageRunViewModel>();
-            services.AddTransient<WageRunLineViewModel>();
 
             services.AddHttpClient<IEmployeeLoanService, ApiEmployeeLoanService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
                 .AddHttpMessageHandler<FailureLoggingHandler>();

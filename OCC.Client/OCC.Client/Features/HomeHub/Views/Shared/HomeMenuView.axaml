@@ -8,7 +8,7 @@
 			 x:Class="OCC.Client.Features.HomeHub.Views.Shared.HomeMenuView"
 			 x:DataType="vm:HomeMenuViewModel">
 
-	<Border Classes="TopBar" Background="{DynamicResource SurfaceLightGray}">
+	<Border Classes="TopBar" Background="{DynamicResource TopMenuGradient}">
 		<Grid ColumnDefinitions="*,Auto, *, Auto">
 			<!-- Menu Buttons Area -->
 			<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">

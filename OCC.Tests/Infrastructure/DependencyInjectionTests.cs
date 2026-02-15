@@ -5,6 +5,7 @@ using OCC.Client.Features.AuthHub.ViewModels;
 using OCC.Client.Features.EmployeeHub.ViewModels;
 using OCC.Client.Features.HseqHub.ViewModels;
 using OCC.Client.Features.OrdersHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using OCC.Client.Services.Interfaces;
 using System;
 using Xunit;

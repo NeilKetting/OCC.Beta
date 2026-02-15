@@ -47,8 +47,8 @@
     </UserControl.Styles>
 
 	<ScrollViewer>
-		<StackPanel Spacing="20" Margin="5">
-			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}">
+		<StackPanel Spacing="20" Margin="2">
+			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource MainPageGradient}">
 				<Grid ColumnDefinitions="*, Auto" Margin="0">
 					<StackPanel Grid.Column="0" Spacing="5">
 						<TextBlock Text="Procurement Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />

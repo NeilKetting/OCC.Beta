@@ -226,6 +226,10 @@
 			<proj:ProjectVariationOrderListView/>
 		</DataTemplate>
 
+		<DataTemplate DataType="{x:Type vm:ProjectFilesViewModel}" x:DataType="vm:ProjectFilesViewModel">
+			<proj:ProjectFilesView/>
+		</DataTemplate>
+
 		<DataTemplate DataType="{x:Type vm_tasks:TaskDetailViewModel}">
 			<task_widgets:TaskDetailView/>
 		</DataTemplate>

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using OCC.Client.Services.Interfaces;
@@ -8,7 +9,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 {
     public class ApiEmployeeLoanService : BaseApiService<EmployeeLoan>, IEmployeeLoanService
     {
-        public ApiEmployeeLoanService(IAuthService authService) : base(authService)
+        public ApiEmployeeLoanService(HttpClient httpClient, IAuthService authService) : base(authService, httpClient)
         {
         }
 

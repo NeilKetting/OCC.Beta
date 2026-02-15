@@ -12,6 +12,7 @@ using OCC.Client.Features.CalendarHub.ViewModels;
 using OCC.Client.Features.TaskHub.ViewModels;
 using OCC.Client.Features.BugHub.ViewModels; // Added
 using OCC.Client.Features.EmployeeHub.ViewModels;
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
 using OCC.Client.Features.CustomerHub.ViewModels;
 using OCC.Client.Features.SettingsHub.ViewModels;
 using OCC.Client.Features.AuthHub.ViewModels;

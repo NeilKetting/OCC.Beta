@@ -93,7 +93,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Features.EmployeeHub.Views.LeaveEarlyReasonDialog();
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.LeaveEarlyReasonDialog();
                 var result = await dialog.ShowDialog<bool?>(desktop.MainWindow);
                 
                 if (result == true)
@@ -107,7 +107,7 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Features.EmployeeHub.Views.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.EditAttendanceDialog(currentIn, currentOut, showIn, showOut);
                 var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
                 
                 if (result)
@@ -145,8 +145,8 @@ namespace OCC.Client.Services
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
-                var dialog = new OCC.Client.Features.EmployeeHub.Views.AddLoanDialog();
-                var vm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OCC.Client.Features.EmployeeHub.ViewModels.AddLoanDialogViewModel>(_serviceProvider);
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.AddLoanDialog();
+                var vm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OCC.Client.Features.TimeAttendanceHub.ViewModels.AddLoanDialogViewModel>(_serviceProvider);
                 vm.CloseAction = (loan) => Avalonia.Threading.Dispatcher.UIThread.Post(() => dialog.Close(loan));
                 dialog.DataContext = vm;
                 var result = await dialog.ShowDialog<OCC.Shared.Models.EmployeeLoan?>(desktop.MainWindow);

@@ -13,7 +13,7 @@
 			 xmlns:homeShared="clr-namespace:OCC.Client.Features.HomeHub.Views.Shared"
 			 xmlns:homeProjects="clr-namespace:OCC.Client.Features.ProjectsHub.Views;assembly=OCC.Client"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
-			 mc:Ignorable="d" d:DesignWidth="1024"
+			 mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
 			 x:Class="OCC.Client.Features.HomeHub.Views.HomeView"
 			 x:DataType="vm:HomeViewModel">
 
@@ -38,7 +38,7 @@
 			<homeShared:HomeMenuView Grid.Row="0" DataContext="{Binding HomeMenu}" Margin="-1,0,0,0"/>
 
 			<!-- Greeting Area -->
-			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">
+			<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource MainPageGradient}" Margin="2">
 				<Grid ColumnDefinitions="*, Auto">
 					<StackPanel Spacing="5" Margin="0" Grid.Column="0">
 						<TextBlock Text="{Binding Greeting, FallbackValue='Good day, User'}"

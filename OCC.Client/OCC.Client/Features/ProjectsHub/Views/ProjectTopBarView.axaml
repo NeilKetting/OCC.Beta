@@ -13,7 +13,7 @@
 		<conv:IntToBoolConverter x:Key="IntToBoolConverter"/>
 	</UserControl.Resources>
 
-	<Border Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Padding="10,10,10,25">
+	<Border Classes="TopHeader" Background="{DynamicResource MainPageGradient}" Padding="10,10,10,25">
 		<Grid ColumnDefinitions="Auto, Auto, *" MinHeight="60">
 
 			<!-- LEFT: Project Name and Members -->
@@ -134,7 +134,7 @@
 								<Border Background="#EF4444"
 										HorizontalAlignment="Right"
 										VerticalAlignment="Top"
-										Margin="0,-8,-12,0"
+										Margin="0,-6,-12,0"
 										Height="18" MinWidth="18"
 										CornerRadius="9"
 										Padding="4,0"

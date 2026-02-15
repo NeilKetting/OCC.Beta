@@ -16,6 +16,8 @@ using OCC.Client.ModelWrappers;
 using OCC.Shared.DTOs;
 using OCC.Client.ViewModels.Core;
 
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
+
 namespace OCC.Client.Features.EmployeeHub.ViewModels
 {
     public partial class EmployeeDetailViewModel : ViewModelBase

@@ -13,6 +13,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
+using OCC.Client.Features.TimeAttendanceHub.ViewModels;
+
 namespace OCC.Client.Features.EmployeeHub.ViewModels
 {
     public partial class TeamDetailViewModel : ViewModelBase, CommunityToolkit.Mvvm.Messaging.IRecipient<EntityUpdatedMessage>

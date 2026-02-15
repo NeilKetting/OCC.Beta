@@ -5,7 +5,7 @@
 			 xmlns:vm="clr-namespace:OCC.Client.Features.EmployeeHub.ViewModels"
 			 xmlns:models="using:OCC.Shared.Models"
 			 xmlns:views="clr-namespace:OCC.Client.Features.EmployeeHub.Views"
-             xmlns:timeViews="clr-namespace:OCC.Client.Features.EmployeeHub.Views"
+             xmlns:timeViews="clr-namespace:OCC.Client.Features.TimeAttendanceHub.Views"
 			 xmlns:conv="clr-namespace:OCC.Client.Converters"
 			 mc:Ignorable="d" d:DesignWidth="1200"
 			 x:Class="OCC.Client.Features.EmployeeHub.Views.EmployeeManagementView"
@@ -22,11 +22,14 @@
 	<Grid RowDefinitions="Auto, *">
 		<!-- Top Bar -->
 		<Border Grid.Row="0" Classes="Topbar">
-			<Grid ColumnDefinitions="Auto, *, Auto, Auto" Background="{DynamicResource SurfaceLightGray}">
+			<Grid ColumnDefinitions="Auto, *, Auto, Auto" Background="{DynamicResource TopMenuGradient}">
 				<!-- Tab Buttons -->
 				<StackPanel Grid.Column="0" Orientation="Horizontal" Grid.ColumnSpan="2" HorizontalAlignment="Center">
-					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" CommandParameter="Employees"
-							Classes.Active="{Binding ActiveTab, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Employees'}">
+					<Button Classes="MenuTabButton" Command="{Binding SetActiveTabCommand}" 
+							CommandParameter="Employees"
+							Classes.Active="{Binding ActiveTab, 
+							Converter={StaticResource StringEqualityConverter}, 
+							ConverterParameter='Employees'}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconManageEmployees}" Height="16"/>
 							<TextBlock Text="MANAGE EMPLOYEES"/>

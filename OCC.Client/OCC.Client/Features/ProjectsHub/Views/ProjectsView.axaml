@@ -18,7 +18,7 @@
 			
 
 			<!-- Content Area -->
-			<TransitioningContentControl Grid.Row="2" Content="{Binding CurrentView}" Margin="5" VerticalAlignment="Stretch">
+			<TransitioningContentControl Grid.Row="2" Content="{Binding CurrentView}" Margin="2" VerticalAlignment="Stretch">
 				<TransitioningContentControl.PageTransition>
 					<CrossFade Duration="0:00:00.500" />
 				</TransitioningContentControl.PageTransition>

@@ -1,0 +1,61 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:OCC.Client.Features.TimeAttendanceHub.ViewModels" xmlns:timeVm="using:OCC.Client.Features.TimeAttendanceHub.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+        x:Class="OCC.Client.Features.TimeAttendanceHub.Views.AddLoanDialog"
+        x:DataType="vm:AddLoanDialogViewModel"
+        Title="Add Employee Loan"
+        Width="400" Height="450"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        SystemDecorations="BorderOnly"
+        Background="Transparent"
+        TransparencyLevelHint="Mica"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Border Background="White" CornerRadius="12" Padding="20" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <Grid RowDefinitions="Auto, *, Auto">
+            <TextBlock Text="Add New Loan" Classes="h2" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <StackPanel Grid.Row="1" Spacing="15">
+                <!-- Employee -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Employee" Classes="label"/>
+                    <ComboBox ItemsSource="{Binding Employees}" SelectedItem="{Binding SelectedEmployee}" HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Amount -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Principal Amount (R)" Classes="label"/>
+                    <NumericUpDown Value="{Binding PrincipalAmount}" FormatString="C" Minimum="0" Increment="100"/>
+                </StackPanel>
+
+                <!-- Installment -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Monthly Installment (R)" Classes="label"/>
+                    <NumericUpDown Value="{Binding MonthlyInstallment}" FormatString="C" Minimum="0" Increment="50"/>
+                </StackPanel>
+
+                <!-- Date -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Start Date" Classes="label"/>
+                    <CalendarDatePicker SelectedDate="{Binding StartDate}" HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Command="{Binding CancelCommand}" Content="Cancel" />
+                <Button Command="{Binding SaveCommand}" Content="Save" Classes="Primary"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

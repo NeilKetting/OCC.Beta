@@ -22,10 +22,10 @@ namespace OCC.Client.Services.Repositories.ApiServices
         /// </summary>
         protected abstract string ApiEndpoint { get; }
 
-        public BaseApiService(IAuthService authService)
+        public BaseApiService(IAuthService authService, HttpClient? httpClient = null)
         {
             _authService = authService;
-            _httpClient = new HttpClient();
+            _httpClient = httpClient ?? new HttpClient();
         }
 
         protected string GetFullUrl(string path)

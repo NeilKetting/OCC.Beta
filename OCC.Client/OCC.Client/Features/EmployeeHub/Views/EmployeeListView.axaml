@@ -11,88 +11,112 @@
 			 x:Class="OCC.Client.Features.EmployeeHub.Views.EmployeeListView"
 			 x:DataType="vm:EmployeeManagementViewModel">
 
-	<Grid RowDefinitions="Auto, Auto, *">
+	<Grid RowDefinitions="Auto, *">
 		<!-- Header Bar: Title & Primary Actions -->
-		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5">
-			<Grid ColumnDefinitions="*, Auto">
-				<!-- Title -->
-				<StackPanel Spacing="5">
-					<TextBlock Text="Employee Overview" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold" />
-					<TextBlock Text="Manage staff records, positions and teams." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}" />
-				</StackPanel>
-
-				<!-- Action Buttons -->
-				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-					<Button Command="{Binding AddEmployeeCommand}" Classes="Primary" Padding="15,8">
-						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconAddUser}" Width="16" Height="16"/>
-							<TextBlock Text="Add Employee" VerticalAlignment="Center" FontWeight="SemiBold"/>
-						</StackPanel>
-					</Button>
-					<Button Command="{Binding ImportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Import from CSV" IsVisible="{Binding CanImportExport}">
-						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconUpload}" Width="16" Height="16"/>
-							<TextBlock Text="Import Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
-						</StackPanel>
-					</Button>
-					<Button Command="{Binding ExportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Export to JSON" IsVisible="{Binding CanImportExport}">
-						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
-							<TextBlock Text="Export Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
-						</StackPanel>
-					</Button>
-				</StackPanel>
-			</Grid>
-		</Border>
-
-		<!-- Toolbar Bar: Search, Filters & Summary Stats -->
-		<Border Grid.Row="1" Classes="TopHeader" Background="{DynamicResource WeatheredCementGradient}" Margin="5,0,5,5" Padding="10,5">
-			<Grid ColumnDefinitions="Auto, *, Auto">
-				<!-- Filters & Search -->
-				<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-					<TextBox Width="200" Watermark="Search employees..." 
-							 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-							 Background="White" BorderBrush="{DynamicResource BorderGray}" VerticalContentAlignment="Center">
-						<TextBox.InnerRightContent>
-							<PathIcon Data="{StaticResource IconSearch}" Width="14" Height="14" Margin="0,0,10,0" Foreground="{DynamicResource TextTertiarySlate}"/>
-						</TextBox.InnerRightContent>
-					</TextBox>
-
-					<ComboBox SelectedIndex="{Binding SelectedFilterIndex}" Width="130" Background="White" BorderBrush="{DynamicResource BorderGray}">
-						<ComboBoxItem>Everyone</ComboBoxItem>
-						<ComboBoxItem>Permanent</ComboBoxItem>
-						<ComboBoxItem>Contract</ComboBoxItem>
-					</ComboBox>
-
-					<ComboBox SelectedIndex="{Binding SelectedBranchFilterIndex}" Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
-						<ComboBoxItem>All Branches</ComboBoxItem>
-						<ComboBoxItem>Johannesburg</ComboBoxItem>
-						<ComboBoxItem>Cape Town</ComboBoxItem>
-					</ComboBox>
-				</StackPanel>
-
-				<!-- Summary Stats -->
-				<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="25" VerticalAlignment="Center">
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Text="TOTAL:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding TotalCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+		<Border Grid.Row="0" Classes="TopHeader" Margin="2" Background="{DynamicResource MainPageGradient}">		
+			<Grid RowDefinitions="Auto, Auto">
+				<Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+					<!-- Title -->
+					<StackPanel Spacing="5">
+						<TextBlock Text="Employee Overview" 
+								   FontSize="{StaticResource FontSizeLarge}" 
+								   FontWeight="Bold" />
+						<TextBlock Text="Manage staff records, positions and teams." 
+								   Foreground="#64748B" 
+								   FontSize="{StaticResource FontsizeMedium}" />
 					</StackPanel>
-					
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Text="PERMANENT:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding PermanentCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+
+					<!-- Action Buttons -->
+					<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+						<Button Command="{Binding AddEmployeeCommand}" Classes="Primary" Padding="15,8">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconAddUser}" Width="16" Height="16"/>
+								<TextBlock Text="Add Employee" VerticalAlignment="Center" FontWeight="SemiBold"/>
+							</StackPanel>
+						</Button>
+						<Button Command="{Binding ImportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Import from CSV" IsVisible="{Binding CanImportExport}">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconUpload}" Width="16" Height="16"/>
+								<TextBlock Text="Import Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
+							</StackPanel>
+						</Button>
+						<Button Command="{Binding ExportEmployeesCommand}" Classes="Secondary" Padding="15,8" ToolTip.Tip="Export to JSON" IsVisible="{Binding CanImportExport}">
+							<StackPanel Orientation="Horizontal" Spacing="8">
+								<PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
+								<TextBlock Text="Export Data" VerticalAlignment="Center" FontWeight="SemiBold"/>
+							</StackPanel>
+						</Button>
 					</StackPanel>
-					
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Text="CONTRACT:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
-						<TextBlock Text="{Binding ContractCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+				</Grid>
+				<!-- Filters -->
+				<Grid Grid.Row="1" ColumnDefinitions="Auto, *, Auto" Margin="0,10,0,0">
+
+					<StackPanel Grid.Column="0" Orientation="Horizontal"
+								Spacing="15" VerticalAlignment="Bottom">
+
+						<StackPanel Spacing="2" VerticalAlignment="Bottom">
+							<TextBlock Text="Search" Classes="LabelSmall" FontSize="10" 
+									   Foreground="#64748B"/>
+							<TextBox Width="200" Watermark="Search employees..."
+									 Text="{Binding SearchQuery,
+									 UpdateSourceTrigger=PropertyChanged}"
+									 Background="White"
+									 BorderBrush="{DynamicResource BorderGray}"
+									 VerticalContentAlignment="Center"
+									 VerticalAlignment="Bottom">
+								<TextBox.InnerRightContent>
+									<PathIcon Data="{StaticResource IconSearch}" Width="14" Height="14" Margin="0,0,10,0" Foreground="{DynamicResource TextTertiarySlate}"/>
+								</TextBox.InnerRightContent>
+							</TextBox>
+						</StackPanel>
+
+
+						<!-- Employemtn Type -->
+						<StackPanel Spacing="2" VerticalAlignment="Bottom">
+							<TextBlock Text="Employment Type" Classes="LabelSmall" FontSize="10" 
+									   Foreground="#64748B"/>
+							<ComboBox SelectedIndex="{Binding SelectedFilterIndex}" Width="130" Background="White" BorderBrush="{DynamicResource BorderGray}">
+								<ComboBoxItem>Everyone</ComboBoxItem>
+								<ComboBoxItem>Permanent</ComboBoxItem>
+								<ComboBoxItem>Contract</ComboBoxItem>
+							</ComboBox>
+						</StackPanel>
+
+						<!-- Branch -->
+						<StackPanel Spacing="2" VerticalAlignment="Bottom">
+							<TextBlock Text="Branch" Classes="LabelSmall" FontSize="10" 
+									   Foreground="#64748B"/>
+							<ComboBox SelectedIndex="{Binding SelectedBranchFilterIndex}" Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
+								<ComboBoxItem>All Branches</ComboBoxItem>
+								<ComboBoxItem>Johannesburg</ComboBoxItem>
+								<ComboBoxItem>Cape Town</ComboBoxItem>
+							</ComboBox>
+						</StackPanel>
 					</StackPanel>
-				</StackPanel>
+
+					<!-- Summary Stats -->
+					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="25" VerticalAlignment="Center">
+						<StackPanel Orientation="Vertical" Spacing="8">
+							<TextBlock Text="TOTAL:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding TotalCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Vertical" Spacing="8">
+							<TextBlock Text="PERMANENT:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding PermanentCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+						</StackPanel>
+
+						<StackPanel Orientation="Vertical" Spacing="8">
+							<TextBlock Text="CONTRACT:" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							<TextBlock Text="{Binding ContractCount}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+						</StackPanel>
+					</StackPanel>
+				</Grid>
 			</Grid>
 		</Border>
 
 		<!-- Employee Grid -->
-		<DataGrid Grid.Row="2"
+		<DataGrid Grid.Row="1"
 				  ItemsSource="{Binding Employees}"
 				  SelectedItem="{Binding SelectedEmployee}"
 				  AutoGenerateColumns="False"

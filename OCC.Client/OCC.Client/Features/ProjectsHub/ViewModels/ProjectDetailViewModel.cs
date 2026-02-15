@@ -62,6 +62,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         private ProjectVariationOrderListViewModel _variationOrderVM;
 
         [ObservableProperty]
+        private ProjectFilesViewModel _filesVM;
+
+        [ObservableProperty]
         private TaskDetailViewModel? _selectedTaskDetailVM;
 
         [ObservableProperty]
@@ -103,6 +106,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _ganttVM = new ProjectGanttViewModel();
             _dashboardVM = new ProjectDashboardViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel();
+            _filesVM = new ProjectFilesViewModel();
             _currentView = _listVM;
         }
         
@@ -118,6 +122,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _ganttVM = new ProjectGanttViewModel(_projectManager);
             _dashboardVM = new ProjectDashboardViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
+            _filesVM = serviceProvider.GetRequiredService<ProjectFilesViewModel>();
 
             _currentView = _dashboardVM;
 
@@ -299,6 +304,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     GanttVM.LoadTasks(projectId);
                     DashboardVM.UpdateProjectData(project, tasks);
                     VariationOrderVM.LoadProject(projectId);
+                    _ = FilesVM.LoadProjectFilesAsync(projectId);
                 });
             }
             finally
@@ -330,6 +336,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                         break;
                     case "Sheet":
                         CurrentView = VariationOrderVM;
+                        break;
+                    case "Files":
+                        CurrentView = FilesVM;
                         break;
                 }
             }
