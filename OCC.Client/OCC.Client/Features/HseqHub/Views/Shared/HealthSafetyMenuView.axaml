@@ -8,7 +8,7 @@
              x:Class="OCC.Client.Features.HseqHub.Views.Shared.HealthSafetyMenuView"
              x:DataType="vm:HealthSafetyMenuViewModel">
 
-	<Border Classes="TopBar" Background="{DynamicResource SurfaceLightGray}">
+	<Border Classes="TopBar" Background="{DynamicResource TopMenuGradient}">
 		<Grid ColumnDefinitions="*,Auto, *, Auto">
 
 			<!-- Menu Buttons Area -->

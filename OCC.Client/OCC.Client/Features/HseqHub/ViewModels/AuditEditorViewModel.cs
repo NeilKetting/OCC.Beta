@@ -65,7 +65,8 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             {
                 "Administrative Requirements", "Education Training & Promotion", "Public Safety",
                 "Personal Protective Equipment (PPE)", "Housekeeping", "Elevated Work", "Electricity",
-                "Fire Prevention and Protection", "Equipment", "Construction Vehicles and Mobile Plant"
+                "Fire Prevention and Protection", "Equipment", "Construction Vehicles and Mobile Plant",
+                "Facilities"
             };
 
             newAudit.Sections = new List<HseqAuditSection>();
@@ -104,13 +105,20 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                     {
                         "Administrative Requirements", "Education Training & Promotion", "Public Safety",
                         "Personal Protective Equipment (PPE)", "Housekeeping", "Elevated Work", "Electricity",
-                        "Fire Prevention and Protection", "Equipment", "Construction Vehicles and Mobile Plant"
+                        "Fire Prevention and Protection", "Equipment", "Construction Vehicles and Mobile Plant",
+                        "Facilities"
                     };
                     loadedAudit.Sections = new List<HseqAuditSection>();
                     foreach (var cat in categories) 
                     {
                         loadedAudit.Sections.Add(new HseqAuditSection { Name = cat, PossibleScore = 100, ActualScore = 0 });
                     }
+                }
+                
+                // Ensure "Facilities" exists for older audits being edited
+                if (loadedAudit.Sections != null && !loadedAudit.Sections.Any(s => s.Name == "Facilities"))
+                {
+                    loadedAudit.Sections.Add(new HseqAuditSection { Name = "Facilities", PossibleScore = 100, ActualScore = 0 });
                 }
 
                 CurrentAudit = loadedAudit;

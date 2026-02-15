@@ -37,6 +37,24 @@ namespace OCC.API.Controllers
                 .ToListAsync();
         }
 
+        [HttpGet("summaries")]
+        public async Task<ActionResult<IEnumerable<OCC.Shared.DTOs.HseqTrainingSummaryDto>>> GetTrainingSummaries()
+        {
+            return await _context.HseqTrainingRecords
+                .OrderByDescending(t => t.DateCompleted)
+                .Select(t => new OCC.Shared.DTOs.HseqTrainingSummaryDto
+                {
+                    Id = t.Id,
+                    EmployeeName = t.EmployeeName,
+                    TrainingTopic = t.TrainingTopic,
+                    CertificateType = t.CertificateType,
+                    DateCompleted = t.DateCompleted,
+                    ValidUntil = t.ValidUntil,
+                    Role = t.Role
+                })
+                .ToListAsync();
+        }
+
         [HttpPost]
         public async Task<ActionResult<HseqTrainingRecord>> PostTrainingRecord(HseqTrainingRecord record)
         {

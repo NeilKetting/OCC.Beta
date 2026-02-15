@@ -17,7 +17,7 @@
         <Grid RowDefinitions="Auto, *">
             <!-- Header -->
             <!-- Header Bar: Title -->
-            <Border Grid.Row="0" Margin="10" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
+            <Border Grid.Row="0" Margin="2" Background="{DynamicResource MainPageGradient}" Classes="TopHeader">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <PathIcon Data="{StaticResource IconManageEmployees}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
