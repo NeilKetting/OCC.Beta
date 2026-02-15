@@ -42,6 +42,7 @@ namespace OCC.Shared.DTOs
         public string Name { get; set; } = string.Empty;
         public decimal PossibleScore { get; set; }
         public decimal ActualScore { get; set; }
+        public byte[]? RowVersion { get; set; }
     }
 
     public class AuditNonComplianceItemDto
@@ -55,6 +56,7 @@ namespace OCC.Shared.DTOs
         public AuditItemStatus Status { get; set; }
         public DateTime? ClosedDate { get; set; }
         public List<AuditAttachmentDto> Attachments { get; set; } = new();
+        public byte[]? RowVersion { get; set; }
     }
 
     public class AuditAttachmentDto

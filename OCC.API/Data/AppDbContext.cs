@@ -18,6 +18,7 @@ namespace OCC.API.Data
         {
             // Suppress pending changes warning to unblock migration application on remote server
             optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+            
             base.OnConfiguring(optionsBuilder);
         }
 
@@ -279,10 +280,49 @@ namespace OCC.API.Data
             {
                 entity.Property(e => e.HourlyRate).HasPrecision(18, 2);
                 entity.Property(e => e.TotalWage).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionLoan).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionTax).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionOther).HasPrecision(18, 2);
+                entity.Property(e => e.IncentiveSupervisor).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<EmployeeLoan>(entity =>
+            {
+                entity.Property(e => e.PrincipalAmount).HasPrecision(18, 2);
+                entity.Property(e => e.MonthlyInstallment).HasPrecision(18, 2);
+                entity.Property(e => e.OutstandingBalance).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.Property(e => e.TaxRate).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<OrderLine>(entity =>
+            {
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.VatAmount).HasPrecision(18, 2);
+                entity.Property(e => e.LineTotal).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<HseqAudit>(entity =>
+            {
+                entity.Property(e => e.TargetScore).HasPrecision(18, 2);
+                entity.Property(e => e.ActualScore).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<HseqAuditSection>(entity =>
+            {
+                entity.Property(e => e.PossibleScore).HasPrecision(18, 2);
+                entity.Property(e => e.ActualScore).HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<ProjectVariationOrder>(entity =>
             {
+                entity.HasOne(v => v.Project)
+                    .WithMany(p => p.VariationOrders)
+                    .HasForeignKey(v => v.ProjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // HSEQ Configurations

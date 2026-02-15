@@ -39,6 +39,7 @@ namespace OCC.API.Controllers
                     .ThenInclude(i => i.Attachments)
                 .Include(a => a.Attachments)
                 .AsNoTracking()
+                .AsSplitQuery() // Prevent MultipleCollectionIncludeWarning
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (audit == null)
@@ -123,6 +124,7 @@ namespace OCC.API.Controllers
                 .Include(a => a.NonComplianceItems)
                     .ThenInclude(i => i.Attachments)
                 .Include(a => a.Attachments)
+                .AsSplitQuery() // Use split query for complex graph load
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (existingAudit == null)
@@ -147,6 +149,12 @@ namespace OCC.API.Controllers
                     existingSection.PossibleScore = sectionDto.PossibleScore;
                     existingSection.Name = sectionDto.Name;
                     existingSection.UpdatedAtUtc = DateTime.UtcNow;
+
+                    // Propagate RowVersion for concurrency check
+                    if (sectionDto.RowVersion != null && sectionDto.RowVersion.Length > 0)
+                    {
+                        _context.Entry(existingSection).Property("RowVersion").OriginalValue = sectionDto.RowVersion;
+                    }
                 }
                 else
                 {
@@ -183,6 +191,12 @@ namespace OCC.API.Controllers
                         existingItem.Status = itemDto.Status;
                         existingItem.ClosedDate = itemDto.ClosedDate;
                         existingItem.UpdatedAtUtc = DateTime.UtcNow;
+
+                        // Propagate RowVersion for concurrency check
+                        if (itemDto.RowVersion != null && itemDto.RowVersion.Length > 0)
+                        {
+                            _context.Entry(existingItem).Property("RowVersion").OriginalValue = itemDto.RowVersion;
+                        }
                     }
                     else
                     {

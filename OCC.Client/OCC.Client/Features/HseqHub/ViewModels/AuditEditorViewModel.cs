@@ -431,7 +431,8 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                     Id = s.Id,
                     Name = s.Name,
                     PossibleScore = s.PossibleScore,
-                    ActualScore = s.ActualScore
+                    ActualScore = s.ActualScore,
+                    RowVersion = s.RowVersion ?? Array.Empty<byte>()
                 }).ToList(),
                 NonComplianceItems = dto.NonComplianceItems.Select(i => new HseqAuditNonComplianceItem
                 {
@@ -443,6 +444,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                     TargetDate = i.TargetDate,
                     Status = i.Status,
                     ClosedDate = i.ClosedDate,
+                    RowVersion = i.RowVersion ?? Array.Empty<byte>(),
                     Attachments = i.Attachments.Select(ToAttachmentEntity).ToList()
                 }).ToList(),
                 Attachments = dto.Attachments.Select(ToAttachmentEntity).ToList()
@@ -499,7 +501,8 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                     Id = s.Id,
                     Name = s.Name,
                     PossibleScore = s.PossibleScore,
-                    ActualScore = s.ActualScore
+                    ActualScore = s.ActualScore,
+                    RowVersion = s.RowVersion
                 }).ToList(),
                 NonComplianceItems = entity.NonComplianceItems.Select(i => new AuditNonComplianceItemDto
                 {
@@ -511,6 +514,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                     TargetDate = i.TargetDate,
                     Status = i.Status,
                     ClosedDate = i.ClosedDate,
+                    RowVersion = i.RowVersion,
                     Attachments = i.Attachments.Select(ToAttachmentDto).ToList()
                 }).ToList(),
                 Attachments = entity.Attachments.Select(ToAttachmentDto).ToList()
