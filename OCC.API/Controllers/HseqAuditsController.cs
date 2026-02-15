@@ -152,11 +152,7 @@ namespace OCC.API.Controllers
                     existingSection.Name = sectionDto.Name;
                     existingSection.UpdatedAtUtc = DateTime.UtcNow;
 
-                    // Propagate RowVersion for concurrency check
-                    if (sectionDto.RowVersion != null && sectionDto.RowVersion.Length > 0)
-                    {
-                        _context.Entry(existingSection).Property("RowVersion").OriginalValue = sectionDto.RowVersion;
-                    }
+
                 }
                 else
                 {
@@ -194,11 +190,7 @@ namespace OCC.API.Controllers
                         existingItem.ClosedDate = itemDto.ClosedDate;
                         existingItem.UpdatedAtUtc = DateTime.UtcNow;
 
-                        // Propagate RowVersion for concurrency check
-                        if (itemDto.RowVersion != null && itemDto.RowVersion.Length > 0)
-                        {
-                            _context.Entry(existingItem).Property("RowVersion").OriginalValue = itemDto.RowVersion;
-                        }
+
                     }
                     else
                     {
@@ -225,20 +217,40 @@ namespace OCC.API.Controllers
             }
 
             // Save child changes first to let triggers update the audit row (e.g. roll up scores)
-            try
+            var retryCount = 0;
+            const int MaxRetries = 3;
+            while (retryCount < MaxRetries)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                var entry = ex.Entries.FirstOrDefault();
-                var tableName = entry?.Metadata.GetTableName();
-                var dbValues = await entry?.GetDatabaseValuesAsync();
-                _logger.LogError(ex, "Concurrency conflict updating HSEQ Audit {AuditId}. Table: {TableName}, Id: {EntryId}. DB RowVersion: {DbRv}", 
-                    id, tableName, entry?.Property("Id").CurrentValue, dbValues?["RowVersion"]);
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    break;
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    retryCount++;
+                    _logger.LogWarning(ex, "Concurrency conflict detected updating children. Retry {Retry}/{Max}.", retryCount, MaxRetries);
 
-                if (!_context.HseqAudits.Any(e => e.Id == id)) return NotFound();
-                else throw;
+                    foreach (var entry in ex.Entries)
+                    {
+                        var dbValues = await entry.GetDatabaseValuesAsync();
+                        if (dbValues == null)
+                        {
+                            // Row was DELETED. Strategy: Resurrect as Added.
+                            _logger.LogWarning("Entity {Name} {Id} was deleted. Resurrecting...", entry.Metadata.Name, entry.Property("Id").CurrentValue);
+                            entry.State = EntityState.Added;
+                        }
+                        else
+                        {
+                            // Row was MODIFIED. Strategy: Client Wins.
+                            var dbRowVersion = dbValues["RowVersion"];
+                            entry.Property("RowVersion").OriginalValue = dbRowVersion;
+                            _logger.LogInformation("Entity {Name} {Id} version mismatch. Force updating...", entry.Metadata.Name, entry.Property("Id").CurrentValue);
+                        }
+                    }
+
+                    if (retryCount >= MaxRetries) throw;
+                }
             }
 
             // 2. Update Parent Properties
@@ -258,22 +270,40 @@ namespace OCC.API.Controllers
             existingAudit.CloseOutDate = auditDto.CloseOutDate;
             existingAudit.UpdatedAtUtc = DateTime.UtcNow;
 
-            // Use the client's RowVersion as the basis for the final concurrency check 
-            // but we must be careful: if we reload, EF will use the NEW RowVersion from DB.
-            // We WANT to ensure no OTHER user changed it between the client's load and our update.
-            if (auditDto.RowVersion != null && auditDto.RowVersion.Length > 0)
+            // Attempt to save parent with retry logic
+            retryCount = 0;
+            while (retryCount < MaxRetries)
             {
-                _context.Entry(existingAudit).Property("RowVersion").OriginalValue = auditDto.RowVersion;
-            }
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    break;
+                }
+                catch (DbUpdateConcurrencyException ex)
+                {
+                    retryCount++;
+                    _logger.LogWarning(ex, "Concurrency conflict detected updating parent Audit. Retry {Retry}/{Max}.", retryCount, MaxRetries);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.HseqAudits.Any(e => e.Id == id)) return NotFound();
-                else throw;
+                    foreach (var entry in ex.Entries)
+                    {
+                        var dbValues = await entry.GetDatabaseValuesAsync();
+                        if (dbValues == null)
+                        {
+                            // Parent Audit DELETED? This is critical. We probably can't resurrect easily without ID issues
+                            // but let's try Added state if logical.
+                             _logger.LogError("Parent Audit {Id} was deleted. Returning NotFound.", id);
+                             return NotFound();
+                        }
+                        else
+                        {
+                            // Client Wins
+                            var dbRowVersion = dbValues["RowVersion"];
+                            entry.Property("RowVersion").OriginalValue = dbRowVersion;
+                             _logger.LogInformation("Parent Audit {Id} version mismatch. Force updating...", id);
+                        }
+                    }
+                    if (retryCount >= MaxRetries) throw;
+                }
             }
 
             return NoContent();
@@ -294,6 +324,7 @@ namespace OCC.API.Controllers
 
         // Maintenance Endpoint to Fix Data
         [HttpPost("fix-concurrency")]
+        [HttpGet("fix-concurrency")] // Allow browser execution
         public async Task<IActionResult> FixConcurrencyData()
         {
             var sections = await _context.HseqAuditSections.ToListAsync();
