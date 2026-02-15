@@ -315,10 +315,7 @@
 												<TextBox Text="{Binding ActualScore}" />
 											</StackPanel>
 
-											<StackPanel Grid.Column="2" Spacing="2" Margin="0,0,8,0">
-												<TextBlock Text="Possible" FontSize="10" Foreground="{DynamicResource TextSecondary}"/>
-												<TextBox Text="{Binding PossibleScore}" />
-											</StackPanel>
+
 										</Grid>
 									</Border>
 								</DataTemplate>

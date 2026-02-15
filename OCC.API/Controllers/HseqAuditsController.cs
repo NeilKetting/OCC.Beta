@@ -292,6 +292,75 @@ namespace OCC.API.Controllers
              return items.Select(ToNonComplianceItemDto).ToList();
         }
 
+        // Maintenance Endpoint to Fix Data
+        [HttpPost("fix-concurrency")]
+        public async Task<IActionResult> FixConcurrencyData()
+        {
+            var sections = await _context.HseqAuditSections.ToListAsync();
+            int updatedSections = 0;
+            foreach (var s in sections)
+            {
+                 // Check if RowVersion is missing/empty, or if we just want to force a refresh
+                 if (s.RowVersion == null || s.RowVersion.Length == 0)
+                 {
+                     s.UpdatedAtUtc = DateTime.UtcNow; // Touch to trigger timestamp update
+                     
+                     // If the DB column is NOT a computed timestamp (schema mismatch), we must set it manually
+                     // We try setting it to a random value. If it's a real timestamp, EF will ignore/overwrite or throw.
+                     // But typically EF won't send it if configured as IsRowVersion(). 
+                     // Let's rely on the Touch first.
+                     updatedSections++;
+                 }
+            }
+
+            var items = await _context.HseqAuditNonComplianceItems.ToListAsync();
+            int updatedItems = 0;
+            foreach (var i in items)
+            {
+                 if (i.RowVersion == null || i.RowVersion.Length == 0)
+                 {
+                     i.UpdatedAtUtc = DateTime.UtcNow;
+                     updatedItems++;
+                 }
+            }
+
+            if (updatedSections > 0 || updatedItems > 0)
+            {
+                // We use a raw try-catch to handle potential "Cannot update computed column" if we tried to set it
+                try 
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    // If simple save failed, maybe the RowVersion column is just varbinary and needs explicit value?
+                    // We can't easily know without trying. 
+                    // Let's assume for now the TOUCH is enough if schema is correct.
+                    // If schema is Broken (varbinary, no default), the TOUCH won't update the NULL RowVersion.
+                    _logger.LogError(ex, "Failed to fix concurrency data.");
+                    return StatusCode(500, ex.Message);
+                }
+            }
+            
+            // Verification Pass: Check if they are STILL null
+            var sectionsVerify = await _context.HseqAuditSections.Where(s => s.RowVersion == null).CountAsync();
+            var itemsVerify = await _context.HseqAuditNonComplianceItems.Where(i => i.RowVersion == null).CountAsync();
+
+            if (sectionsVerify > 0 || itemsVerify > 0)
+            {
+                // FORCE Update for stubborn nulls (implies varbinary column)
+                 var stubbornSections = await _context.HseqAuditSections.Where(s => s.RowVersion == null).ToListAsync();
+                 foreach(var s in stubbornSections) s.RowVersion = Guid.NewGuid().ToByteArray().Take(8).ToArray();
+                 
+                 var stubbornItems = await _context.HseqAuditNonComplianceItems.Where(i => i.RowVersion == null).ToListAsync();
+                 foreach(var i in stubbornItems) i.RowVersion = Guid.NewGuid().ToByteArray().Take(8).ToArray();
+                 
+                 await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { UpdatedSections = updatedSections, UpdatedItems = updatedItems, FinalNullCount = sectionsVerify + itemsVerify });
+        }
+
         #region Mapping Helpers
 
         private static AuditSummaryDto ToSummaryDto(HseqAudit audit)
