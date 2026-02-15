@@ -15,7 +15,7 @@
 		Topmost="True">
 
 	<Border Background="{DynamicResource SideMenuGradient}" CornerRadius="35" 
-			BorderThickness="5"
+			BorderThickness="4"
 			BorderBrush="{DynamicResource SplashGradient}"
 			Padding="20" 
 			Margin="30"

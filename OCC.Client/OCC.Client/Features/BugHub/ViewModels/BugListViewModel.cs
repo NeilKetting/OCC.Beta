@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using Avalonia.Threading;
 
 namespace OCC.Client.Features.BugHub.ViewModels
 {
@@ -113,23 +114,25 @@ namespace OCC.Client.Features.BugHub.ViewModels
         {
             if (message.Value.EntityType == "BugReport")
             {
-                if (message.Value.Action == "Delete")
+                Dispatcher.UIThread.Post(async () => 
                 {
-                    if (SelectedBug?.Id == message.Value.Id) SelectedBug = null;
-                    LoadBugsCommand.Execute(null);
-                }
-                else if (message.Value.Action == "Update")
-                {
-                    if (SelectedBug?.Id == message.Value.Id)
+                    if (message.Value.Action == "Delete")
                     {
-                        RefreshSelectedBug().ConfigureAwait(false);
+                        if (SelectedBug?.Id == message.Value.Id) SelectedBug = null;
+                        await LoadBugs();
                     }
-                    else 
+                    else if (message.Value.Action == "Update")
                     {
-                        // Refresh cache if it's not the selected one (just to keep list accurate)
-                        LoadBugsCommand.Execute(null);
+                        if (SelectedBug?.Id == message.Value.Id)
+                        {
+                            await RefreshSelectedBug();
+                        }
+                        else 
+                        {
+                            await LoadBugs();
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -430,6 +433,25 @@ namespace OCC.Client.Features.BugHub.ViewModels
              {
                  await _dialogService.ShowAlertAsync("Error", $"Delete failed: {ex.Message}");
              }
+        }
+
+        [RelayCommand]
+        private async Task DeleteComment(BugComment comment)
+        {
+            if (comment == null || !IsDev) return;
+
+            var result = await _dialogService.ShowConfirmationAsync("Delete Comment", "Are you sure you want to delete this comment?");
+            if (!result) return;
+
+            try
+            {
+                await _bugService.DeleteCommentAsync(comment.Id);
+                // SignalR will trigger refresh via EntityUpdate on the BugReport
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to delete comment: {ex.Message}");
+            }
         }
 
         [RelayCommand]

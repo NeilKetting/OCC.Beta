@@ -202,7 +202,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Margin="0,0,0,15">
-                                                <Grid ColumnDefinitions="40, *">
+                                                <Grid ColumnDefinitions="40, *, Auto">
                                                     <!-- Avatar -->
                                                     <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource AppBackgroundSlate}" 
                                                             VerticalAlignment="Top" Margin="0,2,0,0">
@@ -214,7 +214,7 @@
                                                     <StackPanel Grid.Column="1" Spacing="5">
                                                         <StackPanel Orientation="Horizontal" Spacing="10">
                                                             <TextBlock Text="{Binding AuthorName}" FontWeight="SemiBold" FontSize="13"/>
-                                                            <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:MMM dd, HH:mm}'}" FontSize="11" Foreground="{DynamicResource TextTertiarySlate}"/>
+                                                            <TextBlock Text="{Binding CreatedAtUtc, StringFormat='{}{0:MMM dd, HH:mm}'}" FontSize="11" Foreground="{DynamicResource TextTertiarySlate}"/>
                                                             <Border IsVisible="{Binding IsDevComment}" CornerRadius="2" Padding="4,0" Background="#EEF2FF" VerticalAlignment="Center">
                                                                 <TextBlock Text="DEV" FontSize="9" FontWeight="Bold" Foreground="#4F46E5"/>
                                                             </Border>
@@ -223,6 +223,16 @@
                                                             <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="13"/>
                                                         </Border>
                                                     </StackPanel>
+
+                                                    <!-- Dev Action: Delete Comment -->
+                                                    <Button Grid.Column="2" VerticalAlignment="Top" Margin="5,0,0,0"
+                                                            Classes="IconButton"
+                                                            Command="{Binding $parent[UserControl].((vm:BugListViewModel)DataContext).DeleteCommentCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            IsVisible="{Binding $parent[UserControl].((vm:BugListViewModel)DataContext).IsDev}"
+                                                            ToolTip.Tip="Delete Comment">
+                                                        <PathIcon Data="{StaticResource IconTrash}" Width="12" Height="12" Foreground="{DynamicResource Danger}"/>
+                                                    </Button>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>

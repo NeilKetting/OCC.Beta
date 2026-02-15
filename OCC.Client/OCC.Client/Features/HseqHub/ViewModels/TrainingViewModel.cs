@@ -19,6 +19,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         private readonly IDialogService _dialogService;
         private readonly IToastService _toastService;
         private readonly IRepository<Employee> _employeeRepository;
+        private readonly IExportService _exportService;
 
         [ObservableProperty]
         private ObservableCollection<TrainingRecordViewModel> _trainingRecords = new();
@@ -38,12 +39,14 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             IDialogService dialogService, 
             IToastService toastService,
             IRepository<Employee> employeeRepository,
+            IExportService exportService,
             TrainingEditorViewModel editor)
         {
             _hseqService = hseqService;
             _dialogService = dialogService;
             _toastService = toastService;
             _employeeRepository = employeeRepository;
+            _exportService = exportService;
             Editor = editor;
             
             Editor.OnSaved = OnTrainingSaved;
@@ -176,27 +179,29 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         }
 
         [RelayCommand]
-        private void ViewCertificate(TrainingRecordViewModel vm)
+        private async Task ViewCertificate(TrainingRecordViewModel vm)
         {
-            if (vm == null || string.IsNullOrEmpty(vm.Summary.CertificateUrl)) return;
-            
-            // Assuming local path or full URL. If relative, prepend server base.
-            // For now, let's just use DialogService or Process.Start if it's a link.
-            // The client usually handles this via a method in HseqService or just opening browser.
+            if (vm == null || !vm.HasCertificate) return;
             
             var url = vm.Summary.CertificateUrl;
-            if (!url.StartsWith("http") && !url.StartsWith("/")) url = "/" + url; // Ensure leading slash if relative
             
-            // In this app, we usually have a way to open files. 
-            // For certificates, it might be a direct link to the API host.
-            // Let's assume the user wants to see it.
-            
-            _toastService.ShowInfo("Opening Certificate", "Attempting to open certificate...");
-            
-            // Temporary: Use Process.Start or similar if we were in a real environment.
-            // Since I can't trigger native file opening easily without knowing the Host URL, 
-            // I'll leave it as a placeholder or use the existing pattern if found.
-            System.Diagnostics.Debug.WriteLine($"Opening Certificate: {url}");
+            // If it's a relative path (starts with /uploads), prepend the API base URL
+            if (url.StartsWith("/") || url.StartsWith("uploads"))
+            {
+                var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl.TrimEnd('/');
+                if (!url.StartsWith("/")) url = "/" + url;
+                url = baseUrl + url;
+            }
+
+            try 
+            {
+                _toastService.ShowInfo("Opening", "Attempting to open certificate...");
+                await _exportService.OpenFileAsync(url);
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Could not open certificate: " + ex.Message);
+            }
         }
 
         private async Task OnTrainingSaved(HseqTrainingRecord record)

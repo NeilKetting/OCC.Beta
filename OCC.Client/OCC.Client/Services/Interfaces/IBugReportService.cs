@@ -12,6 +12,7 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<BugReport>> SearchSolutionsAsync(string query);
         Task<BugReport?> GetBugReportAsync(Guid id);
         Task AddCommentAsync(Guid bugId, string comment, string? status);
+        Task DeleteCommentAsync(Guid commentId);
         Task DeleteBugAsync(Guid bugId);
     }
 }

@@ -154,6 +154,13 @@ namespace OCC.Client.Services
             }
         }
 
+        public async Task DeleteCommentAsync(Guid commentId)
+        {
+            EnsureAuthorization();
+            var response = await _httpClient.DeleteAsync($"api/BugReports/comments/{commentId}");
+            response.EnsureSuccessStatusCode();
+        }
+
         public async Task DeleteBugAsync(Guid bugId)
         {
             EnsureAuthorization();

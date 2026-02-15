@@ -75,7 +75,9 @@ namespace OCC.API.Controllers
         {
             if (!HasViewAccess(out _)) return Forbid();
 
-            var bugReport = await _context.BugReports.FindAsync(id);
+            var bugReport = await _context.BugReports
+                .Include(b => b.Comments)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
             if (bugReport == null)
             {
@@ -240,6 +242,32 @@ namespace OCC.API.Controllers
             }
 
             return Ok(comment);
+        }
+
+        // DELETE: api/BugReports/comments/5
+        [HttpDelete("comments/{commentId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteBugComment(Guid commentId)
+        {
+            if (!IsNeilDev())
+            {
+                return Forbid("Only the Developer (Neil) can delete bug comments.");
+            }
+
+            var comment = await _context.BugComments.FindAsync(commentId);
+            if (comment == null)
+            {
+                return NotFound();
+            }
+
+            var bugReportId = comment.BugReportId;
+            _context.BugComments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            // Broadcast real-time update for the bug report to refresh comments
+            await _hubContext.Clients.All.SendAsync("EntityUpdate", "BugReport", "Update", bugReportId);
+
+            return NoContent();
         }
 
         // GET: api/BugReports/solutions?q=example

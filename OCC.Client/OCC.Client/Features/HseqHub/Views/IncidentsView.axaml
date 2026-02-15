@@ -15,10 +15,10 @@
         </Grid.ColumnDefinitions>
 
         <!-- Main Content -->
-        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *">
+        <Grid Grid.Column="0" RowDefinitions="Auto, *">
             
             <!-- Header Bar: Title & Actions -->
-            <Border Grid.Row="0" Margin="10,10,10,5" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
+            <Border Grid.Row="0" Margin="10,10,10,5" Background="{DynamicResource MainPageGradient}" Classes="TopHeader">
                 <Grid ColumnDefinitions="*, Auto">
                     <StackPanel Spacing="4">
                         <TextBlock Text="INCIDENTS" Classes="H1"/>
@@ -35,18 +35,8 @@
                 </Grid>
             </Border>
 
-            <!-- Toolbar Bar: Filters -->
-            <Border Grid.Row="1" Margin="10,0,10,10" Padding="10,5" Background="{DynamicResource WeatheredCementGradient}" Classes="TopHeader">
-                <Grid ColumnDefinitions="Auto, *, Auto">
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
-                        <!-- Placeholder for filters -->
-                        <TextBlock Text="Filters" IsVisible="False"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
             <!-- Loading Overlay -->
-            <Border Grid.RowSpan="3" IsVisible="{Binding IsBusy}" Background="#80000000" ZIndex="100">
+            <Border Grid.RowSpan="2" IsVisible="{Binding IsBusy}" Background="#80000000" ZIndex="100">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
                    <ProgressBar Classes="Circular" IsIndeterminate="True"/>
                    <TextBlock Text="{Binding BusyText}" Foreground="White" FontWeight="SemiBold"/>
@@ -61,7 +51,7 @@
                 </EventTriggerBehavior>
             </Interaction.Behaviors>
 
-            <DataGrid Grid.Row="2" ItemsSource="{Binding Incidents}" AutoGenerateColumns="False" 
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Incidents}" AutoGenerateColumns="False" 
                       Margin="10,0,10,10" Classes="AppNativeDataGrid"
                       SelectedItem="{Binding SelectedSummary}"
                       IsReadOnly="True" GridLinesVisibility="Horizontal">
@@ -129,7 +119,7 @@
         <!-- Side Panel -->
         <Border Grid.Column="1" Background="{DynamicResource CardBackground}" 
                 BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0"
-                Width="400" Padding="24" IsVisible="{Binding Editor.IsOpen}">
+                Width="400" Padding="24" IsVisible="{Binding Editor.IsOpen, FallbackValue=false}">
             <Grid RowDefinitions="Auto, *, Auto">
                 
                 <!-- Header -->
