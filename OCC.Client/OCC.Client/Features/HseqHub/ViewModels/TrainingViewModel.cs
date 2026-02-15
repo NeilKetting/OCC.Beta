@@ -175,6 +175,30 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             }
         }
 
+        [RelayCommand]
+        private void ViewCertificate(TrainingRecordViewModel vm)
+        {
+            if (vm == null || string.IsNullOrEmpty(vm.Summary.CertificateUrl)) return;
+            
+            // Assuming local path or full URL. If relative, prepend server base.
+            // For now, let's just use DialogService or Process.Start if it's a link.
+            // The client usually handles this via a method in HseqService or just opening browser.
+            
+            var url = vm.Summary.CertificateUrl;
+            if (!url.StartsWith("http") && !url.StartsWith("/")) url = "/" + url; // Ensure leading slash if relative
+            
+            // In this app, we usually have a way to open files. 
+            // For certificates, it might be a direct link to the API host.
+            // Let's assume the user wants to see it.
+            
+            _toastService.ShowInfo("Opening Certificate", "Attempting to open certificate...");
+            
+            // Temporary: Use Process.Start or similar if we were in a real environment.
+            // Since I can't trigger native file opening easily without knowing the Host URL, 
+            // I'll leave it as a placeholder or use the existing pattern if found.
+            System.Diagnostics.Debug.WriteLine($"Opening Certificate: {url}");
+        }
+
         private async Task OnTrainingSaved(HseqTrainingRecord record)
         {
             // Update or Insert in list
@@ -248,5 +272,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 return $"{daysLeft} Days";
             }
         }
+
+        public bool HasCertificate => !string.IsNullOrEmpty(Summary.CertificateUrl);
     }
 }

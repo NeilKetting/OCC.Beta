@@ -22,5 +22,6 @@ namespace OCC.Shared.DTOs
         public DateTime DateCompleted { get; set; }
         public DateTime? ValidUntil { get; set; }
         public string Role { get; set; } = string.Empty;
+        public string CertificateUrl { get; set; } = string.Empty;
     }
 }

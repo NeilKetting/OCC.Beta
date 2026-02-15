@@ -47,11 +47,28 @@
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           HeadersVisibility="Column"
-                          GridLinesVisibility="Horizontal">
+                          GridLinesVisibility="Horizontal"
+                          DoubleTapped="DataGrid_DoubleTapped">
                         <DataGrid.Styles>
                             <Style Selector="DataGridRow">
                                 <Setter Property="ContextMenu">
                                     <ContextMenu x:DataType="vm:TrainingRecordViewModel">
+                                        <MenuItem Header="Edit Record" 
+                                                  Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).EditRecordCommand}" 
+                                                  CommandParameter="{Binding}">
+                                            <MenuItem.Icon>
+                                                <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem Header="View Certificate" 
+                                                  Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).ViewCertificateCommand}" 
+                                                  CommandParameter="{Binding}"
+                                                  IsEnabled="{Binding HasCertificate}">
+                                            <MenuItem.Icon>
+                                                <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
+                                            </MenuItem.Icon>
+                                        </MenuItem>
+                                        <Separator/>
                                         <MenuItem Header="Delete Record" 
                                                   Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).DeleteRecordCommand}" 
                                                   CommandParameter="{Binding}">
@@ -83,7 +100,11 @@
                                                 ToolTip.Tip="Edit Record">
                                             <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
                                         </Button>
-                                        <Button Classes="IconBtn" ToolTip.Tip="View Certificate">
+                                        <Button Classes="IconBtn" 
+                                                Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).ViewCertificateCommand}"
+                                                CommandParameter="{Binding}"
+                                                IsEnabled="{Binding HasCertificate}"
+                                                ToolTip.Tip="View Certificate">
                                             <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
                                         </Button>
                                         <Button Classes="IconBtn" 

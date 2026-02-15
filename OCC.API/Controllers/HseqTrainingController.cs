@@ -25,6 +25,14 @@ namespace OCC.API.Controllers
                 .OrderByDescending(t => t.DateCompleted)
                 .ToListAsync();
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<HseqTrainingRecord>> GetTrainingRecord(Guid id)
+        {
+            var record = await _context.HseqTrainingRecords.FindAsync(id);
+            if (record == null) return NotFound();
+            return record;
+        }
         
         [HttpGet("expiring/{days}")]
         public async Task<ActionResult<IEnumerable<HseqTrainingRecord>>> GetExpiringTraining(int days)
@@ -50,7 +58,8 @@ namespace OCC.API.Controllers
                     CertificateType = t.CertificateType,
                     DateCompleted = t.DateCompleted,
                     ValidUntil = t.ValidUntil,
-                    Role = t.Role
+                    Role = t.Role,
+                    CertificateUrl = t.CertificateUrl
                 })
                 .ToListAsync();
         }
