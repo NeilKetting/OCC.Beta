@@ -67,32 +67,33 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             }
         }
 
-        async partial void OnSelectedSummaryChanged(IncidentSummaryDto? value)
+        partial void OnSelectedSummaryChanged(IncidentSummaryDto? value)
         {
-            if (value != null)
+            // Do nothing on selection change. 
+            // User now must double click to open.
+        }
+
+        [RelayCommand]
+        public async Task OpenIncident(IncidentSummaryDto? summary)
+        {
+            if (summary == null) return;
+
+            try
             {
-                try
+                IsBusy = true;
+                BusyText = "Loading details...";
+                var detail = await _hseqService.GetIncidentAsync(summary.Id);
+                if (detail != null)
                 {
-                    IsBusy = true;
-                    BusyText = "Loading details...";
-                    var detail = await _hseqService.GetIncidentAsync(value.Id);
-                    if (detail != null)
-                    {
-                        Editor.Initialize(ToEntity(detail), detail.Photos);
-                    }
+                    Editor.Initialize(ToEntity(detail), detail.Photos);
                 }
-                catch (Exception ex)
-                {
-                    _toastService.ShowError("Error", "Failed to load incident details.");
-                    System.Diagnostics.Debug.WriteLine(ex);
-                    SelectedSummary = null;
-                }
-                finally { IsBusy = false; }
             }
-            else
+            catch (Exception ex)
             {
-                Editor.Clear();
+                _toastService.ShowError("Error", "Failed to load incident details.");
+                System.Diagnostics.Debug.WriteLine(ex);
             }
+            finally { IsBusy = false; }
         }
 
         [RelayCommand]

@@ -49,6 +49,9 @@
 				<EventTriggerBehavior EventName="AttachedToVisualTree">
 					<InvokeCommandAction Command="{Binding LoadIncidentsCommand}"/>
 				</EventTriggerBehavior>
+                <EventTriggerBehavior EventName="DoubleTapped">
+                    <InvokeCommandAction Command="{Binding OpenIncidentCommand}" CommandParameter="{Binding SelectedSummary}" />
+                </EventTriggerBehavior>
 			</Interaction.Behaviors>
 
 			<DataGrid Grid.Row="1" ItemsSource="{Binding Incidents}" AutoGenerateColumns="False"
