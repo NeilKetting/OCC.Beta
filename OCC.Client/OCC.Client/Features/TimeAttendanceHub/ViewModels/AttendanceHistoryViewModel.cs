@@ -90,6 +90,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private int _totalAbsences;
 
         private System.Collections.Generic.List<HistoryRecordViewModel> _allRecords = new();
+        private System.Collections.Generic.List<Employee> _fullStaffList = new();
         private readonly DispatcherTimer _timer;
 
         [ObservableProperty]
@@ -481,9 +482,16 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 TotalLates = filtered.Count(r => r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late);
                 
                 // Calculate Absences
-                // We need to calculate absences for all unique employees in the filtered list
-                // This might be expensive if range is large, but essential for accurate stats.
-                CalculateTotalAbsences(filtered);
+                // We need to calculate absences for all employees that match branch/paytype filters
+                var filteredStaff = _fullStaffList.Where(e => 
+                {
+                    bool matchPay = SelectedPayType == "All" || (e.RateType.ToString().Equals(SelectedPayType, StringComparison.OrdinalIgnoreCase));
+                    string branch = e.Branch ?? "Johannesburg";
+                    bool matchBranch = SelectedBranch == "All" || string.Equals(branch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
+                    return matchPay && matchBranch;
+                }).ToList();
+
+                CalculateTotalAbsences(filtered, filteredStaff);
             }
             else
             {
@@ -494,34 +502,41 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             }
         }
 
-        private void CalculateAbsences(OCC.Shared.Models.Employee employee, System.Collections.Generic.List<HistoryRecordViewModel> records)
+        private void CalculateTotalAbsences(System.Collections.Generic.List<HistoryRecordViewModel> records, System.Collections.Generic.List<Employee> employees)
         {
-            int absences = 0;
-            var current = StartDate.Date;
-            var end = EndDate.Date;
-            if (end > DateTime.Today) end = DateTime.Today; // Don't count future absences
-
-            while (current <= end)
+            var absences = 0;
+            foreach(var employee in employees)
             {
-                // Skip Weekends
-                if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
+                var current = StartDate.Date;
+                var end = EndDate.Date;
+                if (end > DateTime.Today) end = DateTime.Today;
+
+                while (current <= end)
                 {
-                    // Skip Public Holidays
-                    if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
+                    if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
                     {
-                        // Check if we have a record for this day
-                        bool hasRecord = records.Any(r => r.Date.Date == current.Date && 
-                                                         (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
-                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
-                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
-                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
-                                                          
-                        if (!hasRecord) absences++;
+                        if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
+                        {
+                            // Check if this employee has a record on this day
+                            bool hasRecord = records.Any(r => r.Employee.Id == employee.Id && r.Date.Date == current.Date && 
+                                                             (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                              
+                            if (!hasRecord) absences++;
+                        }
                     }
+                    current = current.AddDays(1);
                 }
-                current = current.AddDays(1);
             }
             TotalAbsences = absences;
+        }
+
+        private void CalculateAbsences(OCC.Shared.Models.Employee employee, System.Collections.Generic.List<HistoryRecordViewModel> records)
+        {
+            // This method is called from Refresh, might need update but TotalAbsences is overwritten by CalculateTotalAbsences call in FilterRecords
+            // Keeping for compatibility but FilterRecords handles the UI sum.
         }
 
         [RelayCommand]
@@ -713,39 +728,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             await _exportService.OpenFileAsync(path);
         }
 
-        private void CalculateTotalAbsences(System.Collections.Generic.List<HistoryRecordViewModel> records)
-        {
-            var absences = 0;
-            // Get unique employees in the filtered view
-            var employees = records.Select(r => r.Employee).DistinctBy(e => e.Id).ToList();
-
-            foreach(var employee in employees)
-            {
-                var current = StartDate.Date;
-                var end = EndDate.Date;
-                if (end > DateTime.Today) end = DateTime.Today;
-
-                while (current <= end)
-                {
-                    if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
-                    {
-                        if (!OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(current))
-                        {
-                            // Check if this employee has a record on this day
-                            bool hasRecord = records.Any(r => r.Employee.Id == employee.Id && r.Date.Date == current.Date && 
-                                                             (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
-                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
-                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
-                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
-                                                              
-                            if (!hasRecord) absences++;
-                        }
-                    }
-                    current = current.AddDays(1);
-                }
-            }
-            TotalAbsences = absences;
-        }
+        // Deprecated, using the one above with employee list
 
         private int CalculateAbsencesForReport(OCC.Shared.Models.Employee employee, System.Collections.Generic.List<HistoryRecordViewModel> records)
         {
@@ -865,6 +848,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     }
                 }
                 var allEmployee = await _timeService.GetAllStaffAsync();
+                _fullStaffList = allEmployee.ToList();
 
                 var list = new System.Collections.Generic.List<HistoryRecordViewModel>();
 

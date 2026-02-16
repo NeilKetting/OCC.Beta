@@ -213,7 +213,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              decimal otPay15 = 0;
              decimal otPay20 = 0;
 
-             decimal rateToUse = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
+             decimal rateToUse = (_attendance.CachedHourlyRate != null && _attendance.CachedHourlyRate > 0) 
+                                 ? _attendance.CachedHourlyRate.Value 
+                                 : (decimal)_employee.HourlyRate;
              if (rateToUse == 0)
              {
                  Serilog.Log.Warning("[HistoryVM] Wage is zero for {Name}. Employee Rate: {EmpRate}, Cached Rate: {CachedRate}", 
