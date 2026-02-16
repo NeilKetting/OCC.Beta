@@ -16,7 +16,7 @@
 	<Grid RowDefinitions="Auto, Auto, *">
 		<!-- Header Bar: Title & Actions -->
 		<Border Grid.Row="0" Padding="10" Background="{DynamicResource MainPageGradient}">
-			<Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+			<Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
 				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}"/>
 
 				<!-- Actions -->
@@ -86,8 +86,10 @@
 						</StackPanel>
 					</StackPanel>
 
-					<!-- Summary Cards -->
-					<StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					
+				</Grid>
+				<!-- Summary Cards -->
+					<StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
 						<Border Classes="Card" Padding="0" Width="100" Background="#FFEBEE" BorderBrush="#EF9A9A">
 							<Button Command="{Binding FilterByStatusCommand}" CommandParameter="Absent" Background="Transparent" BorderThickness="0" Padding="8,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 								<StackPanel>
@@ -118,8 +120,6 @@
 							</StackPanel>
 						</Border>
 					</StackPanel>
-				</Grid>
-
 			</Grid>
 
 

@@ -33,7 +33,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private string _clockOutTimeDisplay = "--:--";
 
         [ObservableProperty]
-        private double _totalMonthHours;
+        private double _totalMonthHoursValue;
         
         [ObservableProperty]
         private string _totalMonthHoursDisplay = "0h";

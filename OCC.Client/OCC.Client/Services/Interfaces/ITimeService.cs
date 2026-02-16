@@ -18,5 +18,6 @@ namespace OCC.Client.Services.Interfaces
         Task<IEnumerable<Employee>> GetAllStaffAsync();
         Task<string?> UploadDoctorNoteAsync(string localFilePath);
         Task DeleteAttendanceRecordAsync(Guid id);
+        Task<Employee?> GetEmployeeByIdAsync(Guid id);
     }
 }

@@ -73,7 +73,23 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public string PayType => _employee.RateType == RateType.Hourly ? "Hourly" : "Salary";
         
         public string InTime => _attendance.CheckInTime?.ToString("HH:mm") ?? _attendance.ClockInTime?.ToString(@"hh\:mm") ?? "--:--";
-        public string OutTime => _attendance.CheckOutTime?.ToString("HH:mm") ?? "--:--";
+        
+        public string OutTime 
+        {
+            get
+            {
+                if (_attendance.CheckOutTime == null || _attendance.CheckOutTime == DateTime.MinValue) return "--:--";
+                // Sentinel Check: If midnight on same day or day after InTime, it's active
+                if (_attendance.CheckOutTime.Value.TimeOfDay.TotalSeconds < 1)
+                {
+                    var date = _attendance.Date.Date;
+                    var checkoutDate = _attendance.CheckOutTime.Value.Date;
+                    if (checkoutDate == date || checkoutDate == date.AddDays(1)) return "--:--";
+                }
+                return _attendance.CheckOutTime.Value.ToString("HH:mm");
+            }
+        }
+
         public string Status => _attendance.Status.ToString();
 
         // Calculations
@@ -123,7 +139,13 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              else return (DateTime.MinValue, DateTime.MinValue);
  
              DateTime rawEnd;
-             if (_attendance.CheckOutTime.HasValue) rawEnd = _attendance.CheckOutTime.Value;
+             // If CheckOutTime is null, MinValue, or exactly 00:00 on the same day OR next day, it's NOT a real checkout (it's active)
+             bool isActive = !_attendance.CheckOutTime.HasValue || 
+                             _attendance.CheckOutTime.Value == DateTime.MinValue || 
+                             (_attendance.CheckOutTime.Value.TimeOfDay.TotalSeconds < 1 && 
+                              (_attendance.CheckOutTime.Value.Date == _attendance.Date.Date || _attendance.CheckOutTime.Value.Date == _attendance.Date.AddDays(1)));
+
+             if (!isActive) rawEnd = _attendance.CheckOutTime!.Value;
              else rawEnd = DateTime.Now; 
 
              if (rawStart >= rawEnd) return (DateTime.MinValue, DateTime.MinValue);
@@ -153,6 +175,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              
              return (effectiveIn, effectiveOut);
         }
+
 
         private void CalculateAccurateWage()
         {
@@ -191,6 +214,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              decimal otPay20 = 0;
 
              decimal rateToUse = _attendance.CachedHourlyRate ?? (decimal)_employee.HourlyRate;
+             if (rateToUse == 0)
+             {
+                 Serilog.Log.Warning("[HistoryVM] Wage is zero for {Name}. Employee Rate: {EmpRate}, Cached Rate: {CachedRate}", 
+                     _employee.DisplayName, _employee.HourlyRate, _attendance.CachedHourlyRate);
+             }
              double hourlyRate = (double)rateToUse;
              string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
              

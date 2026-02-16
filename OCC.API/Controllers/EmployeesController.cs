@@ -191,7 +191,8 @@ namespace OCC.API.Controllers
                 Role = employee.Role,
                 Status = employee.Status,
                 EmploymentType = employee.EmploymentType,
-                Branch = employee.Branch
+                Branch = employee.Branch,
+                HourlyRate = employee.HourlyRate
             };
         }
 

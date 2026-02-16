@@ -162,5 +162,10 @@ namespace OCC.Client.Services
         {
             await _attendanceRepository.DeleteAsync(id);
         }
+
+        public async Task<Employee?> GetEmployeeByIdAsync(Guid id)
+        {
+            return await _staffRepository.GetByIdAsync(id);
+        }
     }
 }

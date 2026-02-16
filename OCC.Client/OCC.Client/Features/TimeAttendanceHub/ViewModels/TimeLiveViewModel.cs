@@ -14,6 +14,7 @@ using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using System.Collections.Generic;
 using Avalonia.Threading;
+using Serilog;
 
 namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 {
@@ -26,6 +27,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private readonly IAuthService _authService;
         private readonly IServiceProvider _serviceProvider;
         private readonly IDialogService _dialogService;
+        private readonly IRepository<User> _userRepository;
+        private readonly DispatcherTimer? _refreshTimer;
 
         #endregion
 
@@ -43,6 +46,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty]
         private DailyTimesheetViewModel? _currentTimesheet;
 
+        [ObservableProperty]
+        private int _selectedBranchFilterIndex = 0;
+
         #endregion
 
         #region Constructors
@@ -54,17 +60,28 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _authService = null!;
             _serviceProvider = null!;
             _dialogService = null!;
+            _userRepository = null!;
         }
 
-        public TimeLiveViewModel(ITimeService timeService, IAuthService authService, IServiceProvider serviceProvider, IDialogService dialogService)
+        public TimeLiveViewModel(ITimeService timeService, IAuthService authService, 
+            IServiceProvider serviceProvider, IDialogService dialogService, IRepository<User> userRepository)
         {
             _timeService = timeService;
             _authService = authService;
             _serviceProvider = serviceProvider;
             _dialogService = dialogService;
+            _userRepository = userRepository;
             
             InitializeCommand.Execute(null);
             WeakReferenceMessenger.Default.RegisterAll(this);
+
+            // Setup Refresh Timer (30 seconds)
+            _refreshTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(30)
+            };
+            _refreshTimer.Tick += (s, e) => _ = LoadLiveData();
+            _refreshTimer.Start();
         }
 
         #endregion
@@ -120,38 +137,105 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         {
             try
             {
+                Log.Information("[LiveView] LoadLiveData STARTED");
+                
                 var allStaff = await _timeService.GetAllStaffAsync();
+                var allStaffList = allStaff.ToList();
+                Log.Information("[LiveView] Staff Loaded: {Count}", allStaffList.Count);
                 
                 // Fetch today's records (for historical 'today' view) AND any active records
                 var today = DateTime.Today;
                 var todayAttendance = await _timeService.GetDailyAttendanceAsync(today);
                 var activeAttendance = await _timeService.GetActiveAttendanceAsync();
                 
-                var mergedAttendance = todayAttendance.Concat(activeAttendance)
-                                                      .Where(x => (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue) && x.Date.Date == today)
-                                                      .GroupBy(x => x.EmployeeId)
+                var todayList = todayAttendance.ToList();
+                var activeList = activeAttendance.ToList();
+                Log.Information("[LiveView] Requests Finished. Today: {TodayCount}, Active: {ActiveCount}", todayList.Count, activeList.Count);
+
+                // Debug: Log everything in todayList to see sentinels
+                foreach (var r in todayList)
+                {
+                    Log.Information("[LiveView] TodayRec: ID={Id}, EmpId={EmpId}, Date={Date}, In={In}, Out={Out}", 
+                        r.Id, r.EmployeeId, r.Date.ToShortDateString(), r.CheckInTime, r.CheckOutTime);
+                }
+
+                // Merge and filter for records that are truly "Active" (no checkout time)
+                // We treat DateTime.MinValue AND 00:00 (placeholder) as "active" if it's today.
+                var mergedAttendance = todayList.Concat(activeList)
+                                                      .Where(x => x.CheckOutTime == null || 
+                                                                 x.CheckOutTime == DateTime.MinValue || 
+                                                                 (x.Date.Date == today && x.CheckOutTime?.TimeOfDay == TimeSpan.Zero))
+                                                      .GroupBy(x => x.EmployeeId ?? x.UserId)
                                                       .Select(g => g.OrderByDescending(r => r.CheckInTime ?? r.Date.Add(r.ClockInTime ?? TimeSpan.Zero)).First())
                                                       .ToList();
+                
+                Log.Information("[LiveView] Records Merged: {Count}", mergedAttendance.Count);
 
                 // === NEW: Monthly Hours Calculation ===
                 var startOfMonth = new DateTime(today.Year, today.Month, 1);
                 var monthlyRecords = await _timeService.GetAttendanceByRangeAsync(startOfMonth, today);
+                var monthlyRecordsList = monthlyRecords.ToList();
+                Log.Information("[LiveView] Monthly Records Loaded: {Count}", monthlyRecordsList.Count);
                 
                 var userViewModels = new List<LiveUserCardViewModel>();
+                
+                // --- DEBUG: Log ALL staff IDs for one-time verification ---
+                Log.Information("[LiveView] --- START FULL STAFF LIST ({Count}) ---", allStaffList.Count);
+                foreach (var s in allStaffList)
+                {
+                    Log.Information("[LiveView] STAFF: {Name} | Id: {Id} | LinkedUser: {LUser} | Rate: {Rate}", s.DisplayName, s.Id, s.LinkedUserId, s.HourlyRate);
+                }
+                Log.Information("[LiveView] --- END FULL STAFF LIST ---");
+
+                var allUsers = await _userRepository.GetAllAsync();
+                var allUsersList = allUsers.ToList();
+                Log.Information("[LiveView] Users Loaded for cross-check: {Count}", allUsersList.Count);
 
                 // Only show employees that have an ACTIVE attendance record (Live means "Currently Here")
                 foreach (var attendance in mergedAttendance)
                 {
-                    // FILTER: Active Only
-                    if (attendance.CheckOutTime != null) continue;
+                    // Match failure check
+                    var employee = allStaffList.FirstOrDefault(e => 
+                        (attendance.EmployeeId.HasValue && e.Id == attendance.EmployeeId.Value) || 
+                        (attendance.UserId.HasValue && e.LinkedUserId == attendance.UserId.Value));
+                    
+                    if (employee == null)
+                    {
+                        // FALLBACK: Try fetching by ID individually (might bypass filters/stale chunks)
+                        if (attendance.EmployeeId.HasValue)
+                        {
+                            var directEmp = await _timeService.GetEmployeeByIdAsync(attendance.EmployeeId.Value);
+                            if (directEmp != null)
+                            {
+                                Log.Information("[LiveView] PARTIAL SUCCESS: Found Employee {Name} ({Id}) via Direct Lookup!", directEmp.DisplayName, directEmp.Id);
+                                employee = directEmp;
+                            }
+                        }
+                    }
 
-                    var employee = allStaff.FirstOrDefault(e => e.Id == attendance.EmployeeId);
-                    if (employee == null) continue;
+                    if (employee == null)
+                    {
+                        // Check if it's a User ID mismatch
+                        var matchedUser = allUsersList.FirstOrDefault(u => u.Id == (attendance.EmployeeId ?? attendance.UserId));
+                        string userHint = matchedUser != null ? $" (Found in Users table! Name: {matchedUser.DisplayName})" : " (NOT in Users table)";
+
+                        // SILENCE: If it's an old record (not today) and doesn't match, just skip it to keep logs clean
+                        if (attendance.Date.Date < DateTime.Today) continue;
+
+                        Log.Warning("[LiveView] MATCH FAILURE: RecId={RecId}, EmpId={EmpId}, Date={Date}, In={In}, UserId={UserId}{Hint}", 
+                            attendance.Id, attendance.EmployeeId, attendance.Date.ToShortDateString(), attendance.ClockInTime, attendance.UserId, userHint);
+                        continue;
+                    }
 
                     // Determine status
                     bool isPresent = attendance.Status == AttendanceStatus.Present || attendance.Status == AttendanceStatus.Late;
                     TimeSpan? clockIn = attendance.CheckInTime?.TimeOfDay ?? attendance.ClockInTime;
-                    TimeSpan? clockOut = attendance.CheckOutTime?.TimeOfDay;
+                    
+                    bool isMidnightSentinel = attendance.CheckOutTime.HasValue && 
+                                             attendance.CheckOutTime.Value.TimeOfDay.TotalSeconds < 1 &&
+                                             (attendance.CheckOutTime.Value.Date == attendance.Date.Date || attendance.CheckOutTime.Value.Date == attendance.Date.AddDays(1));
+
+                    TimeSpan? clockOut = (attendance.CheckOutTime == null || attendance.CheckOutTime == DateTime.MinValue || isMidnightSentinel) ? null : attendance.CheckOutTime.Value.TimeOfDay;
 
                     string FormatName(string name) => 
                         System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(name?.ToLower() ?? "");
@@ -164,61 +248,43 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     vm.SetStatus(isPresent, clockIn, clockOut, employee.Branch ?? "Unknown");
 
                     // === Monthly Hours ===
-                    var empRecords = monthlyRecords.Where(r => r.EmployeeId == employee.Id);
+                    var empRecords = monthlyRecordsList.Where(r => r.EmployeeId == employee.Id);
                     double totalHours = 0;
                     foreach (var record in empRecords)
                     {
-                         if (record.CheckInTime.HasValue && record.CheckOutTime.HasValue)
+                         if (record.CheckInTime.HasValue && record.CheckOutTime.HasValue && record.CheckOutTime.Value != DateTime.MinValue)
                          {
                              totalHours += (record.CheckOutTime.Value - record.CheckInTime.Value).TotalHours;
                          }
-                         else if (record.CheckInTime.HasValue && record.CheckOutTime == null && record.Date.Date == today)
+                         else if (record.CheckInTime.HasValue && 
+                                 (record.CheckOutTime == null || record.CheckOutTime == DateTime.MinValue || (record.Date.Date == today && record.CheckOutTime?.TimeOfDay == TimeSpan.Zero)) && 
+                                 record.Date.Date == today)
                          {
                              // Currently active session: Count hours so far
                               totalHours += (DateTime.Now - record.CheckInTime.Value).TotalHours;
                          }
                     }
-                    vm.TotalMonthHours = totalHours;
+                    vm.TotalMonthHoursValue = totalHours;
                     vm.TotalMonthHoursDisplay = $"{totalHours:F1}h";
 
                     // === Overtime & Late Logic ===
-                    // Requirements:
-                    // Weekdays / Normal: 1.5x (Before Start or After End)
-                    // Saturday: 1.5x
-                    // Sunday / Public Holiday: 2.0x
-                    
                     var dow = today.DayOfWeek;
-                    bool isWeekend = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
-                    bool isHoliday = false; // Placeholder for Public Holiday check
+                    bool isHoliday = false; // Placeholder
+                    double multiplier = (dow == DayOfWeek.Sunday || isHoliday) ? 2.0 : (dow == DayOfWeek.Saturday ? 1.5 : 1.0);
 
-                    // 1. Determine multipliers
-                    double multiplier = 1.0;
-            if (dow == DayOfWeek.Sunday || isHoliday) multiplier = 2.0;
-                    else if (dow == DayOfWeek.Saturday) multiplier = 1.5;
-                    else multiplier = 1.0;
-
-                    // 2. Define standard window (Employee specific or Branch default)
                     TimeSpan shiftStart = employee.ShiftStartTime ?? new TimeSpan(7, 0, 0);
                     TimeSpan shiftEnd = employee.ShiftEndTime ?? (employee.Branch?.Contains("Cape") == true ? new TimeSpan(17, 0, 0) : new TimeSpan(16, 0, 0));
 
-                    // 3. Apply Overtime Status
                     var currentTime = DateTime.Now.TimeOfDay;
-                    bool isOutsideNormalHours = currentTime < shiftStart || currentTime > shiftEnd;
-
-                    if (isOutsideNormalHours && multiplier < 1.5)
-                    {
-                        multiplier = 1.5;
-                    }
+                    if ((currentTime < shiftStart || currentTime > shiftEnd) && multiplier < 1.5) multiplier = 1.5;
 
                     if (multiplier > 1.0)
                     {
                         vm.IsOvertimeActive = true;
                         vm.OvertimeText = $"OVERTIME {multiplier:F1}x";
-                        vm.OvertimeColor = multiplier >= 2.0 ? Avalonia.Media.Brushes.Red : Avalonia.Media.SolidColorBrush.Parse("#F97316"); // Orange-500
+                        vm.OvertimeColor = multiplier >= 2.0 ? Avalonia.Media.Brushes.Red : Avalonia.Media.SolidColorBrush.Parse("#F97316");
                     }
 
-                    // 4. Apply Late Status
-                    // Requirements: If clock-in > 30 minutes after ShiftStartTime
                     if (clockIn.HasValue && clockIn.Value > shiftStart.Add(TimeSpan.FromMinutes(30)))
                     {
                         vm.IsLate = true;
@@ -228,10 +294,38 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     userViewModels.Add(vm);
                 }
 
+                // Apply Branch Filter
+                // 0 = All, 1 = JHB, 2 = CPT
+                string branchFilter = SelectedBranchFilterIndex switch
+                {
+                    1 => "Johannesburg",
+                    2 => "Cape Town",
+                    _ => "All"
+                };
+
+                var filteredUsers = branchFilter == "All" 
+                    ? userViewModels.ToList() 
+                    : userViewModels.Where(u => string.Equals(u.Branch?.Trim(), branchFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                // === Diagnostics ===
+                string diagnosticInfo = $"Staff: {allStaffList.Count}, Today: {todayList.Count}, Active: {activeList.Count}, Merged: {mergedAttendance.Count}, UserVMs: {userViewModels.Count}, Filtered: {filteredUsers.Count}";
+                
+                if (userViewModels.Count == 0 && mergedAttendance.Count > 0)
+                {
+                    var first = mergedAttendance.First();
+                    diagnosticInfo += $" (No match for: {first.EmployeeId ?? first.UserId})";
+                }
+
+                LastUpdatedText = $"{diagnosticInfo} - {DateTime.Now:HH:mm:ss}";
+
+                System.Diagnostics.Debug.WriteLine($"[LiveView] {diagnosticInfo}");
+
+                Log.Information("[LiveView] LoadLiveData FINISHED. Total UserVMs: {Count}", filteredUsers.Count);
+
                 Dispatcher.UIThread.Post(() =>
                 {
                     LiveUsers.Clear();
-                    foreach (var u in userViewModels.OrderBy(x => x.DisplayName))
+                    foreach (var u in filteredUsers.OrderBy(x => x.DisplayName))
                     {
                         LiveUsers.Add(u);
                     }
@@ -250,6 +344,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     );
                 }
             }
+        }
+
+        partial void OnSelectedBranchFilterIndexChanged(int value)
+        {
+            _ = LoadLiveData();
         }
 
         #endregion

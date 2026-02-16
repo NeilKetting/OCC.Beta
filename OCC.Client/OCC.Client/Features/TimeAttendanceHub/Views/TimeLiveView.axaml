@@ -24,6 +24,17 @@
 				<TextBlock Text="{Binding LastUpdatedText}" HorizontalAlignment="Center" Margin="10,0,0,3" Foreground="{DynamicResource TextTertiarySlate}" FontSize="12"/>
 			</StackPanel>
 
+			<!-- Branch Filter -->
+			<StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center" Margin="0,0,20,0">
+				<TextBlock Text="Branch" Classes="LabelSmall" FontSize="10" 
+						   Foreground="#64748B"/>
+				<ComboBox SelectedIndex="{Binding SelectedBranchFilterIndex}" Width="150" Background="White" BorderBrush="{DynamicResource BorderGray}">
+					<ComboBoxItem>All Branches</ComboBoxItem>
+					<ComboBoxItem>Johannesburg</ComboBoxItem>
+					<ComboBoxItem>Cape Town</ComboBoxItem>
+				</ComboBox>
+			</StackPanel>
+
 		</Grid>
 
 		<!-- Main Content (Cards) -->

@@ -1,3 +1,4 @@
+using System.Net.Http;
 using OCC.Shared.Models;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Interfaces;
@@ -6,7 +7,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 {
     public class ApiAttendanceRecordRepository : BaseApiService<AttendanceRecord>
     {
-        public ApiAttendanceRecordRepository(IAuthService authService) : base(authService)
+        public ApiAttendanceRecordRepository(HttpClient httpClient, IAuthService authService) : base(authService, httpClient)
         {
         }
 

@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading.Tasks;
 using OCC.Shared.Models;
 using OCC.Client.Services.Repositories.Interfaces;
@@ -7,7 +8,7 @@ namespace OCC.Client.Services.Repositories.ApiServices
 {
     public class ApiLeaveRequestRepository : BaseApiService<LeaveRequest>
     {
-        public ApiLeaveRequestRepository(IAuthService authService) : base(authService)
+        public ApiLeaveRequestRepository(HttpClient httpClient, IAuthService authService) : base(authService, httpClient)
         {
         }
 

@@ -179,21 +179,35 @@ namespace OCC.Client
             
             // Repositories - API
             services.AddTransient<IRepository<User>, ApiUserRepository>();
-            services.AddTransient<IRepository<Employee>, ApiEmployeeRepository>();
+
+            // Instrumented Repositories (Logging)
+            services.AddHttpClient<IRepository<Employee>, ApiEmployeeRepository>(c => c.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+
             services.AddTransient<IRepository<Project>, ApiProjectRepository>();
             services.AddTransient<IRepository<ProjectTask>, ApiProjectTaskRepository>();
             services.AddTransient<IProjectTaskRepository, ApiProjectTaskRepository>();
             services.AddTransient<IRepository<Customer>, ApiCustomerRepository>();
             services.AddTransient<IRepository<TaskAssignment>, ApiTaskAssignmentRepository>();
             services.AddTransient<IRepository<TaskComment>, ApiTaskCommentRepository>();
-            services.AddTransient<IRepository<TimeRecord>, ApiTimeRecordRepository>();
-            services.AddTransient<IRepository<AttendanceRecord>, ApiAttendanceRecordRepository>();
+
+            services.AddHttpClient<IRepository<TimeRecord>, ApiTimeRecordRepository>(c => c.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+
+            services.AddHttpClient<IRepository<AttendanceRecord>, ApiAttendanceRecordRepository>(c => c.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+
             services.AddTransient<IRepository<AppSetting>, ApiAppSettingRepository>();
             services.AddTransient<IRepository<Team>, ApiTeamRepository>();
             services.AddTransient<IRepository<TeamMember>, ApiTeamMemberRepository>();
-            services.AddTransient<IRepository<LeaveRequest>, ApiLeaveRequestRepository>();
+
+            services.AddHttpClient<IRepository<LeaveRequest>, ApiLeaveRequestRepository>(c => c.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+
             services.AddTransient<IRepository<PublicHoliday>, ApiPublicHolidayRepository>();
-            services.AddTransient<IRepository<OvertimeRequest>, ApiOvertimeRequestRepository>();
+
+            services.AddHttpClient<IRepository<OvertimeRequest>, ApiOvertimeRequestRepository>(c => c.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
 
             // --- Core Hub (Shell & Main) ---
             services.AddTransient<ShellViewModel>();
