@@ -137,11 +137,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         {
             try
             {
-                Log.Information("[LiveView] LoadLiveData STARTED");
-                
                 var allStaff = await _timeService.GetAllStaffAsync();
                 var allStaffList = allStaff.ToList();
-                Log.Information("[LiveView] Staff Loaded: {Count}", allStaffList.Count);
                 
                 // Fetch today's records (for historical 'today' view) AND any active records
                 var today = DateTime.Today;
@@ -150,14 +147,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 
                 var todayList = todayAttendance.ToList();
                 var activeList = activeAttendance.ToList();
-                Log.Information("[LiveView] Requests Finished. Today: {TodayCount}, Active: {ActiveCount}", todayList.Count, activeList.Count);
-
-                // Debug: Log everything in todayList to see sentinels
-                foreach (var r in todayList)
-                {
-                    Log.Information("[LiveView] TodayRec: ID={Id}, EmpId={EmpId}, Date={Date}, In={In}, Out={Out}", 
-                        r.Id, r.EmployeeId, r.Date.ToShortDateString(), r.CheckInTime, r.CheckOutTime);
-                }
 
                 // Merge and filter for records that are truly "Active" (no checkout time)
                 // We treat DateTime.MinValue AND 00:00 (placeholder) as "active" if it's today.
@@ -168,28 +157,17 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                                       .GroupBy(x => x.EmployeeId ?? x.UserId)
                                                       .Select(g => g.OrderByDescending(r => r.CheckInTime ?? r.Date.Add(r.ClockInTime ?? TimeSpan.Zero)).First())
                                                       .ToList();
-                
-                Log.Information("[LiveView] Records Merged: {Count}", mergedAttendance.Count);
 
                 // === NEW: Monthly Hours Calculation ===
                 var startOfMonth = new DateTime(today.Year, today.Month, 1);
                 var monthlyRecords = await _timeService.GetAttendanceByRangeAsync(startOfMonth, today);
                 var monthlyRecordsList = monthlyRecords.ToList();
-                Log.Information("[LiveView] Monthly Records Loaded: {Count}", monthlyRecordsList.Count);
                 
                 var userViewModels = new List<LiveUserCardViewModel>();
                 
-                // --- DEBUG: Log ALL staff IDs for one-time verification ---
-                Log.Information("[LiveView] --- START FULL STAFF LIST ({Count}) ---", allStaffList.Count);
-                foreach (var s in allStaffList)
-                {
-                    Log.Information("[LiveView] STAFF: {Name} | Id: {Id} | LinkedUser: {LUser} | Rate: {Rate}", s.DisplayName, s.Id, s.LinkedUserId, s.HourlyRate);
-                }
-                Log.Information("[LiveView] --- END FULL STAFF LIST ---");
-
                 var allUsers = await _userRepository.GetAllAsync();
                 var allUsersList = allUsers.ToList();
-                Log.Information("[LiveView] Users Loaded for cross-check: {Count}", allUsersList.Count);
+                Log.Information("[LiveView] Live data refreshed. Staff: {StaffCount}, Merged Attendance: {AttendanceCount}", allStaffList.Count, mergedAttendance.Count);
 
                 // Only show employees that have an ACTIVE attendance record (Live means "Currently Here")
                 foreach (var attendance in mergedAttendance)
@@ -207,7 +185,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                             var directEmp = await _timeService.GetEmployeeByIdAsync(attendance.EmployeeId.Value);
                             if (directEmp != null)
                             {
-                                Log.Information("[LiveView] PARTIAL SUCCESS: Found Employee {Name} ({Id}) via Direct Lookup!", directEmp.DisplayName, directEmp.Id);
                                 employee = directEmp;
                             }
                         }
@@ -307,20 +284,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     ? userViewModels.ToList() 
                     : userViewModels.Where(u => string.Equals(u.Branch?.Trim(), branchFilter, StringComparison.OrdinalIgnoreCase)).ToList();
 
-                // === Diagnostics ===
-                string diagnosticInfo = $"Staff: {allStaffList.Count}, Today: {todayList.Count}, Active: {activeList.Count}, Merged: {mergedAttendance.Count}, UserVMs: {userViewModels.Count}, Filtered: {filteredUsers.Count}";
-                
-                if (userViewModels.Count == 0 && mergedAttendance.Count > 0)
-                {
-                    var first = mergedAttendance.First();
-                    diagnosticInfo += $" (No match for: {first.EmployeeId ?? first.UserId})";
-                }
-
-                LastUpdatedText = $"{diagnosticInfo} - {DateTime.Now:HH:mm:ss}";
-
-                System.Diagnostics.Debug.WriteLine($"[LiveView] {diagnosticInfo}");
-
-                Log.Information("[LiveView] LoadLiveData FINISHED. Total UserVMs: {Count}", filteredUsers.Count);
+                LastUpdatedText = "Updated on " + DateTime.Now.ToString("dd MMMM yyyy HH:mmtt").ToLower();
 
                 Dispatcher.UIThread.Post(() =>
                 {

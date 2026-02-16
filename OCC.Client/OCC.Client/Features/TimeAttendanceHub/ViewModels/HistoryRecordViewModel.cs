@@ -216,11 +216,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              decimal rateToUse = (_attendance.CachedHourlyRate != null && _attendance.CachedHourlyRate > 0) 
                                  ? _attendance.CachedHourlyRate.Value 
                                  : (decimal)_employee.HourlyRate;
-             if (rateToUse == 0)
-             {
-                 Serilog.Log.Warning("[HistoryVM] Wage is zero for {Name}. Employee Rate: {EmpRate}, Cached Rate: {CachedRate}", 
-                     _employee.DisplayName, _employee.HourlyRate, _attendance.CachedHourlyRate);
-             }
              double hourlyRate = (double)rateToUse;
              string branch = _attendance.Branch ?? _employee.Branch ?? "Johannesburg";
              
