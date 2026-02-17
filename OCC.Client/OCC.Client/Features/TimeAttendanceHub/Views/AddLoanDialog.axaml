@@ -17,7 +17,12 @@
 
     <Border Background="White" CornerRadius="12" Padding="20" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
         <Grid RowDefinitions="Auto, *, Auto">
-            <TextBlock Text="Add New Loan" Classes="h2" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,20">
+                <TextBlock Text="Add New Loan" Classes="h2" HorizontalAlignment="Center"/>
+                <Button Grid.Column="1" Command="{Binding ReportBugCommand}" Classes="IconOnly" ToolTip.Tip="Report Bug">
+                    <PathIcon Data="{StaticResource IconBug}" Foreground="{DynamicResource AccentOrange}" Width="16" Height="16"/>
+                </Button>
+            </Grid>
 
             <StackPanel Grid.Row="1" Spacing="15">
                 <!-- Employee -->
@@ -42,6 +47,13 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Monthly Installment (R)" Classes="label"/>
                     <NumericUpDown Value="{Binding MonthlyInstallment}" FormatString="C" Minimum="0" Increment="50"/>
+                </StackPanel>
+
+                <!-- Interest Rate -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Interest Rate (%)" Classes="label"/>
+                    <NumericUpDown Value="{Binding InterestRate}" FormatString="0.00" Minimum="0" Maximum="100" Increment="0.25"/>
+                    <TextBlock Text="Overrides company default." Classes="Caption" FontSize="10" Foreground="{DynamicResource TextSecondaryGray}"/>
                 </StackPanel>
 
                 <!-- Date -->

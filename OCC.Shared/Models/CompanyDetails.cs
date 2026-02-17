@@ -18,6 +18,9 @@ namespace OCC.Shared.Models
         public string VatNumber { get; set; } = "4510254610";
         public string Website { get; set; } = string.Empty;
 
+        /// <summary> Global default interest rate for employee loans (percentage, e.g. 5.0 for 5%). </summary>
+        public decimal GlobalLoanInterestRate { get; set; } = 0;
+
         // --- Backwards Compatibility Wrappers (Default to JHB) ---
 
         /// <summary> Default department emails (defaults to JHB). </summary>

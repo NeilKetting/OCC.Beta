@@ -157,13 +157,13 @@
 		</DataGrid>
 
 		<!-- Loading -->
-		<StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
+		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
 			<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource Orange}"/>
 			<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
 		</StackPanel>
 
 		<!-- Empty State -->
-		<StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
 					IsVisible="{Binding !Orders.Count}">
 			<TextBlock Text="No orders found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
 		</StackPanel>

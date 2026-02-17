@@ -102,7 +102,7 @@
 
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryGray}"/>
-				<DataGridTemplateColumn Header="PRODUCT" Width="*" MinWidth="250">
+				<DataGridTemplateColumn Header="PRODUCT" Width="Auto" MinWidth="250">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<TextBlock Text="{Binding Description}"

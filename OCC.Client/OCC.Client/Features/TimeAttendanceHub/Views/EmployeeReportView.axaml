@@ -108,6 +108,7 @@
                     <DataGridTextColumn Header="IN" Binding="{Binding InTime}" Width="Auto"/>
                     <DataGridTextColumn Header="OUT" Binding="{Binding OutTime}" Width="Auto"/>
                     <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="Auto"/>
+                    <DataGridTextColumn Header="NOTE" Binding="{Binding Note}" Width="*" />
                     <DataGridTextColumn Header="HOURS" Binding="{Binding HoursWorkedDisplay}" Width="Auto"/>
                     <DataGridTextColumn Header="WAGE" Binding="{Binding WageDisplay}" Width="Auto"/>
                 </DataGrid.Columns>

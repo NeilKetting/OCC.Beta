@@ -34,16 +34,24 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
 
         private readonly ILogger<CompanySettingsViewModel> _logger;
 
+        private readonly IPermissionService _permissionService;
+        public bool IsAdmin { get; }
+
         public CompanySettingsViewModel(
             ISettingsService settingsService, 
             IDialogService dialogService, 
             ILogger<CompanySettingsViewModel> logger,
-            SideMenuViewModel sideMenuViewModel)
+            SideMenuViewModel sideMenuViewModel,
+            IPermissionService permissionService)
         {
             _settingsService = settingsService;
             _dialogService = dialogService;
             _logger = logger;
             _sideMenuViewModel = sideMenuViewModel;
+            _permissionService = permissionService;
+            
+            IsAdmin = _permissionService.CanAccess("Admin");
+            
             LoadData();
         }
         

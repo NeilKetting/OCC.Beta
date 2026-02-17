@@ -23,6 +23,9 @@ namespace OCC.Shared.Models
         public decimal MonthlyInstallment { get; set; }
         public decimal OutstandingBalance { get; set; }
         
+        /// <summary> Interest rate locked at the time of loan creation (percentage). </summary>
+        public decimal InterestRate { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
 

@@ -36,7 +36,25 @@
 
             <!-- Scrollable Content -->
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <Grid ColumnDefinitions="1*, 40, 1*, 40, 1*" Margin="40,30,40,50">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <!-- General Settings -->
+
+                        <!-- Financial Settings (Admin Only) -->
+                        <Border Grid.Row="0" Classes="Card" Margin="40,20,40,20" IsVisible="{Binding IsAdmin}">
+                            <StackPanel Spacing="15">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <PathIcon Data="{StaticResource IconBank}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/> 
+                                    <TextBlock Text="Financial Settings" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                                </StackPanel>
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="Global Loan Interest Rate (%)" Classes="Label"/>
+                                    <NumericUpDown Value="{Binding CompanyDetails.GlobalLoanInterestRate}" FormatString="0.00" Increment="0.25" Minimum="0" Maximum="100"/>
+                                    <TextBlock Text="This rate will be the default for new employee loans, but can be overridden per loan." Classes="Caption" Foreground="{DynamicResource TextSecondaryGray}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                    <Grid Grid.Row="1" ColumnDefinitions="1*, 40, 1*, 40, 1*" Margin="40,10,40,50">
                     
                     <!-- Left Column: General Info -->
                     <StackPanel Grid.Column="0" Spacing="20" MinWidth="300" MaxWidth="350">
@@ -211,6 +229,7 @@
                         </StackPanel>
                     </StackPanel>
 
+                </Grid>
                 </Grid>
             </ScrollViewer>
 

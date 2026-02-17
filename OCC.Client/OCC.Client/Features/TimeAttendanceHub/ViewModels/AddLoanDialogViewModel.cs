@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
 using OCC.Shared.DTOs;
 using OCC.Shared.Models;
 using System;
@@ -13,13 +14,42 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
     public partial class AddLoanDialogViewModel : ObservableObject
     {
         private readonly IEmployeeService _employeeService;
+        private readonly ISettingsService _settingsService;
+        private readonly IDialogService _dialogService;
+        
         public Action<EmployeeLoan?>? CloseAction { get; set; }
 
-        public AddLoanDialogViewModel(IEmployeeService employeeService)
+        public AddLoanDialogViewModel(
+            IEmployeeService employeeService,
+            ISettingsService settingsService,
+            IDialogService dialogService)
         {
             _employeeService = employeeService;
+            _settingsService = settingsService;
+            _dialogService = dialogService;
+            
             StartDate = DateTime.Today;
-            LoadEmployees();
+            LoadData();
+        }
+
+        private async void LoadData()
+        {
+            await LoadEmployees();
+            await LoadSettings();
+        }
+
+        private async Task LoadSettings()
+        {
+            try
+            {
+                var companySettings = await _settingsService.GetCompanyDetailsAsync();
+                InterestRate = companySettings.GlobalLoanInterestRate;
+            }
+            catch (Exception)
+            {
+                // Fallback or log?
+                InterestRate = 0; 
+            }
         }
 
         [ObservableProperty]
@@ -41,7 +71,10 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty]
         private string _notes = string.Empty;
 
-        private async void LoadEmployees()
+        [ObservableProperty]
+        private decimal _interestRate;
+
+        private async Task LoadEmployees()
         {
             var employees = await _employeeService.GetEmployeesAsync();
             Employees = new ObservableCollection<EmployeeSummaryDto>(employees.OrderBy(e => e.FirstName));
@@ -61,6 +94,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 MonthlyInstallment = MonthlyInstallment,
                 StartDate = StartDate,
                 IsActive = true,
+                InterestRate = InterestRate,
+                Notes = Notes
                 // Employee is not populated fully, just ID.
             };
             
@@ -73,6 +108,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private void Cancel()
         {
             CloseAction?.Invoke(null);
+        }
+
+        [RelayCommand]
+        private async Task ReportBug()
+        {
+            await _dialogService.ShowBugReportAsync("AddLoanDialog");
         }
     }
 }

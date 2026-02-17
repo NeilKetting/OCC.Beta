@@ -72,10 +72,10 @@
 			</DataGrid.Styles>
 
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="CUSTOMER NAME" Binding="{Binding Name}" Width="2*" Foreground="{DynamicResource TextPrimaryDark}"/>
-				<DataGridTextColumn Header="HEADER" Binding="{Binding Header}" Width="*" Foreground="{DynamicResource TextSecondaryGray}"/>
-				<DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="1.5*" Foreground="{DynamicResource TextSecondaryGray}"/>
-				<DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="*" Foreground="{DynamicResource TextSecondaryGray}"/>
+				<DataGridTextColumn Header="CUSTOMER NAME" Binding="{Binding Name}" Width="Auto" MinWidth="250" Foreground="{DynamicResource TextPrimaryDark}"/>
+				<DataGridTextColumn Header="HEADER" Binding="{Binding Header}" Width="Auto" Foreground="{DynamicResource TextSecondaryGray}"/>
+				<DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="Auto" Foreground="{DynamicResource TextSecondaryGray}"/>
+				<DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="Auto" Foreground="{DynamicResource TextSecondaryGray}"/>
 
 				<!-- Actions -->
 				<DataGridTemplateColumn Width="Auto">

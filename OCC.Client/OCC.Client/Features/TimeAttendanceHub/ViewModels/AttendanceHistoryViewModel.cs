@@ -472,34 +472,44 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             Records = new ObservableCollection<HistoryRecordViewModel>(filtered);
             PrintStaffReportCommand.NotifyCanExecuteChanged();
             
-            // Recalculate totals for filtered view
+            // 1. Calculate Standard Totals based on VISIBLE (Filtered) records
             if (filtered.Any())
             {
                 TotalWages = filtered.Sum(r => r.Wage);
                 TotalHours = filtered.Sum(r => r.HoursWorked);
-                
-                // Calculate Stats for ALL filtered records
                 TotalLates = filtered.Count(r => r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late);
-                
-                // Calculate Absences
-                // We need to calculate absences for all employees that match branch/paytype filters
-                var filteredStaff = _fullStaffList.Where(e => 
-                {
-                    bool matchPay = SelectedPayType == "All" || (e.RateType.ToString().Equals(SelectedPayType, StringComparison.OrdinalIgnoreCase));
-                    string branch = e.Branch ?? "Johannesburg";
-                    bool matchBranch = SelectedBranch == "All" || string.Equals(branch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
-                    return matchPay && matchBranch;
-                }).ToList();
-
-                CalculateTotalAbsences(filtered, filteredStaff);
             }
             else
             {
                  TotalWages = 0;
                  TotalHours = 0;
                  TotalLates = 0;
-                 TotalAbsences = 0;
             }
+
+            // 2. Calculate Absences (Independent of Text/Status filters)
+            // We want to show "Absences" for the selected Branch/PayType context, 
+            // even if we are searching for a specific person or filtering by "Late".
+            
+            // A. Get relevant staff (Basis for counting absences)
+            var relevantStaff = _fullStaffList.Where(e => 
+            {
+                bool matchPay = SelectedPayType == "All" || (e.RateType.ToString().Equals(SelectedPayType, StringComparison.OrdinalIgnoreCase));
+                string branch = e.Branch ?? "Johannesburg";
+                bool matchBranch = SelectedBranch == "All" || string.Equals(branch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
+                return matchPay && matchBranch;
+            }).ToList();
+
+            // B. Get relevant records for absence checking (Ignore Text/Status filters, but respect Branch/PayType)
+            // This ensures that searching for "Alice" doesn't make "Bob" count as absent.
+            var recordsForAbsenceCheck = _allRecords.Where(r => 
+            {
+                bool matchPay = SelectedPayType == "All" || string.Equals(r.PayType, SelectedPayType, StringComparison.OrdinalIgnoreCase);
+                string recordBranch = r.Branch ?? "Johannesburg";
+                bool matchBranch = SelectedBranch == "All" || string.Equals(recordBranch, SelectedBranch, StringComparison.OrdinalIgnoreCase);
+                return matchPay && matchBranch;
+            }).ToList();
+
+            CalculateTotalAbsences(recordsForAbsenceCheck, relevantStaff);
         }
 
         private void CalculateTotalAbsences(System.Collections.Generic.List<HistoryRecordViewModel> records, System.Collections.Generic.List<Employee> employees)

@@ -17,7 +17,7 @@
 		<Border Grid.Row="0" Background="{DynamicResource MainPageGradient}" Padding="10">
 			<Grid ColumnDefinitions="Auto, *, Auto">
 				<StackPanel Grid.Column="0">
-					<TextBlock Text="Loans Hub" Classes="H1" VerticalAlignment="Center"/>
+					<TextBlock Text="Loans Hub" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
 					<TextBlock Text="Manage staff loans."
 							   Foreground="#64748B"
 							   FontSize="{StaticResource FontsizeMedium}" />
@@ -38,7 +38,7 @@
 				  AutoGenerateColumns="False" IsReadOnly="True"
 				  Classes="AppGrid" Margin="20">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" Width="*"/>
+				<DataGridTextColumn Header="Employee" Binding="{Binding Employee.DisplayName}" MinWidth="250" Width="Auto"/>
 				<DataGridTextColumn Header="Principal" Binding="{Binding PrincipalAmount, StringFormat=\{0:C\}}" Width="Auto"/>
 				<DataGridTextColumn Header="Installment" Binding="{Binding MonthlyInstallment, StringFormat=\{0:C\}}" Width="Auto"/>
 				<DataGridTextColumn Header="Balance" Binding="{Binding OutstandingBalance, StringFormat=\{0:C\}}" Width="Auto"/>
@@ -59,7 +59,7 @@
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<Button Classes="IconOnly" Command="{Binding $parent[UserControl].DataContext.TerminateLoanCommand}" CommandParameter="{Binding}" ToolTip.Tip="Terminate / Mark as Paid">
-								<PathIcon Data="{StaticResource IconCheckCircle}" Foreground="Green"/>
+								<PathIcon Data="{StaticResource IconBank}" Foreground="Green"/>
 							</Button>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
