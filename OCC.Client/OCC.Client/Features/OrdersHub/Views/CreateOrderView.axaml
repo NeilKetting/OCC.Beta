@@ -18,21 +18,22 @@
 		<conv:MathConverter x:Key="MathConverter" />
 		<conv:BoolToTextConverter x:Key="BoolToTextConverter" />
 		<conv:ZeroToEmptyStringConverter x:Key="ZeroToEmptyStringConverter" />
+		<conv:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
 
 		<DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
-						 <controls:SearchableComboBox 
-										 ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.FilteredInventoryItemsByName}"
-										 Text="{Binding ItemCode, Mode=TwoWay}"
-										 ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
-										 Watermark="Search..."
-										 FilterMode="None"
-										 MinimumPrefixLength="0"
-										 SelectionChanged="GridProductBox_SelectionChanged"
-										 KeyUp="ProductBox_KeyUp"
-										 DropdownOpeningCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.ClearProductSearchCommand}"
-										 AddNewCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).ToggleQuickAddProductCommand}"
-										 Classes="DataGrid"
-										 x:Name="GridProductBox">
+			<controls:SearchableComboBox
+			ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.FilteredInventoryItemsByName}"
+			Text="{Binding ItemCode, Mode=TwoWay}"
+			ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
+			Watermark="Search..."
+			FilterMode="None"
+			MinimumPrefixLength="0"
+			SelectionChanged="GridProductBox_SelectionChanged"
+			KeyUp="ProductBox_KeyUp"
+			DropdownOpeningCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.ClearProductSearchCommand}"
+			AddNewCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).ToggleQuickAddProductCommand}"
+			Classes="DataGrid"
+			x:Name="GridProductBox">
 				<controls:SearchableComboBox.ItemTemplate>
 					<DataTemplate x:DataType="models:InventoryItem">
 						<Grid ColumnDefinitions="100, 10, 250, 10, *" VerticalAlignment="Center">
@@ -161,7 +162,7 @@
 			Margin="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0"
 			VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 		<Grid RowDefinitions="Auto, Auto, *, Auto">
-			<!-- Shared Menu Removed (Presented by Parent View) --> 
+			<!-- Shared Menu Removed (Presented by Parent View) -->
 			<!-- <client:OrderMenuView Grid.Row="0" DataContext="{Binding OrderMenu}"/> -->
 			<!-- Header Bar -->
 			<Border Grid.Row="1" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="15,4">
@@ -169,18 +170,21 @@
 					<!-- Order Info -->
 					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
 						<TextBlock Text="{Binding CurrentOrder.OrderNumber}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-						
+
 						<!-- Order Type Selection (Compact) -->
 						<StackPanel Orientation="Horizontal" Spacing="15" Margin="20,0,0,0">
 							<RadioButton GroupName="Type" Content="Purchase" FontSize="11"
 										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.PurchaseOrder}"
-										 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"/>
-							<RadioButton GroupName="Type" Content="Sales" FontSize="11"
-										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.SalesOrder}"
-										 IsChecked="{Binding IsSalesOrder, Mode=OneWay}"/>
+										 IsChecked="{Binding IsPurchaseOrder, Mode=OneWay}"
+										 IsVisible="{Binding !IsPickingOrder}"/>
 							<RadioButton GroupName="Type" Content="Return" FontSize="11"
 										 Command="{Binding ChangeOrderTypeCommand}" CommandParameter="{x:Static models:OrderType.ReturnToInventory}"
-										 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"/>
+										 IsChecked="{Binding IsReturnOrder, Mode=OneWay}"
+										 IsVisible="{Binding !IsPickingOrder}"/>
+							
+							<TextBlock Text="PICKING ORDER" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" 
+									   Foreground="{DynamicResource PrimaryBrush}"
+									   IsVisible="{Binding IsPickingOrder}"/>
 						</StackPanel>
 					</StackPanel>
 
@@ -203,15 +207,15 @@
 					<StackPanel Grid.Row="0" Spacing="2">
 						<!-- Main Info Grid (3 Rows, 4 Columns) -->
 						<Grid ColumnDefinitions="*, 15, *, 15, *, 15, *" RowDefinitions="Auto, Auto, Auto">
-							
+
 							<!-- Row 1: Supplier, Project, Attention -->
 							<StackPanel Grid.Row="0" Grid.Column="0" Spacing="2" IsVisible="{Binding IsPurchaseOrder}">
 								<TextBlock Text="Supplier" Classes="Label" FontSize="11"/>
-								<controls:SearchableComboBox ItemsSource="{Binding Suppliers.FilteredSuppliers}" 
-														     SelectedItem="{Binding Suppliers.SelectedSupplier}"
-														     Watermark="Select Supplier"
-														     AddNewCommand="{Binding Suppliers.ToggleQuickAddCommand}"
-														     ValueMemberBinding="{Binding Name, DataType=models:Supplier}">
+								<controls:SearchableComboBox ItemsSource="{Binding Suppliers.FilteredSuppliers}"
+															 SelectedItem="{Binding Suppliers.SelectedSupplier}"
+															 Watermark="Select Supplier"
+															 AddNewCommand="{Binding Suppliers.ToggleQuickAddCommand}"
+															 ValueMemberBinding="{Binding Name, DataType=models:Supplier}">
 									<controls:SearchableComboBox.ItemTemplate>
 										<DataTemplate x:DataType="models:Supplier">
 											<TextBlock Text="{Binding Name}" FontSize="11"/>
@@ -222,8 +226,19 @@
 
 							<StackPanel Grid.Row="0" Grid.Column="2" Spacing="2">
 								<TextBlock Text="Project Reference" Classes="Label" FontSize="11"/>
+								<!-- Destination (PO) / Placeholder (SO) -->
+								<StackPanel Grid.Row="0" Grid.Column="6" Spacing="2" VerticalAlignment="Bottom">
+									<StackPanel IsVisible="{Binding IsPurchaseOrder}" Orientation="Horizontal" Spacing="10">
+										<RadioButton GroupName="Dest" Content="Office" FontSize="10" 
+													 IsChecked="{Binding CurrentOrder.DestinationType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static models:OrderDestinationType.Stock}, Mode=TwoWay}"/>
+										<RadioButton GroupName="Dest" Content="Site / Project" FontSize="10" 
+													 IsChecked="{Binding CurrentOrder.DestinationType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static models:OrderDestinationType.Site}, Mode=TwoWay}"/>
+									</StackPanel>
+								</StackPanel>
+								<!-- Projects -->
 								<ComboBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}"
-										  HorizontalAlignment="Stretch" PlaceholderText="Link Project" Height="28" FontSize="11">
+										  HorizontalAlignment="Stretch" PlaceholderText="Link Project" Height="28" FontSize="11"
+										  IsVisible="{Binding IsSiteDelivery}">
 									<ComboBox.ItemTemplate>
 										<DataTemplate><TextBlock Text="{Binding Name}" FontSize="11"/></DataTemplate>
 									</ComboBox.ItemTemplate>
@@ -232,16 +247,10 @@
 
 							<StackPanel Grid.Row="0" Grid.Column="4" Spacing="2">
 								<TextBlock Text="Attention / Contact" Classes="Label" FontSize="11"/>
-								<TextBox Text="{Binding CurrentOrder.Attention}" Watermark="Name" Height="28" FontSize="11" Padding="5,2"/>
+								<TextBox Text="{Binding CurrentOrder.Attention, UpdateSourceTrigger=PropertyChanged}" Watermark="Name" Height="28" FontSize="11" Padding="5,2"/>
 							</StackPanel>
 
-							<!-- Destination (PO) / Placeholder (SO) -->
-							<StackPanel Grid.Row="0" Grid.Column="6" Spacing="2" VerticalAlignment="Bottom">
-								<StackPanel IsVisible="{Binding IsPurchaseOrder}" Orientation="Horizontal" Spacing="10">
-									<RadioButton GroupName="Dest" Content="Office" FontSize="10" IsChecked="{Binding IsOfficeDelivery}"/>
-									<RadioButton GroupName="Dest" Content="Site" FontSize="10" IsChecked="{Binding IsSiteDelivery}"/>
-								</StackPanel>
-							</StackPanel>
+
 
 							<!-- Row 2: Dates, Instructions -->
 							<StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
@@ -289,14 +298,14 @@
 								<Setter Property="ContextMenu">
 									<Setter.Value>
 										<ContextMenu>
-											<MenuItem Header="Insert Line Above" 
+											<MenuItem Header="Insert Line Above"
 													  Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.InsertLineCommand}"
 													  CommandParameter="{Binding}">
 												<MenuItem.Icon>
 													<PathIcon Data="{StaticResource IconAdd}" Foreground="Green"/>
 												</MenuItem.Icon>
 											</MenuItem>
-											<MenuItem Header="Delete Line" 
+											<MenuItem Header="Delete Line"
 													  Command="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.RemoveLineCommand}"
 													  CommandParameter="{Binding}">
 												<MenuItem.Icon>
@@ -326,10 +335,10 @@
 						<Grid Grid.Column="1" ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto" Margin="0,0,40,0">
 							<TextBlock Grid.Row="0" Grid.Column="0" Text="Sub Total:" Foreground="{DynamicResource ThemeForegroundLow}" FontSize="10" VerticalAlignment="Center"/>
 							<TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentOrder.SubTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
-							
+
 							<TextBlock Grid.Row="1" Grid.Column="0" Text="VAT (15%):" Foreground="{DynamicResource ThemeForegroundLow}" FontSize="10" VerticalAlignment="Center" Margin="0,1,0,3"/>
 							<TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentOrder.VatTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center" Margin="0,1,0,3"/>
-							
+
 							<Border Grid.Row="2" Grid.Column="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,1,0,0" Padding="0,3,0,0">
 								<TextBlock Text="TOTAL:" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
 							</Border>

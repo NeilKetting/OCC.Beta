@@ -42,9 +42,14 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public OrderListViewModel OrderListVM { get; }
         
         /// <summary>
-        /// Gets the ViewModel for creating or viewing detailed purchase orders.
+        /// Gets the ViewModel for detailed purchase orders.
         /// </summary>
         public CreateOrderViewModel CreateOrderVM { get; }
+
+        /// <summary>
+        /// Gets the ViewModel for warehouse picking orders.
+        /// </summary>
+        public PickingOrderViewModel PickingOrderVM { get; }
 
         /// <summary>
         /// Alias for CreateOrderVM for view binding compatibility.
@@ -132,6 +137,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             DashboardVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderDashboardViewModel>(_serviceProvider);
             OrderListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderListViewModel>(_serviceProvider);
             CreateOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<CreateOrderViewModel>(_serviceProvider);
+            PickingOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<PickingOrderViewModel>(_serviceProvider);
             ItemListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemListViewModel>(_serviceProvider);
             InventoryVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryViewModel>(_serviceProvider);
             SupplierListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SupplierListViewModel>(_serviceProvider);
@@ -166,6 +172,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             IsOrderDetailVisible = false;
             IsSupplierDetailVisible = false;
             IsReceiveOrderVisible = false;
+            IsBusy = false; // Hub level reset
+            _orderStateService.ClearState();
 
             switch (tabName)
             {
@@ -176,11 +184,17 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     break;
                 case "OrderList": 
                 case "All Orders":
-                    if (CurrentView == OrderListVM) OrderListVM.ClearReceivingMode();
+                    if (CurrentView == OrderListVM) 
+                    {
+                        OrderListVM.ClearReceivingMode();
+                        OrderListVM.IsBusy = false;
+                        _ = OrderListVM.LoadOrders();
+                    }
                     else 
                     {
                         CurrentView = OrderListVM;
                         OrderListVM.ClearReceivingMode();
+                        OrderListVM.IsBusy = false; // Safety reset
                         _ = OrderListVM.LoadOrders();
                     }
                     if (OrderMenu != null) OrderMenu.ActiveTab = "All Orders";
@@ -199,6 +213,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     CreateOrderVM.Reset();
                     CreateOrderVM.IsReadOnly = false;
                     _ = CreateOrderVM.LoadData(); 
+                    break;
+                case "Picking":
+                    if (CurrentView == PickingOrderVM) return;
+                    CurrentView = PickingOrderVM;
+                    PickingOrderVM.Reset();
+                    _ = PickingOrderVM.LoadData();
                     break;
                 case "Inventory": 
                     if (CurrentView == InventoryVM) return;
@@ -295,7 +315,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             {
                 IsBusy = true;
                 BusyText = "Loading supplier details...";
-                var supplier = await _orderManager.GetSupplierByIdAsync(summary.Id); // Wait, I need to check IOrderManager again
+                var supplier = await _orderManager.GetSupplierByIdAsync(summary.Id); 
                 IsBusy = false;
                 
                 if (supplier != null)
@@ -342,6 +362,10 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 else if (CurrentView == CreateOrderVM) SetTab("Dashboard");
             };
 
+            // Picking Order Logic
+            PickingOrderVM.OrderCreated += (s, e) => { SetTab("OrderList"); };
+            PickingOrderVM.CloseRequested += (s, e) => { SetTab("Dashboard"); };
+
             // Menu Interactions
             OrderMenu.TabSelected += (s, tab) => SetTab(tab);
 
@@ -368,5 +392,3 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         #endregion
     }
 }
-
-

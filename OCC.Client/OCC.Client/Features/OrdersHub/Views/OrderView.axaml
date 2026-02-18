@@ -22,11 +22,8 @@
 
 		<!-- Content Area -->
 		<!-- View Content -->
-		<TransitioningContentControl Grid.Row="2" Content="{Binding CurrentView}">
-			<TransitioningContentControl.PageTransition>
-				<CrossFade Duration="0:00:0.25" />
-			</TransitioningContentControl.PageTransition>
-			<TransitioningContentControl.DataTemplates>
+		<ContentControl Grid.Row="2" Content="{Binding CurrentView}">
+			<ContentControl.DataTemplates>
 				<DataTemplate DataType="{x:Type vm:OrderDashboardViewModel}">
 					<local:OrderDashboardView />
 				</DataTemplate>
@@ -45,24 +42,33 @@
 				<DataTemplate DataType="{x:Type vm:SupplierListViewModel}">
 					<local:SupplierListView />
 				</DataTemplate>
-			</TransitioningContentControl.DataTemplates>
-		</TransitioningContentControl>
+				<DataTemplate DataType="{x:Type vm:PickingOrderViewModel}">
+					<local:PickingOrderView />
+				</DataTemplate>
+			</ContentControl.DataTemplates>
+		</ContentControl>
 
 		<!-- Popup Overlay -->
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsOrderDetailVisible, FallbackValue=false}">
-			<Grid Background="Transparent">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" 
+			  IsVisible="{Binding IsOrderDetailVisible, FallbackValue=false}"
+			  IsHitTestVisible="{Binding IsOrderDetailVisible, FallbackValue=false}">
+			<Grid>
 				<views:CreateOrderView DataContext="{Binding OrderDetailVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>
 		</Grid>
 
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsSupplierDetailVisible, FallbackValue=false}">
-			<Grid Background="Transparent">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" 
+			  IsVisible="{Binding IsSupplierDetailVisible, FallbackValue=false}"
+			  IsHitTestVisible="{Binding IsSupplierDetailVisible, FallbackValue=false}">
+			<Grid>
 				<views:SupplierDetailView DataContext="{Binding SupplierDetailVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>
 		</Grid>
 
-		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsReceiveOrderVisible, FallbackValue=false}">
-			<Grid Background="Transparent">
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" 
+			  IsVisible="{Binding IsReceiveOrderVisible, FallbackValue=false}"
+			  IsHitTestVisible="{Binding IsReceiveOrderVisible, FallbackValue=false}">
+			<Grid>
 				<views:ReceiveOrderView DataContext="{Binding ReceiveOrderVM}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 			</Grid>
 		</Grid>

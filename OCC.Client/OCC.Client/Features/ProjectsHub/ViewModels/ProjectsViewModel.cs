@@ -8,7 +8,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 {
     public partial class ProjectsViewModel : ViewModelBase, 
         CommunityToolkit.Mvvm.Messaging.IRecipient<ProjectSelectedMessage>,
-        CommunityToolkit.Mvvm.Messaging.IRecipient<SwitchTabMessage>
+        CommunityToolkit.Mvvm.Messaging.IRecipient<SwitchTabMessage>,
+        CommunityToolkit.Mvvm.Messaging.IRecipient<ProjectReportRequestMessage>
     {
         private readonly ProjectDetailViewModel _projectDetailVM;
         private readonly ProjectListViewModel _projectListVM;
@@ -82,6 +83,17 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                 {
                     ProjectMainMenu.ActiveTab = "Projects";
                 }
+            }
+        }
+
+        public void Receive(ProjectReportRequestMessage message)
+        {
+            CurrentView = _projectReportVM;
+            _projectReportVM.LoadReportAsync(message.Value);
+            
+            if (ProjectMainMenu.ActiveTab != "Reports")
+            {
+                ProjectMainMenu.ActiveTab = "Reports";
             }
         }
     }

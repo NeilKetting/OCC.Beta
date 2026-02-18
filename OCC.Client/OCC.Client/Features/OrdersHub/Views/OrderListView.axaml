@@ -14,6 +14,8 @@
 	<UserControl.Resources>
 		<conv:StringEqualityConverter x:Key="StringEqualityConverter"/>
 		<conv:EnumToIntConverter x:Key="EnumToIntConverter"/>
+		<conv:OrderStatusToColorConverter x:Key="OrderStatusToColorConverter"/>
+		<conv:FriendlyEnumConverter x:Key="FriendlyEnumConverter"/>
 	</UserControl.Resources>
 
 	<Grid RowDefinitions="Auto, Auto, *" Margin="2">
@@ -88,7 +90,7 @@
 		</Border>
 
 		<!-- Grid -->
-		<DataGrid Grid.Row="2" ItemsSource="{Binding Orders}"
+		<DataGrid x:Name="OrdersGrid" Grid.Row="2" ItemsSource="{Binding Orders}"
 				  AutoGenerateColumns="False"
 				  IsReadOnly="True"
 				  HeadersVisibility="Column"
@@ -121,18 +123,22 @@
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="ORDER #" Binding="{Binding OrderNumber}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 				<DataGridTextColumn Header="BRANCH" Binding="{Binding Branch}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
-				<DataGridTextColumn Header="TYPE" Binding="{Binding OrderType}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
-				<DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="*" MinWidth="200" Foreground="{DynamicResource TextPrimaryDark}"/>
+				<DataGridTextColumn Header="TYPE" Binding="{Binding OrderType, Converter={StaticResource FriendlyEnumConverter}, Mode=OneWay}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
+				<DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" MinWidth="250" Width="Auto" Foreground="{DynamicResource TextPrimaryDark}"/>
 				<DataGridTextColumn Header="DATE" Binding="{Binding OrderDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="ETA" Binding="{Binding ExpectedDeliveryDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="DESTINATION" Binding="{Binding DestinationDisplay}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="TOTAL" Binding="{Binding TotalAmount, StringFormat='{}{0:C}'}" Width="Auto" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-				<DataGridTemplateColumn Header="STATUS" Width="Auto">
+				<DataGridTemplateColumn Header="STATUS" Width="Auto" MinWidth="150">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<Border CornerRadius="4" Padding="8,2" HorizontalAlignment="Left" VerticalAlignment="Center"
-									Background="{Binding Status, Converter={StaticResource StatusToColorConverter}}"> <!-- Need converter or style triggers -->
-									<TextBlock Text="{Binding Status}" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+									Background="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}, ConverterParameter=Background}"
+									BorderBrush="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}}"
+									BorderThickness="1">
+									<TextBlock Text="{Binding Status, Converter={StaticResource FriendlyEnumConverter}, Mode=OneWay}" 
+											   Foreground="{Binding Status, Converter={StaticResource OrderStatusToColorConverter}}" 
+											   FontSize="11" FontWeight="SemiBold"/>
 							</Border>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
@@ -156,16 +162,19 @@
 			</DataGrid.Columns>
 		</DataGrid>
 
-		<!-- Loading -->
-		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" IsVisible="{Binding IsBusy}">
-			<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource Orange}"/>
-			<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
-		</StackPanel>
-
+		<!-- Loading Overlay -->
+		<Grid Grid.Row="2" IsVisible="{Binding IsBusy}" IsHitTestVisible="False">
+			<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource Orange}"/>
+				<TextBlock Text="{Binding BusyText}" HorizontalAlignment="Center" Margin="0,10,0,0" Classes="LabelSmall"/>
+			</StackPanel>
+		</Grid>
+		
 		<!-- Empty State -->
-		<StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center"
-					IsVisible="{Binding !Orders.Count}">
-			<TextBlock Text="No orders found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
-		</StackPanel>
+		<Grid Grid.Row="2" IsVisible="{Binding IsEmpty}" IsHitTestVisible="False">
+			<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+				<TextBlock Text="No orders found." IsVisible="{Binding !IsBusy}" Classes="LabelSmall"/>
+			</StackPanel>
+		</Grid>
 	</Grid>
 </UserControl>

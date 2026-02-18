@@ -62,5 +62,18 @@ namespace OCC.Client.Services
             var response = await _httpClient.DeleteAsync($"api/Projects/{id}");
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<ProjectReportDto?> GetProjectReportAsync(Guid id)
+        {
+            EnsureAuthorization();
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<ProjectReportDto>($"api/Projects/{id}/report");
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

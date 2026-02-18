@@ -89,7 +89,7 @@ namespace OCC.Client.Features.OrdersHub.UseCases
                 return false;
             }
 
-            if (order.OrderType == OrderType.SalesOrder && !order.CustomerId.HasValue)
+            if (order.OrderType == OrderType.PickingOrder && !order.CustomerId.HasValue)
             {
                 await _dialogService.ShowAlertAsync("Validation Error", "Please select a customer.");
                 return false;
@@ -100,7 +100,7 @@ namespace OCC.Client.Features.OrdersHub.UseCases
                 !string.IsNullOrWhiteSpace(l.ItemCode) || 
                 !string.IsNullOrWhiteSpace(l.Description) || 
                 l.QuantityOrdered > 0 || 
-                l.UnitPrice > 0)
+                (order.OrderType != OrderType.PickingOrder && l.UnitPrice > 0))
                 .ToList();
 
             if (!meaningfulLines.Any())
@@ -113,7 +113,7 @@ namespace OCC.Client.Features.OrdersHub.UseCases
                 l.InventoryItemId == null || 
                 string.IsNullOrWhiteSpace(l.Description) || 
                 l.QuantityOrdered <= 0 || 
-                l.UnitPrice <= 0 || 
+                (order.OrderType != OrderType.PickingOrder && l.UnitPrice < 0) || 
                 string.IsNullOrWhiteSpace(l.UnitOfMeasure))
                 .ToList();
 
@@ -128,7 +128,7 @@ namespace OCC.Client.Features.OrdersHub.UseCases
                 else if (string.IsNullOrWhiteSpace(firstInvalid.UnitOfMeasure)) missing = "Unit of Measure";
 
                 await _dialogService.ShowAlertAsync("Validation Error", 
-                    $"Some items are incomplete. Every line must have an Inventory Item, Description, Quantity, UOM and Unit Price.\n\nFirst issue found: Missing {missing}.");
+                    $"Some items are incomplete. Every line must have an Inventory Item, Description, Quantity and UOM.\n\nFirst issue found: Missing {missing}.");
                 return false;
             }
 

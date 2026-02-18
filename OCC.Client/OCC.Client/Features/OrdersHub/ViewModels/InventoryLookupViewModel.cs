@@ -45,11 +45,17 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public ObservableCollection<InventoryItem> FilteredItems { get; } = new();
         public ObservableCollection<string> Categories { get; } = new();
 
-        protected InventoryLookupViewModel() 
+        public InventoryLookupViewModel() 
         {
             _orderManager = null!;
             _dialogService = null!;
             _logger = null!;
+
+            // Design-time data
+            Categories.Add("General");
+            Categories.Add("Materials");
+            FilteredItems.Add(new InventoryItem { Sku = "ITEM-001", Description = "Sample Item 1", Price = 50 });
+            FilteredItems.Add(new InventoryItem { Sku = "ITEM-002", Description = "Sample Item 2", Price = 150 });
         }
 
         public InventoryLookupViewModel(
@@ -77,10 +83,13 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [RelayCommand]
         public void Filter()
         {
+            // Guard: If we are already filtering or if SearchText matches selected item, skip to avoid UI loops/crashes
+            if (SelectedItem != null && SearchText == SelectedItem.Description) return;
+
             if (string.IsNullOrWhiteSpace(SearchText))
             {
                 FilteredItems.Clear();
-                foreach (var item in _allInventoryMaster) FilterItems(item);
+                foreach (var item in _allInventoryMaster) FilteredItems.Add(item);
                 return;
             }
 
@@ -98,12 +107,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
             FilteredItems.Clear();
             foreach (var item in filtered) FilteredItems.Add(item);
-        }
-
-        private void FilterItems(InventoryItem item)
-        {
-            // Simple helper for initialization/clear
-            FilteredItems.Add(item);
         }
 
         [RelayCommand]
@@ -156,7 +159,9 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         partial void OnSearchTextChanged(string value)
         {
-            Filter();
+            // Use Post to decouple filtering from the property change notification
+            // This prevents ArgumentOutOfRangeException in Avalonia's selecting items control during collection reset
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => Filter(), Avalonia.Threading.DispatcherPriority.Background);
         }
     }
 }

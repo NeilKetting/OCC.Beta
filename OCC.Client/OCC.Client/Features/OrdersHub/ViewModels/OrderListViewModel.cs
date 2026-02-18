@@ -75,6 +75,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private OrderStatus? _selectedStatusFilter;
 
         /// <summary>
+        /// Gets or sets whether the current filtered list is empty.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isEmpty;
+
+        /// <summary>
         /// Gets the available options for time-based filtering.
         /// </summary>
         public List<string> TimeFilters { get; } = Enum.GetNames(typeof(OrderDateFilter)).Select(f => f.Replace("_", " ")).ToList();
@@ -130,8 +136,10 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 BusyText = $"Deleting order {order.OrderNumber}...";
                 IsBusy = true;
                 await _orderManager.DeleteOrderAsync(order.Id);
-                Orders.Remove(order);
-                _allOrders.Remove(order);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                    Orders.Remove(order);
+                    _allOrders.Remove(order);
+                });
             }
             catch(Exception ex)
             {
@@ -200,6 +208,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         public async Task LoadOrders()
         {
+            if (IsBusy) return;
             try
             {
                 BusyText = "Loading orders...";
@@ -224,8 +233,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         private void FilterOrders()
         {
-            Orders.Clear();
-            
             var query = _allOrders.AsEnumerable();
 
             // 1. Text Search Filter
@@ -293,12 +300,16 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             // Sort results by newest first for better visibility
             var result = query.OrderByDescending(o => o.OrderDate).ToList(); 
 
-            foreach (var order in result)
-            {
-                Orders.Add(order);
-            }
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                Orders.Clear();
+                foreach (var order in result)
+                {
+                    Orders.Add(order);
+                }
 
-            FilteredTotal = result.Sum(o => o.TotalAmount);
+                FilteredTotal = result.Sum(o => o.TotalAmount);
+                IsEmpty = Orders.Count == 0;
+            });
         }
 
         /// <summary>

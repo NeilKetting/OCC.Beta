@@ -44,12 +44,19 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public ObservableCollection<string> AvailableUOMs { get; } = new();
 
 
-        protected OrderLinesViewModel() 
+        public OrderLinesViewModel() 
         {
             _orderManager = null!;
             _dialogService = null!;
             _logger = null!;
             _calculationService = null!;
+
+            // Design-time data
+            AvailableUOMs.Add("ea");
+            AvailableUOMs.Add("m");
+            
+            CurrentOrder = new OrderWrapper(new Order());
+            CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { Description = "Design Time Item", QuantityOrdered = 1, UnitPrice = 100, LineTotal = 100 }));
         }
 
         public OrderLinesViewModel(

@@ -204,6 +204,81 @@ namespace OCC.API.Controllers
             }
         }
 
+        [HttpGet("{id}/report")]
+        public async Task<ActionResult<ProjectReportDto>> GetProjectReport(Guid id)
+        {
+            try
+            {
+                var project = await _context.Projects
+                    .Include(p => p.CustomerEntity)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (project == null) return NotFound();
+
+                var report = new ProjectReportDto
+                {
+                    ProjectId = project.Id,
+                    ProjectName = project.Name,
+                    ClientName = project.CustomerEntity?.Name ?? project.Customer ?? "Internal",
+                    Status = project.Status,
+                    StartDate = project.StartDate,
+                    EndDate = project.EndDate
+                };
+
+                // Material Costs (Orders linked to this project)
+                var orders = await _context.Orders
+                    .Where(o => o.ProjectId == id)
+                    .Include(o => o.Lines)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                report.TotalMaterialCost = (decimal)orders.Sum(o => o.Lines.Sum(l => l.LineTotal));
+                report.LinkedOrders = orders.Select(o => ToSummaryDto(o)).OrderByDescending(o => o.OrderDate).ToList();
+
+                // Labour Costs (TimeRecords linked to project)
+                var timeRecords = await _context.TimeRecords
+                    .Where(tr => tr.ProjectId == id)
+                    .Join(_context.Employees, tr => tr.EmployeeId, e => e.Id, (tr, e) => new { tr, e })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                report.LabourBreakdown = timeRecords
+                    .GroupBy(x => x.e.DisplayName)
+                    .Select(g => new LabourDetailDto
+                    {
+                        EmployeeName = g.Key,
+                        Hours = g.Sum(x => x.tr.Hours),
+                        HourlyRate = (decimal)g.First().e.HourlyRate
+                    }).ToList();
+
+                report.TotalLabourCost = report.LabourBreakdown.Sum(l => l.TotalCost);
+
+                return Ok(report);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating project report for {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        private static OrderSummaryDto ToSummaryDto(Order o)
+        {
+            return new OrderSummaryDto
+            {
+                Id = o.Id,
+                OrderNumber = o.OrderNumber,
+                OrderDate = o.OrderDate,
+                OrderType = o.OrderType,
+                Status = o.Status,
+                TotalAmount = o.TotalAmount,
+                Branch = o.Branch.ToString(),
+                ProjectName = o.ProjectName ?? string.Empty,
+                SupplierName = o.SupplierName
+            };
+        }
+
         private bool ProjectExists(Guid id) => _context.Projects.Any(e => e.Id == id);
     }
 }

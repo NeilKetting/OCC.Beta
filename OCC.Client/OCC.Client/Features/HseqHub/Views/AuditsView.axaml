@@ -85,8 +85,8 @@
 					<DataGrid.Columns>
 						<DataGridTextColumn Header="#" Binding="{Binding AuditNumber}" Width="Auto"/>
 						<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="Auto"/>
-						<DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="*" MinWidth="250"/>
-						<DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" Width="Auto"/>
+						<DataGridTextColumn Header="Site" Binding="{Binding SiteName}" Width="Auto" MinWidth="250"/>
+						<DataGridTextColumn Header="Auditor" Binding="{Binding HseqConsultant}" MinWidth="250" Width="Auto"/>
 
 						<!-- Scores -->
 						<DataGridTemplateColumn Header="Score" Width="140">

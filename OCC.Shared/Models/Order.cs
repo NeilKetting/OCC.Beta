@@ -5,13 +5,13 @@ using System.Linq;
 namespace OCC.Shared.Models
 {
     /// <summary>
-    /// Represents a commercial order within the OCC system (Purchase Order or Sales Order).
+    /// Represents a commercial order within the OCC system (Purchase Order or Picking Order).
     /// Tracks the movement of materials between suppliers, inventory, and project sites.
     /// </summary>
     /// <remarks>
     /// <b>Where:</b> Persisted in the <c>Orders</c> table.
     /// <b>How:</b> Orders contain multiple <see cref="OrderLine"/> items. They can be for procurement (<see cref="OrderType.PurchaseOrder"/>) 
-    /// or for project-specific allocation (<see cref="OrderType.SalesOrder"/>).
+    /// or for project-specific allocation (<see cref="OrderType.PickingOrder"/>).
     /// </remarks>
     public class Order : BaseEntity
     {
@@ -28,11 +28,11 @@ namespace OCC.Shared.Models
         public Guid? SupplierId { get; set; }
         public string SupplierName { get; set; } = string.Empty; // Denormalized or Snapshot Name
         
-        // Sales Order
+        // Picking Order
         public Guid? CustomerId { get; set; }
 
         // --- Snapshot Data (Address/VAT/Phone at time of order) ---
-        // This is generic to support both Supplier (PO) and Customer (SO)
+        // This is generic to support both Supplier (PO) and Picking (PK)
         public string EntityAddress { get; set; } = string.Empty; 
         public string EntityTel { get; set; } = string.Empty;
         public string EntityVatNo { get; set; } = string.Empty;
@@ -69,7 +69,7 @@ namespace OCC.Shared.Models
     public enum OrderType
     {
         PurchaseOrder,     // Buying from Supplier
-        SalesOrder,        // Selling to Customer / Site / Project
+        PickingOrder,      // Issuing to Site / Project
         ReturnToInventory  // Returning leftover material from Project to Stock
     }
 

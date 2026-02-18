@@ -26,6 +26,8 @@ namespace OCC.Shared.DTOs
         public string Sku { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
+        public double JhbQuantity { get; set; }
+        public double CptQuantity { get; set; }
         public double QuantityOnHand { get; set; }
         public decimal Price { get; set; }
         public string Branch { get; set; } = string.Empty;

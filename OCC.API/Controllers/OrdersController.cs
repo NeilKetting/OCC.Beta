@@ -7,6 +7,7 @@ using OCC.API.Hubs;
 using OCC.Shared.Models;
 using OCC.Shared.DTOs;
 using System.Security.Claims;
+using OCC.API.Services;
 
 namespace OCC.API.Controllers
 {
@@ -16,14 +17,16 @@ namespace OCC.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IStockService _stockService;
         private readonly ILogger<OrdersController> _logger;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public OrdersController(AppDbContext context, ILogger<OrdersController> logger, IHubContext<NotificationHub> hubContext)
+        public OrdersController(AppDbContext context, ILogger<OrdersController> logger, IHubContext<NotificationHub> hubContext, IStockService stockService)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
+            _stockService = stockService;
         }
 
         [HttpGet]
@@ -114,15 +117,38 @@ namespace OCC.API.Controllers
                     if (line.QuantityOrdered <= 0)
                         return BadRequest("All line items must have a quantity greater than zero.");
 
-                    // UnitPrice 0 allowed for free samples? Let's keep logic strict for now as per previous
-                    if (line.UnitPrice <= 0) 
-                         return BadRequest("All line items must have a unit price greater than zero.");
+                    // UnitPrice 0 allowed (e.g. for Picking Orders / Samples)
+                    if (line.UnitPrice < 0) 
+                         return BadRequest("All line items must have a unit price greater than or equal to zero.");
 
                     line.Id = Guid.NewGuid();
                     line.OrderId = order.Id;
                 }
 
                 _context.Orders.Add(order);
+
+                // Stock Adjustment
+                if (order.OrderType == OrderType.PickingOrder)
+                {
+                    foreach (var line in order.Lines)
+                    {
+                        if (line.InventoryItemId.HasValue)
+                        {
+                            await _stockService.AdjustStockAsync(line.InventoryItemId.Value, -line.QuantityOrdered, order.Branch);
+                        }
+                    }
+                }
+                else if (order.OrderType == OrderType.ReturnToInventory)
+                {
+                    foreach (var line in order.Lines)
+                    {
+                        if (line.InventoryItemId.HasValue)
+                        {
+                            await _stockService.AdjustStockAsync(line.InventoryItemId.Value, line.QuantityOrdered, order.Branch);
+                        }
+                    }
+                }
+
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Order {OrderNumber} created by {User}", order.OrderNumber, User.FindFirst(ClaimTypes.Name)?.Value);
@@ -191,11 +217,23 @@ namespace OCC.API.Controllers
                 foreach (var lineDto in orderDto.Lines)
                 {
                     // Validation
-                     if (lineDto.QuantityOrdered <= 0) return BadRequest("Quantity must be > 0");
+                    if (lineDto.QuantityOrdered <= 0) return BadRequest("Quantity must be > 0");
+                    if (lineDto.UnitPrice < 0) return BadRequest("All line items must have a unit price greater than or equal to zero.");
 
                     var existingLine = existingOrder.Lines.FirstOrDefault(l => l.Id == lineDto.Id);
                     if (existingLine != null)
                     {
+                        // Handle Stock reconciliation for modifications (Picking/Return)
+                        if (existingOrder.OrderType == OrderType.PickingOrder || existingOrder.OrderType == OrderType.ReturnToInventory)
+                        {
+                            double multiplier = existingOrder.OrderType == OrderType.PickingOrder ? -1 : 1;
+                            var diff = lineDto.QuantityOrdered - existingLine.QuantityOrdered;
+                            if (diff != 0 && existingLine.InventoryItemId.HasValue)
+                            {
+                                await _stockService.AdjustStockAsync(existingLine.InventoryItemId.Value, diff * multiplier, existingOrder.Branch);
+                            }
+                        }
+
                         // Update existing
                         existingLine.InventoryItemId = lineDto.InventoryItemId;
                         existingLine.ItemCode = lineDto.ItemCode;
@@ -226,6 +264,17 @@ namespace OCC.API.Controllers
                             LineTotal = lineDto.LineTotal,
                             VatAmount = lineDto.VatAmount
                         };
+
+                        // Handle Stock for New Lines
+                        if (existingOrder.OrderType == OrderType.PickingOrder || existingOrder.OrderType == OrderType.ReturnToInventory)
+                        {
+                            double multiplier = existingOrder.OrderType == OrderType.PickingOrder ? -1 : 1;
+                            if (newLine.InventoryItemId.HasValue)
+                            {
+                                await _stockService.AdjustStockAsync(newLine.InventoryItemId.Value, newLine.QuantityOrdered * multiplier, existingOrder.Branch);
+                            }
+                        }
+
                         _context.OrderLines.Add(newLine);
                     }
                 }
@@ -237,6 +286,19 @@ namespace OCC.API.Controllers
 
                 if (linesToRemove.Any())
                 {
+                    // Handle Stock for Removed Lines
+                    if (existingOrder.OrderType == OrderType.PickingOrder || existingOrder.OrderType == OrderType.ReturnToInventory)
+                    {
+                        double undoMultiplier = existingOrder.OrderType == OrderType.PickingOrder ? 1 : -1;
+                        foreach (var l in linesToRemove)
+                        {
+                            if (l.InventoryItemId.HasValue)
+                            {
+                                await _stockService.AdjustStockAsync(l.InventoryItemId.Value, l.QuantityOrdered * undoMultiplier, existingOrder.Branch);
+                            }
+                        }
+                    }
+
                     _context.OrderLines.RemoveRange(linesToRemove);
                 }
 
@@ -261,9 +323,25 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var order = await _context.Orders.FindAsync(id);
+                var order = await _context.Orders
+                    .Include(o => o.Lines)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+                                    
                 if (order == null)
                     return NotFound();
+
+                // Handle Stock for Deleted Order (Undo deductions/additions)
+                if (order.OrderType == OrderType.PickingOrder || order.OrderType == OrderType.ReturnToInventory)
+                {
+                    double undoMultiplier = order.OrderType == OrderType.PickingOrder ? 1 : -1;
+                    foreach (var l in order.Lines)
+                    {
+                        if (l.InventoryItemId.HasValue)
+                        {
+                            await _stockService.AdjustStockAsync(l.InventoryItemId.Value, l.QuantityOrdered * undoMultiplier, order.Branch);
+                        }
+                    }
+                }
 
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
@@ -542,7 +620,7 @@ namespace OCC.API.Controllers
             string prefix = type switch
             {
                 OrderType.PurchaseOrder => "PO",
-                OrderType.SalesOrder => "SO",
+                OrderType.PickingOrder => "PK",
                 OrderType.ReturnToInventory => "RET",
                 _ => "ORD"
             };

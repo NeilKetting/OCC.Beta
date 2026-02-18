@@ -56,7 +56,7 @@ namespace OCC.Tests.ViewModels
                 .Callback<CreateOrderViewModel>(vm => 
                 {
                     // Simulate what the service does: Get a template and call PrepareForOrder
-                    var type = vm.CurrentOrder?.OrderType ?? OrderType.SalesOrder;
+                    var type = vm.CurrentOrder?.OrderType ?? OrderType.PickingOrder;
                     var template = _mockOrderManager.Object.CreateNewOrderTemplate(type);
                     vm.PrepareForOrder(template, true);
                 });
@@ -84,13 +84,13 @@ namespace OCC.Tests.ViewModels
             _vm.CurrentOrder.OrderType = OrderType.PurchaseOrder;
 
             // Act
-            _vm.ChangeOrderTypeCommand.Execute(OrderType.SalesOrder);
+            _vm.ChangeOrderTypeCommand.Execute(OrderType.PickingOrder);
 
             // Assert
-            Assert.Equal(OrderType.SalesOrder, _vm.CurrentOrder.OrderType);
+            Assert.Equal(OrderType.PickingOrder, _vm.CurrentOrder.OrderType);
             // Relaxed verification because constructor also calls it
-            _mockOrderManager.Verify(m => m.CreateNewOrderTemplate(OrderType.SalesOrder), Times.AtLeastOnce);
-            Assert.True(_vm.IsSalesOrder);
+            _mockOrderManager.Verify(m => m.CreateNewOrderTemplate(OrderType.PickingOrder), Times.AtLeastOnce);
+            Assert.True(_vm.IsPickingOrder);
             Assert.False(_vm.IsPurchaseOrder);
         }
 

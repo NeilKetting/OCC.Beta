@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace OCC.Client.Services
 {
-    public class PdfService : IPdfService
+    public partial class PdfService : IPdfService
     {
         private readonly ISettingsService _settingsService;
 

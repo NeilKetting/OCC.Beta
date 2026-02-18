@@ -118,7 +118,6 @@ namespace OCC.Client.ModelWrappers
             DestinationType = _model.DestinationType;
             Attention = _model.Attention ?? string.Empty;
             TaxRate = _model.TaxRate;
-            DestinationType = _model.DestinationType;
             SupplierName = _model.SupplierName;
             EntityAddress = _model.EntityAddress;
             EntityTel = _model.EntityTel;
@@ -126,7 +125,6 @@ namespace OCC.Client.ModelWrappers
             ProjectName = _model.ProjectName ?? string.Empty;
             Branch = _model.Branch;
             DeliveryInstructions = _model.DeliveryInstructions ?? string.Empty;
-            Attention = _model.Attention ?? string.Empty;
             Notes = _model.Notes ?? string.Empty;
             ScopeOfWork = _model.ScopeOfWork ?? string.Empty;
 
@@ -152,7 +150,6 @@ namespace OCC.Client.ModelWrappers
             _model.DestinationType = DestinationType;
             _model.Attention = Attention;
             _model.TaxRate = TaxRate;
-            _model.DestinationType = DestinationType;
             _model.SupplierName = SupplierName;
             _model.EntityAddress = EntityAddress;
             _model.EntityTel = EntityTel;

@@ -192,6 +192,7 @@ namespace OCC.API.Controllers
                 Status = employee.Status,
                 EmploymentType = employee.EmploymentType,
                 Branch = employee.Branch,
+                RateType = employee.RateType,
                 HourlyRate = employee.HourlyRate,
                 ShiftStartTime = employee.ShiftStartTime,
                 ShiftEndTime = employee.ShiftEndTime

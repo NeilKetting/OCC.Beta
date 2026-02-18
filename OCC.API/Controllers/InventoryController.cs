@@ -39,6 +39,8 @@ namespace OCC.API.Controllers
                         Sku = i.Sku,
                         Description = i.Description,
                         Category = i.Category,
+                        JhbQuantity = i.JhbQuantity,
+                        CptQuantity = i.CptQuantity,
                         QuantityOnHand = i.QuantityOnHand,
                         Price = i.Price,
                         Location = i.Location,

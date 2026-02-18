@@ -320,6 +320,7 @@ namespace OCC.Client
             services.AddTransient<SupplierSelectorViewModel>();
             services.AddTransient<OrderSubmissionUseCase>();
             services.AddTransient<CreateOrderViewModel>();
+            services.AddTransient<PickingOrderViewModel>();
             services.AddTransient<ReceiveOrderViewModel>();
             services.AddTransient<InventoryViewModel>();
             services.AddTransient<ItemDetailViewModel>();

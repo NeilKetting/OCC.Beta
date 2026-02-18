@@ -94,6 +94,7 @@ builder.Services.AddSingleton<OCC.API.Services.IEmailService, OCC.API.Services.M
 // Security
 builder.Services.AddScoped<OCC.API.Services.PasswordHasher>();
 builder.Services.AddScoped<OCC.API.Services.IAuthService, OCC.API.Services.AuthService>();
+builder.Services.AddScoped<OCC.API.Services.IStockService, OCC.API.Services.StockService>();
 builder.Services.AddHostedService<OCC.API.Services.DatabaseBackupService>();
 
 // Swagger

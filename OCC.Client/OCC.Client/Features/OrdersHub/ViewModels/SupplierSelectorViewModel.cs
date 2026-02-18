@@ -32,11 +32,15 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         public ObservableCollection<Supplier> FilteredSuppliers { get; } = new();
 
-        protected SupplierSelectorViewModel() 
+        public SupplierSelectorViewModel() 
         {
             _orderManager = null!;
             _dialogService = null!;
             _logger = null!;
+
+            // Design-time data
+            FilteredSuppliers.Add(new Supplier { Name = "Sample Supplier 1", ContactPerson = "John Doe" });
+            FilteredSuppliers.Add(new Supplier { Name = "Sample Supplier 2", ContactPerson = "Jane Smith" });
         }
 
         public SupplierSelectorViewModel(

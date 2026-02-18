@@ -108,6 +108,7 @@ namespace OCC.Client.Services
             }
 
             vm.PrepareForOrder(template, isNew: true);
+            _orderStateService.ClearState();
         }
 
         public async Task RestoreStateAsync(CreateOrderViewModel vm)

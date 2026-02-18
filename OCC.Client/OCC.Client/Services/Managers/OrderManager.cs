@@ -293,7 +293,7 @@ namespace OCC.Client.Services.Managers
             string prefix = type switch
             {
                 OrderType.PurchaseOrder => "PO",
-                OrderType.SalesOrder => "SO",
+                OrderType.PickingOrder => "PK",
                 OrderType.ReturnToInventory => "RET",
                 _ => "ORD"
             };

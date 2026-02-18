@@ -18,6 +18,7 @@ namespace OCC.Shared.DTOs
         public EmployeeStatus Status { get; set; }
         public EmploymentType EmploymentType { get; set; }
         public string Branch { get; set; } = "Johannesburg";
+        public RateType RateType { get; set; }
         public double HourlyRate { get; set; }
         public TimeSpan? ShiftStartTime { get; set; }
         public TimeSpan? ShiftEndTime { get; set; }

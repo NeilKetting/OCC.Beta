@@ -40,37 +40,43 @@ namespace OCC.Client.Services.Infrastructure
 
             _hubConnection.On<string>("ReceiveNotification", (message) =>
             {
-                OnNotificationReceived?.Invoke(message);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => OnNotificationReceived?.Invoke(message));
             });
 
             _hubConnection.On<string, string>("ReceiveBroadcast", (sender, message) =>
             {
-                OnBroadcastReceived?.Invoke(sender, message);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => OnBroadcastReceived?.Invoke(sender, message));
             });
 
             _hubConnection.On<string, string, Guid>("EntityUpdate", (entityType, action, id) =>
             {
-                var msg = new ViewModels.Messages.EntityUpdatedMessage(entityType, action, id);
-                WeakReferenceMessenger.Default.Send(msg);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                    var msg = new ViewModels.Messages.EntityUpdatedMessage(entityType, action, id);
+                    WeakReferenceMessenger.Default.Send(msg);
+                });
             });
 
             // Specific Listeners for Orders
             _hubConnection.On<OCC.Shared.Models.Order>("ReceiveOrderUpdate", (order) =>
             {
-                 // Broadcast as generic Entity Update for simplicity
-                 var msg = new ViewModels.Messages.EntityUpdatedMessage("Order", "Update", order.Id);
-                 WeakReferenceMessenger.Default.Send(msg);
+                 Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                     // Broadcast as generic Entity Update for simplicity
+                     var msg = new ViewModels.Messages.EntityUpdatedMessage("Order", "Update", order.Id);
+                     WeakReferenceMessenger.Default.Send(msg);
+                 });
             });
 
             _hubConnection.On<Guid>("ReceiveOrderDelete", (id) =>
             {
-                 var msg = new ViewModels.Messages.EntityUpdatedMessage("Order", "Delete", id);
-                 WeakReferenceMessenger.Default.Send(msg);
+                 Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+                     var msg = new ViewModels.Messages.EntityUpdatedMessage("Order", "Delete", id);
+                     WeakReferenceMessenger.Default.Send(msg);
+                 });
             });
 
              _hubConnection.On<System.Collections.Generic.List<OCC.Shared.DTOs.UserConnectionInfo>>("UserListUpdate", (users) =>
             {
-                OnUserListReceived?.Invoke(users);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => OnUserListReceived?.Invoke(users));
             });
         }
 

@@ -123,6 +123,13 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             IsCreateProjectVisible = true;
         }
 
+        [RelayCommand]
+        private void RequestReport(ProjectDashboardItemViewModel project)
+        {
+            if (project == null) return;
+            WeakReferenceMessenger.Default.Send(new ProjectReportRequestMessage(project.Id));
+        }
+
         public void Receive(TaskUpdatedMessage message)
         {
             // Reload to update progress

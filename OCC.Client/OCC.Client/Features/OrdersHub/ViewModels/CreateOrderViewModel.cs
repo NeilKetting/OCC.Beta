@@ -39,6 +39,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private readonly OrderSubmissionUseCase _submissionUseCase;
 
         private bool _isNewOrder;
+        private bool _isInitializing;
 
         #endregion
 
@@ -77,7 +78,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private bool _isPurchaseOrder;
         
         [ObservableProperty]
-        private bool _isSalesOrder;
+        private bool _isPickingOrder;
         
         [ObservableProperty]
         private bool _isReturnOrder;
@@ -159,11 +160,25 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _orderStateService = null!;
             _lifecycle = null!;
             _submissionUseCase = null!;
-            OrderMenu = null!;
-            Inventory = null!;
-            Suppliers = null!;
-            Lines = null!;
-            CurrentOrder = new OrderWrapper(new Order { OrderNumber = "DEMO-0000" });
+            
+            // Design-time instantiation
+            OrderMenu = new OrderMenuViewModel();
+            Inventory = new InventoryLookupViewModel();
+            Suppliers = new SupplierSelectorViewModel();
+            Lines = new OrderLinesViewModel();
+            
+            CurrentOrder = new OrderWrapper(new Order 
+            { 
+                OrderNumber = "DESIGN-TIME", 
+                OrderDate = DateTime.Now,
+                Branch = Branch.CPT 
+            });
+            CurrentOrder.Lines.Add(new OrderLineWrapper(new OrderLine { 
+                Description = "Design Time Item", 
+                QuantityOrdered = 1, 
+                UnitPrice = 100, 
+                LineTotal = 100 
+            }));
         }
 
 
@@ -341,8 +356,11 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         public void PrepareForOrder(Order order, bool isNew = false)
         {
-            _isNewOrder = isNew;
-            CurrentOrder = new OrderWrapper(order);
+            _isInitializing = true;
+            try
+            {
+                _isNewOrder = isNew;
+                CurrentOrder = new OrderWrapper(order);
             
             if (CurrentOrder.SupplierId.HasValue)
                 Suppliers.SelectedSupplier = Suppliers.FilteredSuppliers.FirstOrDefault(s => s.Id == CurrentOrder.SupplierId.Value);
@@ -363,21 +381,52 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             Lines.Initialize(CurrentOrder, Enumerable.Empty<InventoryItem>()); // Master list is managed centraly
 
             UpdateOrderTypeFlags();
+            
+            // For new orders, default to Office delivery (Stock) and user's branch
+            if (isNew)
+            {
+                // Force reset to ensure UI updates if it was already true but UI didn't catch it
+                // We do this by setting current order properties first
+                CurrentOrder.DestinationType = OrderDestinationType.Stock;
+                
+                // Update properties
+                IsSiteDelivery = false;
+                IsOfficeDelivery = true;
+
+                if (_authService.CurrentUser?.Branch != null)
+                {
+                    CurrentOrder.Branch = _authService.CurrentUser.Branch.Value;
+                }
+                
+                // Explicitly notify change to ensure RadioButton updates
+                OnPropertyChanged(nameof(IsOfficeDelivery));
+                OnPropertyChanged(nameof(IsSiteDelivery));
+            }
+
             OnPropertyChanged(nameof(SubmitButtonText));
             Initialize();
+            }
+            finally
+            {
+                _isInitializing = false;
+            }
         }
 
         private void UpdateOrderTypeFlags()
         {
             IsPurchaseOrder = CurrentOrder.OrderType == OrderType.PurchaseOrder;
-            IsSalesOrder = CurrentOrder.OrderType == OrderType.SalesOrder;
+            IsPickingOrder = CurrentOrder.OrderType == OrderType.PickingOrder;
             IsReturnOrder = CurrentOrder.OrderType == OrderType.ReturnToInventory;
         }
 
         public static ValidationResult? ValidateProjectSelection(Project? project, ValidationContext context)
         {
             var vm = (CreateOrderViewModel)context.ObjectInstance;
-            return (vm.IsSalesOrder && project == null) ? new ValidationResult("Project is required.") : ValidationResult.Success;
+            // Only require a project if it is a Picking Order OR if Site Delivery is explicitly selected
+            if (vm.IsPickingOrder && project == null) return new ValidationResult("Project is required for Picking Orders.");
+            if (vm.IsSiteDelivery && project == null) return new ValidationResult("Project is required for Site Delivery.");
+            
+            return ValidationResult.Success;
         }
 
         partial void OnCurrentOrderChanged(OrderWrapper value) 
@@ -397,10 +446,41 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             {
                 Suppliers.Filter(CurrentOrder?.Branch ?? Branch.CPT);
             }
+            else if (e.PropertyName == nameof(OrderWrapper.DestinationType))
+            {
+                 var dest = CurrentOrder.DestinationType;
+                 
+                 // Update visibility flags
+                 IsSiteDelivery = dest == OrderDestinationType.Site;
+                 IsOfficeDelivery = dest == OrderDestinationType.Stock; // Or !IsSiteDelivery
+
+                 if (dest == OrderDestinationType.Stock)
+                 {
+                     // Clear selected project as it's not applicable for Office/Stock delivery
+                     SelectedProject = null;
+
+                     // Set Branch based on User
+                     if (_authService.CurrentUser?.Branch != null)
+                     {
+                         CurrentOrder.Branch = _authService.CurrentUser.Branch.Value;
+                     }
+                 }
+                 else if (dest == OrderDestinationType.Site)
+                 {
+                     // Potentially clear or set address logic here if needed
+                 }
+            }
         }
 
-        partial void OnIsOfficeDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Stock; IsSiteDelivery = false; } }
-        partial void OnIsSiteDeliveryChanged(bool value) { if (value) { CurrentOrder.DestinationType = OrderDestinationType.Site; IsOfficeDelivery = false; if (SelectedProject != null) CurrentOrder.EntityAddress = SelectedProject.StreetLine1; } }
+        partial void OnIsOfficeDeliveryChanged(bool value) 
+        { 
+            // Logic moved to OnOrderPropertyChanged handling DestinationType
+        }
+
+        partial void OnIsSiteDeliveryChanged(bool value) 
+        { 
+            // Logic moved to OnOrderPropertyChanged handling DestinationType
+        }
         
         partial void OnSelectedProjectChanged(Project? value)
         {
@@ -408,7 +488,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
              {
                  CurrentOrder.ProjectId = value.Id;
                  CurrentOrder.ProjectName = value.Name;
-                 if (IsSalesOrder || IsSiteDelivery) CurrentOrder.EntityAddress = value.StreetLine1;
+                 if (IsPickingOrder || IsSiteDelivery) CurrentOrder.EntityAddress = value.StreetLine1;
                  OnPropertyChanged(nameof(CurrentOrder));
              }
              else
@@ -462,14 +542,20 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         private void OnSelectedSupplierChanged(Supplier? value)
         {
-            if (value != null)
+            if (value != null && !_isInitializing)
             {
                 CurrentOrder.SupplierId = value.Id;
                 CurrentOrder.SupplierName = value.Name;
                 CurrentOrder.EntityAddress = value.Address;
                 CurrentOrder.EntityTel = value.Phone;
                 CurrentOrder.EntityVatNo = value.VatNumber;
-                CurrentOrder.Attention = value.ContactPerson; 
+                
+                // Only overwrite attention if it's a new order or currently empty
+                if (_isNewOrder || string.IsNullOrWhiteSpace(CurrentOrder.Attention))
+                {
+                    CurrentOrder.Attention = value.ContactPerson; 
+                }
+                
                 OnPropertyChanged(nameof(CurrentOrder));
                 SubmitOrderCommand.NotifyCanExecuteChanged();
             }
