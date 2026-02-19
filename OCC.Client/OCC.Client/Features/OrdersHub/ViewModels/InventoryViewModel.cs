@@ -234,6 +234,27 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         }
 
         /// <summary>
+        /// Command to open the detail view for creating a new inventory item.
+        /// </summary>
+        [RelayCommand]
+        public virtual async Task AddInventoryItem()
+        {
+            var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
+
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemDetailViewModel>(_serviceProvider);
+            DetailViewModel.Load(null, categories);
+
+            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
+            DetailViewModel.ItemSaved += (s, e) =>
+            {
+                IsDetailVisible = false;
+                _ = LoadInventoryAsync();
+            };
+
+            IsDetailVisible = true;
+        }
+
+        /// <summary>
         /// Command to permanently delete an inventory item.
         /// </summary>
         /// <param name="item">The item to be deleted.</param>

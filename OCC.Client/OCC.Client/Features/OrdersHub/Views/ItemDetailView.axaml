@@ -6,7 +6,7 @@
 			 mc:Ignorable="d"
 			 x:Class="OCC.Client.Features.OrdersHub.Views.ItemDetailView"
 			 x:DataType="vm:ItemDetailViewModel"
-			 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			 HorizontalAlignment="Center" VerticalAlignment="Center">
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.FormInput">
@@ -37,7 +37,7 @@
 			BoxShadow="0 2 15 5 #292828"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Center"
-			MaxWidth="1000">
+			MaxWidth="1000" Width="650">
 		<Grid RowDefinitions="Auto, *, Auto, Auto">
 
 			<!-- Header -->
@@ -61,7 +61,7 @@
 
 			<!-- Content -->
 			<ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-				<Grid ColumnDefinitions="*, 30, *" Margin="30,30,30,50">
+				<Grid ColumnDefinitions="*, 30, *" Margin="30,30,30,30">
 					<!-- Left Column -->
 					<StackPanel Grid.Column="0" Spacing="10">
 

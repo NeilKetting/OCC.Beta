@@ -27,21 +27,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [ObservableProperty]
         private InventoryItem? _selectedItem;
 
-        [ObservableProperty]
-        private bool _isAddingNew;
-
-        [ObservableProperty]
-        private string _newDescription = string.Empty;
-
-        [ObservableProperty]
-        private string _newUOM = "ea";
-
-        [ObservableProperty]
-        private string _newCategory = "General";
-
-        [ObservableProperty]
-        private bool _isInputtingNewCategory;
-
         public ObservableCollection<InventoryItem> FilteredItems { get; } = new();
         public ObservableCollection<string> Categories { get; } = new();
 
@@ -107,54 +92,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
             FilteredItems.Clear();
             foreach (var item in filtered) FilteredItems.Add(item);
-        }
-
-        [RelayCommand]
-        public void ToggleQuickAdd()
-        {
-            IsAddingNew = !IsAddingNew;
-            if (IsAddingNew)
-            {
-                NewDescription = "";
-                NewUOM = "ea";
-                NewCategory = "General";
-                IsInputtingNewCategory = false;
-            }
-        }
-
-        [RelayCommand]
-        public void ToggleNewCategoryMode()
-        {
-            IsInputtingNewCategory = !IsInputtingNewCategory;
-            NewCategory = IsInputtingNewCategory ? "" : "General";
-        }
-
-        [RelayCommand]
-        public async Task QuickCreateProduct(string? supplierName = null)
-        {
-            if (string.IsNullOrWhiteSpace(NewDescription)) return;
-            
-            try
-            {
-                var created = await _orderManager.QuickCreateProductAsync(NewDescription, NewUOM, NewCategory, supplierName ?? string.Empty);
-                
-                // Add to master and local lists
-                var masterList = _allInventoryMaster.ToList();
-                masterList.Add(created);
-                _allInventoryMaster = masterList;
-
-                if (!Categories.Contains(created.Category)) Categories.Add(created.Category);
-                
-                SelectedItem = created;
-                IsAddingNew = false;
-                
-                Filter(); // Refresh list
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Failed to quick create product");
-                await _dialogService.ShowAlertAsync("Error", "Failed to create product.");
-            }
         }
 
         partial void OnSearchTextChanged(string value)

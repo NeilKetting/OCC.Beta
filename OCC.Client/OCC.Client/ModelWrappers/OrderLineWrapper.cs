@@ -22,10 +22,12 @@ namespace OCC.Client.ModelWrappers
         public Guid OrderId => _model.OrderId;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsPopulated))]
         private string _itemCode = string.Empty;
 
         [ObservableProperty]
         [Required(ErrorMessage = "Description is required")]
+        [NotifyPropertyChangedFor(nameof(IsPopulated))]
         private string _description = string.Empty;
 
         [ObservableProperty]
@@ -33,6 +35,7 @@ namespace OCC.Client.ModelWrappers
 
         [ObservableProperty]
         [Range(0.001, double.MaxValue, ErrorMessage = "Quantity must be greater than 0")]
+        [NotifyPropertyChangedFor(nameof(IsPopulated))]
         private double _quantityOrdered;
 
         [ObservableProperty]
@@ -43,13 +46,17 @@ namespace OCC.Client.ModelWrappers
 
         [ObservableProperty]
         [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative")]
+        [NotifyPropertyChangedFor(nameof(IsPopulated))]
         private decimal _unitPrice;
 
         [ObservableProperty]
         private decimal _vatAmount;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsPopulated))]
         private decimal _lineTotal;
+
+        public bool IsPopulated => !string.IsNullOrWhiteSpace(ItemCode) || !string.IsNullOrWhiteSpace(Description) || LineTotal > 0;
 
         public Guid? InventoryItemId
         {
@@ -68,6 +75,7 @@ namespace OCC.Client.ModelWrappers
             UnitPrice = _model.UnitPrice;
             VatAmount = _model.VatAmount;
             LineTotal = _model.LineTotal;
+            OnPropertyChanged(nameof(IsPopulated));
         }
 
         public void CommitToModel()

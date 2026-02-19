@@ -222,10 +222,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             if (item is OrderLineWrapper line)
             {
                 CurrentOrder.Lines.Remove(line);
-                if (CurrentOrder.Lines.Count == 0)
-                {
-                    AddEmptyLine();
-                }
+                EnsureBlankRow();
             }
         }
 

@@ -20,9 +20,9 @@
 
 
 
-	<Grid RowDefinitions="Auto, Auto, *" Margin="5">
+	<Grid RowDefinitions="Auto, Auto, *" Margin="0">
 		<!-- Header Bar: Title & Primary Actions -->
-		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource MainPageGradient}" Margin="5">
+		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource MainPageGradient}" Margin="2">
 			<Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Inventory List" FontSize="{StaticResource FontSizeLarge}" FontWeight="Bold"/>
@@ -30,6 +30,12 @@
 				</StackPanel>
 
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					<Button Content="Add Item" Classes="Primary" Command="{Binding AddInventoryItemCommand}">
+						<StackPanel Orientation="Horizontal" Spacing="8">
+							<PathIcon Data="{StaticResource IconNew}" Width="16" Height="16"/>
+							<TextBlock Text="Add Item" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
 					<Button Content="Import CSV" Classes="Secondary" Command="{Binding ImportInventoryCommand}" ToolTip.Tip="Import inventory from CSV file">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconExportData}" Width="16" Height="16"/>
@@ -179,11 +185,9 @@
 		</StackPanel>
 
 		<!-- Popup Overlay -->
-		<Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" Padding="40">
-			<Grid Background="#50000000"> <!-- Extra click shield -->
-			<views:ItemDetailView DataContext="{Binding DetailViewModel}"
-								  HorizontalAlignment="Center"
-								  VerticalAlignment="Center"/>
+		<Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" Padding="40" ZIndex="100">
+			<Grid Background="#20000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"> <!-- Click shield -->
+				<views:ItemDetailView DataContext="{Binding DetailViewModel}"/>
 			</Grid>
 		</Border>
 	</Grid>

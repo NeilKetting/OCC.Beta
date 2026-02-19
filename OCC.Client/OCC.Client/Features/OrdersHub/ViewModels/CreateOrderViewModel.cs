@@ -37,6 +37,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private readonly IPdfService _pdfService;
         private readonly IOrderLifecycleService _lifecycle;
         private readonly OrderSubmissionUseCase _submissionUseCase;
+        private readonly IServiceProvider _serviceProvider;
 
         private bool _isNewOrder;
         private bool _isInitializing;
@@ -105,6 +106,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [ObservableProperty]
         private string _newProjectAddress = string.Empty;
 
+        [ObservableProperty]
+        private ItemDetailViewModel? _detailViewModel;
+
+        [ObservableProperty]
+        private bool _isDetailVisible;
+
         #endregion
 
         #region Constructors
@@ -118,6 +125,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             OrderStateService orderStateService,
             IOrderLifecycleService lifecycle,
             OrderSubmissionUseCase submissionUseCase,
+            IServiceProvider serviceProvider,
             OrderMenuViewModel orderMenu,
             OrderLinesViewModel lines,
             InventoryLookupViewModel inventory,
@@ -131,6 +139,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _orderStateService = orderStateService;
             _lifecycle = lifecycle;
             _submissionUseCase = submissionUseCase;
+            _serviceProvider = serviceProvider;
 
             OrderMenu = orderMenu;
             Lines = lines;
@@ -196,10 +205,40 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
              OnPropertyChanged(nameof(CurrentOrder));
         }
 
-        [RelayCommand] public void ToggleQuickAddProduct() => Inventory.ToggleQuickAdd();
-        [RelayCommand] public void ToggleNewCategoryMode() => Inventory.ToggleNewCategoryMode();
+        [RelayCommand]
+        public void ToggleQuickAddProduct()
+        {
+            DetailViewModel = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemDetailViewModel>(_serviceProvider);
+            
+            // Pass current search text as description if available
+            var item = new InventoryItem { Description = Inventory.SearchText };
+            var categories = Inventory.Categories.ToList();
+            
+            DetailViewModel.Load(item, categories);
+
+            DetailViewModel.CloseRequested += (s, e) => IsDetailVisible = false;
+            DetailViewModel.ItemSaved += async (s, e) =>
+            {
+                IsDetailVisible = false;
+                
+                // Refresh inventory cache/list to include new item
+                await LoadData(); 
+                
+                // Try to find and select the new item in the current order line
+                if (DetailViewModel.IsEditMode == false) // It was a new item
+                {
+                    var newItem = Inventory.FilteredItems.FirstOrDefault(i => i.Description == DetailViewModel.Description || i.Sku == DetailViewModel.Sku);
+                    if (newItem != null)
+                    {
+                        Inventory.SelectedItem = newItem;
+                    }
+                }
+            };
+
+            IsDetailVisible = true;
+        }
+
         [RelayCommand] public void ToggleQuickAddSupplier() => Suppliers.ToggleQuickAdd();
-        [RelayCommand] public async Task QuickCreateProduct() => await Inventory.QuickCreateProduct(Suppliers.SelectedSupplier?.Name);
         [RelayCommand] public async Task QuickCreateSupplier() => await Suppliers.QuickCreateSupplier();
 
         [RelayCommand]
