@@ -39,7 +39,7 @@
             <ItemsControl ItemsSource="{Binding}" IsVisible="False"> <!-- Future activity list -->
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="No recent activity to show." FontStyle="Italic" Foreground="{DynamicResource TextSecondaryGray}"/>
+                <TextBlock Text="No recent activity to show." FontStyle="Italic" Foreground="{DynamicResource TextSecondaryGray}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
