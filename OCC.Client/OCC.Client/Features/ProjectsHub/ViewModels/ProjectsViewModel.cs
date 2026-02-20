@@ -89,7 +89,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         public void Receive(ProjectReportRequestMessage message)
         {
             CurrentView = _projectReportVM;
-            _projectReportVM.LoadReportAsync(message.Value);
+            _ = _projectReportVM.LoadReportAsync(message.Value);
             
             if (ProjectMainMenu.ActiveTab != "Reports")
             {

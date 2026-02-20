@@ -307,15 +307,18 @@
 							<ItemsControl.ItemTemplate>
 								<DataTemplate>
 									<Border Classes="Card" Margin="0,0,0,10" Padding="12">
-										<Grid ColumnDefinitions="*, 100, 100">
-											<TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap"/>
+										<Grid ColumnDefinitions="*, 80, 80, Auto">
+											<TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,10,0"/>
 
 											<StackPanel Grid.Column="1" Spacing="2" Margin="0,0,10,0">
 												<TextBlock Text="Actual" FontSize="10" Foreground="{DynamicResource TextSecondary}"/>
 												<TextBox Text="{Binding ActualScore}" />
 											</StackPanel>
 
-
+											<StackPanel Grid.Column="2" Spacing="2" Margin="0,0,10,0">
+												<TextBlock Text="Possible" FontSize="10" Foreground="{DynamicResource TextSecondary}"/>
+												<TextBox Text="{Binding PossibleScore}" />
+											</StackPanel>
 										</Grid>
 									</Border>
 								</DataTemplate>

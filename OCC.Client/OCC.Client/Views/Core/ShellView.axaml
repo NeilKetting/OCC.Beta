@@ -93,6 +93,11 @@
 				</MenuItem>
 			</MenuItem>
 				<MenuItem Header="_Help">
+				<MenuItem Header="Release Notes" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="ReleaseNotes">
+					<MenuItem.Icon>
+						<PathIcon Data="{StaticResource IconInformation}" Width="16" Height="16"/>
+					</MenuItem.Icon>
+				</MenuItem>
 				<MenuItem Header="_About" Command="{Binding AboutCommand}">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconInformation}" Width="16" Height="16"/>

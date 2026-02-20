@@ -41,7 +41,7 @@ namespace OCC.Tests.Features.HseqHub
             var employees = new List<Employee> { new Employee { Id = Guid.NewGuid(), FirstName = "Neil" } };
 
             // Act
-            _vm.Initialize(employees);
+            _vm.Initialize(employees, new List<string>());
 
             // Assert
             Assert.Single(_vm.Employees);
@@ -82,7 +82,8 @@ namespace OCC.Tests.Features.HseqHub
             Assert.True(_vm.IsOpen);
             Assert.True(_vm.IsEditMode);
             Assert.Equal("Neil Ketting", _vm.NewRecord.EmployeeName);
-            Assert.Equal(empId, _vm.SelectedEmployee.Id);
+            Assert.NotNull(_vm.SelectedEmployee);
+            Assert.Equal(empId, _vm.SelectedEmployee!.Id);
         }
 
         [Fact]

@@ -260,6 +260,21 @@ namespace OCC.Client.Features.HseqHub.ViewModels
              if (createdDto != null)
              {
                  CurrentAudit.Id = createdDto.Id;
+                 
+                 // Map generated section IDs back to our UI models so subsequent saves work
+                 if (CurrentAudit.Sections != null && createdDto.Sections != null)
+                 {
+                     foreach (var section in CurrentAudit.Sections)
+                     {
+                         var matchedDbSection = createdDto.Sections.FirstOrDefault(s => s.Name == section.Name);
+                         if (matchedDbSection != null && matchedDbSection.Id != Guid.Empty)
+                         {
+                             section.Id = matchedDbSection.Id;
+                             section.RowVersion = matchedDbSection.RowVersion ?? Array.Empty<byte>();
+                         }
+                     }
+                 }
+
                  _toastService.ShowSuccess("Created", "New audit created.");
                  AuditSaved?.Invoke(this, EventArgs.Empty);
                  // We don't close automatically? Usually yes or no. 

@@ -89,7 +89,7 @@ namespace OCC.Client.Services
                 await dialog.ShowDialog(desktop.MainWindow);
             }
         }
-        public async Task<(bool Confirmed, string? Reason, string? Note)> ShowLeaveEarlyReasonAsync()
+        public async Task<(bool Confirmed, string? Reason, string? Note, string? FilePath)> ShowLeaveEarlyReasonAsync()
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
@@ -98,10 +98,10 @@ namespace OCC.Client.Services
                 
                 if (result == true)
                 {
-                    return (true, dialog.Reason, dialog.Note);
+                    return (true, dialog.Reason, dialog.Note, dialog.SelectedFilePath);
                 }
             }
-            return (false, null, null);
+            return (false, null, null, null);
         }
         public async Task<(bool Confirmed, TimeSpan? InTime, TimeSpan? OutTime)> ShowEditAttendanceAsync(TimeSpan? currentIn, TimeSpan? currentOut, bool showIn = true, bool showOut = true)
         {

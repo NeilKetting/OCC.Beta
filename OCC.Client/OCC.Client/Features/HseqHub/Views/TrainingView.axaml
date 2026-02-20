@@ -27,7 +27,7 @@
             </Border>
 
             <!-- Data Table -->
-            <Grid Grid.Row="1" ColumnDefinitions="*, 300" Margin="10">
+            <Grid Grid.Row="1" ColumnDefinitions="*, Auto" Margin="10">
                 
                 <!-- Main List -->
                 <Border Grid.Column="0" Classes="Card" Margin="0,0,10,0">
@@ -41,6 +41,7 @@
                              <NumericUpDown Value="{Binding ExpiryWarningDays}" Minimum="1" Maximum="365" Width="100"/>
                              <Button Content="Show Expiring" Command="{Binding FilterExpiringCommand}" Classes="Secondary"/>
                              <Button Content="Reset/Reload" Command="{Binding LoadDataCommand}" Classes="Ghost"/>
+                             <Button Content="+ Add Training" Command="{Binding ToggleAddCommand}" Classes="Primary" Margin="10,0,0,0"/>
                         </StackPanel>
                         
                         <DataGrid Grid.Row="1" ItemsSource="{Binding TrainingRecords}"
@@ -123,7 +124,7 @@
                 </Border>
                 
                 <!-- Add New Form -->
-                <Border Grid.Column="1" Classes="Card" Padding="20">
+                <Border Grid.Column="1" Classes="Card" Padding="20" IsVisible="{Binding Editor.IsOpen}" Width="320">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Spacing="15" Margin="0,0,10,0">
                             <TextBlock Text="Add Training Record" Classes="H2" Margin="0,0,0,10"/>
@@ -146,7 +147,7 @@
                             
                             <StackPanel>
                                 <TextBlock Text="Skill / Role" Classes="FormLabel"/>
-                                <TextBox Watermark="e.g. Supervisor" Text="{Binding Editor.NewRecord.Role}" Classes="FormInput"/>
+                                <TextBox Watermark="e.g. Supervisor" Text="{Binding Editor.NewRecord.Role}" Classes="FormInput" IsEnabled="False"/>
                             </StackPanel>
                             
                             <StackPanel>
@@ -169,7 +170,10 @@
                             
                             <StackPanel>
                                 <TextBlock Text="Trainer / Provider" Classes="FormLabel"/>
-                                <TextBox Watermark="e.g. Red Cross" Text="{Binding Editor.NewRecord.Trainer}" Classes="FormInput"/>
+                                <AutoCompleteBox ItemsSource="{Binding Editor.Trainers}" 
+                                                 Text="{Binding Editor.NewRecord.Trainer}" 
+                                                 Watermark="e.g. Red Cross"
+                                                 FilterMode="Contains" />
                             </StackPanel>
     
                             <StackPanel Spacing="5">

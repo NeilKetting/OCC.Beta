@@ -118,13 +118,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     var isActive = activeRecords.Any(r => r.EmployeeId == emp.Id);
                     
                     // ALSO filter out if they have a *completed* record for TODAY (so they don't appear in Pending if they finished a shift today)
-                    // Wait, previous logic was: "If currently clocked out, appear in Pending".
-                    // So we ONLY care about isActive.
+                    var hasCompletedToday = todayRecords.Any(r => r.EmployeeId == emp.Id);
                     
                     // Re-read requirement: "Employee clocked out... should lie on the left".
-                    // So:
-                    // - Is Active? -> NOT Pending (they are working).
-                    // - Not Active? -> Pending (Ready to work).
+                    // Wait, the user specifically states: "They should be able to clock back in the same day for what ever reason"
+                    // Therefore, we MUST NOT filter out completed shifts from the Pending list.
+                    // If they are not active, they belong in Pending (ready to start a new shift).
                     
                     if (!isActive)
                     {
@@ -400,6 +399,23 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 if (!result.Confirmed || !result.InTime.HasValue) return;
                 
                 checkInTime = Date.Date.Add(result.InTime.Value);
+
+                // Prevent chronological overlap on same-day re-clock-ins
+                var todayRecords = await _timeService.GetDailyAttendanceAsync(Date);
+                foreach (var item in toClockIn)
+                {
+                    var empRecords = todayRecords.Where(r => r.EmployeeId == item.EmployeeId).OrderByDescending(r => r.CheckOutTime).ToList();
+                    var latestRecord = empRecords.FirstOrDefault();
+
+                    if (latestRecord != null && latestRecord.CheckOutTime.HasValue)
+                    {
+                        if (checkInTime <= latestRecord.CheckOutTime.Value)
+                        {
+                            await _dialogService.ShowAlertAsync("Invalid Time", $"The clock-in time for {item.Name} must be after their previous clock-out time today ({latestRecord.CheckOutTime.Value.ToString("HH:mm")}).");
+                            return;
+                        }
+                    }
+                }
             }
             else
             {
@@ -632,6 +648,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 var now = DateTime.Now;
                 string? leaveReason = null;
                 string? leaveNote = null;
+                string? sickNotePath = null;
 
                 // Check if Early
                 bool isSameDay = now.Date == Date.Date;
@@ -688,6 +705,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
                             leaveReason = result.Reason;
                             leaveNote = result.Note;
+                            sickNotePath = result.FilePath;
                         }
                     }
                 }
@@ -706,6 +724,15 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                             record.Status = AttendanceStatus.LeaveEarly;
                             record.LeaveReason = leaveReason;
                             record.Notes = !string.IsNullOrEmpty(leaveNote) ? $"[Leave Early Note] {leaveNote}" : null;
+                            
+                            if (!string.IsNullOrEmpty(sickNotePath))
+                            {
+                                var serverPath = await _timeService.UploadDoctorNoteAsync(sickNotePath);
+                                if (!string.IsNullOrEmpty(serverPath))
+                                {
+                                    record.DoctorsNoteImagePath = serverPath;
+                                }
+                            }
                         }
                         else
                         {

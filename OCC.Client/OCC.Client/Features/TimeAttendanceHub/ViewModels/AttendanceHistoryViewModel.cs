@@ -812,7 +812,52 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
         
         [RelayCommand]
-        private async Task Refresh()
+        public async Task UploadSickNote(HistoryRecordViewModel recordVm)
+        {
+            if (recordVm == null || recordVm.Attendance.Id == Guid.Empty) return;
+
+            var extensions = new[] { "*.png", "*.jpg", "*.jpeg", "*.pdf" };
+            var filePath = await _dialogService.PickFileAsync("Select Medical Certificate", extensions);
+            
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            IsBusy = true;
+            try
+            {
+                var serverPath = await _timeService.UploadDoctorNoteAsync(filePath);
+                if (!string.IsNullOrEmpty(serverPath))
+                {
+                    var record = await _timeService.GetAttendanceRecordByIdAsync(recordVm.Attendance.Id);
+                    if (record != null)
+                    {
+                        record.DoctorsNoteImagePath = serverPath;
+                        await _timeService.SaveAttendanceRecordAsync(record);
+                        recordVm.Attendance.DoctorsNoteImagePath = serverPath;
+                        
+                        // Force UI refresh for HasMissingSickNote and wage recalc
+                        recordVm.Refresh();
+                        
+                        await _dialogService.ShowAlertAsync("Success", "Medical Certificate uploaded successfully.");
+                        RefreshCommand.Execute(null); // Optional: Full refresh to re-evaluate wages if necessary
+                    }
+                }
+                else
+                {
+                    await _dialogService.ShowAlertAsync("Error", "Failed to upload the Medical Certificate to the server.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Upload failed: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task RefreshAsync()
         {
             await LoadData();
         }

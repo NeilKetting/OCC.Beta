@@ -148,6 +148,13 @@
 									<PathIcon Data="{StaticResource IconEdit}" />
 								</MenuItem.Icon>
 							</MenuItem>
+							<MenuItem Header="Upload Medical Certificate"
+									  Command="{Binding #Root.DataContext.UploadSickNoteCommand}"
+									  CommandParameter="{Binding}">
+								<MenuItem.Icon>
+									<PathIcon Data="{StaticResource IconAttachment}" />
+								</MenuItem.Icon>
+							</MenuItem>
 							<Separator/>
 							<MenuItem Header="Delete Record"
 									  Command="{Binding #Root.DataContext.DeleteRecordCommand}"
@@ -177,7 +184,18 @@
 				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="250"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
 				<DataGridTextColumn Header="Pay Type" Binding="{Binding PayType}" Width="Auto"/>
-				<DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+				<DataGridTemplateColumn Header="Status" Width="Auto">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="10,0">
+								<TextBlock Text="{Binding Status}" VerticalAlignment="Center"/>
+								<PathIcon Data="{StaticResource IconWarning}" Width="14" Height="14" Foreground="DarkOrange" 
+										  IsVisible="{Binding HasMissingSickNote}" 
+										  ToolTip.Tip="Missing Medical Certificate (Wage Deducted)"/>
+							</StackPanel>
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 				<DataGridTextColumn Header="In" Binding="{Binding InTime}" Width="Auto"/>
 				<DataGridTextColumn Header="Out" Binding="{Binding OutTime}" Width="Auto"/>
 				<DataGridTextColumn Header="Hours" Binding="{Binding HoursWorkedDisplay}" Width="Auto"/>

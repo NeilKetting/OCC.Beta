@@ -92,9 +92,15 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
         public string Status => _attendance.Status.ToString();
         
-        public string Note => !string.IsNullOrWhiteSpace(_attendance.LeaveReason) 
+        public string Note => (!string.IsNullOrWhiteSpace(_attendance.LeaveReason) 
                               ? _attendance.LeaveReason 
-                              : _attendance.Notes;
+                              : _attendance.Notes) ?? string.Empty;
+
+        public bool HasMissingSickNote => 
+            (_attendance.Status == AttendanceStatus.LeaveEarly || _attendance.Status == AttendanceStatus.Absent) &&
+            !string.IsNullOrWhiteSpace(_attendance.LeaveReason) && 
+            (_attendance.LeaveReason.Contains("Sick", StringComparison.OrdinalIgnoreCase) || _attendance.LeaveReason.Contains("Ill", StringComparison.OrdinalIgnoreCase)) &&
+            string.IsNullOrWhiteSpace(_attendance.DoctorsNoteImagePath);
 
         // Calculations
         [ObservableProperty]
@@ -197,6 +203,23 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              if (_employee.RateType == RateType.Hourly)
              {
                   CalculateHourlyWage(start, end);
+
+                  // SICK NOTE LOGIC: If they left early due to illness AND provided a note, pay them till the end of the shift.
+                  if (_attendance.Status == AttendanceStatus.LeaveEarly && 
+                      !string.IsNullOrWhiteSpace(_attendance.LeaveReason) && 
+                      (_attendance.LeaveReason.Contains("Sick", StringComparison.OrdinalIgnoreCase) || 
+                       _attendance.LeaveReason.Contains("Ill", StringComparison.OrdinalIgnoreCase)) &&
+                      !HasMissingSickNote) // Meaning they DID upload a note
+                  {
+                       TimeSpan shiftEnd = _employee.ShiftEndTime ?? _branchDetails?.ShiftEndTime ?? new TimeSpan(16,45,0);
+                       DateTime expectedEnd = start.Date.Add(shiftEnd);
+                       
+                       if (end < expectedEnd)
+                       {
+                            // Calculate the missed time and add it to the totals
+                            CalculateHourlyWage(end, expectedEnd, accumulate: true);
+                       }
+                  }
              }
              else
              {
@@ -208,14 +231,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              }
         }
         
-        private void CalculateHourlyWage(DateTime start, DateTime end)
+        private void CalculateHourlyWage(DateTime start, DateTime end, bool accumulate = false)
         {
-             decimal totalWage = 0;
-             double totalHours = 0;
-             double ot15 = 0;
-             double ot20 = 0;
-             decimal otPay15 = 0;
-             decimal otPay20 = 0;
+             decimal totalWage = accumulate ? Wage : 0;
+             double totalHours = accumulate ? HoursWorked : 0;
+             double ot15 = accumulate ? OvertimeHours15 : 0;
+             double ot20 = accumulate ? OvertimeHours20 : 0;
+             decimal otPay15 = accumulate ? OvertimePay15 : 0;
+             decimal otPay20 = accumulate ? OvertimePay20 : 0;
 
              decimal rateToUse = (_attendance.CachedHourlyRate != null && _attendance.CachedHourlyRate > 0) 
                                  ? _attendance.CachedHourlyRate.Value 
@@ -318,6 +341,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             OnPropertyChanged(nameof(OvertimeHoursDisplay));
             OnPropertyChanged(nameof(OvertimeHours15));
             OnPropertyChanged(nameof(OvertimeHours20));
+            OnPropertyChanged(nameof(HasMissingSickNote));
 
             // Force recalculate on refresh as well
             CalculateEverything();

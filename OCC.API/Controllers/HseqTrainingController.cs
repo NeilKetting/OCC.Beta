@@ -59,7 +59,8 @@ namespace OCC.API.Controllers
                     DateCompleted = t.DateCompleted,
                     ValidUntil = t.ValidUntil,
                     Role = t.Role,
-                    CertificateUrl = t.CertificateUrl
+                    CertificateUrl = t.CertificateUrl,
+                    Trainer = t.Trainer
                 })
                 .ToListAsync();
         }
@@ -70,6 +71,40 @@ namespace OCC.API.Controllers
             _context.HseqTrainingRecords.Add(record);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetTrainingRecords", new { id = record.Id }, record);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutTrainingRecord(Guid id, HseqTrainingRecord record)
+        {
+            if (id != record.Id)
+            {
+                return BadRequest("ID mismatch");
+            }
+
+            _context.Entry(record).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TrainingRecordExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        private bool TrainingRecordExists(Guid id)
+        {
+            return _context.HseqTrainingRecords.Any(e => e.Id == id);
         }
 
         [HttpPost("upload")]

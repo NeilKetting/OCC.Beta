@@ -60,7 +60,8 @@ namespace OCC.Tests.Features.HseqHub
             await _vm.Initialize(auditId);
 
             // Assert
-            Assert.Equal(auditId, _vm.SelectedAudit.Id);
+            Assert.NotNull(_vm.SelectedAudit);
+            Assert.Equal(auditId, _vm.SelectedAudit!.Id);
             Assert.Single(_vm.Deviations);
             Assert.Single(_vm.SiteManagers);
             Assert.Equal("John", _vm.SiteManagers[0].FirstName);

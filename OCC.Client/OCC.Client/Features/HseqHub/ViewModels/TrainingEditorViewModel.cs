@@ -31,6 +31,9 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         private ObservableCollection<string> _certificateTypes = new();
 
         [ObservableProperty]
+        private ObservableCollection<string> _trainers = new();
+
+        [ObservableProperty]
         private ObservableCollection<Employee> _employees = new();
 
         [ObservableProperty]
@@ -71,13 +74,15 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 "HIRA (Hazard Identification & Risk Assessment)", "Scaffolding Erector",
                 "Scaffolding Inspector", "Working at Heights", "Fall Protection Planner",
                 "Confined Space Entry", "Incident Investigation", "Legal Liability",
-                "Construction Regulations", "Excavation Supervisor", "Demolition Supervisor"
+                "Construction Regulations", "Excavation Supervisor", "Demolition Supervisor",
+                "PTW", "Emergency Evacuation", "Stacking and Storing"
             };
         }
 
-        public void Initialize(IEnumerable<Employee> employees)
+        public void Initialize(IEnumerable<Employee> employees, IEnumerable<string> trainers)
         {
             Employees = new ObservableCollection<Employee>(employees);
+            Trainers = new ObservableCollection<string>(trainers.OrderBy(t => t));
             ClearForm();
         }
 

@@ -29,6 +29,22 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
+                    Description = "Annual Leave & Health & Safety Module",
+                    Changes = new ObservableCollection<string>
+                    {
+                        "NEW: Health & Safety Training - Added new certificate types and an intuitive layout with a toggleable form.",
+                        "NEW: Sick Note Uploads - Employees can now upload sick notes with Time & Attendance absence records.",
+                        "IMPROVED: Health & Safety Logging - Replaced Role input with disabled control and converted Trainer input to auto-complete.",
+                        "FIXED: Time & Attendance - Resolves Midnight Clock Out bug when no times are entered on manual shifts.",
+                        "FIXED: Time & Attendance - Added logic to prevent duplicate or overlapping manual clock-ins for the same day.",
+                        "FIXED: Health & Safety Training - View Certificate button now correctly parses uploaded links after immediately creating a new record.",
+                        "FIXED: DataGrid Row Deletion - Fixed UI glitch preventing users from deleting populated rows."
+                    }
+                },
+                new ReleaseNoteItem
+                {
+                    Version = "v1.6.0",
+                    Date = "14 February 2026",
                     Description = "Wage Run Precision & Bug Reporting V2",
                     Changes = new ObservableCollection<string>
                     {

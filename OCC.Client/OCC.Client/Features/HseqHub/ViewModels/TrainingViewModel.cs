@@ -83,7 +83,12 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 var vms = summaries.Select(r => new TrainingRecordViewModel(r)).ToList();
                 TrainingRecords = new ObservableCollection<TrainingRecordViewModel>(vms);
                 
-                Editor.Initialize(employees);
+                var uniqueTrainers = summariesTask.Result
+                    .Where(r => !string.IsNullOrWhiteSpace(r.Trainer))
+                    .Select(r => r.Trainer)
+                    .Distinct();
+
+                Editor.Initialize(employees, uniqueTrainers);
             }
             catch (Exception ex)
             {
@@ -216,7 +221,9 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 CertificateType = record.CertificateType,
                 DateCompleted = record.DateCompleted,
                 ValidUntil = record.ValidUntil,
-                Role = record.Role
+                Role = record.Role,
+                CertificateUrl = record.CertificateUrl,
+                Trainer = record.Trainer ?? string.Empty
             };
 
             if (existing != null)
@@ -251,9 +258,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         public string TrainingTopic => Summary.TrainingTopic;
         public DateTime DateCompleted => Summary.DateCompleted;
         public DateTime? ValidUntil => Summary.ValidUntil;
-        // Trainer not in summary, but if needed we can add it or fetch it.
-        // For now, let's keep it minimal as per the goal of lightweight lookups.
-        public string Trainer => ""; 
+        public string Trainer => Summary.Trainer; 
 
         public string ValidityStatus
         {

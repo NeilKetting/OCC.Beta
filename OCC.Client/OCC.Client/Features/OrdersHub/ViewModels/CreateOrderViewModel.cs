@@ -169,6 +169,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _orderStateService = null!;
             _lifecycle = null!;
             _submissionUseCase = null!;
+            _serviceProvider = null!;
             
             // Design-time instantiation
             OrderMenu = new OrderMenuViewModel();

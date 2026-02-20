@@ -231,14 +231,6 @@
 					</Popup>
 				</Grid>
 
-				<!-- Help Button -->
-				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Foreground="{DynamicResource TextSecondaryGray}" Command="{Binding NavigateCommand}" CommandParameter="Help">
-					<StackPanel Classes="SidebarItem" Orientation="Horizontal">
-						<PathIcon Data="{StaticResource IconHelp}" Classes="IconStyle"/>
-						<TextBlock Text="Help" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
-					</StackPanel>
-				</Button>
-
 				<!-- User Profile Button with Settings Popup -->
 				<!-- User Profile Button with Preferences Popup -->
 				<Grid>

@@ -37,8 +37,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.Views
 
         private void OnSaveClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            ClockInTime = new TimeSpan((int)(InHour.Value ?? 0), (int)(InMin.Value ?? 0), 0);
-            ClockOutTime = new TimeSpan((int)(OutHour.Value ?? 0), (int)(OutMin.Value ?? 0), 0);
+            ClockInTime = InHour.Value.HasValue || InMin.Value.HasValue
+                ? new TimeSpan((int)(InHour.Value ?? 0), (int)(InMin.Value ?? 0), 0)
+                : null;
+
+            ClockOutTime = OutHour.Value.HasValue || OutMin.Value.HasValue
+                ? new TimeSpan((int)(OutHour.Value ?? 0), (int)(OutMin.Value ?? 0), 0)
+                : null;
+
             Close(true);
         }
 

@@ -191,6 +191,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                  };
 
                  var fullEmployeeDto = await _employeeService.GetEmployeeAsync(SelectedEmployee.Id); 
+                 if (fullEmployeeDto == null) throw new Exception("Employee data not found.");
                  
                  // Map DTO to Model for QuestPDF service
                  var empModel = new Employee
