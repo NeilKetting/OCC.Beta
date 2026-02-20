@@ -237,7 +237,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// Command to open the detail view for creating a new inventory item.
         /// </summary>
         [RelayCommand]
-        public virtual async Task AddInventoryItem()
+        public virtual void AddInventoryItem()
         {
             var categories = _allItems.Select(i => i.Category).Distinct().OrderBy(c => c).ToList();
 

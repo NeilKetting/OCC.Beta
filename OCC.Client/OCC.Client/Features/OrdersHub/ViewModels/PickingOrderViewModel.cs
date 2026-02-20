@@ -142,7 +142,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             if (CurrentOrder != null)
             {
                 CurrentOrder.ProjectId = value?.Id;
-                CurrentOrder.ProjectName = value?.Name;
+                CurrentOrder.ProjectName = value?.Name ?? string.Empty;
             }
         }
 

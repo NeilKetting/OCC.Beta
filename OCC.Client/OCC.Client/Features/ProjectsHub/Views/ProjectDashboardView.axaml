@@ -88,11 +88,21 @@
                              <TextBlock Text="{Binding InProgressTasks}" FontSize="28" FontWeight="Bold" Foreground="#3B82F6" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-                    <Border Grid.Column="6" Classes="CardMedium" Padding="20">
-                        <StackPanel HorizontalAlignment="Center">
-                             <TextBlock Text="OVERDUE" Classes="LabelSmall" HorizontalAlignment="Center" Foreground="{DynamicResource ErrorRed}"/>
-                             <TextBlock Text="{Binding OverdueTasks}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ErrorRed}" HorizontalAlignment="Center"/>
-                        </StackPanel>
+                    <Border Grid.Column="6" Classes="CardMedium" Padding="0">
+                        <Button Command="{Binding ViewOverdueTasksCommand}" Cursor="Hand"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Padding="20" Background="Transparent" BorderThickness="0" CornerRadius="8">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#FEE2E2"/> <!-- Light red hover -->
+                                </Style>
+                            </Button.Styles>
+                            <StackPanel HorizontalAlignment="Center">
+                                 <TextBlock Text="OVERDUE" Classes="LabelSmall" HorizontalAlignment="Center" Foreground="{DynamicResource ErrorRed}"/>
+                                 <TextBlock Text="{Binding OverdueTasks}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ErrorRed}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </Border>
                 </Grid>
 

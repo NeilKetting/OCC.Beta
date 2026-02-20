@@ -62,6 +62,7 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
              _dialogService = null!;
              _logger = null!;
              _sideMenuViewModel = null!;
+             _permissionService = null!;
              CompanyDetails = new CompanyDetails();
         }
 

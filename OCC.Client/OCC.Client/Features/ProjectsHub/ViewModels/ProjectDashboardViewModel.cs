@@ -259,6 +259,17 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             }
         }
 
+        public event EventHandler<IEnumerable<ProjectTask>>? ViewOverdueTasksRequested;
+
+        [RelayCommand]
+        private void ViewOverdueTasks()
+        {
+            if (_allTasks == null) return;
+            var now = DateTime.Now;
+            var overdue = _allTasks.Where(t => !t.IsGroup && t.Status != "Completed" && t.FinishDate < now);
+            ViewOverdueTasksRequested?.Invoke(this, overdue);
+        }
+
         #endregion
     }
 }

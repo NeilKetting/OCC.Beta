@@ -59,6 +59,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         private ProjectDashboardViewModel _dashboardVM;
         
         [ObservableProperty]
+        private ProjectOverdueTasksViewModel _overdueTasksVM;
+        
+        [ObservableProperty]
         private ProjectVariationOrderListViewModel _variationOrderVM;
 
         [ObservableProperty]
@@ -105,6 +108,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel();
             _dashboardVM = new ProjectDashboardViewModel();
+            _overdueTasksVM = new ProjectOverdueTasksViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel();
             _filesVM = new ProjectFilesViewModel();
             _currentView = _listVM;
@@ -121,6 +125,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _listVM = new ProjectTaskListViewModel();
             _ganttVM = new ProjectGanttViewModel(_projectManager);
             _dashboardVM = new ProjectDashboardViewModel();
+            _overdueTasksVM = new ProjectOverdueTasksViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
             _filesVM = serviceProvider.GetRequiredService<ProjectFilesViewModel>();
 
@@ -128,6 +133,22 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 
             _listVM.TaskSelectionRequested += (s, id) => OnTaskSelectionRequested(id);
             _listVM.ToggleExpandRequested += (s, e) => { RefreshDisplayList(); };
+
+            _dashboardVM.ViewOverdueTasksRequested += (s, tasks) => 
+            {
+                _overdueTasksVM.LoadTasks(tasks);
+                CurrentView = _overdueTasksVM;
+            };
+
+            _overdueTasksVM.BackRequested += (s, e) =>
+            {
+                CurrentView = _dashboardVM;
+            };
+
+            _overdueTasksVM.TaskSelectionRequested += (s, task) =>
+            {
+                OpenTaskDetail(task);
+            };
 
             _topBar.PropertyChanged += TopBar_PropertyChanged;
             _topBar.DeleteProjectRequested += OnDeleteProjectRequested;
@@ -180,32 +201,46 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             }
         }
 
+        private bool _isLoadingTaskDetail;
+
         private async void LoadTaskDetail(ProjectTask task, bool pin)
         {
             if (task == null) return; 
 
+            if (_isLoadingTaskDetail) return; // Prevent double clicks
+            
             // Optimization: If already loaded same task, just update pin status
-            if (SelectedTaskDetailVM != null && SelectedTaskDetailVM.Task.Id == task.Id)
+            if (SelectedTaskDetailVM != null && SelectedTaskDetailVM.Task?.Id == task.Id)
             {
                 if (pin) IsPinned = true;
                 IsTaskDetailOpen = true;
                 return;
             }
 
-            var vm = _serviceProvider.GetRequiredService<TaskDetailViewModel>();
-            if (task.Id == Guid.Empty)
+            try 
             {
-                await vm.InitializeForCreation(CurrentProjectId);
+                _isLoadingTaskDetail = true;
+                var vm = _serviceProvider.GetRequiredService<TaskDetailViewModel>();
+                
+                // Show immediately so the built-in loading spinner in TaskDetailView is visible
+                SelectedTaskDetailVM = vm;
+                IsPinned = pin;
+                IsTaskDetailOpen = true;
+
+                if (task.Id == Guid.Empty)
+                {
+                    await vm.InitializeForCreation(CurrentProjectId);
+                }
+                else
+                {
+                    await vm.LoadTaskModel(task);
+                }
+                vm.CloseRequested += TaskDetailVM_CloseRequested;
             }
-            else
+            finally
             {
-                await vm.LoadTaskModel(task);
+                _isLoadingTaskDetail = false;
             }
-            vm.CloseRequested += TaskDetailVM_CloseRequested;
-            
-            SelectedTaskDetailVM = vm;
-            IsPinned = pin;
-            IsTaskDetailOpen = true;
         }
 
         private void TaskDetailVM_CloseRequested(object? sender, EventArgs e)
@@ -334,6 +369,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     RefreshDisplayList();
                     GanttVM.LoadTasks(projectId);
                     DashboardVM.UpdateProjectData(project, tasks);
+                    OverdueTasksVM.LoadTasks(tasks); // Ensure realtime UI updates
                     VariationOrderVM.LoadProject(projectId);
                     _ = FilesVM.LoadProjectFilesAsync(projectId);
                 });

@@ -94,7 +94,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         
         public string Note => !string.IsNullOrWhiteSpace(_attendance.LeaveReason) 
                               ? _attendance.LeaveReason 
-                              : _attendance.Notes;
+                              : _attendance.Notes ?? string.Empty;
 
         // Calculations
         [ObservableProperty]
