@@ -113,7 +113,13 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 Trainer = record.Trainer,
                 CertificateUrl = record.CertificateUrl,
                 CertificateType = record.CertificateType,
-                ExpiryWarningDays = record.ExpiryWarningDays
+                ExpiryWarningDays = record.ExpiryWarningDays,
+                RowVersion = record.RowVersion,
+                CreatedAtUtc = record.CreatedAtUtc,
+                CreatedBy = record.CreatedBy,
+                UpdatedAtUtc = record.UpdatedAtUtc,
+                UpdatedBy = record.UpdatedBy,
+                IsActive = record.IsActive
             };
 
             CertificateFileName = string.IsNullOrEmpty(record.CertificateUrl) 
@@ -125,19 +131,40 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         {
             if (value != null)
             {
+                var existingId = NewRecord?.Id ?? Guid.Empty;
+                var existingTopic = NewRecord?.TrainingTopic;
+                var existingDate = NewRecord?.DateCompleted == default ? DateTime.Now : NewRecord.DateCompleted;
+                var existingValid = NewRecord?.ValidUntil ?? DateTime.Now;
+                var existingTrainer = NewRecord?.Trainer;
+                var existingCertUrl = NewRecord?.CertificateUrl;
+                var existingCertType = NewRecord?.CertificateType;
+                var existingWarning = NewRecord?.ExpiryWarningDays ?? 30;
+                var existingRow = NewRecord?.RowVersion ?? Array.Empty<byte>();
+                var existingCreated = NewRecord?.CreatedAtUtc ?? DateTime.UtcNow;
+                var existingCreatedBy = NewRecord?.CreatedBy ?? "System";
+                var existingUpdated = NewRecord?.UpdatedAtUtc;
+                var existingUpdatedBy = NewRecord?.UpdatedBy;
+                var existingActive = NewRecord?.IsActive ?? true;
+
                 NewRecord = new HseqTrainingRecord
                 {
-                    Id = NewRecord.Id,
+                    Id = existingId,
                     EmployeeName = value.DisplayName,
                     Role = value.Role.ToString(),
                     EmployeeId = value.Id,
-                    TrainingTopic = NewRecord.TrainingTopic,
-                    DateCompleted = NewRecord.DateCompleted == default ? DateTime.Now : NewRecord.DateCompleted,
-                    ValidUntil = NewRecord.ValidUntil ?? DateTime.Now,
-                    Trainer = NewRecord.Trainer,
-                    CertificateUrl = NewRecord.CertificateUrl,
-                    CertificateType = NewRecord.CertificateType,
-                    ExpiryWarningDays = NewRecord.ExpiryWarningDays
+                    TrainingTopic = existingTopic,
+                    DateCompleted = existingDate,
+                    ValidUntil = existingValid,
+                    Trainer = existingTrainer,
+                    CertificateUrl = existingCertUrl,
+                    CertificateType = existingCertType,
+                    ExpiryWarningDays = existingWarning,
+                    RowVersion = existingRow,
+                    CreatedAtUtc = existingCreated,
+                    CreatedBy = existingCreatedBy,
+                    UpdatedAtUtc = existingUpdated,
+                    UpdatedBy = existingUpdatedBy,
+                    IsActive = existingActive
                 };
             }
         }

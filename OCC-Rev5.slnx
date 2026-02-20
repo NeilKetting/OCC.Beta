@@ -1,11 +1,10 @@
 <Solution>
   <Project Path="OCC.API/OCC.API.csproj" />
+  <Project Path="OCC.Client/OCC.Client.Android/OCC.Client.Android.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="OCC.Client/OCC.Client.Desktop/OCC.Client.Desktop.csproj" />
   <Project Path="OCC.Client/OCC.Client/OCC.Client.csproj" />
   <Project Path="OCC.Shared/OCC.Shared.csproj" />
   <Project Path="OCC.Tests/OCC.Tests.csproj" />
-  <Project Path="OCC.Client/OCC.Client.Android/OCC.Client.Android.csproj">
-    <Build Solution="Debug|*" Project="false" />
-    <Deploy Solution="Debug|*" />
-  </Project>
 </Solution>
