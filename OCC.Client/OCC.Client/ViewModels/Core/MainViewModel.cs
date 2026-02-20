@@ -17,6 +17,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.Services.Infrastructure;
 using OCC.Client.Features.AuthHub.ViewModels; // Added
+using OCC.Client.Features.MobileHub.ViewModels;
 
 namespace OCC.Client.ViewModels.Core
 {
@@ -73,6 +74,9 @@ namespace OCC.Client.ViewModels.Core
 
         [RelayCommand]
         public void NavigateToHome() => CurrentViewModel = _serviceProvider.GetRequiredService<ShellViewModel>();
+
+        [RelayCommand]
+        public void NavigateToMobileHub() => CurrentViewModel = _serviceProvider.GetRequiredService<MobileHubViewModel>();
 
         #endregion
 

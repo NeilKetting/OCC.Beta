@@ -24,6 +24,7 @@ namespace OCC.Tests.ViewModels
         private readonly Mock<InventoryLookupViewModel> _mockInventory;
         private readonly Mock<SupplierSelectorViewModel> _mockSuppliers;
         private readonly Mock<IOrderLifecycleService> _mockLifecycle;
+        private readonly Mock<IServiceProvider> _mockServiceProvider;
 
         private readonly CreateOrderViewModel _vm;
 
@@ -39,6 +40,7 @@ namespace OCC.Tests.ViewModels
             _mockInventory = new Mock<InventoryLookupViewModel>();
             _mockSuppliers = new Mock<SupplierSelectorViewModel>();
             _mockLifecycle = new Mock<IOrderLifecycleService>();
+            _mockServiceProvider = new Mock<IServiceProvider>();
 
             // Setup common mocks
             _mockOrderManager.Setup(m => m.CreateNewOrderTemplate(It.IsAny<OrderType>()))
@@ -71,6 +73,7 @@ namespace OCC.Tests.ViewModels
                 _mockOrderStateService.Object,
                 _mockLifecycle.Object,
                 _mockSubmissionUseCase.Object,
+                _mockServiceProvider.Object,
                 _mockOrderMenu.Object,
                 _mockLines.Object,
                 _mockInventory.Object,
