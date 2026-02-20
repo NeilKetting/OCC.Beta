@@ -236,6 +236,11 @@
 			<proj:ProjectDashboardView/>
 		</DataTemplate>
 
+		<!-- Overdue Tasks View Template -->
+		<DataTemplate DataType="{x:Type vm:ProjectOverdueTasksViewModel}" x:DataType="vm:ProjectOverdueTasksViewModel">
+			<proj:ProjectOverdueTasksView/>
+		</DataTemplate>
+
 		<!-- Variation Order View Template -->
 		<DataTemplate DataType="{x:Type vm:ProjectVariationOrderListViewModel}" x:DataType="vm:ProjectVariationOrderListViewModel">
 			<proj:ProjectVariationOrderListView/>

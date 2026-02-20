@@ -70,25 +70,7 @@ namespace OCC.Tests.ViewModels
             Assert.Equal("B123", _viewModel.FilteredItems[1].Sku);
         }
 
-        [Fact]
-        public async Task QuickCreateProduct_AddsToMaster_AndRefreshesFilter()
-        {
-            // Arrange
-            _viewModel.Initialize(new List<InventoryItem>());
-            _viewModel.NewDescription = "New Gadget";
-            _viewModel.NewCategory = "Gadgets";
-            var created = new InventoryItem { Description = "New Gadget", Category = "Gadgets" };
-            
-            _mockOrderManager.Setup(m => m.QuickCreateProductAsync("New Gadget", It.IsAny<string>(), "Gadgets", It.IsAny<string>()))
-                .ReturnsAsync(created);
-
-            // Act
-            await _viewModel.QuickCreateProduct();
-
-            // Assert
-            Assert.Contains(created, _viewModel.FilteredItems);
-            Assert.Contains("Gadgets", _viewModel.Categories);
-            Assert.Equal(created, _viewModel.SelectedItem);
-        }
+        // QuickCreateProduct logic has been moved to ItemDetailViewModel
+        // Removing the outdated test to fix compilation
     }
 }

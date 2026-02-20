@@ -14,7 +14,7 @@ namespace OCC.Client.Services
     public class UpdateService : IUpdateService
     {
         private readonly UpdateManager? _mgr;
-        private readonly string _updateUrl = "https://github.com/NeilKetting/OCC.Beta"; // Assuming this is the repo based on context, previously likely placeholder
+        private readonly string _updateUrl = "https://github.com/NeilKetting/OrangeCircleConstruction";
         private readonly ILogger<UpdateService> _logger;
 
         public string CurrentVersion

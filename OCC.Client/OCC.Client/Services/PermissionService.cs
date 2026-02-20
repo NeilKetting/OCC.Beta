@@ -72,7 +72,9 @@ namespace OCC.Client.Services
                 NavigationRoutes.Alerts, 
                 NavigationRoutes.Reminders,
                 NavigationRoutes.AccessDenied,
-                "MyProfile"
+                "MyProfile",
+                "Help",
+                "SendLogs"
             };
             if (basic.Contains(route, StringComparer.OrdinalIgnoreCase)) return true;
 
