@@ -93,6 +93,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private double _reorderPoint;
         
         /// <summary>
+        /// Gets or sets the standard unit price of the item.
+        /// </summary>
+        [ObservableProperty]
+        private decimal _price;
+
+        /// <summary>
         /// Gets or sets the average cost per unit of the item.
         /// </summary>
         [ObservableProperty]
@@ -220,6 +226,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     JhbReorderPoint = JhbReorderPoint,
                     CptReorderPoint = CptReorderPoint,
                     AverageCost = AverageCost,
+                    Price = Price,
                     TrackLowStock = IsTrackingLowStock,
                     IsStockItem = IsStockItem
                 };
@@ -292,6 +299,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 CptQuantity = 0;
                 JhbReorderPoint = 10;
                 CptReorderPoint = 10;
+                Price = 0;
             }
             else
             {
@@ -306,8 +314,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 JhbQuantity = item.JhbQuantity;
                 CptQuantity = item.CptQuantity;
                 // QuantityOnHand is computed
-                // QuantityOnHand is computed
                 AverageCost = item.AverageCost;
+                Price = item.Price;
                 IsTrackingLowStock = item.TrackLowStock;
                 IsStockItem = item.IsStockItem;
                 JhbReorderPoint = item.JhbReorderPoint;

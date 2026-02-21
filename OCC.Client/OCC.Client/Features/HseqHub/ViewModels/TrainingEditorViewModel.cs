@@ -132,18 +132,18 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             if (value != null)
             {
                 var existingId = NewRecord?.Id ?? Guid.Empty;
-                var existingTopic = NewRecord?.TrainingTopic;
-                var existingDate = NewRecord?.DateCompleted == default ? DateTime.Now : NewRecord.DateCompleted;
-                var existingValid = NewRecord?.ValidUntil ?? DateTime.Now;
-                var existingTrainer = NewRecord?.Trainer;
-                var existingCertUrl = NewRecord?.CertificateUrl;
-                var existingCertType = NewRecord?.CertificateType;
+                var existingTopic = NewRecord?.TrainingTopic ?? string.Empty;
+                var existingDate = (NewRecord?.DateCompleted == default || NewRecord?.DateCompleted == DateTime.MinValue) ? DateTime.Now : NewRecord!.DateCompleted;
+                var existingValid = (NewRecord?.ValidUntil == default || NewRecord?.ValidUntil == DateTime.MinValue) ? DateTime.Now : NewRecord!.ValidUntil;
+                var existingTrainer = NewRecord?.Trainer ?? string.Empty;
+                var existingCertUrl = NewRecord?.CertificateUrl ?? string.Empty;
+                var existingCertType = NewRecord?.CertificateType ?? string.Empty;
                 var existingWarning = NewRecord?.ExpiryWarningDays ?? 30;
                 var existingRow = NewRecord?.RowVersion ?? Array.Empty<byte>();
                 var existingCreated = NewRecord?.CreatedAtUtc ?? DateTime.UtcNow;
                 var existingCreatedBy = NewRecord?.CreatedBy ?? "System";
                 var existingUpdated = NewRecord?.UpdatedAtUtc;
-                var existingUpdatedBy = NewRecord?.UpdatedBy;
+                var existingUpdatedBy = NewRecord?.UpdatedBy ?? string.Empty;
                 var existingActive = NewRecord?.IsActive ?? true;
 
                 NewRecord = new HseqTrainingRecord

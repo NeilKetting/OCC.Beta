@@ -38,6 +38,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private readonly IOrderLifecycleService _lifecycle;
         private readonly OrderSubmissionUseCase _submissionUseCase;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IToastService _toastService;
 
         private bool _isNewOrder;
         private bool _isInitializing;
@@ -126,6 +127,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             IOrderLifecycleService lifecycle,
             OrderSubmissionUseCase submissionUseCase,
             IServiceProvider serviceProvider,
+            IToastService toastService,
             OrderMenuViewModel orderMenu,
             OrderLinesViewModel lines,
             InventoryLookupViewModel inventory,
@@ -140,6 +142,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _lifecycle = lifecycle;
             _submissionUseCase = submissionUseCase;
             _serviceProvider = serviceProvider;
+            _toastService = toastService;
 
             OrderMenu = orderMenu;
             Lines = lines;
@@ -170,6 +173,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             _lifecycle = null!;
             _submissionUseCase = null!;
             _serviceProvider = null!;
+            _toastService = null!;
             
             // Design-time instantiation
             OrderMenu = new OrderMenuViewModel();
@@ -338,6 +342,42 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         }
 
         [RelayCommand]
+        public void GoBack()
+        {
+            Reset();
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        [RelayCommand(CanExecute = nameof(CanFinalise))]
+        public async Task FinaliseOrder()
+        {
+             if (IsBusy) return;
+             
+             bool confirm = await _dialogService.ShowConfirmationAsync("Finalise Order", "Are you sure you want to finalise this order? It will no longer be editable.");
+             if (!confirm) return;
+
+             CurrentOrder.Status = OrderStatus.Finalised;
+             
+             // Save changes
+             var options = new UseCases.OrderSubmissionOptions(ShouldPrintOrder, ShouldEmailOrder, _isNewOrder);
+             var (success, result) = await _submissionUseCase.ExecuteAsync(CurrentOrder, options);
+
+             if (success)
+             {
+                 // Update UI state
+                 IsReadOnly = true;
+                 Lines.IsReadOnly = true;
+                 OnPropertyChanged(nameof(SubmitButtonText));
+                 _toastService?.ShowSuccess("Order Finalised", "The order has been finalised successfully.");
+             }
+             else
+             {
+                 // Revert status on failure
+                 CurrentOrder.Status = OrderStatus.Completed;
+             }
+        }
+
+        [RelayCommand]
         public void ToggleAddProjectAddress() => IsAddingProjectAddress = !IsAddingProjectAddress;
 
         [RelayCommand]
@@ -390,6 +430,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         public bool CanSubmitOrder => !HasErrors && !CurrentOrder.HasErrors;
 
+        public bool CanFinalise => CurrentOrder.Status == OrderStatus.Completed;
+
         public async Task LoadData() => await _lifecycle.LoadInitialDataAsync(this);
         public void Reset() => _lifecycle.Reset(this);
         public async Task LoadExistingOrder(Order order) => await _lifecycle.LoadOrderAsync(this, order);
@@ -415,7 +457,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
             IsSiteDelivery = CurrentOrder.DestinationType == OrderDestinationType.Site;
             IsOfficeDelivery = !IsSiteDelivery;
-            IsReadOnly = CurrentOrder.Status == OrderStatus.Completed || CurrentOrder.Status == OrderStatus.Cancelled;
+            IsReadOnly = CurrentOrder.Status == OrderStatus.Finalised || CurrentOrder.Status == OrderStatus.Cancelled;
 
             Lines.IsReadOnly = IsReadOnly;
             Lines.Initialize(CurrentOrder, Enumerable.Empty<InventoryItem>()); // Master list is managed centraly
@@ -445,6 +487,9 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
             OnPropertyChanged(nameof(SubmitButtonText));
             Initialize();
+
+            // Refresh CanFinalise state
+            FinaliseOrderCommand.NotifyCanExecuteChanged();
             }
             finally
             {
@@ -485,6 +530,10 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             if (e.PropertyName == nameof(OrderWrapper.Branch))
             {
                 Suppliers.Filter(CurrentOrder?.Branch ?? Branch.CPT);
+            }
+            else if (e.PropertyName == nameof(OrderWrapper.Status))
+            {
+                FinaliseOrderCommand.NotifyCanExecuteChanged();
             }
             else if (e.PropertyName == nameof(OrderWrapper.DestinationType))
             {

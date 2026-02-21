@@ -37,7 +37,7 @@
 			BoxShadow="0 2 15 5 #292828"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Center"
-			MaxWidth="1000" Width="650">
+			MaxWidth="800" MaxHeight="600" Margin="20">
 		<Grid RowDefinitions="Auto, *, Auto, Auto">
 
 			<!-- Header -->
@@ -68,10 +68,17 @@
 						<!-- Product Info -->
 						<TextBlock Text="General Information" Classes="SectionHeader" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource PrimaryTeal}"/>
 
-						<StackPanel Spacing="10">
-							<TextBlock Text="Product Code / SKU" Classes="FormLabel"/>
-							<TextBox Text="{Binding Sku}" Classes="FormInput" Watermark="e.g. CEM-50"/>
-						</StackPanel>
+						<Grid ColumnDefinitions="*, 20, *">
+							<StackPanel Grid.Column="0" Spacing="10">
+								<TextBlock Text="Product Code / SKU" Classes="FormLabel"/>
+								<TextBox Text="{Binding Sku}" Classes="FormInput" Watermark="e.g. CEM-50"/>
+							</StackPanel>
+
+							<StackPanel Grid.Column="2" Spacing="10">
+								<TextBlock Text="Unit Price (R)" Classes="FormLabel"/>
+								<TextBox Text="{Binding Price}" Classes="FormInput" Watermark="0.00"/>
+							</StackPanel>
+						</Grid>
 
 						<StackPanel Spacing="10">
 							<TextBlock Text="Description" Classes="FormLabel"/>

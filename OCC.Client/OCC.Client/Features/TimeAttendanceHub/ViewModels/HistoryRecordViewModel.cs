@@ -102,6 +102,16 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             (_attendance.LeaveReason.Contains("Sick", StringComparison.OrdinalIgnoreCase) || _attendance.LeaveReason.Contains("Ill", StringComparison.OrdinalIgnoreCase)) &&
             string.IsNullOrWhiteSpace(_attendance.DoctorsNoteImagePath);
 
+        public bool HasSickNote 
+        {
+            get => !string.IsNullOrWhiteSpace(_attendance.DoctorsNoteImagePath);
+        }
+
+        public string? SickNoteUrl 
+        {
+            get => _attendance.DoctorsNoteImagePath;
+        }
+
         // Calculations
         [ObservableProperty]
         private double _hoursWorked;

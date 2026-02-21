@@ -118,6 +118,8 @@
 	Button.MenuTabButton /template/ ContentPresenter,
 	Button.Ghost /template/ ContentPresenter,
 	Button.Secondary /template/ ContentPresenter,
+	Button.Reset /template/ ContentPresenter,
+	Button.Back /template/ ContentPresenter,
 	Button.IconButton /template/ ContentPresenter">
 		<Setter Property="Transitions">
 			<Transitions>
@@ -127,7 +129,7 @@
 	</Style>
 
 	<!-- Shared Action Button Styles (Primary, Cancel & Standout) -->
-	<Style Selector="Button.Primary, Button.Secondary, Button.Standout, Button.Cancel">
+	<Style Selector="Button.Primary, Button.Secondary, Button.Standout, Button.Cancel, Button.Reset">
 		<Setter Property="HorizontalAlignment" Value="Stretch" />
 		<Setter Property="HorizontalContentAlignment" Value="Center" />
 		<Setter Property="VerticalContentAlignment" Value="Center" />
@@ -142,6 +144,7 @@
 		<Setter Property="Background" Value="{DynamicResource PrimaryTeal}" />
 		<Setter Property="BorderBrush" Value="{DynamicResource SurfaceWhite}"/>
 		<Setter Property="BorderThickness" Value="0.5"/>
+		<Setter Property="Foreground" Value="White" />
 	</Style>
 	<Style Selector="Button.Primary:pointerover /template/ ContentPresenter">
 		<Setter Property="Background" Value="{DynamicResource PrimaryTealHover}" />
@@ -151,14 +154,52 @@
 		<Setter Property="RenderTransform" Value="scale(0.98)"/>
 	</Style>
 
+	<!-- Reset Button (Blue) -->
+	<Style Selector="Button.Reset">
+		<Setter Property="Background" Value="{DynamicResource ActionBlue}" />
+		<Setter Property="Foreground" Value="White" />
+		<Setter Property="BorderBrush" Value="{DynamicResource SurfaceWhite}"/>
+		<Setter Property="BorderThickness" Value="0.5"/>
+	</Style>
+	<Style Selector="Button.Reset:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource ActionBlueHover}" />
+	</Style>
+	<Style Selector="Button.Reset:pressed /template/ ContentPresenter">
+		<Setter Property="Opacity" Value="0.8"/>
+		<Setter Property="RenderTransform" Value="scale(0.98)"/>
+	</Style>
+
 	<!-- Secondary Button (Orange) -->
 	<Style Selector="Button.Secondary">
 		<Setter Property="Background" Value="{DynamicResource AccentOrange}" />
 		<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
 	</Style>
-	<Style Selector="Button.Primary:pressed /template/ ContentPresenter">
+	<Style Selector="Button.Secondary:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource AccentOrangeHover}" />
+	</Style>
+	<Style Selector="Button.Secondary:pressed /template/ ContentPresenter">
 		<Setter Property="Opacity" Value="0.8"/>
 		<Setter Property="RenderTransform" Value="scale(0.98)"/>
+	</Style>
+
+	<!-- Back Button -->
+	<Style Selector="Button.Back">
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Foreground" Value="{DynamicResource TextSecondaryDark}" />
+		<Setter Property="BorderThickness" Value="0" />
+		<Setter Property="Padding" Value="10,5" />
+		<Setter Property="FontWeight" Value="SemiBold" />
+	</Style>
+	<Style Selector="Button.Back:pointerover /template/ ContentPresenter">
+		<Setter Property="Background" Value="{DynamicResource SurfaceLightGray}" />
+		<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}" />
+	</Style>
+	<Style Selector="Button.Back:pointerover > StackPanel > PathIcon">
+		<Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}" />
+	</Style>
+	<Style Selector="Button.Back:pressed /template/ ContentPresenter">
+		<Setter Property="Opacity" Value="0.8"/>
+		<Setter Property="RenderTransform" Value="scale(0.95)" />
 	</Style>
 
 	<!-- Cancel Button (Red) -->

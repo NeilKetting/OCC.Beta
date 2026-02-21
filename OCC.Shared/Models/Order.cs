@@ -85,6 +85,7 @@ namespace OCC.Shared.Models
         Ordered,
         PartialDelivery,
         Completed,
+        Finalised,
         Cancelled
     }
 }

@@ -40,7 +40,7 @@
                              <TextBlock Text="Expiry Warning (Days):" VerticalAlignment="Center"/>
                              <NumericUpDown Value="{Binding ExpiryWarningDays}" Minimum="1" Maximum="365" Width="100"/>
                              <Button Content="Show Expiring" Command="{Binding FilterExpiringCommand}" Classes="Secondary"/>
-                             <Button Content="Reset/Reload" Command="{Binding LoadDataCommand}" Classes="Ghost"/>
+                             <Button Content="Reset/Reload" Command="{Binding LoadDataCommand}" Classes="Reset"/>
                              <Button Content="+ Add Training" Command="{Binding ToggleAddCommand}" Classes="Primary" Margin="10,0,0,0"/>
                         </StackPanel>
                         
@@ -94,27 +94,45 @@
                         <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <Button Classes="IconBtn" 
-                                                Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).EditRecordCommand}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip.Tip="Edit Record">
-                                            <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
-                                        </Button>
-                                        <Button Classes="IconBtn" 
-                                                Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).ViewCertificateCommand}"
-                                                CommandParameter="{Binding}"
-                                                IsEnabled="{Binding HasCertificate}"
-                                                ToolTip.Tip="View Certificate">
-                                            <PathIcon Data="{StaticResource IconView}" Width="16" Height="16"/>
-                                        </Button>
-                                        <Button Classes="IconBtn" 
-                                                Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).DeleteRecordCommand}"
-                                                CommandParameter="{Binding}"
-                                                ToolTip.Tip="Delete Record">
-                                            <PathIcon Data="{StaticResource IconDelete}" Width="16" Height="16" Foreground="Red"/>
-                                        </Button>
-                                    </StackPanel>
+                                    <Button Classes="IconButton" Margin="0,0,20,0">
+                                        <Button.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                <MenuItem Header="Edit" 
+                                                          Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).EditRecordCommand}" 
+                                                          CommandParameter="{Binding .}">
+                                                    <MenuItem.Icon>
+                                                        <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <MenuItem Header="View Certificate" 
+                                                          Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).ViewCertificateCommand}" 
+                                                          CommandParameter="{Binding .}"
+                                                          IsEnabled="{Binding HasCertificate}">
+                                                    <MenuItem.Icon>
+                                                        <!-- Highlight path icon teal if certificate exists -->
+                                                        <PathIcon Data="{StaticResource IconView}" Width="16" Height="16" 
+                                                                  Classes.HasCert="{Binding HasCertificate}">
+                                                            <PathIcon.Styles>
+                                                                <Style Selector="PathIcon.HasCert">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryTeal}"/>
+                                                                </Style>
+                                                            </PathIcon.Styles>
+                                                        </PathIcon>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem Header="Delete" 
+                                                          Command="{Binding $parent[UserControl].((vm:TrainingViewModel)DataContext).DeleteRecordCommand}" 
+                                                          CommandParameter="{Binding .}" 
+                                                          Foreground="Red">
+                                                    <MenuItem.Icon>
+                                                        <PathIcon Data="{StaticResource IconDelete}" Width="16" Height="16" Foreground="Red"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <PathIcon Data="{StaticResource IconMoreHorizontal}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
+                                    </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -124,10 +142,11 @@
                 </Border>
                 
                 <!-- Add New Form -->
-                <Border Grid.Column="1" Classes="Card" Padding="20" IsVisible="{Binding Editor.IsOpen}" Width="320">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="15" Margin="0,0,10,0">
-                            <TextBlock Text="Add Training Record" Classes="H2" Margin="0,0,0,10"/>
+                <Border Grid.Column="1" Classes="Card" Padding="20" IsVisible="{Binding Editor.IsOpen}" Width="320" VerticalAlignment="Stretch">
+                    <Grid RowDefinitions="*">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="15" Margin="0,0,10,0">
+                                <TextBlock Text="Add Training Record" Classes="H2" Margin="0,0,0,10"/>
                             
                             <StackPanel>
                                 <TextBlock Text="Employee Name" Classes="FormLabel"/>
@@ -203,6 +222,7 @@
                             </Grid>
                         </StackPanel>
                     </ScrollViewer>
+                  </Grid>
                 </Border>
             </Grid>
         </Grid>

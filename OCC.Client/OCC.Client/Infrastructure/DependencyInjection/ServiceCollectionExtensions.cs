@@ -131,6 +131,7 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             services.AddTransient<CreateProjectViewModel>();
             services.AddTransient<EditProjectViewModel>();
             services.AddTransient<ProjectReportViewModel>();
+            services.AddTransient<ProjectCustomerReportViewModel>();
             services.AddTransient<ProjectTopBarViewModel>();
             services.AddTransient<ProjectGanttViewModel>();
             services.AddTransient<ProjectVariationOrderListViewModel>();

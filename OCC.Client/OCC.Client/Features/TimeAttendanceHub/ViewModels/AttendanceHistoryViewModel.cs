@@ -857,6 +857,34 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         [RelayCommand]
+        public async Task ViewSickNote(HistoryRecordViewModel recordVm)
+        {
+            if (recordVm == null || !recordVm.HasSickNote || string.IsNullOrWhiteSpace(recordVm.SickNoteUrl)) return;
+
+            try
+            {
+                var url = recordVm.SickNoteUrl;
+                
+                if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
+                    if (!baseUrl.EndsWith("/")) baseUrl += "/";
+                    url = url.TrimStart('/');
+                    url = baseUrl + url;
+                }
+
+                var p = new System.Diagnostics.Process();
+                p.StartInfo = new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true };
+                p.Start();
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Could not open the Medical Certificate: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
         public async Task RefreshAsync()
         {
             await LoadData();

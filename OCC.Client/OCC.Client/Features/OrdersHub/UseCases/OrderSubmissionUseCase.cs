@@ -152,6 +152,30 @@ namespace OCC.Client.Features.OrdersHub.UseCases
 
         private async Task HandlePostSubmitActionsAsync(Order order, OrderSubmissionOptions options)
         {
+            // Sync Inventory Item Prices if they have changed
+            foreach (var line in order.Lines)
+            {
+                if (line.InventoryItemId.HasValue && line.UnitPrice > 0)
+                {
+                    try
+                    {
+                        var item = await _orderManager.GetItemByIdAsync(line.InventoryItemId.Value);
+                        if (item != null && item.Price != line.UnitPrice)
+                        {
+                            item.Price = line.UnitPrice;
+                            // OrderLinesViewModel uses UpdateInventoryItemAsync, while ItemDetailViewModel uses UpdateItemAsync.
+                            // However, IOrderManager interface in OrderLines uses UpdateInventoryItemAsync. Let's use UpdateItemAsync 
+                            // as we know it exists for sure, but actually let's just stick to UpdateItemAsync as used in ItemDetail.
+                            await _orderManager.UpdateItemAsync(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to sync price for item {ItemId}", line.InventoryItemId);
+                    }
+                }
+            }
+
             if (options.ShouldEmail)
             {
                 await _dialogService.ShowAlertAsync("Info", "Email functionality is coming soon.");

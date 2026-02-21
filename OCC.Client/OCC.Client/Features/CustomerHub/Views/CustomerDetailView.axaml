@@ -18,6 +18,7 @@
 			HorizontalAlignment="Center"
 			MaxWidth="850"
 			Width="850"
+			MaxHeight="850"
 			BoxShadow="0 8 30 0 #50000000">
 		<Grid RowDefinitions="Auto, *, Auto">
 			<!-- Header -->

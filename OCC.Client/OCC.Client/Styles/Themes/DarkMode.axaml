@@ -6,8 +6,11 @@
     <!-- Teal made slightly lighter for dark mode contrast -->
     <SolidColorBrush x:Key="PrimaryTeal">#00d4cc</SolidColorBrush> 
     <SolidColorBrush x:Key="PrimaryTealHover">#33e0d9</SolidColorBrush>
-    <SolidColorBrush x:Key="PrimaryTealLight">#0f2e2e</SolidColorBrush>
-    <SolidColorBrush x:Key="AccentOrange">#ED985F</SolidColorBrush>
+    	<SolidColorBrush x:Key="PrimaryTealLight">#0f766e</SolidColorBrush>
+	<SolidColorBrush x:Key="AccentOrange">#fdba74</SolidColorBrush>
+	<SolidColorBrush x:Key="AccentOrangeHover">#fed7aa</SolidColorBrush>
+	<SolidColorBrush x:Key="ActionBlue">#3B82F6</SolidColorBrush>
+	<SolidColorBrush x:Key="ActionBlueHover">#60A5FA</SolidColorBrush>
 
     <!-- Background & Surface Colors -->
     <!-- Main Slate Background -> Very Dark Slate -->

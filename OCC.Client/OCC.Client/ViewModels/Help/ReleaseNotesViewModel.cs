@@ -29,15 +29,14 @@ namespace OCC.Client.ViewModels.Help
                 {
                     Version = $"{versionString} (Current)",
                     Date = DateTime.Today.ToString("d MMMM yyyy"),
-                    Description = "Annual Leave & Health & Safety Module",
+                    Description = "Inventory Pricing & UI Standardization (v1.6.X)",
                     Changes = new ObservableCollection<string>
                     {
-                        "NEW: Health & Safety Training - Added new certificate types and an intuitive layout with a toggleable form.",
-                        "NEW: Sick Note Uploads - Employees can now upload sick notes with Time & Attendance absence records.",
-                        "IMPROVED: Health & Safety Logging - Replaced Role input with disabled control and converted Trainer input to auto-complete.",
-                        "FIXED: Time & Attendance - Resolves Midnight Clock Out bug when no times are entered on manual shifts.",
-                        "FIXED: Time & Attendance - Added logic to prevent duplicate or overlapping manual clock-ins for the same day.",
-                        "FIXED: Health & Safety Training - View Certificate button now correctly parses uploaded links after immediately creating a new record.",
+                        "NEW: Inventory Pricing - Added optional 'Unit Price (R)' to inventory items.",
+                        "NEW: Dynamic Price Sync - Inventory item prices automatically sync with live Order Line prices.",
+                        "NEW: UI Standardization - Replaced inline action buttons with standard '...' Flyout Menus in Training View.",
+                        "NEW: Visual Indicators - Certificate icon now distinctly highlights Teal when attached to a training record.",
+                        "IMPROVED: Training Layout - Refactored training record form spacing and scroll behavior, added custom Reset buttons.",
                         "FIXED: DataGrid Row Deletion - Fixed UI glitch preventing users from deleting populated rows."
                     }
                 },

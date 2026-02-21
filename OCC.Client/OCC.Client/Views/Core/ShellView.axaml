@@ -32,7 +32,7 @@
 				<MenuItem Header="Copy" InputGesture="Ctrl+C"/>
 				<MenuItem Header="Paste" InputGesture="Ctrl+V"/>
 			</MenuItem>
-			<MenuItem Header="_Hubs">
+			<MenuItem Header="H_ubs">
 				<MenuItem Header="General">
 					<MenuItem Header="Home" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="Home">
 						<MenuItem.Icon>
@@ -114,7 +114,7 @@
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator/>
-				<MenuItem Header="Send Logs" Command="{Binding UploadLogsCommand}">
+				<MenuItem Header="_Send Logs" Command="{Binding UploadLogsCommand}">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconUpload}" Width="16" Height="16"/>
 					</MenuItem.Icon>

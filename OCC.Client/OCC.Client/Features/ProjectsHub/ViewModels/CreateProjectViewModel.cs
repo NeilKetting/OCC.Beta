@@ -23,6 +23,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 
         private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<Customer> _customerRepository;
+        private readonly Services.Interfaces.ICustomerService _customerService;
+        private readonly Services.Interfaces.IDialogService _dialogService;
         private readonly IRepository<ProjectTask> _taskRepository;
         private readonly IRepository<AppSetting> _appSettingsRepository;
         private readonly IRepository<Employee> _staffRepository;
@@ -86,6 +88,12 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         [ObservableProperty]
         private AddressSuggestion? _selectedAddressSuggestion;
 
+        [ObservableProperty]
+        private bool _isAddCustomerPopupVisible;
+
+        [ObservableProperty]
+        private OCC.Client.Features.CustomerHub.ViewModels.CustomerDetailViewModel? _customerDetailPopup;
+
         private List<ProjectTask>? _importedTasks;
 
         #endregion
@@ -117,6 +125,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _staffRepository = null!;
             _userRepository = null!;
             _googleMapsService = null!;
+            _customerService = null!;
+            _dialogService = null!;
             _project = new ProjectWrapper(new Project());
         }
         
@@ -127,7 +137,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             IRepository<AppSetting> appSettingsRepository,
             IRepository<Employee> staffRepository,
             IRepository<User> userRepository,
-            IGoogleMapsService googleMapsService)
+            IGoogleMapsService googleMapsService,
+            Services.Interfaces.ICustomerService customerService,
+            Services.Interfaces.IDialogService dialogService)
         {
             _projectRepository = projectRepository;
             _customerRepository = customerRepository;
@@ -136,6 +148,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _staffRepository = staffRepository;
             _userRepository = userRepository;
             _googleMapsService = googleMapsService;
+            _customerService = customerService;
+            _dialogService = dialogService;
             Project = new ProjectWrapper(new Project());
             
             LoadCustomers();
@@ -358,7 +372,25 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         [RelayCommand]
         private void AddCustomer()
         {
-            WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(NavigationRoutes.Customers));
+            var vm = new OCC.Client.Features.CustomerHub.ViewModels.CustomerDetailViewModel(_customerService, _dialogService);
+            vm.InitializeNew();
+
+            vm.CloseRequested += (s, e) => CloseCustomerPopup();
+            vm.Saved += (s, e) => 
+            {
+                var newCustomerName = vm.Name;
+                CloseCustomerPopup();
+                LoadCustomers(newCustomerName);
+            };
+
+            CustomerDetailPopup = vm;
+            IsAddCustomerPopupVisible = true;
+        }
+
+        private void CloseCustomerPopup()
+        {
+            IsAddCustomerPopupVisible = false;
+            CustomerDetailPopup = null;
         }
 
         #endregion
@@ -459,7 +491,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             }
         }
 
-        private async void LoadCustomers()
+        private async void LoadCustomers(string? customerToSelect = null)
         {
             try 
             {
@@ -468,6 +500,15 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                 foreach (var c in customers.OrderBy(c => c.Name))
                 {
                     Customers.Add(c);
+                }
+
+                if (!string.IsNullOrEmpty(customerToSelect))
+                {
+                    var found = Customers.FirstOrDefault(c => c.Name.Equals(customerToSelect, StringComparison.OrdinalIgnoreCase));
+                    if (found != null)
+                    {
+                        Customer = found;
+                    }
                 }
             }
             catch(Exception) { }

@@ -7,6 +7,9 @@
 	<SolidColorBrush x:Key="PrimaryTealHover">#00a39c</SolidColorBrush>
 	<SolidColorBrush x:Key="PrimaryTealLight">#e0f2f1</SolidColorBrush>
 	<SolidColorBrush x:Key="AccentOrange">#F97637</SolidColorBrush>
+	<SolidColorBrush x:Key="AccentOrangeHover">#FA8C56</SolidColorBrush>
+	<SolidColorBrush x:Key="ActionBlue">#3B82F6</SolidColorBrush>
+	<SolidColorBrush x:Key="ActionBlueHover">#2563EB</SolidColorBrush>
 
 	<!-- Background & Surface Colors -->
 	<SolidColorBrush x:Key="PrimaryBackgroundDark">#576A8F</SolidColorBrush>

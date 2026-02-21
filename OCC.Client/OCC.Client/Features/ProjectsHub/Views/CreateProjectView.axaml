@@ -2,9 +2,10 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="clr-namespace:OCC.Client.Features.ProjectsHub.ViewModels"
+ 			 xmlns:vm="clr-namespace:OCC.Client.Features.ProjectsHub.ViewModels"
  			 xmlns:local="clr-namespace:OCC.Client.Features.ProjectsHub.Views"
-			 mc:Ignorable="d"
+ 			 xmlns:cust="clr-namespace:OCC.Client.Features.CustomerHub.Views"
+ 			 mc:Ignorable="d"
 			 x:Class="OCC.Client.Features.ProjectsHub.Views.CreateProjectView"
 			 x:DataType="vm:CreateProjectViewModel">
 
@@ -137,6 +138,11 @@
 							</StackPanel>
 						</StackPanel>
 					</Border>
+				</Grid>
+
+				<!-- ADD CUSTOMER OVERLAY -->
+				<Grid IsVisible="{Binding IsAddCustomerPopupVisible}" Background="#CCFFFFFF" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<cust:CustomerDetailView DataContext="{Binding CustomerDetailPopup}" />
 				</Grid>
 			</Grid>
 

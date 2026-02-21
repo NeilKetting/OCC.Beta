@@ -18,10 +18,10 @@
         
         <!-- Header Section -->
         <Border Grid.Row="0" Background="White" Padding="30,20" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Spacing="20">
-                <Button Command="{Binding GoBackCommand}" Classes="GhostButton" Padding="10,8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <PathIcon Data="{StaticResource IconChevronLeft}" Width="12" Height="12"/>
+            				<StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+					<Button Command="{Binding GoBackCommand}" Classes="Back">
+						<StackPanel Orientation="Horizontal" Spacing="5">
+							<PathIcon Data="{StaticResource IconChevronLeft}" Width="12" Height="12"/>
                         <TextBlock Text="Back to Dashboard" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Button>

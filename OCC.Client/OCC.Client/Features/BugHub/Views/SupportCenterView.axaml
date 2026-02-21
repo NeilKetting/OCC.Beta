@@ -163,10 +163,12 @@
                                             <Border CornerRadius="8" Padding="15,10" MaxWidth="400"
                                                     Background="{Binding IsDevComment, Converter={StaticResource TypeToColorConverter}, ConverterParameter='CommentBg'}">
                                                 <StackPanel Spacing="5">
-                                                    <TextBlock Text="{Binding AuthorName}" FontWeight="Bold" FontSize="11" Opacity="0.7"/>
+                                                    <TextBlock Text="{Binding AuthorName}" FontWeight="Bold" FontSize="11" 
+                                                               Foreground="{Binding IsDevComment, Converter={StaticResource TypeToColorConverter}, ConverterParameter='CommentFg'}" Opacity="0.8"/>
                                                     <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="13" 
                                                                Foreground="{Binding IsDevComment, Converter={StaticResource TypeToColorConverter}, ConverterParameter='CommentFg'}"/>
-                                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm}'}" FontSize="9" Opacity="0.4" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:HH:mm}'}" FontSize="9" 
+                                                               Foreground="{Binding IsDevComment, Converter={StaticResource TypeToColorConverter}, ConverterParameter='CommentFg'}" Opacity="0.6" HorizontalAlignment="Right"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>

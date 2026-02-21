@@ -1,5 +1,6 @@
 using OCC.Client.Features.TaskHub.Views;
 using OCC.Client.Features.TaskHub.ViewModels;
+using OCC.Client.ModelWrappers;
 using Avalonia.Threading;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -68,6 +69,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         private ProjectFilesViewModel _filesVM;
 
         [ObservableProperty]
+        private ProjectCustomerReportViewModel _reportVM;
+
+        [ObservableProperty]
         private TaskDetailViewModel? _selectedTaskDetailVM;
 
         [ObservableProperty]
@@ -111,6 +115,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _overdueTasksVM = new ProjectOverdueTasksViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel();
             _filesVM = new ProjectFilesViewModel();
+            _reportVM = new ProjectCustomerReportViewModel();
             _currentView = _listVM;
         }
         
@@ -128,6 +133,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             _overdueTasksVM = new ProjectOverdueTasksViewModel();
             _variationOrderVM = new ProjectVariationOrderListViewModel(serviceProvider.GetRequiredService<IProjectVariationOrderService>(), _toastService);
             _filesVM = serviceProvider.GetRequiredService<ProjectFilesViewModel>();
+            _reportVM = serviceProvider.GetRequiredService<ProjectCustomerReportViewModel>();
 
             _currentView = _dashboardVM;
 
@@ -372,6 +378,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     OverdueTasksVM.LoadTasks(tasks); // Ensure realtime UI updates
                     VariationOrderVM.LoadProject(projectId);
                     _ = FilesVM.LoadProjectFilesAsync(projectId);
+
+                    var variationList = VariationOrderVM.VariationOrders?.ToList() ?? new List<ProjectVariationOrderWrapper>();
+                    await ReportVM.LoadReportDataAsync(project, new ObservableCollection<ProjectTask>(tasks), new ObservableCollection<ProjectVariationOrderWrapper>(variationList));
                 });
             }
             finally
@@ -403,6 +412,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                         break;
                     case "Sheet":
                         CurrentView = VariationOrderVM;
+                        break;
+                    case "Report":
+                        CurrentView = ReportVM;
                         break;
                     case "Files":
                         CurrentView = FilesVM;

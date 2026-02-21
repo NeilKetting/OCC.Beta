@@ -89,12 +89,6 @@
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="DoubleTapped">
-					<InvokeCommandAction Command="{Binding EditInventoryItemCommand}" CommandParameter="{Binding SelectedInventoryItem}"/>
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-
 			<DataGrid.Styles>
 				<Style Selector="DataGridRow" x:DataType="models:InventoryItem">
 					<Setter Property="ContextMenu">
