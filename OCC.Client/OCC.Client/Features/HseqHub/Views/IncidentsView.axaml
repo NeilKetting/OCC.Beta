@@ -223,8 +223,8 @@
 
 				<!-- Footer Actions -->
 				<StackPanel Grid.Row="2" Spacing="12" Margin="0,24,0,0">
-					<Button Classes="PrimaryButton" HorizontalAlignment="Stretch" Command="{Binding Editor.SaveIncidentCommand}" Content="SAVE REPORT"/>
-					<Button Classes="SecondaryButton" HorizontalAlignment="Stretch" Command="{Binding CancelAddCommand}" Content="CANCEL"/>
+					<Button Classes="Primary" HorizontalAlignment="Stretch" Command="{Binding Editor.SaveIncidentCommand}" Content="SAVE REPORT"/>
+					<Button Classes="Secondary" HorizontalAlignment="Stretch" Command="{Binding CancelAddCommand}" Content="CANCEL"/>
 				</StackPanel>
 
 			</Grid>

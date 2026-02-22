@@ -415,11 +415,12 @@
 			</Border>
 
 			<!-- Item Detail Overlay -->
-			<Border Grid.RowSpan="4" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" Padding="40" ZIndex="100">
-				<Grid Background="#20000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"> <!-- Click shield -->
+			<Grid Grid.RowSpan="4" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" ZIndex="100">
+				<Border Background="Transparent" CornerRadius="8" Padding="40"
+						HorizontalAlignment="Center" VerticalAlignment="Center">
 					<views:ItemDetailView DataContext="{Binding DetailViewModel}"/>
-				</Grid>
-			</Border>
+				</Border>
+			</Grid>
 
 			<!-- Quick Add Supplier Overlay -->
 			<Grid Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding Suppliers.IsAddingNew, FallbackValue=false}">

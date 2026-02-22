@@ -176,13 +176,14 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                         double target = branch == Branch.JHB ? item.JhbReorderPoint : item.CptReorderPoint;
                         double currentHand = branch == Branch.JHB ? item.JhbQuantity : item.CptQuantity;
                         
-                        // Sum on-order for this item/branch combination
+                        // Sum on-order for this item/combination
                         double onOrder = g.Sum(c => c.QuantityOnOrder);
                         
-                        double needed = target - (currentHand + onOrder);
+                        // Ensure at least 1 is ordered if it's on the restock list
+                        double needed = Math.Max(1, target - (currentHand + onOrder));
                         
-                        // Only return lines that are actually needed and match the PO branch
-                        if (needed < 1 || branch != order.Branch) return null;
+                        // Only return lines that match the PO branch
+                        if (branch != order.Branch) return null;
 
                         return new OrderLine
                         {

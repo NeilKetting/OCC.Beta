@@ -65,6 +65,10 @@ namespace OCC.Client.Services
                 {
                     await RestoreStateAsync(vm);
                 }
+                else if (vm.CurrentOrder == null || string.IsNullOrEmpty(vm.CurrentOrder.Model.OrderNumber) || vm.CurrentOrder.Model.OrderNumber == "DESIGN-TIME")
+                {
+                    Reset(vm);
+                }
             }
             catch(Exception ex)
             {

@@ -226,7 +226,6 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             services.AddTransient<ReceiveOrderViewModel>();
             services.AddTransient<InventoryViewModel>();
             services.AddTransient<ItemDetailViewModel>();
-            services.AddTransient<ItemListViewModel>();
             services.AddTransient<SupplierListViewModel>();
             services.AddTransient<SupplierDetailViewModel>();
             services.AddTransient<RestockReviewViewModel>();

@@ -15,12 +15,11 @@
 
 	<UserControl.Resources>
 		<conv:StatusColorConverter x:Key="StatusColorConverter" />
-		<conv:BranchQuantityConverter x:Key="BranchQuantityConverter" />
 	</UserControl.Resources>
 
 
 
-	<Grid RowDefinitions="Auto, Auto, *" Margin="0">
+	<Grid RowDefinitions="Auto, *, Auto" Margin="0">
 		<!-- Header Bar: Title & Primary Actions -->
 		<Border Grid.Row="0" Classes="TopHeader" Background="{DynamicResource MainPageGradient}" Margin="2">
 			<Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
@@ -116,21 +115,9 @@
 				</DataGridTemplateColumn>
 				<DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 				<DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
-
-				<DataGridTemplateColumn Header="STOCK" Width="Auto">
-					<DataGridTemplateColumn.CellTemplate>
-						<DataTemplate>
-							<TextBlock FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" Margin="12,0,0,0">
-								<TextBlock.Text>
-									<MultiBinding Converter="{StaticResource BranchQuantityConverter}">
-										<Binding Path="." />
-										<Binding Path="DataContext.SelectedBranch" ElementName="Root" />
-									</MultiBinding>
-								</TextBlock.Text>
-							</TextBlock>
-						</DataTemplate>
-					</DataGridTemplateColumn.CellTemplate>
-				</DataGridTemplateColumn>
+				
+				<DataGridTextColumn Header="JHB STOCK" Binding="{Binding JhbQuantity}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+				<DataGridTextColumn Header="CPT STOCK" Binding="{Binding CptQuantity}" Width="Auto" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
 
 				<DataGridTextColumn Header="UNIT" Binding="{Binding UnitOfMeasure}" Width="Auto" Foreground="{DynamicResource TextSecondaryDark}"/>
 
@@ -179,10 +166,11 @@
 		</StackPanel>
 
 		<!-- Popup Overlay -->
-		<Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" Padding="40" ZIndex="100">
-			<Grid Background="#20000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"> <!-- Click shield -->
+		<Grid Grid.Row="0" Grid.RowSpan="3" Background="#80000000" IsVisible="{Binding IsDetailVisible, FallbackValue=false}" ZIndex="100">
+			<Border Background="Transparent" CornerRadius="8" Padding="40"
+					HorizontalAlignment="Center" VerticalAlignment="Center">
 				<views:ItemDetailView DataContext="{Binding DetailViewModel}"/>
-			</Grid>
-		</Border>
+			</Border>
+		</Grid>
 	</Grid>
 </UserControl>

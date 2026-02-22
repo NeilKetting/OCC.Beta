@@ -159,7 +159,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 if (e.PropertyName == nameof(Suppliers.SelectedSupplier)) OnSelectedSupplierChanged(Suppliers.SelectedSupplier);
             };
 
-            Reset();
+            // Initialize with a dummy order to satisfy bindings until LoadData runs
+            CurrentOrder = new OrderWrapper(new Order { OrderDate = DateTime.Now, Branch = Branch.CPT });
         }
 
         public CreateOrderViewModel() 

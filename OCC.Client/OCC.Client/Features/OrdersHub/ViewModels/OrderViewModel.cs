@@ -62,11 +62,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         public OrderMenuViewModel OrderMenu { get; }
         
         /// <summary>
-        /// Gets the ViewModel for the master inventory list.
-        /// </summary>
-        public ItemListViewModel ItemListVM { get; }
-
-        /// <summary>
         /// Gets the ViewModel for the live inventory stock view.
         /// </summary>
         public InventoryViewModel InventoryVM { get; }
@@ -138,7 +133,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             OrderListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderListViewModel>(_serviceProvider);
             CreateOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<CreateOrderViewModel>(_serviceProvider);
             PickingOrderVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<PickingOrderViewModel>(_serviceProvider);
-            ItemListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ItemListViewModel>(_serviceProvider);
             InventoryVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<InventoryViewModel>(_serviceProvider);
             SupplierListVM = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<SupplierListViewModel>(_serviceProvider);
             OrderMenu = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<OrderMenuViewModel>(_serviceProvider);
@@ -224,11 +218,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     if (CurrentView == InventoryVM) return;
                     CurrentView = InventoryVM;
                     _ = InventoryVM.LoadInventoryAsync();
-                    break;
-                case "ItemList":
-                    if (CurrentView == ItemListVM) return;
-                    CurrentView = ItemListVM; 
-                    _ = ItemListVM.LoadItemsAsync(); 
                     break;
                 case "Suppliers": 
                     if (CurrentView == SupplierListVM) return;
@@ -351,7 +340,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 IsReceiveOrderVisible = false; 
                 _ = OrderListVM.LoadOrders(); 
                 _ = InventoryVM.LoadInventoryAsync();
-                _ = ItemListVM.LoadItemsAsync();
             };
             
             // Create Order Logic: Handle successful creation by returning to the list

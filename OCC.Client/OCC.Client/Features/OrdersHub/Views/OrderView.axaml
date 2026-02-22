@@ -36,9 +36,6 @@
 				<DataTemplate DataType="{x:Type vm:InventoryViewModel}">
 					<local:InventoryView />
 				</DataTemplate>
-				<DataTemplate DataType="{x:Type vm:ItemListViewModel}">
-					<local:ItemListView />
-				</DataTemplate>
 				<DataTemplate DataType="{x:Type vm:SupplierListViewModel}">
 					<local:SupplierListView />
 				</DataTemplate>

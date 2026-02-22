@@ -73,7 +73,7 @@
 
                 <!-- Top Stats Grid -->
                 <!-- Use a unified grid to keep column heights aligned exactly -->
-                <Grid ColumnDefinitions="Auto, Auto, *, 1.5*, 1.5*" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10" Margin="0,10,0,0">
+                <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, 2*" RowDefinitions="Auto" ColumnSpacing="10" RowSpacing="10" Margin="0,10,0,0">
                     
                     <!-- Box 1: basic stats -->
                     <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto, Auto" VerticalAlignment="Top">
@@ -119,42 +119,25 @@
                         <Border Grid.Row="3" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding TasksCompleted}" HorizontalAlignment="Right"/></Border>
                     </Grid>
 
-                    <!-- Box 4: Project Details -->
+                    <!-- Box 4: Safe Working Hours -->
                     <Grid Grid.Column="3" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Top">
-                        <Border Grid.Row="0" Grid.ColumnSpan="2" Classes="DataCell" Background="#FFC000"><TextBlock Text="PROJECT DETAILS" Classes="CellHeader" HorizontalAlignment="Center"/></Border>
-                        
-                        <Border Grid.Row="1" Grid.Column="0" Classes="DataCell"><TextBlock Text="Contractor" Classes="CellHeader"/></Border>
-                        <Border Grid.Row="1" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding ContractorName}" HorizontalAlignment="Left" TextWrapping="Wrap"/></Border>
-
-                        <Border Grid.Row="2" Grid.Column="0" Classes="DataCell"><TextBlock Text="Store" Classes="CellHeader"/></Border>
-                        <Border Grid.Row="2" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding StoreName}" HorizontalAlignment="Left" TextWrapping="Wrap"/></Border>
-
-                        <Border Grid.Row="3" Grid.Column="0" Classes="DataCell"><TextBlock Text="Project Manager" Classes="CellHeader"/></Border>
-                        <Border Grid.Row="3" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding ProjectManagerName}" HorizontalAlignment="Left" TextWrapping="Wrap"/></Border>
-
-                        <Border Grid.Row="4" Grid.Column="0" Classes="DataCell"><TextBlock Text="OCC Site Manager" Classes="CellHeader"/></Border>
-                        <Border Grid.Row="4" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding SiteManagerName}" HorizontalAlignment="Left" TextWrapping="Wrap"/></Border>
-
-                        <Border Grid.Row="5" Grid.Column="0" Classes="DataCell"><TextBlock Text="Vivo Network PM" Classes="CellHeader"/></Border>
-                        <Border Grid.Row="5" Grid.Column="1" Classes="DataCell"><TextBlock Text="{Binding NetworkPMName}" HorizontalAlignment="Left" TextWrapping="Wrap"/></Border>
-                    </Grid>
-
-                    <!-- Box 5: Safe Working Hours & Summary -->
-                    <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto,2*" VerticalAlignment="Stretch">
                         <Border Grid.Row="0" Classes="DataCell" Background="#FFC000"><TextBlock Text="SAFE WORKING HOURS" Classes="CellHeader" HorizontalAlignment="Center"/></Border>
                         <Border Grid.Row="1" Classes="DataCell" MinHeight="40">
                             <TextBlock Text="{Binding TotalSafeWorkingHours}" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" Foreground="#2A5C8A"/>
                         </Border>
-                        
-                        <Border Grid.Row="2" Classes="DataCell" Background="#FFC000"><TextBlock Text="PROJECT STATUS SUMMARY" Classes="CellHeader" HorizontalAlignment="Center"/></Border>
-                        <Border Grid.Row="3" Classes="DataCell">
-                            <TextBox Text="{Binding StatusSummary}" AcceptsReturn="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" MinHeight="60"/>
+                    </Grid>
+
+                    <!-- Box 5: Summary -->
+                    <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto,2*" VerticalAlignment="Stretch">
+                        <Border Grid.Row="1" Classes="DataCell" Background="#FFC000"><TextBlock Text="PROJECT STATUS SUMMARY" Classes="CellHeader" HorizontalAlignment="Center"/></Border>
+                        <Border Grid.Row="2" Classes="DataCell">
+                            <TextBox Text="{Binding StatusSummary}" AcceptsReturn="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" MinHeight="150"/>
                         </Border>
                     </Grid>
                 </Grid>
 
                 <!-- Second Band: Contract Dates & Waste -->
-                <Grid ColumnDefinitions="1.5*, *" Margin="0,10,0,0">
+                <Grid ColumnDefinitions="*, *, 2*" Margin="0,10,0,0">
                     <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto, *, *">
                         <Border Grid.Row="0" Grid.Column="0" Classes="DataCell" Background="#FFC000"><TextBlock Text="CONTRACT DATES" Classes="CellHeader"/></Border>
                         <Border Grid.Row="0" Grid.Column="1" Classes="DataCell" Background="#FFC000"><TextBlock Text="PLANNED" Classes="CellHeader" HorizontalAlignment="Center"/></Border>

@@ -74,6 +74,12 @@ namespace OCC.Client.Features.AuthHub.ViewModels
         }
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LoginCommand))]
+        private bool _isBusy;
+
+        private bool CanLogin() => !IsBusy;
+
+        [ObservableProperty]
         private bool _isDevUser;
 
         // [ObservableProperty]
@@ -98,7 +104,7 @@ namespace OCC.Client.Features.AuthHub.ViewModels
 
         #region Commands
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanLogin))]
         public virtual async Task LoginAsync()
         {
             if (string.IsNullOrWhiteSpace(Email))
@@ -107,20 +113,28 @@ namespace OCC.Client.Features.AuthHub.ViewModels
                 return;
             }
 
-            var (success, errorMessage) = await _authService.LoginAsync(Email, Password);
-            if (!success)
+            try
             {
-                ErrorMessage = string.IsNullOrEmpty(errorMessage) ? "Invalid email or password." : errorMessage;
-            }
-            else
-            {
-                // Save email on successful login
-                _localSettings.Settings.LastEmail = Email;
-                _localSettings.Save();
+                IsBusy = true;
+                var (success, errorMessage) = await _authService.LoginAsync(Email, Password);
+                if (!success)
+                {
+                    ErrorMessage = string.IsNullOrEmpty(errorMessage) ? "Invalid email or password." : errorMessage;
+                }
+                else
+                {
+                    // Save email on successful login
+                    _localSettings.Settings.LastEmail = Email;
+                    _localSettings.Save();
 
-                ErrorMessage = null;
-                var shellViewModel = _serviceProvider.GetRequiredService<ShellViewModel>();
-                WeakReferenceMessenger.Default.Send(new NavigationMessage(shellViewModel));
+                    ErrorMessage = null;
+                    var shellViewModel = _serviceProvider.GetRequiredService<ShellViewModel>();
+                    WeakReferenceMessenger.Default.Send(new NavigationMessage(shellViewModel));
+                }
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 

@@ -49,7 +49,7 @@
 		<Grid RowDefinitions="Auto, *, Auto">
 
 			<!-- Header -->
-			<Border Grid.Row="0" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="0,0,0,1" Padding="15">
+			<Border Grid.Row="0" Background="{DynamicResource WeatheredCementGradient}" Padding="15">
 				<Grid ColumnDefinitions="*, Auto">
 					<TextBlock Text="{Binding Title}"
 							   FontSize="18" FontWeight="Bold"/>

@@ -5,8 +5,7 @@
 			 xmlns:vm="using:OCC.Client.Features.OrdersHub.ViewModels"
 			 mc:Ignorable="d"
 			 x:Class="OCC.Client.Features.OrdersHub.Views.ItemDetailView"
-			 x:DataType="vm:ItemDetailViewModel"
-			 HorizontalAlignment="Center" VerticalAlignment="Center">
+			 x:DataType="vm:ItemDetailViewModel">
 
 	<UserControl.Styles>
 		<Style Selector="TextBox.FormInput">
@@ -37,7 +36,7 @@
 			BoxShadow="0 2 15 5 #292828"
 			VerticalAlignment="Center"
 			HorizontalAlignment="Center"
-			MaxWidth="800" MaxHeight="600" Margin="20">
+			MaxWidth="800" MaxHeight="800">
 		<Grid RowDefinitions="Auto, *, Auto, Auto">
 
 			<!-- Header -->

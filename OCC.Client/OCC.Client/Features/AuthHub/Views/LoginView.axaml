@@ -24,6 +24,18 @@
 				</Animation>
 			</Style.Animations>
 		</Style>
+		<Style Selector="Path.Spinner.IsSpinning">
+			<Style.Animations>
+				<Animation Duration="0:0:1" IterationCount="Infinite">
+					<KeyFrame KeyTime="0:0:0">
+						<Setter Property="RotateTransform.Angle" Value="0" />
+					</KeyFrame>
+					<KeyFrame KeyTime="0:0:1">
+						<Setter Property="RotateTransform.Angle" Value="360" />
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
 	</UserControl.Styles>
 
 	<Grid>
@@ -91,9 +103,28 @@
 								</StackPanel>
 
 								<Button Command="{Binding LoginCommand}"
-										Content="Continue"
 										IsDefault="True"
-										Classes="Primary" />
+										Classes="Primary"
+										HorizontalContentAlignment="Stretch">
+									<Panel>
+										<TextBlock Text="Continue" IsVisible="{Binding !IsBusy}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+										<Path Classes="Spinner"
+											  Classes.IsSpinning="{Binding IsBusy}"
+											  IsVisible="{Binding IsBusy}"
+											  Width="20" Height="20"
+											  Data="M 12,2 A 10,10 0 1,1 2,12"
+											  Stretch="Uniform"
+											  Stroke="{DynamicResource PrimaryTeal}"
+											  StrokeThickness="2"
+											  Fill="Transparent"
+											  RenderTransformOrigin="50%,50%"
+											  HorizontalAlignment="Center" VerticalAlignment="Center">
+											<Path.RenderTransform>
+												<RotateTransform />
+											</Path.RenderTransform>
+										</Path>
+									</Panel>
+								</Button>
 
 								<!-- Divider -->
 								<Grid ColumnDefinitions="*,Auto,*">

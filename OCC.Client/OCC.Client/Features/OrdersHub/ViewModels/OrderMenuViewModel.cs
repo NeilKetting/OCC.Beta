@@ -36,7 +36,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [ObservableProperty] private bool _canViewDashboard = true;
         [ObservableProperty] private bool _canViewAllOrders = true;
         [ObservableProperty] private bool _canViewInventory = true;
-        [ObservableProperty] private bool _canViewItemList = true;
         [ObservableProperty] private bool _canViewSuppliers = true;
         [ObservableProperty] private bool _canCreateOrders = true;
         [ObservableProperty] private bool _canViewPickingOrders = true;
@@ -98,7 +97,6 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             CanCreateOrders = hasFullAccess;
             
             CanViewInventory = hasFullAccess || hasInventoryOnly;
-            CanViewItemList = hasFullAccess || hasInventoryOnly;
             CanViewPickingOrders = hasFullAccess || hasInventoryOnly;
             
             // Default active tab if Dashboard restricted

@@ -55,18 +55,6 @@
 				
 				<Button Classes="MenuTabButton"
 						Command="{Binding SetActiveTabCommand}"
-						CommandParameter="ItemList" Classes.Active="{Binding ActiveTab,
-						Converter={StaticResource StringEqualityConverter},
-						ConverterParameter='ItemList'}"
-                        IsVisible="{Binding CanViewItemList}">
-					<StackPanel Orientation="Horizontal" Spacing="8">
-						<PathIcon Data="{StaticResource IconCart}" Classes="IconStyle" Width="16" Height="16"/>
-						<TextBlock Text="ITEM LIST" VerticalAlignment="Center"/>
-					</StackPanel>
-				</Button>
-
-				<Button Classes="MenuTabButton"
-						Command="{Binding SetActiveTabCommand}"
 						CommandParameter="Suppliers" Classes.Active="{Binding ActiveTab,
 						Converter={StaticResource StringEqualityConverter},
 						ConverterParameter='Suppliers'}"
