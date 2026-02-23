@@ -23,6 +23,7 @@ namespace OCC.API.Controllers
         {
             var incidents = await _context.Incidents
                 .Include(i => i.Photos)
+                .Include(i => i.Documents)
                 .AsNoTracking()
                 .OrderByDescending(i => i.Date)
                 .ToListAsync();
@@ -46,6 +47,7 @@ namespace OCC.API.Controllers
         {
             var incident = await _context.Incidents
                 .Include(i => i.Photos)
+                .Include(i => i.Documents)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == id);
 
@@ -159,6 +161,67 @@ namespace OCC.API.Controllers
             return Ok(ToPhotoDto(photo));
         }
 
+        public class IncidentDocumentUploadRequest
+        {
+            [FromForm] public Guid IncidentId { get; set; }
+            [FromForm] public IFormFile? File { get; set; }
+        }
+
+        [HttpPost("documents")]
+        public async Task<ActionResult<IncidentDocumentDto>> PostDocument([FromForm] IncidentDocumentUploadRequest request)
+        {
+            if (request.File == null || request.File.Length == 0) return BadRequest("No file uploaded.");
+
+            var incident = await _context.Incidents.FindAsync(request.IncidentId);
+            if (incident == null) return NotFound("Incident not found.");
+
+            // Create uploads directory if it doesn't exist
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "incidents");
+            if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
+
+            var fileName = $"{Guid.NewGuid()}_{request.File.FileName}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await request.File.CopyToAsync(stream);
+            }
+
+            var doc = new IncidentDocument
+            {
+                IncidentId = request.IncidentId,
+                FileName = request.File.FileName,
+                FilePath = $"/uploads/incidents/{fileName}",
+                FileSize = $"{(request.File.Length / 1024.0):F2} KB",
+                UploadedBy = User.Identity?.Name ?? "Admin",
+                UploadedAt = DateTime.UtcNow
+            };
+
+            _context.IncidentDocuments.Add(doc);
+            await _context.SaveChangesAsync();
+
+            return Ok(ToDocumentDto(doc));
+        }
+
+        [HttpDelete("documents/{id}")]
+        public async Task<IActionResult> DeleteDocument(Guid id)
+        {
+            var doc = await _context.IncidentDocuments.FindAsync(id);
+            if (doc == null) return NotFound();
+
+            // Delete physical file
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            _context.IncidentDocuments.Remove(doc);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpDelete("photos/{id}")]
         public async Task<IActionResult> DeletePhoto(Guid id)
         {
@@ -194,7 +257,8 @@ namespace OCC.API.Controllers
                 Location = incident.Location,
                 Status = incident.Status,
                 ReportedByUserId = incident.ReportedByUserId,
-                PhotoCount = incident.Photos?.Count ?? 0
+                PhotoCount = incident.Photos?.Count ?? 0,
+                DocumentCount = incident.Documents?.Count ?? 0
             };
         }
 
@@ -213,7 +277,8 @@ namespace OCC.API.Controllers
                 InvestigatorId = incident.InvestigatorId,
                 RootCause = incident.RootCause,
                 CorrectiveAction = incident.CorrectiveAction,
-                Photos = incident.Photos?.Select(ToPhotoDto).ToList() ?? new List<IncidentPhotoDto>()
+                Photos = incident.Photos?.Select(ToPhotoDto).ToList() ?? new List<IncidentPhotoDto>(),
+                Documents = incident.Documents?.Select(ToDocumentDto).ToList() ?? new List<IncidentDocumentDto>()
             };
         }
 
@@ -227,6 +292,19 @@ namespace OCC.API.Controllers
                 FileSize = photo.FileSize,
                 UploadedBy = photo.UploadedBy,
                 UploadedAt = photo.UploadedAt
+            };
+        }
+
+        private IncidentDocumentDto ToDocumentDto(IncidentDocument doc)
+        {
+            return new IncidentDocumentDto
+            {
+                Id = doc.Id,
+                FileName = doc.FileName,
+                FilePath = doc.FilePath,
+                FileSize = doc.FileSize,
+                UploadedBy = doc.UploadedBy,
+                UploadedAt = doc.UploadedAt
             };
         }
 

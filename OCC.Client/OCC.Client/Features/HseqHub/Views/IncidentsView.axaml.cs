@@ -37,10 +37,15 @@ namespace OCC.Client.Features.HseqHub.Views
             #pragma warning disable CS0618 // Type or member is obsolete
             if (DataContext is IncidentsViewModel vm && e.Data.Contains(DataFormats.Files))
             {
-                var files = e.Data.GetFiles();
-                if (files != null)
+                var files = e.Data.GetFiles()?.ToList();
+                if (files != null && files.Any())
                 {
-                    vm.Editor.UploadPhotosCommand.Execute(files);
+                    var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                    var photos = files.Where(f => imageExtensions.Contains(System.IO.Path.GetExtension(f.Name).ToLower())).ToList();
+                    var docs = files.Where(f => !imageExtensions.Contains(System.IO.Path.GetExtension(f.Name).ToLower())).ToList();
+
+                    if (photos.Any()) vm.Editor.UploadPhotosCommand.Execute(photos);
+                    if (docs.Any()) vm.Editor.UploadDocumentsCommand.Execute(docs);
                 }
             }
             #pragma warning restore CS0618 // Type or member is obsolete
@@ -63,6 +68,31 @@ namespace OCC.Client.Features.HseqHub.Views
             if (files != null && files.Any())
             {
                 vm.Editor.UploadPhotosCommand.Execute(files);
+            }
+        }
+
+        private async void BrowseDocuments_Click(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is not IncidentsViewModel vm) return;
+
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select Documents to Upload",
+                AllowMultiple = true,
+                FileTypeFilter = new[] 
+                { 
+                    FilePickerFileTypes.Pdf,
+                    new FilePickerFileType("Office Documents") { Patterns = new[] { "*.doc", "*.docx", "*.xls", "*.xlsx", "*.ppt", "*.pptx" } },
+                    FilePickerFileTypes.TextPlain
+                }
+            });
+
+            if (files != null && files.Any())
+            {
+                vm.Editor.UploadDocumentsCommand.Execute(files);
             }
         }
     }

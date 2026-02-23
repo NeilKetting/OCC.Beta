@@ -50,6 +50,9 @@ namespace OCC.Shared.Models
         /// <summary> Photographic evidence or relevant images attached to the incident. </summary>
         public List<IncidentPhoto> Photos { get; set; } = new();
 
+        /// <summary> Supporting documents attached to the incident. </summary>
+        public List<IncidentDocument> Documents { get; set; } = new();
+
 
     }
 }

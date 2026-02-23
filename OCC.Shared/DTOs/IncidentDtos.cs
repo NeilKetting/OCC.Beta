@@ -14,6 +14,16 @@ namespace OCC.Shared.DTOs
         public DateTime UploadedAt { get; set; }
     }
 
+    public class IncidentDocumentDto
+    {
+        public Guid Id { get; set; }
+        public string FileName { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string FileSize { get; set; } = string.Empty;
+        public string UploadedBy { get; set; } = string.Empty;
+        public DateTime UploadedAt { get; set; }
+    }
+
     public class IncidentSummaryDto
     {
         public Guid Id { get; set; }
@@ -24,6 +34,7 @@ namespace OCC.Shared.DTOs
         public IncidentStatus Status { get; set; }
         public string ReportedByUserId { get; set; } = string.Empty;
         public int PhotoCount { get; set; }
+        public int DocumentCount { get; set; }
     }
 
     public class IncidentDto
@@ -40,6 +51,7 @@ namespace OCC.Shared.DTOs
         public string RootCause { get; set; } = string.Empty;
         public string CorrectiveAction { get; set; } = string.Empty;
         public List<IncidentPhotoDto> Photos { get; set; } = new();
+        public List<IncidentDocumentDto> Documents { get; set; } = new();
         public byte[]? RowVersion { get; set; }
     }
 }

@@ -27,6 +27,9 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         private ObservableCollection<IncidentPhotoDto> _photos = new();
 
         [ObservableProperty]
+        private ObservableCollection<IncidentDocumentDto> _documents = new();
+
+        [ObservableProperty]
         private bool _isOpen;
 
         public IncidentType[] IncidentTypes => Enum.GetValues<IncidentType>();
@@ -43,10 +46,11 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             _authService = authService;
         }
 
-        public void Initialize(Incident incident, IEnumerable<IncidentPhotoDto>? photos = null)
+        public void Initialize(Incident incident, IEnumerable<IncidentPhotoDto>? photos = null, IEnumerable<IncidentDocumentDto>? docs = null)
         {
             Incident = incident;
             Photos = new ObservableCollection<IncidentPhotoDto>(photos ?? Enumerable.Empty<IncidentPhotoDto>());
+            Documents = new ObservableCollection<IncidentDocumentDto>(docs ?? Enumerable.Empty<IncidentDocumentDto>());
             IsOpen = true;
         }
 
@@ -54,6 +58,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         {
             Incident = new Incident { Date = DateTime.Now };
             Photos.Clear();
+            Documents.Clear();
             IsOpen = false;
         }
 
@@ -202,6 +207,96 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             catch (Exception ex)
             {
                 _toastService.ShowError("Error", "Exception deleting photo.");
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+        }
+
+        [RelayCommand]
+        public async Task UploadDocuments(object param)
+        {
+            if (param == null) return;
+
+            IEnumerable<IStorageFile>? storageFiles = null;
+            if (param is IEnumerable<IStorageFile> sFiles) storageFiles = sFiles;
+            else if (param is IEnumerable<IStorageItem> sItems) storageFiles = sItems.OfType<IStorageFile>();
+            else if (param is IStorageFile sFile) storageFiles = new[] { sFile };
+
+            if (storageFiles == null || !storageFiles.Any()) return;
+
+            IsBusy = true;
+            try
+            {
+                // If it's a NEW incident, save it first to get an ID for documents
+                if (Incident.Id == Guid.Empty)
+                {
+                    BusyText = "Saving report first...";
+                    var created = await _hseqService.CreateIncidentAsync(Incident);
+                    if (created == null)
+                    {
+                        _toastService.ShowError("Error", "Could not save incident to allow document uploads.");
+                        return;
+                    }
+                    Incident.Id = created.Id;
+
+                    var summary = new IncidentSummaryDto
+                    {
+                        Id = created.Id,
+                        Date = created.Date,
+                        Location = created.Location,
+                        Status = created.Status,
+                        Severity = created.Severity,
+                        Type = created.Type
+                    };
+                    if (OnSaved != null) await OnSaved(summary);
+                }
+
+                int count = 0;
+                foreach (var file in storageFiles)
+                {
+                    BusyText = $"Uploading {file.Name}...";
+                    using var stream = await file.OpenReadAsync();
+                    var result = await _hseqService.UploadIncidentDocumentAsync(Incident.Id, stream, file.Name);
+                    if (result != null)
+                    {
+                        count++;
+                        Documents.Add(result);
+                    }
+                }
+
+                if (count > 0) _toastService.ShowSuccess("Success", $"Uploaded {count} document(s).");
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Failed to upload document(s).");
+                System.Diagnostics.Debug.WriteLine(ex);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task DeleteDocument(IncidentDocumentDto doc)
+        {
+            if (doc == null) return;
+
+            try
+            {
+                var success = await _hseqService.DeleteIncidentDocumentAsync(doc.Id);
+                if (success)
+                {
+                    Documents.Remove(doc);
+                    _toastService.ShowSuccess("Deleted", "Document removed.");
+                }
+                else
+                {
+                    _toastService.ShowError("Error", "Failed to delete document.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Exception deleting document.");
                 System.Diagnostics.Debug.WriteLine(ex);
             }
         }

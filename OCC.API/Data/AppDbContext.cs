@@ -57,6 +57,7 @@ namespace OCC.API.Data
         // HSEQ Modules
         public DbSet<Incident> Incidents { get; set; }
         public DbSet<IncidentPhoto> IncidentPhotos { get; set; }
+        public DbSet<IncidentDocument> IncidentDocuments { get; set; }
         public DbSet<HseqAudit> HseqAudits { get; set; }
         public DbSet<HseqAuditSection> HseqAuditSections { get; set; }
         public DbSet<HseqAuditComplianceItem> HseqAuditComplianceItems { get; set; }
@@ -366,6 +367,11 @@ namespace OCC.API.Data
             modelBuilder.Entity<Incident>()
                 .HasMany(i => i.Photos)
                 .WithOne().HasForeignKey(p => p.IncidentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<Incident>()
+                .HasMany(i => i.Documents)
+                .WithOne().HasForeignKey(d => d.IncidentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProjectTask>(entity =>

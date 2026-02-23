@@ -85,7 +85,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 var detail = await _hseqService.GetIncidentAsync(summary.Id);
                 if (detail != null)
                 {
-                    Editor.Initialize(ToEntity(detail), detail.Photos);
+                    Editor.Initialize(ToEntity(detail), detail.Photos, detail.Documents);
                 }
             }
             catch (Exception ex)
@@ -180,7 +180,27 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 Status = dto.Status,
                 InvestigatorId = dto.InvestigatorId,
                 RootCause = dto.RootCause,
-                CorrectiveAction = dto.CorrectiveAction
+                CorrectiveAction = dto.CorrectiveAction,
+                Photos = dto.Photos?.Select(p => new IncidentPhoto
+                {
+                    Id = p.Id,
+                    IncidentId = dto.Id,
+                    FileName = p.FileName,
+                    FilePath = p.FilePath,
+                    FileSize = p.FileSize,
+                    UploadedBy = p.UploadedBy,
+                    UploadedAt = p.UploadedAt
+                }).ToList() ?? new List<IncidentPhoto>(),
+                Documents = dto.Documents?.Select(d => new IncidentDocument
+                {
+                    Id = d.Id,
+                    IncidentId = dto.Id,
+                    FileName = d.FileName,
+                    FilePath = d.FilePath,
+                    FileSize = d.FileSize,
+                    UploadedBy = d.UploadedBy,
+                    UploadedAt = d.UploadedAt
+                }).ToList() ?? new List<IncidentDocument>()
             };
         }
     }

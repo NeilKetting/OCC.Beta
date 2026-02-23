@@ -218,6 +218,47 @@
 							</Button>
 						</StackPanel>
 
+						<!-- Documents Section -->
+						<Border Height="1" Background="{DynamicResource BorderColor}" Margin="0,10"/>
+						<StackPanel Spacing="10">
+							<TextBlock Text="SUPPORTING DOCUMENTS" Classes="LabelSmall" FontWeight="Bold"/>
+
+							<!-- List of Documents -->
+							<ItemsControl ItemsSource="{Binding Editor.Documents}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<Border Background="White" BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="4" Padding="10,5" Margin="0,0,0,5">
+											<Grid ColumnDefinitions="*, Auto">
+												<StackPanel Spacing="2">
+													<TextBlock Text="{Binding FileName}" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+													<StackPanel Orientation="Horizontal" Spacing="5">
+														<TextBlock Text="{Binding FileSize}" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+														<TextBlock Text="•" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+														<TextBlock Text="{Binding UploadedBy}" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
+													</StackPanel>
+												</StackPanel>
+												<Button Grid.Column="1" Classes="IconOnlyButton"
+														Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeleteDocumentCommand}"
+														CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}">
+													<PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+												</Button>
+											</Grid>
+										</Border>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+
+							<!-- Add Document / Drop Zone -->
+							<Button Click="BrowseDocuments_Click" Classes="Ghost" Padding="0" HorizontalAlignment="Stretch">
+								<Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" Padding="20" CornerRadius="6" Background="#05000000">
+									<StackPanel HorizontalAlignment="Center" Spacing="5">
+										<PathIcon Data="{StaticResource IconPlus}" Width="16" Height="16" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,5"/>
+										<TextBlock Text="Click or drag report documents to upload" Classes="TextSecondary" HorizontalAlignment="Center"/>
+									</StackPanel>
+								</Border>
+							</Button>
+						</StackPanel>
+
 					</StackPanel>
 				</ScrollViewer>
 

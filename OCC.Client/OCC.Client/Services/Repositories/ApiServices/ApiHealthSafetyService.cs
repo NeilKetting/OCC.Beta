@@ -100,6 +100,31 @@ namespace OCC.Client.Services.Repositories.ApiServices
             return response.IsSuccessStatusCode;
         }
 
+        public async Task<IncidentDocumentDto?> UploadIncidentDocumentAsync(Guid incidentId, System.IO.Stream fileStream, string fileName)
+        {
+            EnsureAuthorization();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(incidentId.ToString()), "IncidentId");
+
+            if (fileStream.CanSeek) fileStream.Position = 0;
+            using var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", fileName);
+
+            var response = await _httpClient.PostAsync("api/Incidents/documents", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<IncidentDocumentDto>(_options);
+            }
+            return null;
+        }
+
+        public async Task<bool> DeleteIncidentDocumentAsync(Guid id)
+        {
+            EnsureAuthorization();
+            var response = await _httpClient.DeleteAsync($"api/Incidents/documents/{id}");
+            return response.IsSuccessStatusCode;
+        }
+
         // --- Audits ---
         public async Task<IEnumerable<AuditSummaryDto>> GetAuditsAsync()
         {

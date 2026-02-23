@@ -16,6 +16,8 @@ namespace OCC.Client.Services.Interfaces
         Task<bool> DeleteIncidentAsync(Guid id);
         Task<IncidentPhotoDto?> UploadIncidentPhotoAsync(IncidentPhoto metadata, System.IO.Stream fileStream, string fileName);
         Task<bool> DeleteIncidentPhotoAsync(Guid id);
+        Task<IncidentDocumentDto?> UploadIncidentDocumentAsync(Guid incidentId, System.IO.Stream fileStream, string fileName);
+        Task<bool> DeleteIncidentDocumentAsync(Guid id);
 
         // Audits
         Task<IEnumerable<AuditSummaryDto>> GetAuditsAsync();

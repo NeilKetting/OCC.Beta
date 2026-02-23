@@ -34,6 +34,7 @@ namespace OCC.Client.Features.BugHub.ViewModels
         private readonly IPermissionService _permissionService;
         private readonly Microsoft.Extensions.Logging.ILogger<BugListViewModel> _logger;
         private List<BugReport> _allBugsCache = new();
+        private bool _isSelectingBug;
 
         #endregion
 
@@ -206,59 +207,60 @@ namespace OCC.Client.Features.BugHub.ViewModels
 
         async partial void OnSelectedBugChanged(BugReport? value)
         {
+            if (_isSelectingBug) return;
+
             IsReporter = value?.ReporterId == _authService.CurrentUser?.Id;
-            SelectedBugScreenshot = null; // Clear previous first
+            SelectedBugScreenshot = null;
 
             if (value != null)
             {
-                // Optimization: If base64 is null, fetch full details seamlessly
-                // Or if we just want to ensure we have the latest comments etc.
-                // We'll check if we need to fetch. Ideally, the list view items don't have ScreenshotBase64 now.
-                
-                BugReport fullBug = value;
-
-                // If screenshot is missing but we expect one, or just to get comments freshly
-                // The list view didn't include comments either in my API optimization? 
-                // Wait, I only removed ScreenshotBase64. Comments were Included. 
-                // But let's be safe and fetch fresh details to be sure.
-                
-                // Only fetch if we suspect missing data or want fresh data without reloading list
-                // For now, let's always fetch detail to support the "Light List" architecture
-                try 
+                try
                 {
+                    _isSelectingBug = true;
+                    
+                    // Fetch fresh details with comments and screenshot
                     var fresh = await _bugService.GetBugReportAsync(value.Id);
                     if (fresh != null)
                     {
-                        // Update the object in the list OR just use it for display?
-                        // If we update the object in the list, it might trigger this again if we replace the reference.
-                        // Better to just update properties of the reference in the list, or keep a separate "DetailedBug" property.
-                        // But existing UI binds to SelectedBug. Let's update its properties.
-                        value.Comments = fresh.Comments;
-                        value.ScreenshotBase64 = fresh.ScreenshotBase64;
-                        value.Status = fresh.Status;
-                        // Don't replace 'value' reference, just update content.
-                        fullBug = value; // Update reference for local logic
+                        // Update cache
+                        var cacheIndex = _allBugsCache.FindIndex(b => b.Id == fresh.Id);
+                        if (cacheIndex >= 0) _allBugsCache[cacheIndex] = fresh;
+
+                        // Update current list to keep UI in sync
+                        var listIndex = Bugs.IndexOf(value);
+                        if (listIndex >= 0)
+                        {
+                            Bugs[listIndex] = fresh;
+                        }
+
+                        // Re-assign to force notification of the change to the full object
+                        SelectedBug = fresh;
+
+                        if (!string.IsNullOrEmpty(fresh.ScreenshotBase64))
+                        {
+                            try
+                            {
+                                var bytes = Convert.FromBase64String(fresh.ScreenshotBase64);
+                                using (var ms = new System.IO.MemoryStream(bytes))
+                                {
+                                    SelectedBugScreenshot = new Avalonia.Media.Imaging.Bitmap(ms);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Error decoding screenshot: {ex.Message}");
+                                SelectedBugScreenshot = null;
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error fetching bug details: {ex.Message}");
                 }
-
-                if (!string.IsNullOrEmpty(fullBug.ScreenshotBase64))
+                finally
                 {
-                    try
-                    {
-                        var bytes = Convert.FromBase64String(fullBug.ScreenshotBase64);
-                        using (var ms = new System.IO.MemoryStream(bytes))
-                        {
-                            SelectedBugScreenshot = new Avalonia.Media.Imaging.Bitmap(ms);
-                        }
-                    }
-                    catch
-                    {
-                        SelectedBugScreenshot = null;
-                    }
+                    _isSelectingBug = false;
                 }
             }
         }
