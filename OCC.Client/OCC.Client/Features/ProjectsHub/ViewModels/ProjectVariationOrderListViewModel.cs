@@ -29,6 +29,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         private ProjectVariationOrderWrapper? _newOrder;
 
         [ObservableProperty]
+        private bool _isEditing;
+
+        [ObservableProperty]
         private bool _isLoading;
 
         public ProjectVariationOrderListViewModel(
@@ -86,6 +89,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         [RelayCommand]
         private void PrepareCreate()
         {
+            IsEditing = false;
             NewOrder = new ProjectVariationOrderWrapper(new ProjectVariationOrder 
             { 
                 ProjectId = _projectId,
@@ -96,14 +100,35 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         }
 
         [RelayCommand]
+        private void PrepareEdit(ProjectVariationOrderWrapper wrapper)
+        {
+            IsEditing = true;
+            // Create a copy for editing
+            var modelCopy = new ProjectVariationOrder
+            {
+                Id = wrapper.Id,
+                ProjectId = wrapper.ProjectId,
+                Description = wrapper.Description,
+                ApprovedBy = wrapper.ApprovedBy,
+                Date = wrapper.Date,
+                AdditionalComments = wrapper.AdditionalComments,
+                Status = wrapper.Status,
+                IsInvoiced = wrapper.IsInvoiced
+            };
+            NewOrder = new ProjectVariationOrderWrapper(modelCopy);
+            ActiveSubTab = "Create";
+        }
+
+        [RelayCommand]
         private void CancelCreate()
         {
             NewOrder = null;
+            IsEditing = false;
             ActiveSubTab = "List";
         }
 
         [RelayCommand]
-        private async Task SaveNewOrderAsync()
+        private async Task SaveOrderAsync()
         {
             if (NewOrder == null) return;
 
@@ -118,15 +143,46 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             try
             {
                 NewOrder.CommitToModel();
-                await _variationOrderService.CreateVariationOrderAsync(NewOrder.Model);
-                _toastService.ShowSuccess("Success", "Variation order created.");
+                if (IsEditing)
+                {
+                    await _variationOrderService.UpdateVariationOrderAsync(NewOrder.Model);
+                    _toastService.ShowSuccess("Success", "Variation order updated.");
+                }
+                else
+                {
+                    await _variationOrderService.CreateVariationOrderAsync(NewOrder.Model);
+                    _toastService.ShowSuccess("Success", "Variation order created.");
+                }
                 await RefreshAsync();
                 NewOrder = null;
+                IsEditing = false;
                 ActiveSubTab = "List";
             }
             catch (Exception ex)
             {
-                _toastService.ShowError("Failed to create variation order", ex.Message);
+                _toastService.ShowError($"Failed to {(IsEditing ? "update" : "create")} variation order", ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteVariationAsync(ProjectVariationOrderWrapper wrapper)
+        {
+            if (wrapper == null) return;
+
+            IsLoading = true;
+            try
+            {
+                await _variationOrderService.DeleteVariationOrderAsync(wrapper.Id);
+                _toastService.ShowSuccess("Success", "Variation order deleted.");
+                await RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Failed to delete variation order", ex.Message);
             }
             finally
             {

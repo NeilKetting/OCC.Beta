@@ -833,6 +833,7 @@ namespace OCC.Client.ViewModels.Core
                     title = "Restock Review";
                     icon = GetResource("IconList");
                     break;
+                case "ReleaseNotes":
                 case "Help":
                      var releaseNotesVM = new OCC.Client.ViewModels.Help.ReleaseNotesViewModel();
                      releaseNotesVM.CloseRequested += (s, e) => NavigateTo(Infrastructure.NavigationRoutes.Home);

@@ -269,11 +269,17 @@
 					<TextBlock FontSize="10"
 							   HorizontalAlignment="Center"
 							   Text="POWERED BY ORIGIZE 63" Foreground="{StaticResource TextSecondaryLight}" FontWeight="Bold"/>
-					<TextBlock Text="{Binding AppVersion}"
-							   FontSize="12"
-							   HorizontalAlignment="Center"
-							   Foreground="{DynamicResource TextSecondaryLight}"
-							   Opacity="0.5"/>
+					<Button Command="{Binding NavigateCommand}" 
+							CommandParameter="ReleaseNotes"
+							Background="Transparent" 
+							BorderThickness="0" 
+							Padding="0"
+							HorizontalAlignment="Center">
+						<TextBlock Text="{Binding AppVersion}"
+								   FontSize="12"
+								   Foreground="{DynamicResource TextSecondaryLight}"
+								   Opacity="0.5"/>
+					</Button>
 					<Button Content="Check Updates"
 							Command="{Binding CheckForUpdatesCommand}"
 							FontSize="12"

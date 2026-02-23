@@ -14,6 +14,7 @@ using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
 using OCC.Client.ViewModels.Core;
 using OCC.Client.Messages;
+using OCC.Client.ViewModels.Messages;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -449,6 +450,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     await _projectManager.DeleteProjectAsync(CurrentProjectId);
                     _toastService.ShowSuccess("Project Deleted", "The project has been successfully removed.");
                     WeakReferenceMessenger.Default.Send(new NavigationRequestMessage(OCC.Client.Infrastructure.NavigationRoutes.Projects)); 
+                    WeakReferenceMessenger.Default.Send(new SwitchTabMessage("Projects"));
                 }
                 catch (Exception ex)
                 {
