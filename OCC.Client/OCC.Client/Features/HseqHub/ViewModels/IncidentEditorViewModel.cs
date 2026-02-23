@@ -212,6 +212,29 @@ namespace OCC.Client.Features.HseqHub.ViewModels
         }
 
         [RelayCommand]
+        public void ViewAttachment(string? filePath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            try
+            {
+                var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl.TrimEnd('/');
+                var fullUrl = filePath.StartsWith("http") ? filePath : $"{baseUrl}/{filePath.TrimStart('/')}";
+
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = fullUrl,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError("Error", "Could not open attachment.");
+                System.Diagnostics.Debug.WriteLine($"ViewAttachment Error: {ex}");
+            }
+        }
+
+        [RelayCommand]
         public async Task UploadDocuments(object param)
         {
             if (param == null) return;

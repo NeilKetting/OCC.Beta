@@ -21,7 +21,7 @@
 			<Border Grid.Row="0" Margin="2" Background="{DynamicResource MainPageGradient}" Classes="TopHeader">
 				<Grid ColumnDefinitions="*, Auto">
 					<StackPanel Spacing="4">
-						<TextBlock Text="Indidents" Classes="H1"/>
+						<TextBlock Text="Incidents" Classes="H1"/>
 						<TextBlock Text="Report and track workplace incidents" Classes="TextSecondary"/>
 					</StackPanel>
 
@@ -196,11 +196,18 @@
 														<TextBlock Text="{Binding UploadedBy}" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
 													</StackPanel>
 												</StackPanel>
-												<Button Grid.Column="1" Classes="IconOnlyButton"
-														Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeletePhotoCommand}"
-														CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}">
-													<PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
-												</Button>
+												<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+													<Button Classes="IconOnlyButton"
+															Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.ViewAttachmentCommand}"
+															CommandParameter="{Binding FilePath}" ToolTip.Tip="View Photo">
+														<PathIcon Data="{StaticResource IconEye}" Width="14" Height="14" Foreground="{DynamicResource Primary}"/>
+													</Button>
+													<Button Classes="IconOnlyButton"
+															Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeletePhotoCommand}"
+															CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}" ToolTip.Tip="Delete Photo">
+														<PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+													</Button>
+												</StackPanel>
 											</Grid>
 										</Border>
 									</DataTemplate>
@@ -237,11 +244,18 @@
 														<TextBlock Text="{Binding UploadedBy}" FontSize="11" Foreground="{DynamicResource TextSecondary}"/>
 													</StackPanel>
 												</StackPanel>
-												<Button Grid.Column="1" Classes="IconOnlyButton"
-														Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeleteDocumentCommand}"
-														CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}">
-													<PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
-												</Button>
+												<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+													<Button Classes="IconOnlyButton"
+															Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.ViewAttachmentCommand}"
+															CommandParameter="{Binding FilePath}" ToolTip.Tip="View Document">
+														<PathIcon Data="{StaticResource IconEye}" Width="14" Height="14" Foreground="{DynamicResource Primary}"/>
+													</Button>
+													<Button Classes="IconOnlyButton"
+															Command="{Binding $parent[UserControl].((vm:IncidentsViewModel)DataContext).Editor.DeleteDocumentCommand}"
+															CommandParameter="{Binding}" Foreground="{DynamicResource ErrorRed}" ToolTip.Tip="Delete Document">
+														<PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+													</Button>
+												</StackPanel>
 											</Grid>
 										</Border>
 									</DataTemplate>

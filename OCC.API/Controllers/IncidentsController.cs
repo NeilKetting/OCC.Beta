@@ -28,17 +28,6 @@ namespace OCC.API.Controllers
                 .OrderByDescending(i => i.Date)
                 .ToListAsync();
 
-            // DIAGNOSTIC LOGGING
-            var conn = _context.Database.GetConnectionString();
-            var maskedConn = conn?.Length > 20 ? conn.Substring(0, 20) + "..." : "Unknown";
-            Console.WriteLine($"[DEBUG] GetIncidents: Found {incidents.Count} records. DB: {maskedConn}");
-            if (incidents.Count == 0)
-            {
-                // Double check bare metal count
-                var rawCount = await _context.Incidents.IgnoreQueryFilters().CountAsync();
-                Console.WriteLine($"[DEBUG] GetIncidents: IgnoreQueryFilters Count = {rawCount}");
-            }
-
             return Ok(incidents.Select(ToSummaryDto));
         }
 
