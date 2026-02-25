@@ -1,0 +1,180 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.ViewModels.Core;
+using OCC.Shared.Models;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
+{
+    public partial class ManualAttendanceViewModel : ViewModelBase
+    {
+        private readonly ITimeService _timeService;
+        private readonly IDialogService _dialogService;
+
+        [ObservableProperty]
+        private DateTimeOffset _selectedDate = DateTime.Today;
+
+        [ObservableProperty]
+        private TimeSpan _clockInTime = new TimeSpan(8, 0, 0);
+
+        [ObservableProperty]
+        private TimeSpan _clockOutTime = new TimeSpan(17, 0, 0);
+
+        [ObservableProperty]
+        private string _selectedBranch = "All";
+
+        public ObservableCollection<string> BranchOptions { get; } = new ObservableCollection<string>
+        {
+            "All",
+            "Johannesburg",
+            "Cape Town"
+        };
+
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<SelectableEmployeeViewModel> _employees = new();
+
+        private List<Employee> _allEmployees = new();
+
+        [ObservableProperty]
+        private bool _isAllSelected;
+
+        public ManualAttendanceViewModel(ITimeService timeService, IDialogService dialogService)
+        {
+            _timeService = timeService;
+            _dialogService = dialogService;
+        }
+
+        [RelayCommand]
+        public async Task LoadEmployees()
+        {
+            IsBusy = true;
+            try
+            {
+                var staff = await _timeService.GetAllStaffAsync();
+                _allEmployees = staff.ToList();
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to load employees: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private void ApplyFilters()
+        {
+            var filtered = _allEmployees.AsEnumerable();
+
+            if (SelectedBranch != "All")
+            {
+                filtered = filtered.Where(e => e.Branch == SelectedBranch);
+            }
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                filtered = filtered.Where(e => e.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var viewModels = filtered.Select(e => new SelectableEmployeeViewModel(e)).ToList();
+            Employees = new ObservableCollection<SelectableEmployeeViewModel>(viewModels);
+            IsAllSelected = false;
+        }
+
+        partial void OnSelectedBranchChanged(string value) => ApplyFilters();
+        partial void OnSearchTextChanged(string value) => ApplyFilters();
+
+        partial void OnIsAllSelectedChanged(bool value)
+        {
+            foreach (var emp in Employees)
+            {
+                emp.IsSelected = value;
+            }
+        }
+
+        [RelayCommand]
+        private async Task CommitAttendance()
+        {
+            var selectedEmployees = Employees.Where(e => e.IsSelected).ToList();
+            if (!selectedEmployees.Any())
+            {
+                await _dialogService.ShowAlertAsync("No Selection", "Please select at least one employee.");
+                return;
+            }
+
+            bool confirm = await _dialogService.ShowConfirmationAsync("Confirm Action", 
+                $"Are you sure you want to add attendance for {selectedEmployees.Count} employees for {SelectedDate:dd MMM yyyy}?");
+
+            if (!confirm) return;
+
+            IsBusy = true;
+            try
+            {
+                var recordDate = SelectedDate.Date;
+                var checkIn = recordDate.Add(ClockInTime);
+                var checkOut = recordDate.Add(ClockOutTime);
+                
+                // Handle midnight crossover if necessary (though usually In < Out for same day)
+                if (checkOut < checkIn) checkOut = checkOut.AddDays(1);
+
+                var tasks = selectedEmployees.Select(e => 
+                {
+                    var record = new AttendanceRecord
+                    {
+                        EmployeeId = e.Employee.Id,
+                        Date = recordDate,
+                        CheckInTime = checkIn,
+                        CheckOutTime = checkOut,
+                        Status = AttendanceStatus.Present,
+                        Branch = e.Employee.Branch ?? ""
+                    };
+                    return _timeService.SaveAttendanceRecordAsync(record);
+                });
+
+                await Task.WhenAll(tasks);
+                
+                await _dialogService.ShowAlertAsync("Success", $"Attendance records created for {selectedEmployees.Count} employees.");
+                
+                // Clear selection
+                foreach (var emp in Employees) emp.IsSelected = false;
+                IsAllSelected = false;
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to save attendance: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+    }
+
+    public partial class SelectableEmployeeViewModel : ObservableObject
+    {
+        public Employee Employee { get; }
+
+        [ObservableProperty]
+        private bool _isSelected;
+
+        public string DisplayName => Employee.DisplayName;
+        public string Branch => Employee.Branch ?? "N/A";
+        public string Role => Employee.Role.ToString();
+
+        public SelectableEmployeeViewModel(Employee employee)
+        {
+            Employee = employee;
+        }
+    }
+}

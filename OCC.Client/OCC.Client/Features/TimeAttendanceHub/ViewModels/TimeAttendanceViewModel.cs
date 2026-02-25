@@ -37,7 +37,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
         [ObservableProperty] private WageRunViewModel _wageRunVM;
-        [ObservableProperty] private LoansManagementViewModel _loansVM; // Added
+        [ObservableProperty] private LoansManagementViewModel _loansVM;
+        [ObservableProperty] private ManualAttendanceViewModel _manualAttendanceView;
 
         [ObservableProperty]
         private string _greeting = string.Empty;
@@ -78,6 +79,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             OvertimeApprovalViewModel overtimeApprovalViewModel, 
             WageRunViewModel wageRunViewModel,
             LoansManagementViewModel loansManagementViewModel,
+            ManualAttendanceViewModel manualAttendanceViewModel,
             IAuthService authService)
         {
             _timeMenu = timeMenu;
@@ -90,6 +92,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _overtimeApprovalVM = overtimeApprovalViewModel;
             _wageRunVM = wageRunViewModel;
             _loansVM = loansManagementViewModel;
+            _manualAttendanceView = manualAttendanceViewModel;
             _authService = authService;
             
             // Default View
@@ -144,6 +147,10 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     break;
                 case "Loans":
                     CurrentView = LoansVM;
+                    break;
+                case "Manual":
+                    CurrentView = ManualAttendanceView;
+                    _ = ManualAttendanceView.LoadEmployeesCommand.ExecuteAsync(null);
                     break;
                 case "Overtime":
                     CurrentView = OvertimeVM;

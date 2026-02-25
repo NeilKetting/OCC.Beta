@@ -10,9 +10,18 @@
 			 x:DataType="vm:DailyTimesheetViewModel"
 			 x:Name="Root">
 
-	<Grid RowDefinitions="Auto, *">
+	<Grid RowDefinitions="Auto, Auto, *">
+		<!-- Historical Mode Banner -->
+		<Border Grid.Row="0" Background="#FFF3E0" IsVisible="{Binding IsHistorical}" Padding="12,8" Margin="5,5,5,0" CornerRadius="4" BorderBrush="#FFE0B2" BorderThickness="1">
+			<StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+				<PathIcon Data="{StaticResource IconInfo}" Foreground="#E65100" Width="16" Height="16"/>
+				<TextBlock Text="Historical Mode: You are viewing or editing attendance for a past date." 
+						   Foreground="#E65100" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="13"/>
+			</StackPanel>
+		</Border>
+
 		<!-- Header Bar: Title & Actions -->
-		<Border Grid.Row="0" Background="{DynamicResource MainPageGradient}" Classes="TopHeader" Margin="5">
+		<Border Grid.Row="1" Background="{DynamicResource MainPageGradient}" Classes="TopHeader" Margin="5">
 			<Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
 				<StackPanel Spacing="5">
 					<TextBlock Text="Daily Timesheet" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"/>
@@ -54,7 +63,7 @@
 		</Border>
 
 		<!-- Content -->
-		<Grid Grid.Row="1" ColumnDefinitions="*, 15, *" Background="#F9FAFB">
+		<Grid Grid.Row="2" ColumnDefinitions="*, 15, *" Background="#F9FAFB">
 
 			<!-- LEFT: PENDING -->
 			<Border Grid.Column="0" Background="White" CornerRadius="8" BoxShadow="0 1 3 0 #10000000">
