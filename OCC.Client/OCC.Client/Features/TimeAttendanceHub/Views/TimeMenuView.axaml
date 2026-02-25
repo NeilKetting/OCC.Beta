@@ -39,6 +39,11 @@
                                     <PathIcon Data="{StaticResource IconDailyRollCall}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Header="Manual Entry" Command="{Binding SetActiveTabCommand}" CommandParameter="Manual">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource IconPlus}" Classes="IconStyle" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem Header="Clock History" Command="{Binding SetActiveTabCommand}" CommandParameter="History">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconHistory}" Classes="IconStyle" Width="16" Height="16"/>

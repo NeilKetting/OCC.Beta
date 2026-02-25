@@ -9,6 +9,7 @@ using Avalonia.Platform.Storage;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.Services.Managers.Interfaces;
 using OCC.Client.Services.Repositories.Interfaces;
+using OCC.Shared.Models;
 
 namespace OCC.Client.Services
 {
@@ -117,6 +118,7 @@ namespace OCC.Client.Services
             }
             return (false, null, null);
         }
+
         public async Task<bool> ShowSessionTimeoutAsync()
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)

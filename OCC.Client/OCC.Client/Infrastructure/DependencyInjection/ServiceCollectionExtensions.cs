@@ -177,6 +177,7 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             services.AddTransient<TimeMenuViewModel>();
             services.AddTransient<DailyTimesheetViewModel>();
             services.AddTransient<AttendanceHistoryViewModel>();
+            services.AddTransient<ManualAttendanceViewModel>();
 
             services.AddTransient<ILeaveService, LeaveService>();
             services.AddTransient<LeaveApplicationViewModel>();

@@ -27,6 +27,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty]
         private DateTime _date = DateTime.Today;
 
+        public bool IsHistorical => Date.Date < DateTime.Today;
+
+        partial void OnDateChanged(DateTime value)
+        {
+            OnPropertyChanged(nameof(IsHistorical));
+            _ = LoadDataAsync();
+        }
+
         [ObservableProperty]
         private ObservableCollection<StaffAttendanceViewModel> _pendingStaff = new();
 
