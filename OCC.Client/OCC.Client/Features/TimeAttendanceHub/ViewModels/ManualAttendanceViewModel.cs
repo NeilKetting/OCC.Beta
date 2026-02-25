@@ -113,15 +113,39 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 return;
             }
 
-            bool confirm = await _dialogService.ShowConfirmationAsync("Confirm Action", 
-                $"Are you sure you want to add attendance for {selectedEmployees.Count} employees for {SelectedDate:dd MMM yyyy}?");
+            var recordDate = SelectedDate.Date;
 
-            if (!confirm) return;
+            if (recordDate > DateTime.Today)
+            {
+                await _dialogService.ShowAlertAsync("Invalid Date", "Cannot manually add attendance for future dates.");
+                return;
+            }
 
             IsBusy = true;
             try
             {
-                var recordDate = SelectedDate.Date;
+                // Check existing records for the day
+                var existingRecords = await _timeService.GetDailyAttendanceAsync(recordDate);
+                var existingEmployeeIds = existingRecords.Select(r => r.EmployeeId).ToHashSet();
+                
+                var alreadyRecorded = selectedEmployees.Where(e => existingEmployeeIds.Contains(e.Employee.Id)).ToList();
+                if (alreadyRecorded.Any())
+                {
+                    IsBusy = false;
+                    var names = string.Join(", ", alreadyRecorded.Select(e => e.DisplayName).Take(3));
+                    if (alreadyRecorded.Count > 3) names += $" and {alreadyRecorded.Count - 3} others";
+                    await _dialogService.ShowAlertAsync("Existing Records", $"The following employees already have attendance records for {recordDate:dd MMM yyyy}:\n\n{names}\n\nPlease deselect them or edit their records in the History view.");
+                    return;
+                }
+
+                bool confirm = await _dialogService.ShowConfirmationAsync("Confirm Action", 
+                    $"Are you sure you want to add attendance for {selectedEmployees.Count} employees for {recordDate:dd MMM yyyy}?");
+
+                if (!confirm) 
+                {
+                    IsBusy = false;
+                    return;
+                }
                 var checkIn = recordDate.Add(ClockInTime);
                 var checkOut = recordDate.Add(ClockOutTime);
                 
