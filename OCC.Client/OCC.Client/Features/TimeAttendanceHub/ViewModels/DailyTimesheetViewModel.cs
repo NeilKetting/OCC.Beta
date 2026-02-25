@@ -335,6 +335,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     {
                         checkInTime = Date.Date.Add(result.InTime.Value); 
                     }
+
+                    if (checkInTime > DateTime.Now)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Clock-in time cannot be in the future.");
+                        return;
+                    }
                 }
 
                 IsSaving = true;
@@ -399,6 +405,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 if (!result.Confirmed || !result.InTime.HasValue) return;
                 
                 checkInTime = Date.Date.Add(result.InTime.Value);
+
+                if (checkInTime > DateTime.Now)
+                {
+                    await _dialogService.ShowAlertAsync("Invalid Time", "Clock-in time cannot be in the future.");
+                    return;
+                }
 
                 // Prevent chronological overlap on same-day re-clock-ins
                 var todayRecords = await _timeService.GetDailyAttendanceAsync(Date);
@@ -495,6 +507,22 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 if (!result.Confirmed || !result.OutTime.HasValue) return;
                 
                 checkOutTime = Date.Date.Add(result.OutTime.Value);
+
+                if (checkOutTime > DateTime.Now)
+                {
+                    await _dialogService.ShowAlertAsync("Invalid Time", "Clock-out time cannot be in the future.");
+                    return;
+                }
+
+                // Check against clock in times for the selected staff
+                foreach (var s in toClockOut)
+                {
+                    if (s.ClockInTime.HasValue && checkOutTime.TimeOfDay < s.ClockInTime.Value && checkOutTime.Date == Date.Date)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", $"Clock-out time for {s.Name} cannot be before their clock-in time.");
+                        return;
+                    }
+                }
             }
             else
             {
@@ -786,10 +814,34 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
                 if (record != null)
                 {
+                    // Validation checks before applying updates
+                    var newIn = result.InTime.HasValue ? Date.Add(result.InTime.Value) : record.CheckInTime;
+                    var newOut = result.OutTime.HasValue ? Date.Add(result.OutTime.Value) : record.CheckOutTime;
+
+                    var currentNow = DateTime.Now;
+
+                    if (newIn.HasValue && newIn.Value > currentNow)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Clock-in time cannot be in the future.");
+                        return;
+                    }
+
+                    if (newOut.HasValue && newOut.Value > currentNow)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Clock-out time cannot be in the future.");
+                        return;
+                    }
+
+                    if (newIn.HasValue && newOut.HasValue && newOut.Value < newIn.Value)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Clock-out time cannot be before clock-in time.");
+                        return;
+                    }
+
                     // Update times
                     if (result.InTime.HasValue)
                     {
-                        record.CheckInTime = Date.Add(result.InTime.Value); 
+                        record.CheckInTime = newIn; 
                         record.ClockInTime = result.InTime;
                         // Status logic: If correcting to a time, ensure Present/Late/etc.
                         // Ideally we re-evaluate status, but manual override implies Present usually.
@@ -798,7 +850,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     
                     if (result.OutTime.HasValue)
                     {
-                        record.CheckOutTime = Date.Add(result.OutTime.Value);
+                        record.CheckOutTime = newOut;
+                    }
+                    else if (result.Confirmed && item.ClockOutTime.HasValue && !result.OutTime.HasValue)
+                    {
+                        // If user cleared the out time
+                        record.CheckOutTime = null;
                     }
                     else
                     {

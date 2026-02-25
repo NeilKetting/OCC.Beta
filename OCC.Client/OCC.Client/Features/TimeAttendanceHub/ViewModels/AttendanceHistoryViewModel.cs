@@ -238,6 +238,19 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     if (newCheckOut < newCheckIn) newCheckOut = newCheckOut.Value.AddDays(1);
                 }
                 
+                // Validate times
+                var now = DateTime.Now;
+                if (newCheckIn > now || (newCheckOut.HasValue && newCheckOut.Value > now))
+                {
+                    await _dialogService.ShowAlertAsync("Invalid Time", "Times cannot be in the future.");
+                    return;
+                }
+                if (newCheckOut.HasValue && newCheckOut.Value < newCheckIn)
+                {
+                    await _dialogService.ShowAlertAsync("Invalid Time", "Clock-out time cannot be before clock-in time.");
+                    return;
+                }
+                
                 // Update Model
                 record.Attendance.CheckInTime = newCheckIn;
                 record.Attendance.CheckOutTime = newCheckOut;
@@ -312,6 +325,17 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                 var tempOut = originalDate.Add(result.OutTime.Value);
                                 if (tempOut < newCheckIn) tempOut = tempOut.AddDays(1);
                                 newCheckOut = tempOut;
+                            }
+
+                            // Validate times
+                            var now = DateTime.Now;
+                            if (newCheckIn > now || (newCheckOut.HasValue && newCheckOut.Value > now))
+                            {
+                                throw new Exception("Times cannot be in the future.");
+                            }
+                            if (newCheckOut.HasValue && newCheckOut.Value < newCheckIn)
+                            {
+                                throw new Exception("Clock-out time cannot be before clock-in time.");
                             }
 
                             // Update locally

@@ -60,6 +60,10 @@ namespace OCC.API.Controllers
         [HttpPost]
         public async Task<ActionResult<AttendanceRecord>> PostAttendanceRecord(AttendanceRecord record)
         {
+            var errorResponse = ValidateAttendanceRecord(record);
+            if (errorResponse != null)
+                return BadRequest(errorResponse);
+
             try
             {
                 if (record.Id == Guid.Empty) record.Id = Guid.NewGuid();
@@ -86,6 +90,11 @@ namespace OCC.API.Controllers
         public async Task<IActionResult> PutAttendanceRecord(Guid id, AttendanceRecord record)
         {
             if (id != record.Id) return BadRequest();
+
+            var errorResponse = ValidateAttendanceRecord(record);
+            if (errorResponse != null)
+                return BadRequest(errorResponse);
+
             // Calculate hours before saving
             CalculateHoursWorked(record);
 
@@ -179,6 +188,52 @@ namespace OCC.API.Controllers
             {
                 record.HoursWorked = 0;
             }
+        }
+
+        private string? ValidateAttendanceRecord(AttendanceRecord record)
+        {
+            var now = DateTime.Now;
+
+            // 1. Future time checks (Allow 1 minute leniency for server-client desync)
+            if (record.CheckInTime.HasValue && record.CheckInTime.Value > now.AddMinutes(1))
+                return "Clock-in time cannot be in the future.";
+            
+            if (record.CheckOutTime.HasValue && record.CheckOutTime.Value > now.AddMinutes(1))
+                return "Clock-out time cannot be in the future.";
+
+            // 2. Order check
+            if (record.CheckInTime.HasValue && record.CheckOutTime.HasValue)
+            {
+                if (record.CheckOutTime.Value < record.CheckInTime.Value)
+                    return "Clock-out time cannot be before clock-in time.";
+            }
+
+            // 3. Overlap check for the same employee
+            var overlappingRecords = _context.AttendanceRecords
+                .Where(r => r.EmployeeId == record.EmployeeId && r.Id != record.Id && r.Date.Date == record.Date.Date)
+                .ToList();
+
+            foreach (var other in overlappingRecords)
+            {
+                // 3a. Check for multiple open shifts
+                if (record.CheckOutTime == null && other.CheckOutTime == null)
+                    return "Employee already has an open shift.";
+
+                // 3b. Temporal overlap
+                DateTime thisIn = record.CheckInTime ?? record.Date.Date;
+                DateTime thisOut = record.CheckOutTime ?? DateTime.MaxValue;
+
+                DateTime otherIn = other.CheckInTime ?? other.Date.Date;
+                DateTime otherOut = other.CheckOutTime ?? DateTime.MaxValue;
+
+                // Simple overlap condition
+                if (thisIn < otherOut && thisOut > otherIn)
+                {
+                    return $"Shift overlaps with another recorded shift (In: {otherIn:HH:mm}, Out: {(other.CheckOutTime.HasValue ? otherOut.ToString("HH:mm") : "Open")}).";
+                }
+            }
+
+            return null;
         }
     }
 }
