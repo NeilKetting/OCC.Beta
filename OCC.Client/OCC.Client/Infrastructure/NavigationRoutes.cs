@@ -18,6 +18,7 @@ namespace OCC.Client.Infrastructure
         public const string UserManagement = "UserManagement";
         public const string AuditLog = "AuditLog";
         public const string CompanySettings = "CompanySettings";
+        public const string CompanyProfile = "CompanyProfile";
         public const string UserPreferences = "UserPreferences";
         public const string HealthSafety = "HealthSafety";
         public const string Alerts = "Alerts";

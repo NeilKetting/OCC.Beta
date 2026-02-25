@@ -152,7 +152,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                  // Create a synthetic Absent record for display
                                  var absentRecord = new AttendanceRecord
                                  {
-                                     Id = Guid.NewGuid(), // Dummy ID
+                                     Id = Guid.Empty, // Dummy ID
                                      EmployeeId = Employee.Id,
                                      Date = d,
                                      Status = AttendanceStatus.Absent,
@@ -295,6 +295,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     record.Attendance.CheckInTime = newCheckIn;
                     record.Attendance.CheckOutTime = newCheckOut;
                     
+                    if (record.Attendance.Status == AttendanceStatus.Absent)
+                    {
+                        record.Attendance.Status = AttendanceStatus.Present;
+                    }
+                    
                     if (record.Attendance.Id != Guid.Empty)
                     {
                         await _timeService.SaveAttendanceRecordAsync(record.Attendance);
@@ -303,7 +308,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     {
                         // It was a dummy record (Absence placeholder), create real record.
                         record.Attendance.Id = Guid.Empty; // Reset just in case
-                        record.Attendance.Status = AttendanceStatus.Present;
                         await _timeService.SaveAttendanceRecordAsync(record.Attendance);
                     }
                     await LoadData();

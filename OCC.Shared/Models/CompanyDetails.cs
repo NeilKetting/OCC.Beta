@@ -21,6 +21,9 @@ namespace OCC.Shared.Models
         /// <summary> Global default interest rate for employee loans (percentage, e.g. 5.0 for 5%). </summary>
         public decimal GlobalLoanInterestRate { get; set; } = 0;
 
+        /// <summary> Global toggle for automatic daily clock-in system. </summary>
+        public bool AutoClockInEnabled { get; set; } = false;
+
         // --- Backwards Compatibility Wrappers (Default to JHB) ---
 
         /// <summary> Default department emails (defaults to JHB). </summary>

@@ -96,6 +96,7 @@ builder.Services.AddScoped<OCC.API.Services.PasswordHasher>();
 builder.Services.AddScoped<OCC.API.Services.IAuthService, OCC.API.Services.AuthService>();
 builder.Services.AddScoped<OCC.API.Services.IStockService, OCC.API.Services.StockService>();
 builder.Services.AddHostedService<OCC.API.Services.DatabaseBackupService>();
+builder.Services.AddHostedService<OCC.API.Services.AutoClockInService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();

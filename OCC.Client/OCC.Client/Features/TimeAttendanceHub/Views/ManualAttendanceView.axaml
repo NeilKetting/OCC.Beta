@@ -1,18 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:OCC.Client.Features.TimeAttendanceHub.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
-             x:Class="OCC.Client.Features.TimeAttendanceHub.Views.ManualAttendanceView"
-             x:DataType="vm:ManualAttendanceViewModel">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:OCC.Client.Features.TimeAttendanceHub.ViewModels"
+			 mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+			 x:Class="OCC.Client.Features.TimeAttendanceHub.Views.ManualAttendanceView"
+			 x:DataType="vm:ManualAttendanceViewModel">
 
 	<Grid RowDefinitions="Auto, *">
 		<!-- Header / Filters -->
 		<Border Grid.Row="0" Padding="20" Background="{DynamicResource MainPageGradient}">
 			<StackPanel Spacing="15">
 				<TextBlock Text="Manual Attendance Entry" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-				
+
 				<Grid ColumnDefinitions="Auto, 20, Auto, 20, Auto, *, Auto" RowDefinitions="Auto, Auto">
 					<!-- Date & Branch -->
 					<StackPanel Grid.Column="0" Spacing="5">
@@ -52,9 +52,10 @@
 		<!-- Content: Employee Selection -->
 		<Grid Grid.Row="1" RowDefinitions="*, Auto" Margin="20">
 			<Border Background="White" CornerRadius="8" BoxShadow="0 2 10 0 #08000000">
-				<DataGrid ItemsSource="{Binding Employees}" AutoGenerateColumns="False" 
+				<DataGrid x:Name="EmployeesDataGrid" ItemsSource="{Binding Employees}" AutoGenerateColumns="False"
 						  IsReadOnly="False" CanUserResizeColumns="True"
-						  GridLinesVisibility="Horizontal" Background="Transparent">
+						  GridLinesVisibility="Horizontal" Background="Transparent"
+						  KeyDown="EmployeesDataGrid_KeyDown">
 					<DataGrid.Columns>
 						<DataGridTemplateColumn Width="50">
 							<DataGridTemplateColumn.Header>
@@ -66,10 +67,10 @@
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
-						
-						<DataGridTextColumn Header="Employee Name" Binding="{Binding DisplayName}" Width="*" IsReadOnly="True"/>
-						<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="150" IsReadOnly="True"/>
-						<DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="150" IsReadOnly="True"/>
+
+						<DataGridTextColumn Header="Employee Name" Binding="{Binding DisplayName}" Width="Auto" MinWidth="250" IsReadOnly="True"/>
+						<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto" IsReadOnly="True"/>
+						<DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="Auto" IsReadOnly="True"/>
 					</DataGrid.Columns>
 				</DataGrid>
 			</Border>
@@ -79,12 +80,12 @@
 				<Grid ColumnDefinitions="*, Auto">
 					<StackPanel Grid.Column="0" VerticalAlignment="Center">
 						<TextBlock Text="Ready to commit attendance?" FontWeight="SemiBold"/>
-						<TextBlock Text="This will create records for all selected employees on the specified date." 
+						<TextBlock Text="This will create records for all selected employees on the specified date."
 								   FontSize="12" Foreground="{DynamicResource TextSecondaryGray}"/>
 					</StackPanel>
-					
-					<Button Grid.Column="1" Command="{Binding CommitAttendanceCommand}" 
-							Classes="Success" Padding="25,12">
+
+					<Button Grid.Column="1" Command="{Binding CommitAttendanceCommand}"
+							Classes="Primary" Padding="25,12">
 						<StackPanel Orientation="Horizontal" Spacing="10">
 							<PathIcon Data="{StaticResource IconCheck}" Width="18" Height="18"/>
 							<TextBlock Text="Commit Attendance Records" FontWeight="Bold"/>
@@ -97,7 +98,7 @@
 		<!-- Loading Overlay -->
 		<Border Grid.Row="1" Background="#80FFFFFF" IsVisible="{Binding IsBusy}">
 			<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
-				<ProgressBar IsIndeterminate="True" Width="200"/>
+				<ProgressBar IsIndeterminate="True" Width="200" Foreground="{DynamicResource Orange}"/>
 				<TextBlock Text="Processing..." Classes="LabelSmall"/>
 			</StackPanel>
 		</Border>

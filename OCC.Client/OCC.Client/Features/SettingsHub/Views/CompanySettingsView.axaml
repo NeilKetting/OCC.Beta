@@ -1,246 +1,99 @@
-
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:OCC.Client.Features.SettingsHub.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             xmlns:vm="clr-namespace:OCC.Client.Features.SettingsHub.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800"
              x:Class="OCC.Client.Features.SettingsHub.Views.CompanySettingsView"
-             x:DataType="vm:CompanySettingsViewModel">
+             x:DataType="vm:CompanySettingsViewModel"
+             Background="{DynamicResource BackgroundLightGray}">
 
-    <Border Background="{DynamicResource SurfaceWhite}"
-            CornerRadius="8"
-            BoxShadow="0 20 50 5 #40000000"
-            Margin="20,10,40,20"
-            VerticalAlignment="Stretch"
-            HorizontalAlignment="Stretch"
-            MaxWidth="1150">
-        <Grid RowDefinitions="Auto, *, Auto, Auto">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.SectionTitle">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style Selector="TextBlock.Label">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryDark}"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+        <Style Selector="TextBlock.Caption">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryGray}"/>
+        </Style>
+    </UserControl.Styles>
 
-            <!-- Header -->
-            <Border Grid.Row="0"
-                    Background="White"
-                    BorderThickness="0,0,0,2"
-                    BorderBrush="{DynamicResource PrimaryTeal}"
-                    Padding="20,15">
-                <Grid ColumnDefinitions="*, Auto">
-                    <StackPanel Spacing="5">
-                        <TextBlock Text="Company Profile" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                        <TextBlock Text="Manage company details and settings." FontSize="16" Foreground="{DynamicResource TextSecondaryGray}"/>
-                    </StackPanel>
-                    <Button Grid.Column="1" Command="{Binding CloseCommand}" Classes="IconButtonClose" VerticalAlignment="Top" ToolTip.Tip="Close">
-                        <PathIcon Data="{StaticResource IconClose}" Width="16" Height="16"/>
-                    </Button>
-                </Grid>
-            </Border>
+    <Grid RowDefinitions="Auto,*">
+        <!-- Top Navigation Area -->
+        <Border Grid.Row="0" Background="White" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="20,15">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock Text="System Settings" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
 
-            <!-- Scrollable Content -->
-            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <Grid RowDefinitions="Auto, Auto, *">
-                    <!-- General Settings -->
-
-                        <!-- Financial Settings (Admin Only) -->
-                        <Border Grid.Row="0" Classes="Card" Margin="40,20,40,20" IsVisible="{Binding IsAdmin}">
-                            <StackPanel Spacing="15">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <PathIcon Data="{StaticResource IconBank}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/> 
-                                    <TextBlock Text="Financial Settings" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                                </StackPanel>
-                                <StackPanel Spacing="5">
-                                    <TextBlock Text="Global Loan Interest Rate (%)" Classes="Label"/>
-                                    <NumericUpDown Value="{Binding CompanyDetails.GlobalLoanInterestRate}" FormatString="0.00" Increment="0.25" Minimum="0" Maximum="100"/>
-                                    <TextBlock Text="This rate will be the default for new employee loans, but can be overridden per loan." Classes="Caption" Foreground="{DynamicResource TextSecondaryGray}"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                    <Grid Grid.Row="1" ColumnDefinitions="1*, 40, 1*, 40, 1*" Margin="40,10,40,50">
-                    
-                    <!-- Left Column: General Info -->
-                    <StackPanel Grid.Column="0" Spacing="20" MinWidth="300" MaxWidth="350">
+        <!-- Main Scrolling Content -->
+        <ScrollViewer Grid.Row="1" Padding="20">
+            <StackPanel Spacing="30" MaxWidth="800" HorizontalAlignment="Left">
+                
+                <!-- Financial Settings -->
+                <Border Classes="Card" Padding="25" IsVisible="{Binding IsAdmin}">
+                    <StackPanel Spacing="20">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconInformation}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
-                            <TextBlock Text="General Information" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="10">
-                            <StackPanel>
-                                <TextBlock Text="Company Name" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.CompanyName}" Classes="FormInput" Watermark="e.g. Orange Circle Construction"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="Registration Number" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.RegistrationNumber}" Classes="FormInput" Watermark="e.g. 2020/123456/07"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="VAT Number" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.VatNumber}" Classes="FormInput" Watermark="e.g. 4123456789"/>
-                            </StackPanel>
-
-
-
-                            <StackPanel>
-                                <TextBlock Text="Email Address" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.Email}" Classes="FormInput" Watermark="e.g. info@orangecircle.co.za"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="Website" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.Website}" Classes="FormInput" Watermark="e.g. www.orangecircle.co.za"/>
-                            </StackPanel>
-                            <Separator Background="{DynamicResource SurfaceBorder}" Margin="0,10"/>
-                             
-                             <!-- NOTE: Banking is currently NOT per branch in CompanyDetails model, but Shared/Company level. 
-                                  If the user wants per-branch banking, the model needs update. 
-                                  For now, I'll keep binding to CompanyDetails for banking to be safe, 
-                                  OR check if BranchDetails has banking fields? Model check: No, BranchDetails does NOT have banking. 
-                                  So Banking stays on CompanyDetails.-->
-                             
-                             <StackPanel>
-                                <TextBlock Text="Bank Name" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.BankName}" Classes="FormInput" Watermark="e.g. FNB"/>
-                            </StackPanel>
-
-                             <StackPanel>
-                                <TextBlock Text="Account Name" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CompanyDetails.AccountName}" Classes="FormInput" Watermark="Account Holder Name"/>
-                            </StackPanel>
-
-                             <Grid ColumnDefinitions="*, 10, *">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Account Number" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CompanyDetails.AccountNumber}" Classes="FormInput" Watermark="Account Number"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Branch Code" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CompanyDetails.BranchCode}" Classes="FormInput" Watermark="Branch Code"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </StackPanel>
-
-
-                    <!-- Middle Column: Address & Banking -->
-                    <StackPanel Grid.Column="2" Spacing="20" MinWidth="300" MaxWidth="350">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                             <PathIcon Data="{StaticResource IconHome}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/>
-                             <TextBlock Text="Location &amp; Banking" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center"/>
+                            <PathIcon Data="{StaticResource IconBank}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/> 
+                            <TextBlock Text="Financial Settings" Classes="SectionTitle" Margin="0"/>
                         </StackPanel>
                         
-                        <!-- Branch Tabs -->
-                        <Border Background="{DynamicResource BackgroundLight}" CornerRadius="8" Padding="4">
-                             <ListBox ItemsSource="{Binding AvailableBranches}" SelectedItem="{Binding SelectedBranch}" Background="Transparent">
-                                 <ListBox.ItemsPanel>
-                                     <ItemsPanelTemplate>
-                                         <StackPanel Orientation="Horizontal" Spacing="5"/>
-                                     </ItemsPanelTemplate>
-                                 </ListBox.ItemsPanel>
-                                 <ListBox.Styles>
-                                     <Style Selector="ListBoxItem">
-                                         <Setter Property="Padding" Value="15,8"/>
-                                         <Setter Property="CornerRadius" Value="6"/>
-                                         <Setter Property="Background" Value="Transparent"/>
-                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryGray}"/>
-                                         <Setter Property="FontWeight" Value="SemiBold"/>
-                                     </Style>
-                                     <Style Selector="ListBoxItem:selected">
-                                         <Setter Property="Background" Value="White"/>
-                                         <Setter Property="Foreground" Value="{DynamicResource PrimaryTeal}"/>
-                                     </Style>
-                                 </ListBox.Styles>
-                             </ListBox>
-                        </Border>
-
-                        <StackPanel Spacing="10">
-                            <!-- Helper Text -->
-                            <TextBlock Text="{Binding SelectedBranch, StringFormat='Editing details for {0} Branch'}" 
-                                       FontSize="12" Foreground="{DynamicResource PrimaryTeal}" FontStyle="Italic"/>
-
-                            <Grid ColumnDefinitions="*, 10, *">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Branch Phone" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CurrentBranchDetails.Phone}" Classes="FormInput" Watermark="Phone Number"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Branch Fax" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CurrentBranchDetails.Fax}" Classes="FormInput" Watermark="Fax Number"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel>
-                                <TextBlock Text="Address Line 1" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CurrentBranchDetails.AddressLine1}" Classes="FormInput" Watermark="Street Address"/>
-                            </StackPanel>
-
-                            <StackPanel>
-                                <TextBlock Text="Address Line 2" Classes="FormLabel"/>
-                                <TextBox Text="{Binding CurrentBranchDetails.AddressLine2}" Classes="FormInput" Watermark="Suburb / Building"/>
-                            </StackPanel>
-
-                            <Grid ColumnDefinitions="*, 10, *">
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="City" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CurrentBranchDetails.City}" Classes="FormInput" Watermark="City"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Postal Code" Classes="FormLabel"/>
-                                    <TextBox Text="{Binding CurrentBranchDetails.PostalCode}" Classes="FormInput" Watermark="Code"/>
-                                </StackPanel>
-                            </Grid>
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Global Loan Interest Rate (%)" Classes="Label"/>
+                            <NumericUpDown Value="{Binding CompanyDetails.GlobalLoanInterestRate}" FormatString="0.00" Increment="0.25" Minimum="0" Maximum="100" Width="200" HorizontalAlignment="Left"/>
+                            <TextBlock Text="This rate will be the default for new employee loans, but can be overridden per loan." Classes="Caption"/>
                         </StackPanel>
                     </StackPanel>
-
-                    <!-- Right Column: Departments -->
-                    <StackPanel Grid.Column="4" Spacing="20" MinWidth="300" MaxWidth="350">
+                </Border>
+                
+                <!-- System Preferences -->
+                <Border Classes="Card" Padding="25" IsVisible="{Binding IsAdmin}">
+                    <StackPanel Spacing="20">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <PathIcon Data="{StaticResource IconEmail}" Width="20" Height="20" Foreground="{DynamicResource PrimaryTeal}"/> 
-                            <TextBlock Text="Department Emails" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+                            <PathIcon Data="{StaticResource IconSettings}" Width="24" Height="24" Foreground="{DynamicResource PrimaryTeal}"/>
+                            <TextBlock Text="System Preferences" Classes="SectionTitle" Margin="0"/>
                         </StackPanel>
-
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="{Binding SelectedBranch, StringFormat='Manage recipient emails for {0} system notifications.'}" FontSize="12" Foreground="{DynamicResource TextSecondaryGray}" TextWrapping="Wrap"/>
-                            
-                            <ScrollViewer MaxHeight="400">
-                                <ItemsControl ItemsSource="{Binding Departments}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="White" BorderBrush="{DynamicResource ThemeBorderLow}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,0,0,10">
-                                                <Grid ColumnDefinitions="*, 10, Auto">
-                                                    <StackPanel Grid.Column="0" Spacing="5">
-                                                        <TextBox Text="{Binding Department}" Classes="FormInput" Watermark="Department Name" FontSize="12"/>
-                                                        <TextBox Text="{Binding EmailAddress}" Classes="FormInput" Watermark="Email Address" FontSize="12"/>
-                                                    </StackPanel>
-                                                    <Button Grid.Column="2" Classes="IconOnly" VerticalAlignment="Center" 
-                                                            Command="{Binding $parent[UserControl].((vm:CompanySettingsViewModel)DataContext).RemoveDepartmentCommand}" 
-                                                            CommandParameter="{Binding}"
-                                                            ToolTip.Tip="Remove Department">
-                                                        <PathIcon Data="{StaticResource IconDelete}" Height="16" Width="16" Foreground="Red"/>
-                                                    </Button>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-
-                            <Button Content="Add New Department" Command="{Binding AddDepartmentCommand}" Classes="Secondary" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
+                        
+                        <!-- Automatic Clock-In Toggle (Coming Soon) -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                            <ToggleSwitch Grid.Column="0" Grid.Row="0" 
+                                          IsChecked="{Binding CompanyDetails.AutoClockInEnabled}" 
+                                          OnContent="Enabled" OffContent="Disabled"/>
+                            <StackPanel Grid.Column="1" Grid.Row="0" Margin="15,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Automatic Daily Clock-In" Classes="Label" Margin="0"/>
+                                <TextBlock Text="Automatically clocks in active employees based on their shift start time." Classes="Caption" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
-
-                </Grid>
-                </Grid>
-            </ScrollViewer>
-
-            <!-- Footer Separator -->
-            <Grid Grid.Row="2" Height="2" Background="{DynamicResource PrimaryTeal}"/>
-
-            <!-- Action Buttons -->
-            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="20,15" HorizontalAlignment="Right">
-                <Button Content="Close" Command="{Binding CloseCommand}" Classes="Cancel" ToolTip.Tip="Close Settings"/>
-                <Button Content="Save Changes" Command="{Binding SaveCommand}" Classes="Primary" ToolTip.Tip="Save company details"/>
+                </Border>
+                
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="15" Margin="0,20,0,0">
+                    <Button Content="Save Settings" 
+                            Classes="PrimaryButton"
+                            Command="{Binding SaveSettingsCommand}"
+                            Width="150" Height="40"
+                            HorizontalContentAlignment="Center"/>
+                </StackPanel>
+                
             </StackPanel>
-        </Grid>
-    </Border>
+        </ScrollViewer>
+        
+        <!-- Loading Overlay -->
+        <Border Grid.Row="1" Background="#80FFFFFF" IsVisible="{Binding IsBusy}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+                <PathIcon Data="{StaticResource IconSync}" Width="40" Height="40" Classes="SpinningIcon" Foreground="{DynamicResource PrimaryTeal}"/>
+                <TextBlock Text="Loading..." FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryDark}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

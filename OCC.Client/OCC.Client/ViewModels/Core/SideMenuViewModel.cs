@@ -124,6 +124,7 @@ namespace OCC.Client.ViewModels.Core
         public bool CanViewCustomers => _permissionService.CanAccess(NavigationRoutes.Customers);
         public bool CanAccessOrders => _permissionService.CanAccess(NavigationRoutes.Feature_OrderManagement);
         public bool CanAccessCompanySettings => _permissionService.CanAccess(NavigationRoutes.CompanySettings);
+        public bool CanAccessCompanyProfile => _permissionService.CanAccess(NavigationRoutes.CompanyProfile);
         public bool CanViewProjects => _permissionService.CanAccess(NavigationRoutes.Projects);
         public bool CanViewDashboard => _permissionService.CanAccess(NavigationRoutes.Home);
         public bool CanViewTime => _permissionService.CanAccess(NavigationRoutes.Time);
@@ -488,7 +489,16 @@ namespace OCC.Client.ViewModels.Core
             IsQuickActionsOpen = false;
             IsSettingsOpen = false;
             ActiveSection = NavigationRoutes.CompanySettings;
-            UpdateLastActionMessage("Navigating to Company Settings");
+            UpdateLastActionMessage("Navigating to System Settings");
+        }
+
+        [RelayCommand]
+        private void CompanyProfile()
+        {
+            IsQuickActionsOpen = false;
+            IsSettingsOpen = false;
+            ActiveSection = NavigationRoutes.CompanyProfile;
+            UpdateLastActionMessage("Navigating to Company Profile");
         }
 
         [RelayCommand]

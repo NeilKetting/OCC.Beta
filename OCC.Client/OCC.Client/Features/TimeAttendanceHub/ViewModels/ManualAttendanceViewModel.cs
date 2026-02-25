@@ -44,7 +44,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty]
         private ObservableCollection<SelectableEmployeeViewModel> _employees = new();
 
-        private List<Employee> _allEmployees = new();
+        private List<SelectableEmployeeViewModel> _allEmployeeViewModels = new();
+
+        private bool _isUpdatingFilters;
 
         [ObservableProperty]
         private bool _isAllSelected;
@@ -62,7 +64,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             try
             {
                 var staff = await _timeService.GetAllStaffAsync();
-                _allEmployees = staff.ToList();
+                _allEmployeeViewModels = staff.Select(e => new SelectableEmployeeViewModel(e)).ToList();
                 ApplyFilters();
             }
             catch (Exception ex)
@@ -78,7 +80,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [RelayCommand]
         private void ApplyFilters()
         {
-            var filtered = _allEmployees.AsEnumerable();
+            var filtered = _allEmployeeViewModels.AsEnumerable();
 
             if (SelectedBranch != "All")
             {
@@ -90,9 +92,13 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 filtered = filtered.Where(e => e.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
             }
 
-            var viewModels = filtered.Select(e => new SelectableEmployeeViewModel(e)).ToList();
-            Employees = new ObservableCollection<SelectableEmployeeViewModel>(viewModels);
-            IsAllSelected = false;
+            // Bring selected employees to the top, then sort alphabetically
+            filtered = filtered.OrderByDescending(e => e.IsSelected).ThenBy(e => e.DisplayName);
+
+            _isUpdatingFilters = true;
+            Employees = new ObservableCollection<SelectableEmployeeViewModel>(filtered);
+            IsAllSelected = Employees.Any() && Employees.All(e => e.IsSelected);
+            _isUpdatingFilters = false;
         }
 
         partial void OnSelectedBranchChanged(string value) => ApplyFilters();
@@ -100,6 +106,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
         partial void OnIsAllSelectedChanged(bool value)
         {
+            if (_isUpdatingFilters) return;
+
             foreach (var emp in Employees)
             {
                 emp.IsSelected = value;
@@ -109,7 +117,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [RelayCommand]
         private async Task CommitAttendance()
         {
-            var selectedEmployees = Employees.Where(e => e.IsSelected).ToList();
+            var selectedEmployees = _allEmployeeViewModels.Where(e => e.IsSelected).ToList();
             if (!selectedEmployees.Any())
             {
                 await _dialogService.ShowAlertAsync("No Selection", "Please select at least one employee.");
@@ -174,7 +182,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 await _dialogService.ShowAlertAsync("Success", $"Attendance records created for {selectedEmployees.Count} employees.");
                 
                 // Clear selection
-                foreach (var emp in Employees) emp.IsSelected = false;
+                foreach (var emp in _allEmployeeViewModels) emp.IsSelected = false;
                 IsAllSelected = false;
             }
             catch (Exception ex)

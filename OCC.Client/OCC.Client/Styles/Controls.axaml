@@ -305,4 +305,11 @@
 		<Setter Property="BorderBrush" Value="Transparent" />
 	</Style>
 
+	<!-- Calendar Today Highlight -->
+	<Style Selector="CalendarDayButton:today">
+		<Setter Property="BorderBrush" Value="{DynamicResource PrimaryTeal}" />
+		<Setter Property="BorderThickness" Value="2" />
+		<Setter Property="CornerRadius" Value="2" />
+	</Style>
+
 </Styles>

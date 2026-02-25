@@ -17,7 +17,7 @@
 		<!-- Header Bar: Title & Actions -->
 		<Border Grid.Row="0" Padding="10" Background="{DynamicResource MainPageGradient}">
 			<Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
-				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold" 
+				<TextBlock Text="Attendance History" FontSize="24" FontWeight="SemiBold"
 						   VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}"/>
 
 				<!-- Actions -->
@@ -80,47 +80,51 @@
 									  Width="100" Classes="FormInput" PlaceholderText="Pay Type"  FontSize="{DynamicResource FontSizeXS}"/>
 						</StackPanel>
 
-						<StackPanel Orientation="Horizontal" Spacing="5" IsVisible="{Binding IsCustomDateEnabled}">
-							<DatePicker SelectedDate="{Binding StartDate}" VerticalAlignment="Center"/>
-							<TextBlock Text="-" VerticalAlignment="Center"/>
-							<DatePicker SelectedDate="{Binding EndDate}" VerticalAlignment="Center"/>
+						<StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsCustomDateEnabled}">
+							<StackPanel Spacing="2">
+								<TextBlock Text="From" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}" Margin="8,0,0,0"/>
+								<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
+							</StackPanel>
+							<StackPanel Spacing="2">
+								<TextBlock Text="To" Classes="LabelSmall" FontSize="10" Foreground="{DynamicResource TextTertiarySlate}" Margin="8,0,0,0"/>
+								<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150"/>
+							</StackPanel>
 						</StackPanel>
 					</StackPanel>
 
-					
 				</Grid>
 				<!-- Summary Cards -->
-					<StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
-						<Border Classes="Card" Padding="0" Width="100" Background="#FFEBEE" BorderBrush="#EF9A9A">
-							<Button Command="{Binding FilterByStatusCommand}" CommandParameter="Absent" Background="Transparent" BorderThickness="0" Padding="8,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-								<StackPanel>
-									<TextBlock Text="Absences" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#C62828"/>
-									<TextBlock Text="{Binding TotalAbsences}" FontSize="14" FontWeight="Bold" Foreground="#B71C1C" HorizontalAlignment="Center"/>
-								</StackPanel>
-							</Button>
-						</Border>
-						<Border Classes="Card" Padding="0" Width="100" Background="#FFF3E0" BorderBrush="#FFCC80">
-							<Button Command="{Binding FilterByStatusCommand}" CommandParameter="Late" Background="Transparent" BorderThickness="0" Padding="8,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-								<StackPanel>
-									<TextBlock Text="Lates" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#E65100"/>
-									<TextBlock Text="{Binding TotalLates}" FontSize="14" FontWeight="Bold" Foreground="#BF360C" HorizontalAlignment="Center"/>
-								</StackPanel>
-							</Button>
-						</Border>
-						<Border Classes="Card" Padding="8,3" Width="100">
+				<StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+					<Border Classes="Card" Padding="0" Width="100" Background="#FFEBEE" BorderBrush="#EF9A9A">
+						<Button Command="{Binding FilterByStatusCommand}" CommandParameter="Absent" Background="Transparent" BorderThickness="0" Padding="8,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<StackPanel>
-								<TextBlock Text="Hours" Classes="LabelText" HorizontalAlignment="Center" FontSize="10"/>
-								<TextBlock Text="{Binding TotalHours, StringFormat='{}{0:F2}'}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
+								<TextBlock Text="Absences" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#C62828"/>
+								<TextBlock Text="{Binding TotalAbsences}" FontSize="14" FontWeight="Bold" Foreground="#B71C1C" HorizontalAlignment="Center"/>
 							</StackPanel>
-						</Border>
-						<Border Classes="Card" Padding="8,3" Width="120" Background="#E8F5E9" BorderBrush="#81C784"
-								IsVisible="{Binding IsWageVisible}">
+						</Button>
+					</Border>
+					<Border Classes="Card" Padding="0" Width="100" Background="#FFF3E0" BorderBrush="#FFCC80">
+						<Button Command="{Binding FilterByStatusCommand}" CommandParameter="Late" Background="Transparent" BorderThickness="0" Padding="8,3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<StackPanel>
-								<TextBlock Text="Est. Wages" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#388E3C"/>
-								<TextBlock Text="{Binding TotalWages, StringFormat='{}{0:C}'}" FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
+								<TextBlock Text="Lates" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#E65100"/>
+								<TextBlock Text="{Binding TotalLates}" FontSize="14" FontWeight="Bold" Foreground="#BF360C" HorizontalAlignment="Center"/>
 							</StackPanel>
-						</Border>
-					</StackPanel>
+						</Button>
+					</Border>
+					<Border Classes="Card" Padding="8,3" Width="100">
+						<StackPanel>
+							<TextBlock Text="Hours" Classes="LabelText" HorizontalAlignment="Center" FontSize="10"/>
+							<TextBlock Text="{Binding TotalHours, StringFormat='{}{0:F2}'}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource PrimaryBlue}" HorizontalAlignment="Center"/>
+						</StackPanel>
+					</Border>
+					<Border Classes="Card" Padding="8,3" Width="120" Background="#E8F5E9" BorderBrush="#81C784"
+							IsVisible="{Binding IsWageVisible}">
+						<StackPanel>
+							<TextBlock Text="Est. Wages" Classes="LabelText" HorizontalAlignment="Center" FontSize="10" Foreground="#388E3C"/>
+							<TextBlock Text="{Binding TotalWages, StringFormat='{}{0:C}'}" FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Center"/>
+						</StackPanel>
+					</Border>
+				</StackPanel>
 			</Grid>
 
 
@@ -174,7 +178,7 @@
 				</DataGridTemplateColumn>
 
 				<DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:dd MMM yyyy}'}" Width="Auto"/>
-				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="*" MinWidth="250"/>
+				<DataGridTextColumn Header="Employee" Binding="{Binding EmployeeName}" Width="Auto" MinWidth="250"/>
 				<DataGridTextColumn Header="Branch" Binding="{Binding Branch}" Width="Auto"/>
 				<DataGridTextColumn Header="Pay Type" Binding="{Binding PayType}" Width="Auto"/>
 				<DataGridTemplateColumn Header="Status" Width="Auto">
@@ -182,8 +186,8 @@
 						<DataTemplate>
 							<StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="10,0">
 								<TextBlock Text="{Binding Status}" VerticalAlignment="Center"/>
-								<PathIcon Data="{StaticResource IconWarning}" Width="14" Height="14" Foreground="DarkOrange" 
-										  IsVisible="{Binding HasMissingSickNote}" 
+								<PathIcon Data="{StaticResource IconWarning}" Width="14" Height="14" Foreground="DarkOrange"
+										  IsVisible="{Binding HasMissingSickNote}"
 										  ToolTip.Tip="Missing Medical Certificate (Wage Deducted)"/>
 							</StackPanel>
 						</DataTemplate>

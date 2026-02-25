@@ -36,10 +36,10 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         };
 
         [ObservableProperty]
-        private DateTimeOffset _startDate = DateTime.Today;
+        private DateTime? _startDate = DateTime.Today;
 
         [ObservableProperty]
-        private DateTimeOffset _endDate = DateTime.Today;
+        private DateTime? _endDate = DateTime.Today;
         
         [ObservableProperty]
         private bool _isCustomDateEnabled;
@@ -569,8 +569,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             var absences = 0;
             foreach(var employee in employees)
             {
-                var current = StartDate.Date;
-                var end = EndDate.Date;
+                var current = StartDate?.Date ?? DateTime.Today;
+                var end = EndDate?.Date ?? DateTime.Today;
                 if (end > DateTime.Today) end = DateTime.Today;
 
                 while (current <= end)
@@ -693,7 +693,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 { "EstPay", "Est. Pay" }
             };
 
-            var title = $"Attendance Summary Report ({StartDate:dd MMM} - {EndDate:dd MMM yyyy})";
+            var title = $"Attendance Summary Report ({StartDate?.ToString("dd MMM")} - {EndDate?.ToString("dd MMM yyyy")})";
             
             try 
             {
@@ -785,7 +785,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             };
 
             var title = $"Individual Staff Report: {employee.DisplayName}";
-            var path = await _exportService.GenerateIndividualStaffReportAsync(employee, StartDate.DateTime, EndDate.DateTime, data, summary);
+            var path = await _exportService.GenerateIndividualStaffReportAsync(employee, StartDate ?? DateTime.Today, EndDate ?? DateTime.Today, data, summary);
             
             await _exportService.OpenFileAsync(path);
         }
@@ -796,8 +796,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         {
              // Similar logic to CalculateAbsences but independent
             int absences = 0;
-            var current = StartDate.Date;
-            var end = EndDate.Date;
+            var current = StartDate?.Date ?? DateTime.Today;
+            var end = EndDate?.Date ?? DateTime.Today;
             if (end > DateTime.Today) end = DateTime.Today; 
 
             while (current <= end)
@@ -845,7 +845,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     var lastWeek = today.AddDays(-7);
                     int lwDiff = (7 + (lastWeek.DayOfWeek - DayOfWeek.Monday)) % 7;
                     StartDate = lastWeek.AddDays(-1 * lwDiff).Date;
-                    EndDate = StartDate.AddDays(7).AddTicks(-1); // Full week
+                    EndDate = StartDate.Value.AddDays(7).AddTicks(-1); // Full week
                     break;
                 case "This Month":
                     StartDate = new DateTime(today.Year, today.Month, 1);
@@ -947,12 +947,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         partial void OnSelectedBranchChanged(string value) => FilterRecords();
 
         // Trigger load when dates change IF Custom is selected
-        async partial void OnStartDateChanged(DateTimeOffset value)
+        async partial void OnStartDateChanged(DateTime? value)
         {
             if (SelectedRange == "Custom") await LoadData();
         }
 
-        async partial void OnEndDateChanged(DateTimeOffset value)
+        async partial void OnEndDateChanged(DateTime? value)
         {
             if (SelectedRange == "Custom") await LoadData();
         }
@@ -963,8 +963,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             IsBusy = true;
             try
             {
-                var s = StartDate.DateTime;
-                var e = EndDate.DateTime;
+                var s = StartDate ?? DateTime.Today;
+                var e = EndDate ?? DateTime.Today;
                 
                 // Fetch
                 var attendanceEnumerable = await _timeService.GetAttendanceByRangeAsync(s, e);

@@ -270,6 +270,7 @@ namespace OCC.Client.Infrastructure.DependencyInjection
                 .AddHttpMessageHandler<FailureLoggingHandler>();
             services.AddSingleton<IAuditLogService, ApiAuditLogService>();
             services.AddTransient<AuditLogViewModel>();
+            services.AddTransient<CompanyProfileViewModel>();
             services.AddTransient<CompanySettingsViewModel>();
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<ManageUsersViewModel>();

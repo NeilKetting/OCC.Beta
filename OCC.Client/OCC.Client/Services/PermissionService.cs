@@ -53,6 +53,7 @@ namespace OCC.Client.Services
             { 
                 NavigationRoutes.AuditLog, 
                 NavigationRoutes.CompanySettings, 
+                NavigationRoutes.CompanyProfile,
                 NavigationRoutes.UserManagement, 
                 NavigationRoutes.Feature_UserManagement, 
                 NavigationRoutes.Feature_UserRegistration, 

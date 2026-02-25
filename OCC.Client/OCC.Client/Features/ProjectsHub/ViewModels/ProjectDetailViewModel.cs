@@ -381,7 +381,10 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                     _ = FilesVM.LoadProjectFilesAsync(projectId);
 
                     var variationList = VariationOrderVM.VariationOrders?.ToList() ?? new List<ProjectVariationOrderWrapper>();
-                    await ReportVM.LoadReportDataAsync(project, new ObservableCollection<ProjectTask>(tasks), new ObservableCollection<ProjectVariationOrderWrapper>(variationList));
+                    if (project != null)
+                    {
+                        await ReportVM.LoadReportDataAsync(project, new ObservableCollection<ProjectTask>(tasks), new ObservableCollection<ProjectVariationOrderWrapper>(variationList));
+                    }
                 });
             }
             finally

@@ -848,8 +848,13 @@ namespace OCC.Client.ViewModels.Core
                     break;
                 case NavigationRoutes.CompanySettings:
                     vm = _serviceProvider.GetRequiredService<CompanySettingsViewModel>();
-                    title = "Company";
+                    title = "System Settings";
                     icon = GetResource("IconSettings");
+                    break;
+                case NavigationRoutes.CompanyProfile:
+                    vm = _serviceProvider.GetRequiredService<CompanyProfileViewModel>();
+                    title = "Company Profile";
+                    icon = GetResource("IconCompany");
                     break;
                 case NavigationRoutes.UserPreferences:
                     var userPrefsVM = _serviceProvider.GetRequiredService<UserPreferencesViewModel>();

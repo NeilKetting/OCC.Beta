@@ -63,6 +63,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _overtimeApprovalVM = null!;
             _wageRunVM = null!;
             _loansVM = null!;
+            _manualAttendanceView = null!;
             _currentView = null!;
 
             _authService = null!;

@@ -122,9 +122,9 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             // Design time support / default initialization
         }
 
-        public async Task LoadReportDataAsync(Project project, ObservableCollection<ProjectTask> tasks, ObservableCollection<ProjectVariationOrderWrapper> variations)
+        public Task LoadReportDataAsync(Project project, ObservableCollection<ProjectTask> tasks, ObservableCollection<ProjectVariationOrderWrapper> variations)
         {
-            if (project == null) return;
+            if (project == null) return Task.CompletedTask;
 
             ProjectName = project.Name;
             StoreName = project.Name;
@@ -173,6 +173,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 
             // Generate temporary dummy photos (In a real scenario, fetch this from IPhotoService or IProjectManager)
             Photos.Clear();
+
+            return Task.CompletedTask;
         }
     }
 
