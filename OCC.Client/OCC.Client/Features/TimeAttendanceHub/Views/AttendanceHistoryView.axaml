@@ -148,21 +148,6 @@
 									<PathIcon Data="{StaticResource IconEdit}" />
 								</MenuItem.Icon>
 							</MenuItem>
-							<MenuItem Header="Upload Medical Certificate"
-									  Command="{Binding #Root.DataContext.UploadSickNoteCommand}"
-									  CommandParameter="{Binding}">
-								<MenuItem.Icon>
-									<PathIcon Data="{StaticResource IconAttachment}" />
-								</MenuItem.Icon>
-							</MenuItem>
-							<MenuItem Header="View Medical Certificate"
-									  Command="{Binding #Root.DataContext.ViewSickNoteCommand}"
-									  CommandParameter="{Binding}"
-									  IsVisible="{Binding HasSickNote}">
-								<MenuItem.Icon>
-									<PathIcon Data="{StaticResource IconDocument}" />
-								</MenuItem.Icon>
-							</MenuItem>
 							<Separator/>
 							<MenuItem Header="Delete Record"
 									  Command="{Binding #Root.DataContext.DeleteRecordCommand}"

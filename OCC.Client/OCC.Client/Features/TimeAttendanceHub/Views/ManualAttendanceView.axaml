@@ -17,7 +17,7 @@
 					<!-- Date & Branch -->
 					<StackPanel Grid.Column="0" Spacing="5">
 						<TextBlock Text="Date" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
-						<CalendarDatePicker SelectedDate="{Binding SelectedDate}" Width="150"/>
+						<CalendarDatePicker SelectedDate="{Binding SelectedDate}" DisplayDateEnd="{Binding MaxDate}" Width="150"/>
 					</StackPanel>
 
 					<StackPanel Grid.Column="2" Spacing="5">

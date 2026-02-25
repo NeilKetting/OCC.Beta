@@ -64,19 +64,22 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private decimal _totalOvertimePay20;
 
         private readonly IPdfService _pdfService;
+        private readonly IDialogService _dialogService;
 
         public EmployeeReportViewModel(
             Employee employee,
             ITimeService timeService,
             IExportService exportService,
             IHolidayService holidayService,
-            IPdfService pdfService)
+            IPdfService pdfService,
+            IDialogService dialogService)
         {
             Employee = employee;
             _timeService = timeService;
             _exportService = exportService;
             _holidayService = holidayService;
             _pdfService = pdfService;
+            _dialogService = dialogService;
 
             _ = LoadData();
         }
@@ -252,6 +255,192 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             catch(Exception ex)
             {
                  System.Diagnostics.Debug.WriteLine($"Error generating report: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task SmartEdit(object? parameter)
+        {
+            if (parameter is HistoryRecordViewModel record)
+            {
+                TimeSpan? currentIn = TimeSpan.TryParse(record.InTime, out var inTs) ? inTs : null;
+                TimeSpan? currentOut = TimeSpan.TryParse(record.OutTime, out var outTs) ? outTs : null;
+
+                var result = await _dialogService.ShowEditAttendanceAsync(currentIn, currentOut);
+
+                if (result.Confirmed && result.InTime.HasValue)
+                {
+                    var originalDate = record.Attendance.Date.Date;
+                    var newCheckIn = originalDate.Add(result.InTime.Value);
+                    
+                    DateTime? newCheckOut = null;
+                    if (result.OutTime.HasValue)
+                    {
+                        newCheckOut = originalDate.Add(result.OutTime.Value);
+                        if (newCheckOut < newCheckIn) newCheckOut = newCheckOut.Value.AddDays(1);
+                    }
+                    
+                    var now = DateTime.Now;
+                    if (newCheckIn > now || (newCheckOut.HasValue && newCheckOut.Value > now))
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Times cannot be in the future.");
+                        return;
+                    }
+                    if (newCheckOut.HasValue && newCheckOut.Value < newCheckIn)
+                    {
+                        await _dialogService.ShowAlertAsync("Invalid Time", "Clock-out time cannot be before clock-in time.");
+                        return;
+                    }
+                    
+                    record.Attendance.CheckInTime = newCheckIn;
+                    record.Attendance.CheckOutTime = newCheckOut;
+                    
+                    if (record.Attendance.Id != Guid.Empty)
+                    {
+                        await _timeService.SaveAttendanceRecordAsync(record.Attendance);
+                    }
+                    else
+                    {
+                        // It was a dummy record (Absence placeholder), create real record.
+                        record.Attendance.Id = Guid.Empty; // Reset just in case
+                        record.Attendance.Status = AttendanceStatus.Present;
+                        await _timeService.SaveAttendanceRecordAsync(record.Attendance);
+                    }
+                    await LoadData();
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteRecord(object? parameter)
+        {
+            if (parameter is HistoryRecordViewModel record)
+            {
+                // Dummy absence records can't be deleted because they don't exist in DB
+                if (record.Attendance.Id == Guid.Empty) return;
+
+                var confirm = await _dialogService.ShowConfirmationAsync("Delete Record", 
+                    $"Are you sure you want to delete the attendance record for {record.EmployeeName} on {record.Date:dd MMM}?");
+                    
+                if (confirm)
+                {
+                    await _timeService.DeleteAttendanceRecordAsync(record.Attendance.Id);
+                    await LoadData();
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task UploadSickNote(HistoryRecordViewModel recordVm)
+        {
+            if (recordVm == null) return;
+
+            var extensions = new[] { "*.png", "*.jpg", "*.jpeg", "*.pdf" };
+            var filePath = await _dialogService.PickFileAsync("Select Medical Certificate", extensions);
+            
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            // Ask how many days the certificate covers
+            string? daysInput = await _dialogService.ShowInputAsync("Medical Certificate", "How many days does this medical certificate cover?", "1");
+            if (!int.TryParse(daysInput, out int days) || days < 1)
+            {
+                await _dialogService.ShowAlertAsync("Invalid Input", "Please enter a valid number of days (1 or more).");
+                return;
+            }
+
+            IsLoading = true;
+            try
+            {
+                var serverPath = await _timeService.UploadDoctorNoteAsync(filePath);
+                if (!string.IsNullOrEmpty(serverPath))
+                {
+                    var startDate = recordVm.Date.Date;
+                    int daysProcessed = 0;
+                    int offset = 0;
+
+                    // Support multi-day sick notes
+                    while (daysProcessed < days)
+                    {
+                        var targetDate = startDate.AddDays(offset);
+                        offset++;
+                        
+                        daysProcessed++;
+
+                        bool isHoliday = OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(targetDate);
+                        bool isWeekend = targetDate.DayOfWeek == DayOfWeek.Saturday || targetDate.DayOfWeek == DayOfWeek.Sunday;
+
+                        // Only apply to working days
+                        if (!isWeekend && !isHoliday)
+                        {
+                            // Check if a record already exists
+                            var existingRecords = await _timeService.GetDailyAttendanceAsync(targetDate);
+                            var employeeRecord = existingRecords.FirstOrDefault(r => r.EmployeeId == Employee.Id);
+
+                            if (employeeRecord != null)
+                            {
+                                employeeRecord.Status = AttendanceStatus.Sick;
+                                employeeRecord.DoctorsNoteImagePath = serverPath;
+                                await _timeService.SaveAttendanceRecordAsync(employeeRecord);
+                            }
+                            else
+                            {
+                                // Create a new record since they were absent but no DB record existed to prove it
+                                var newRecord = new AttendanceRecord
+                                {
+                                    EmployeeId = Employee.Id,
+                                    Date = targetDate,
+                                    Status = AttendanceStatus.Sick,
+                                    Branch = Employee.Branch,
+                                    DoctorsNoteImagePath = serverPath
+                                };
+                                await _timeService.SaveAttendanceRecordAsync(newRecord);
+                            }
+                        }
+                    }
+
+                    await _dialogService.ShowAlertAsync("Success", "Medical Certificate uploaded and applied successfully.");
+                    await LoadData(); 
+                }
+                else
+                {
+                    await _dialogService.ShowAlertAsync("Error", "Failed to upload the Medical Certificate to the server.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Upload failed: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        [RelayCommand]
+        public async Task ViewSickNote(HistoryRecordViewModel recordVm)
+        {
+            if (recordVm == null || !recordVm.HasSickNote || string.IsNullOrWhiteSpace(recordVm.SickNoteUrl)) return;
+
+            try
+            {
+                var url = recordVm.SickNoteUrl;
+                
+                if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
+                    if (!baseUrl.EndsWith("/")) baseUrl += "/";
+                    url = url.TrimStart('/');
+                    url = baseUrl + url;
+                }
+
+                var p = new System.Diagnostics.Process();
+                p.StartInfo = new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true };
+                p.Start();
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Could not open the Medical Certificate: {ex.Message}");
             }
         }
     }

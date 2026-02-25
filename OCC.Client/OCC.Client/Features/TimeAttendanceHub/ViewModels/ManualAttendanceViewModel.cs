@@ -16,8 +16,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private readonly ITimeService _timeService;
         private readonly IDialogService _dialogService;
 
+        // We want to default to Yesterday since Manual Attendance is strictly for past dates
         [ObservableProperty]
-        private DateTimeOffset _selectedDate = DateTime.Today;
+        private DateTime _selectedDate = DateTime.Today.AddDays(-1);
+
+        public DateTime MaxDate => DateTime.Today.AddDays(-1);
 
         [ObservableProperty]
         private TimeSpan _clockInTime = new TimeSpan(8, 0, 0);
@@ -115,9 +118,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
             var recordDate = SelectedDate.Date;
 
-            if (recordDate > DateTime.Today)
+            if (recordDate >= DateTime.Today)
             {
-                await _dialogService.ShowAlertAsync("Invalid Date", "Cannot manually add attendance for future dates.");
+                await _dialogService.ShowAlertAsync("Invalid Date", "Manual attendance can only be captured for past dates.");
                 return;
             }
 

@@ -7,7 +7,8 @@
              xmlns:conv="clr-namespace:OCC.Client.Converters"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="OCC.Client.Features.TimeAttendanceHub.Views.EmployeeReportView"
-             x:DataType="vm:EmployeeReportViewModel">
+             x:DataType="vm:EmployeeReportViewModel"
+             x:Name="Root">
 
     <UserControl.Resources>
         <conv:StatusToColorConverter x:Key="StatusToColorConverter"/>
@@ -100,6 +101,41 @@
                 <DataGrid.Styles>
                    <Style Selector="DataGridRow" x:DataType="timeVm:HistoryRecordViewModel">
                         <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                        <Setter Property="ContextMenu">
+                            <ContextMenu>
+                                <MenuItem Header="Edit Time"
+                                          Command="{Binding #Root.DataContext.SmartEditCommand}"
+                                          CommandParameter="{Binding}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconEdit}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Upload Medical Certificate"
+                                          Command="{Binding #Root.DataContext.UploadSickNoteCommand}"
+                                          CommandParameter="{Binding}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconAttachment}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="View Medical Certificate"
+                                          Command="{Binding #Root.DataContext.ViewSickNoteCommand}"
+                                          CommandParameter="{Binding}"
+                                          IsVisible="{Binding HasSickNote}">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconDocument}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="Delete Record"
+                                          Command="{Binding #Root.DataContext.DeleteRecordCommand}"
+                                          CommandParameter="{Binding}"
+                                          Foreground="Red">
+                                    <MenuItem.Icon>
+                                        <PathIcon Data="{StaticResource IconDelete}" Foreground="Red"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Setter>
                    </Style>
                 </DataGrid.Styles>
 

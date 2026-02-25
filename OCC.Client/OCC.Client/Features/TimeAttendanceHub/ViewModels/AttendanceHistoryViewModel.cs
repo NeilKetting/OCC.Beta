@@ -262,16 +262,44 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task DeleteRecord(HistoryRecordViewModel record)
+        private async Task DeleteRecord(object? parameter)
         {
-            if (record == null) return;
+            var selected = Records.Where(r => r.IsSelected).ToList();
             
-            var confirm = await _dialogService.ShowConfirmationAsync("Delete Record", 
-                $"Are you sure you want to delete the attendance record for {record.EmployeeName} on {record.Date:dd MMM}?");
+            // If the user right-clicked a specific row that wasn't checked, default to just that row
+            if (parameter is HistoryRecordViewModel record)
+            {
+                if (!selected.Contains(record))
+                {
+                    selected.Clear();
+                    selected.Add(record);
+                }
+            }
+
+            if (!selected.Any()) return;
+            
+            string message = selected.Count == 1 
+                ? $"Are you sure you want to delete the attendance record for {selected[0].EmployeeName} on {selected[0].Date:dd MMM}?"
+                : $"Are you sure you want to delete {selected.Count} attendance records?";
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Delete Record", message);
                 
             if (confirm)
             {
-                await _timeService.DeleteAttendanceRecordAsync(record.Attendance.Id);
+                IsBusy = true;
+                try
+                {
+                    foreach (var rec in selected)
+                    {
+                        await _timeService.DeleteAttendanceRecordAsync(rec.Attendance.Id);
+                    }
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
+                
+                IsAllSelected = false; // Reset the header checkbox
                 await LoadData();
             }
         }
@@ -591,7 +619,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              if (employee == null) return;
              try
              {
-                 EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService);
+                 EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService, _dialogService);
                  IsEmployeeReportPopupVisible = true;
              }
              catch (Exception ex)
