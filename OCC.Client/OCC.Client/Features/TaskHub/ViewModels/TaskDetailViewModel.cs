@@ -245,6 +245,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
                      ProjectId = Task.Model.ProjectId == Guid.Empty ? null : Task.Model.ProjectId,
                      ParentId = _currentTaskId, 
                      IndentLevel = Task.Model.IndentLevel + 1,
+                     OrderIndex = Subtasks.Any() ? Subtasks.Max(s => s.OrderIndex) + 1 : Task.Model.OrderIndex + 1,
                      Status = "To Do",
                      Priority = "Medium",
                      Type = TaskType.Task,

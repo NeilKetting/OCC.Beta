@@ -31,6 +31,9 @@ namespace OCC.Shared.Models
         /// <summary> Administrative notes regarding this pay run. </summary>
         public string? Notes { get; set; }
         
+        /// <summary> Which RateType this wage run applies to (e.g., Hourly or MonthlySalary). If null or empty, assumes Hourly for backward compatibility. </summary>
+        public string? PayType { get; set; }
+        
         /// <summary> Collection of individual employee wage calculations for this run. </summary>
         public List<WageRunLine> Lines { get; set; } = new();
 

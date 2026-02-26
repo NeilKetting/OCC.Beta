@@ -39,6 +39,16 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         };
 
         [ObservableProperty]
+        private string _selectedPayType = "All";
+
+        public ObservableCollection<string> PayTypeOptions { get; } = new ObservableCollection<string>
+        {
+            "All",
+            "Hourly",
+            "Salary"
+        };
+
+        [ObservableProperty]
         private string _searchText = string.Empty;
 
         [ObservableProperty]
@@ -87,6 +97,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 filtered = filtered.Where(e => e.Branch == SelectedBranch);
             }
 
+            if (SelectedPayType != "All")
+            {
+                filtered = filtered.Where(e => e.Employee.RateType.ToString() == SelectedPayType || 
+                                              (SelectedPayType == "Salary" && e.Employee.RateType == RateType.MonthlySalary));
+            }
+
             if (!string.IsNullOrWhiteSpace(SearchText))
             {
                 filtered = filtered.Where(e => e.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
@@ -102,6 +118,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         partial void OnSelectedBranchChanged(string value) => ApplyFilters();
+        partial void OnSelectedPayTypeChanged(string value) => ApplyFilters();
         partial void OnSearchTextChanged(string value) => ApplyFilters();
 
         partial void OnIsAllSelectedChanged(bool value)

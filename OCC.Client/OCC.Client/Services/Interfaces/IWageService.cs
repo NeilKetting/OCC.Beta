@@ -9,7 +9,7 @@ namespace OCC.Client.Services.Interfaces
     {
         Task<IEnumerable<WageRun>> GetWageRunsAsync();
         Task<WageRun?> GetWageRunByIdAsync(Guid id);
-        Task<WageRun> GenerateDraftRunAsync(DateTime startDate, DateTime endDate, string? notes = null);
+        Task<WageRun> GenerateDraftRunAsync(DateTime startDate, DateTime endDate, string? payType, string? notes = null);
         Task FinalizeRunAsync(Guid id);
         Task DeleteRunAsync(Guid id);
     }

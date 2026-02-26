@@ -61,38 +61,37 @@ namespace OCC.Client.Services.Managers
         /// </summary>
         public List<ProjectTask> BuildTaskHierarchy(IEnumerable<ProjectTask> allTasks)
         {
-            var taskList = allTasks.OrderBy(t => t.OrderIndex).ToList();
-            var rootTasks = new List<ProjectTask>();
-            var parentStack = new Stack<ProjectTask>();
+            var taskList = allTasks.ToList();
 
             foreach (var task in taskList)
             {
                 task.Children.Clear();
+            }
 
-                // Pop items from the stack that are at the same level or deeper than the current task.
-                // This finds the closest previous task that has a smaller indent level, which is the parent.
-                while (parentStack.Count > 0 && parentStack.Peek().IndentLevel >= task.IndentLevel)
-                {
-                    parentStack.Pop();
-                }
+            var rootTasks = new List<ProjectTask>();
+            var lookup = taskList.ToDictionary(t => t.Id);
 
-                if (parentStack.Count > 0)
+            foreach (var task in taskList)
+            {
+                if (task.ParentId.HasValue && task.ParentId != Guid.Empty && lookup.TryGetValue(task.ParentId.Value, out var parent))
                 {
-                    var parent = parentStack.Peek();
                     parent.Children.Add(task);
-                    task.ParentId = parent.Id;
                 }
                 else
                 {
-                    // No parent found in stack, so this is a root-level task.
                     rootTasks.Add(task);
                 }
-
-                // Push current task onto the stack as it might be a potential parent for subsequent tasks.
-                parentStack.Push(task);
             }
 
-            return rootTasks;
+            foreach (var task in taskList)
+            {
+                if (task.Children.Any())
+                {
+                    task.Children = task.Children.OrderBy(c => c.OrderIndex).ToList();
+                }
+            }
+
+            return rootTasks.OrderBy(t => t.OrderIndex).ToList();
         }
 
         /// <summary>

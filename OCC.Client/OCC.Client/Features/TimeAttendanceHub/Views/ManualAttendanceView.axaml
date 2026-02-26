@@ -13,7 +13,7 @@
 			<StackPanel Spacing="15">
 				<TextBlock Text="Manual Attendance Entry" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryDark}"/>
 
-				<Grid ColumnDefinitions="Auto, 20, Auto, 20, Auto, *, Auto" RowDefinitions="Auto, Auto">
+				<Grid ColumnDefinitions="Auto, 15, Auto, 15, Auto, 15, *, Auto" RowDefinitions="Auto, Auto">
 					<!-- Date & Branch -->
 					<StackPanel Grid.Column="0" Spacing="5">
 						<TextBlock Text="Date" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
@@ -22,10 +22,15 @@
 
 					<StackPanel Grid.Column="2" Spacing="5">
 						<TextBlock Text="Branch Filter" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
-						<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}" Width="180"/>
+						<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}" Width="150"/>
 					</StackPanel>
 
 					<StackPanel Grid.Column="4" Spacing="5">
+						<TextBlock Text="Pay Type" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
+						<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}" Width="120"/>
+					</StackPanel>
+
+					<StackPanel Grid.Column="6" Spacing="5">
 						<TextBlock Text="Search Staff" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
 						<TextBox Text="{Binding SearchText}" Watermark="Search by name..." Width="250">
 							<TextBox.InnerRightContent>
@@ -35,7 +40,7 @@
 					</StackPanel>
 
 					<!-- Clock Times -->
-					<StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="15">
+					<StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="15">
 						<StackPanel Spacing="5">
 							<TextBlock Text="Clock In" Classes="LabelSmall" Foreground="{DynamicResource TextTertiarySlate}"/>
 							<TimePicker SelectedTime="{Binding ClockInTime}" ClockIdentifier="24HourClock"/>

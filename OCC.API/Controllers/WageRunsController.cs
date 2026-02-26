@@ -63,12 +63,19 @@ namespace OCC.API.Controllers
                 EndDate = request.EndDate,
                 RunDate = runDate,
                 Status = WageRunStatus.Draft,
+                PayType = request.PayType,
                 Notes = request.Notes
             };
 
-            // 2. Fetch Active Staff
+            // 2. Fetch Active Staff matching the PayType
+            var rateType = RateType.Hourly; // Default
+            if (!string.IsNullOrEmpty(request.PayType) && Enum.TryParse<RateType>(request.PayType, out var parsedType))
+            {
+                rateType = parsedType;
+            }
+
             var employees = await _context.Employees
-                .Where(e => e.Status == EmployeeStatus.Active && e.RateType == RateType.Hourly)
+                .Where(e => e.Status == EmployeeStatus.Active && e.RateType == rateType)
                 .ToListAsync();
 
             // 3. Fetch Attendance for the Period (up to RunDate)

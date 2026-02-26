@@ -44,10 +44,10 @@ namespace OCC.Client.Services
             } catch { return null; }
         }
 
-        public async Task<WageRun> GenerateDraftRunAsync(DateTime startDate, DateTime endDate, string? notes = null)
+        public async Task<WageRun> GenerateDraftRunAsync(DateTime startDate, DateTime endDate, string? payType, string? notes = null)
         {
             AddAuthHeader();
-            var request = new WageRun { StartDate = startDate, EndDate = endDate, Notes = notes };
+            var request = new WageRun { StartDate = startDate, EndDate = endDate, PayType = payType, Notes = notes };
             var response = await _client.PostAsJsonAsync("api/WageRuns/draft", request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<WageRun>() ?? throw new Exception("Failed to deserialize response");

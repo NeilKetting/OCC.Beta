@@ -50,6 +50,15 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private string _notes = string.Empty;
 
         [ObservableProperty]
+        private string _selectedPayType = "Hourly";
+
+        public ObservableCollection<string> PayTypeOptions { get; } = new ObservableCollection<string>
+        {
+            "Hourly",
+            "MonthlySalary"
+        };
+
+        [ObservableProperty]
         private ObservableCollection<WageRunLineViewModel> _lines = new();
 
         [ObservableProperty]
@@ -70,7 +79,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 BusyText = "Generating draft run...";
                 IsBusy = true;
                 
-                var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, Notes);
+                var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, SelectedPayType, Notes);
                 _currentDraftId = draft.Id;
                 
                 Lines.Clear();
