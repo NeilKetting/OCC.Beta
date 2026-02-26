@@ -16,7 +16,10 @@
 					<TextBlock Text="Leave Approvals" Classes="H1" VerticalAlignment="Center"/>
 					<TextBlock Text="Approve or Deny leave applications." Foreground="#94A3B8" FontSize="{StaticResource FontsizeMedium}"/>
 				</StackPanel>
-				<Button Grid.Column="1" Command="{Binding LoadDataCommand}" Classes="Secondary" Content="Refresh"/>
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+					<Button Command="{Binding PrintReportCommand}" Classes="Secondary" Content="Print"/>
+					<Button Command="{Binding LoadDataCommand}" Classes="Secondary" Content="Refresh"/>
+				</StackPanel>
 			</Grid>
 		</Border>
 
@@ -43,6 +46,16 @@
 										Theme="{StaticResource PrimaryButton}"
 										Foreground="White"
 										Background="#10B981"/>
+								<Button Command="{Binding #Root.DataContext.EditRequestCommand}"
+										CommandParameter="{Binding}"
+										Content="Edit"
+										Theme="{StaticResource SecondaryButton}"/>
+								<Button Command="{Binding #Root.DataContext.DeleteRequestCommand}"
+										CommandParameter="{Binding}"
+										Content="Delete"
+										Theme="{StaticResource SecondaryButton}"
+										Foreground="White"
+										Background="#EF4444"/>
 							</StackPanel>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>

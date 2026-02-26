@@ -92,7 +92,7 @@ namespace OCC.API.Controllers
         [Authorize]
         public async Task<ActionResult<BugReport>> PostBugReport(BugReport bugReport)
         {
-            if (!HasViewAccess(out _)) return Forbid("Only Admin, Office, and Site Managers can report bugs.");
+            if (!HasViewAccess(out _)) return StatusCode(StatusCodes.Status403Forbidden, "Only Admin, Office, and Site Managers can report bugs.");
 
             bugReport.ReportedDate = DateTime.UtcNow;
             
@@ -126,7 +126,7 @@ namespace OCC.API.Controllers
         {
             if (!IsNeilDev())
             {
-                return Forbid("Only the Developer (Neil) can delete bug reports.");
+                return StatusCode(StatusCodes.Status403Forbidden, "Only the Developer (Neil) can delete bug reports.");
             }
 
             var bugReport = await _context.BugReports.FindAsync(id);
@@ -176,7 +176,7 @@ namespace OCC.API.Controllers
 
             if (!isDev && !isReporter)
             {
-                return Forbid("Only the Developer (Neil) or the original Reporter can comment on this bug.");
+                return StatusCode(StatusCodes.Status403Forbidden, "Only the Developer (Neil) or the original Reporter can comment on this bug.");
             }
 
             comment.BugReportId = id;
@@ -185,7 +185,7 @@ namespace OCC.API.Controllers
             // Ensure Author Details
             if (string.IsNullOrEmpty(comment.AuthorName))
             {
-               comment.AuthorName = User.FindFirst(ClaimTypes.Name)?.Value ?? (isDev ? "Neil Ketting" : "User");
+                comment.AuthorName = User.FindFirst(ClaimTypes.GivenName)?.Value ?? (isDev ? "Neil Ketting" : "User");
             }
             if (string.IsNullOrEmpty(comment.AuthorEmail))
             {
@@ -251,7 +251,7 @@ namespace OCC.API.Controllers
         {
             if (!IsNeilDev())
             {
-                return Forbid("Only the Developer (Neil) can delete bug comments.");
+                return StatusCode(StatusCodes.Status403Forbidden, "Only the Developer (Neil) can delete bug comments.");
             }
 
             var comment = await _context.BugComments.FindAsync(commentId);

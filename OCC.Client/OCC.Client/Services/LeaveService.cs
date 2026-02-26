@@ -88,6 +88,17 @@ namespace OCC.Client.Services
             }
         }
 
+        public async Task UpdateRequestAsync(LeaveRequest request)
+        {
+            request.NumberOfDays = await CalculateBusinessDaysAsync(request.StartDate, request.EndDate);
+            await _leaveRepository.UpdateAsync(request);
+        }
+
+        public async Task DeleteRequestAsync(Guid requestId)
+        {
+            await _leaveRepository.DeleteAsync(requestId);
+        }
+
 
         public async Task<int> CalculateBusinessDaysAsync(DateTime start, DateTime end)
         {
