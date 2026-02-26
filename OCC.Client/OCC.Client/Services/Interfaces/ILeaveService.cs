@@ -19,6 +19,8 @@ namespace OCC.Client.Services.Interfaces
         Task SubmitRequestAsync(LeaveRequest request);
         Task ApproveRequestAsync(Guid requestId, Guid approverId);
         Task RejectRequestAsync(Guid requestId, Guid approverId, string reason);
+        Task UpdateRequestAsync(LeaveRequest request);
+        Task DeleteRequestAsync(Guid requestId);
         
         /// <summary>
         /// Calculates business days between two dates, excluding weekends and public holidays.

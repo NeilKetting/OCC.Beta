@@ -16,5 +16,6 @@ namespace OCC.Client.Services.Interfaces
         Task<bool> ShowSessionTimeoutAsync();
         Task<string?> ShowInputAsync(string title, string message, string defaultValue = "");
         Task<OCC.Shared.Models.EmployeeLoan?> ShowAddLoanAsync();
+        Task<LeaveRequest?> ShowEditLeaveRequestAsync(LeaveRequest request);
     }
 }

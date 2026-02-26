@@ -156,5 +156,21 @@ namespace OCC.Client.Services
             }
             return null;
         }
+
+        public async Task<LeaveRequest?> ShowEditLeaveRequestAsync(LeaveRequest request)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.EmployeeLeaveDialog(request);
+                var tcs = new TaskCompletionSource<LeaveRequest?>();
+                
+                dialog.CloseAction = (res) => tcs.TrySetResult(res);
+                dialog.Closed += (s, e) => tcs.TrySetResult(null);
+
+                dialog.Show(desktop.MainWindow);
+                return await tcs.Task;
+            }
+            return null;
+        }
     }
 }

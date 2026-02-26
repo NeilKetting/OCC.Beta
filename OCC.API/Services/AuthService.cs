@@ -247,6 +247,7 @@ namespace OCC.API.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.UserRole.ToString()),
                     new Claim(ClaimTypes.GivenName, user.DisplayName ?? user.Email)
