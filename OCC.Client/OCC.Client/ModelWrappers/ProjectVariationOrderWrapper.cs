@@ -41,6 +41,9 @@ namespace OCC.Client.ModelWrappers
         [ObservableProperty]
         private bool _isInvoiced;
 
+        [ObservableProperty]
+        private byte[] _rowVersion = Array.Empty<byte>();
+
         public void Initialize()
         {
             Description = _model.Description;
@@ -49,6 +52,7 @@ namespace OCC.Client.ModelWrappers
             AdditionalComments = _model.AdditionalComments;
             Status = _model.Status;
             IsInvoiced = _model.IsInvoiced;
+            RowVersion = _model.RowVersion;
         }
 
         public void CommitToModel()
@@ -59,6 +63,7 @@ namespace OCC.Client.ModelWrappers
             _model.AdditionalComments = AdditionalComments;
             _model.Status = Status;
             _model.IsInvoiced = IsInvoiced;
+            _model.RowVersion = RowVersion;
         }
 
         public void Validate() => ValidateAllProperties();

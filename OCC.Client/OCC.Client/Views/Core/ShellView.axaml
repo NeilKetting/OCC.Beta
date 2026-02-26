@@ -92,7 +92,11 @@
 					</MenuItem>
 				</MenuItem>
 			</MenuItem>
-				<MenuItem Header="_Help">
+			<MenuItem Header="_Window">
+				<MenuItem Header="Close All" Command="{Binding CloseAllWorkspacesCommand}"/>
+				<MenuItem Header="Close Other" Command="{Binding CloseOtherWorkspacesCommand}"/>
+			</MenuItem>
+			<MenuItem Header="_Help">
 				<MenuItem Header="Release Notes" Command="{Binding SideMenuViewModel.NavigateCommand}" CommandParameter="ReleaseNotes">
 					<MenuItem.Icon>
 						<PathIcon Data="{StaticResource IconInformation}" Width="16" Height="16"/>

@@ -533,7 +533,7 @@
 												<!-- Content -->
 												<StackPanel Grid.Row="0" Grid.Column="1" Spacing="5">
 													<!-- Title -->
-													<TextBlock Text="{Binding Name}" FontSize="14" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+													<TextBox Text="{Binding Name, Mode=TwoWay}" Classes="Seamless" FontSize="14" Foreground="{DynamicResource TextPrimaryDark}" VerticalAlignment="Center" TextWrapping="Wrap" LostFocus="SubtaskName_LostFocus"/>
 
 													<!-- Meta Row -->
 													<StackPanel Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">

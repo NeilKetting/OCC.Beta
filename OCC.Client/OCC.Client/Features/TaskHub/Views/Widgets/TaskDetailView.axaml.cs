@@ -35,6 +35,17 @@ namespace OCC.Client.Features.TaskHub.Views.Widgets
             }
         }
 
+        private void SubtaskName_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox textBox && textBox.DataContext is OCC.Shared.Models.ProjectTask subtask)
+            {
+                if (this.DataContext is TaskDetailViewModel vm)
+                {
+                    vm.UpdateSubtaskCommand.Execute(subtask);
+                }
+            }
+        }
+
         private void DragOver(object? sender, DragEventArgs e)
         {
             #pragma warning disable CS0618 // Type or member is obsolete

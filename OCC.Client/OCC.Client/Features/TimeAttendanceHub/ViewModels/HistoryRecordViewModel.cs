@@ -233,11 +233,33 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              }
              else
              {
-                  // Salary Logic (Simplified for now, borrowing structure)
-                  // Salary usually just pays fixed, but if tracking OT:
-                  CalculateHourlyWage(start, end); // Reuse for tracking, but maybe override Wage?
-                  // Re-apply Salary Wage Override if needed (not requested to change, but OT needs tracking)
-                  // For now, let's assume we calculate "Value" same way.
+                  // Salary Logic
+                  // We still calculate hours to track OT and total hours worked
+                  CalculateHourlyWage(start, end); 
+                  
+                  // Override Salary financial values
+                  decimal monthlySalary = (_attendance.CachedHourlyRate != null && _attendance.CachedHourlyRate > 0) 
+                      ? _attendance.CachedHourlyRate.Value 
+                      : (decimal)_employee.HourlyRate;
+
+                  decimal dailyRate = monthlySalary / 21.67m;
+                  decimal hourlyRateForOT = dailyRate / 8m; // Assuming standard 8 hour day for OT
+
+                  if (HoursWorked > 0 || _attendance.Status == AttendanceStatus.LeaveAuthorized || _attendance.Status == AttendanceStatus.Sick || _isPublicHoliday)
+                  {
+                      // Fixed daily wage
+                      Wage = Math.Round(dailyRate, 2);
+                  }
+                  else
+                  {
+                      Wage = 0;
+                  }
+
+                  // Fix Overtime pay to use the derived hourly rate instead of the raw monthly salary
+                  OvertimePay15 = Math.Round((decimal)OvertimeHours15 * hourlyRateForOT * 1.5m, 2);
+                  OvertimePay20 = Math.Round((decimal)OvertimeHours20 * hourlyRateForOT * 2.0m, 2);
+
+                  Wage += OvertimePay15 + OvertimePay20;
              }
         }
         

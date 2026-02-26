@@ -231,17 +231,58 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         /// In a full implementation, this should persist the new subtask to the repository.
         /// </summary>
         [RelayCommand]
-        private void AddSubtask()
+        private async Task AddSubtask()
         {
-             var newSubtask = new ProjectTask
+             try
              {
-                 Name = "New Subtask",
-                 ProjectId = Guid.Empty, 
-                 IndentLevel = 1 
-             };
-             
-             Subtasks.Add(newSubtask);
-             UpdateVisibleSubtasks();
+                 IsBusy = true;
+                 BusyText = "Adding subtask...";
+
+                 var newSubtask = new ProjectTask
+                 {
+                     Id = Guid.NewGuid(),
+                     Name = "New Subtask",
+                     ProjectId = Task.Model.ProjectId == Guid.Empty ? null : Task.Model.ProjectId,
+                     ParentId = _currentTaskId, 
+                     IndentLevel = Task.Model.IndentLevel + 1,
+                     Status = "To Do",
+                     Priority = "Medium",
+                     Type = TaskType.Task,
+                     StartDate = DateTime.UtcNow,
+                     FinishDate = DateTime.UtcNow.AddDays(1)
+                 };
+                 
+                 await _projectTaskRepository.AddAsync(newSubtask);
+
+                 Subtasks.Add(newSubtask);
+                 UpdateVisibleSubtasks();
+                 OnPropertyChanged(nameof(SubtaskCount));
+                 
+                 WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+             }
+             catch (Exception ex)
+             {
+                 await _dialogService.ShowAlertAsync("Error", $"Failed to add subtask: {ex.Message}");
+             }
+             finally
+             {
+                 IsBusy = false;
+             }
+        }
+
+        [RelayCommand]
+        public async Task UpdateSubtask(ProjectTask subtask)
+        {
+            if (subtask == null) return;
+            try
+            {
+                await _projectTaskRepository.UpdateAsync(subtask);
+                WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TaskDetailViewModel] UpdateSubtask failed: {ex.Message}");
+            }
         }
 
         [RelayCommand]

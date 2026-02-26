@@ -677,12 +677,31 @@ namespace OCC.Client.ViewModels.Core
                 else
                 {
                     CurrentWorkspace = null!;
-                    // Navigate to Home if all tabs closed? Or stay empty?
-                    // Usually users expect at least one tab or Home. 
-                    // Let's default to Home if everything is closed, or just leave it empty.
-                    // But if we leave it empty, we should probably update SideMenu to something neutral or Home.
                     NavigateTo(Infrastructure.NavigationRoutes.Home);
                 }
+            }
+        }
+
+        [RelayCommand]
+        public void CloseAllWorkspaces()
+        {
+            Workspaces.Clear();
+            CurrentWorkspace = null!;
+            NavigateTo(Infrastructure.NavigationRoutes.Home);
+        }
+
+        [RelayCommand]
+        public void CloseOtherWorkspaces(WorkspaceViewModel workspace)
+        {
+            var target = workspace ?? CurrentWorkspace;
+            if (target != null)
+            {
+                var others = Workspaces.Where(w => w != target).ToList();
+                foreach (var other in others)
+                {
+                    Workspaces.Remove(other);
+                }
+                CurrentWorkspace = target;
             }
         }
 

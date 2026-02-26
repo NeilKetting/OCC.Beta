@@ -113,7 +113,8 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                 Date = wrapper.Date,
                 AdditionalComments = wrapper.AdditionalComments,
                 Status = wrapper.Status,
-                IsInvoiced = wrapper.IsInvoiced
+                IsInvoiced = wrapper.IsInvoiced,
+                RowVersion = wrapper.RowVersion
             };
             NewOrder = new ProjectVariationOrderWrapper(modelCopy);
             ActiveSubTab = "Create";

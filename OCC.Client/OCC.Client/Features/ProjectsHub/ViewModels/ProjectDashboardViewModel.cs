@@ -127,12 +127,12 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
 
             var nonGroupTasks = _allTasks.Where(t => !t.IsGroup).ToList();
             TotalTasks = nonGroupTasks.Count;
-            CompletedTasks = nonGroupTasks.Count(t => t.Status == "Completed");
-            InProgressTasks = nonGroupTasks.Count(t => t.Status == "In Progress");
-            ToDoTasks = nonGroupTasks.Count(t => t.Status == "To Do" || t.Status == "New");
+            CompletedTasks = nonGroupTasks.Count(t => t.Status == "Completed" || t.Status == "Done");
+            InProgressTasks = nonGroupTasks.Count(t => t.Status == "In Progress" || t.Status == "Started" || t.Status == "Halfway" || t.Status == "Almost Done");
+            ToDoTasks = nonGroupTasks.Count(t => t.Status == "To Do" || t.Status == "New" || t.Status == "Not Started");
 
             var now = DateTime.Now;
-            OverdueTasks = nonGroupTasks.Count(t => t.Status != "Completed" && t.FinishDate < now);
+            OverdueTasks = nonGroupTasks.Count(t => t.Status != "Completed" && t.Status != "Done" && t.FinishDate < now);
 
             if (TotalTasks > 0)
             {
@@ -266,7 +266,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         {
             if (_allTasks == null) return;
             var now = DateTime.Now;
-            var overdue = _allTasks.Where(t => !t.IsGroup && t.Status != "Completed" && t.FinishDate < now);
+            var overdue = _allTasks.Where(t => !t.IsGroup && t.Status != "Completed" && t.Status != "Done" && t.FinishDate < now);
             ViewOverdueTasksRequested?.Invoke(this, overdue);
         }
 

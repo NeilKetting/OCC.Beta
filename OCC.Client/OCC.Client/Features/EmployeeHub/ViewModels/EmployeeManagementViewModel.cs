@@ -257,7 +257,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                      // Add other fields as needed by the report
                 };
                 
-                EmployeeReportPopup = new EmployeeReportViewModel(entity, _timeService, _exportService, _holidayService, _pdfService, _dialogService);
+                EmployeeReportPopup = new EmployeeReportViewModel(entity, _timeService, _exportService, _holidayService, _pdfService, _dialogService, _employeeService);
                 // Optional: Subscribe to close if needed, but for now just binding IsVisible
                 IsEmployeeReportPopupVisible = true;
             }

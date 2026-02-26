@@ -65,6 +65,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
         private readonly IPdfService _pdfService;
         private readonly IDialogService _dialogService;
+        private readonly IEmployeeService _employeeService;
 
         public EmployeeReportViewModel(
             Employee employee,
@@ -72,7 +73,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             IExportService exportService,
             IHolidayService holidayService,
             IPdfService pdfService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            IEmployeeService employeeService)
         {
             Employee = employee;
             _timeService = timeService;
@@ -80,6 +82,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _holidayService = holidayService;
             _pdfService = pdfService;
             _dialogService = dialogService;
+            _employeeService = employeeService;
 
             _ = LoadData();
         }
@@ -376,13 +379,21 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                         // Only apply to working days
                         if (!isWeekend && !isHoliday)
                         {
+                            bool hasSickLeave = Employee.SickLeaveBalance >= 1;
+                            var newStatus = hasSickLeave ? AttendanceStatus.Sick : AttendanceStatus.UnpaidSick;
+
+                            if (hasSickLeave)
+                            {
+                                Employee.SickLeaveBalance--;
+                            }
+
                             // Check if a record already exists
                             var existingRecords = await _timeService.GetDailyAttendanceAsync(targetDate);
                             var employeeRecord = existingRecords.FirstOrDefault(r => r.EmployeeId == Employee.Id);
 
                             if (employeeRecord != null)
                             {
-                                employeeRecord.Status = AttendanceStatus.Sick;
+                                employeeRecord.Status = newStatus;
                                 employeeRecord.DoctorsNoteImagePath = serverPath;
                                 await _timeService.SaveAttendanceRecordAsync(employeeRecord);
                             }
@@ -393,7 +404,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                 {
                                     EmployeeId = Employee.Id,
                                     Date = targetDate,
-                                    Status = AttendanceStatus.Sick,
+                                    Status = newStatus,
                                     Branch = Employee.Branch,
                                     DoctorsNoteImagePath = serverPath
                                 };
@@ -401,6 +412,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                             }
                         }
                     }
+
+                    // Save the updated sick leave balance to the employee record
+                    await _employeeService.UpdateEmployeeAsync(Employee);
 
                     await _dialogService.ShowAlertAsync("Success", "Medical Certificate uploaded and applied successfully.");
                     await LoadData(); 

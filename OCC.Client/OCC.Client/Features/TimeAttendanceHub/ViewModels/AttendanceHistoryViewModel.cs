@@ -106,6 +106,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public bool IsWageVisible { get; }
         private readonly IHolidayService _holidayService;
         private readonly IDialogService _dialogService;
+        private readonly IEmployeeService _employeeService;
 
         /// <summary>
         /// Design-time constructor
@@ -120,6 +121,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _dialogService = null!;
             _dialogService = null!;
             _pdfService = null!;
+            _employeeService = null!;
         }
 
         [ObservableProperty]
@@ -134,10 +136,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              PrintStaffReportCommand.NotifyCanExecuteChanged();
         }
 
-        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService, IDialogService dialogService, IPdfService pdfService)
+        public AttendanceHistoryViewModel(ITimeService timeService, IExportService exportService, IPermissionService permissionService, IHolidayService holidayService, IDialogService dialogService, IPdfService pdfService, IEmployeeService employeeService)
         {
             _timeService = timeService;
             _exportService = exportService;
+            _employeeService = employeeService;
             _holidayService = holidayService;
             _dialogService = dialogService;
             _pdfService = pdfService;
@@ -619,7 +622,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
              if (employee == null) return;
              try
              {
-                 EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService, _dialogService);
+                 EmployeeReportPopup = new EmployeeReportViewModel(employee, _timeService, _exportService, _holidayService, _pdfService, _dialogService, _employeeService);
                  IsEmployeeReportPopupVisible = true;
              }
              catch (Exception ex)
@@ -820,8 +823,10 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             return absences;
         }
 
+        private bool _isSettingRange;
         private void SetRange(string range)
         {
+            _isSettingRange = true;
             var today = DateTime.Today;
             IsCustomDateEnabled = false;
 
@@ -861,6 +866,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     // Keep current dates
                     break;
             }
+            _isSettingRange = false;
         }
         
         [RelayCommand]
@@ -946,15 +952,23 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
         partial void OnSelectedBranchChanged(string value) => FilterRecords();
 
-        // Trigger load when dates change IF Custom is selected
+        // Trigger load when dates change
         async partial void OnStartDateChanged(DateTime? value)
         {
-            if (SelectedRange == "Custom") await LoadData();
+            if (!_isSettingRange)
+            {
+                SelectedRange = "Custom";
+                await LoadData();
+            }
         }
 
         async partial void OnEndDateChanged(DateTime? value)
         {
-            if (SelectedRange == "Custom") await LoadData();
+            if (!_isSettingRange)
+            {
+                SelectedRange = "Custom";
+                await LoadData();
+            }
         }
 
         private async Task LoadData()

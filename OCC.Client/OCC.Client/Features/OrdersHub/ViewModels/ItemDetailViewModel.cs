@@ -143,6 +143,12 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private double _cptReorderPoint;
 
         /// <summary>
+        /// Gets or sets the concurrency token.
+        /// </summary>
+        [ObservableProperty]
+        private byte[]? _rowVersion;
+
+        /// <summary>
         /// Gets or sets a value indicating whether an asynchronous operation is in progress.
         /// </summary>
 
@@ -228,7 +234,8 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     AverageCost = AverageCost,
                     Price = Price,
                     TrackLowStock = IsTrackingLowStock,
-                    IsStockItem = IsStockItem
+                    IsStockItem = IsStockItem,
+                    RowVersion = RowVersion
                 };
 
                 if (IsEditMode)
@@ -300,6 +307,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 JhbReorderPoint = 10;
                 CptReorderPoint = 10;
                 Price = 0;
+                RowVersion = null;
             }
             else
             {
@@ -320,6 +328,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 IsStockItem = item.IsStockItem;
                 JhbReorderPoint = item.JhbReorderPoint;
                 CptReorderPoint = item.CptReorderPoint;
+                RowVersion = item.RowVersion;
             }
         }
 
