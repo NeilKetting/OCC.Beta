@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
-using OCC.Shared.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;

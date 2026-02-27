@@ -1,10 +1,10 @@
+using OCC.Client.Services.Interfaces;
+using OCC.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using OCC.Client.Services.Interfaces;
-using OCC.Shared.Models;
 
 namespace OCC.Client.Services
 {
@@ -16,7 +16,7 @@ namespace OCC.Client.Services
         public WageService(IAuthService authService)
         {
             _authService = authService;
-            var baseUrl = OCC.Client.Services.Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
+            var baseUrl = Infrastructure.ConnectionSettings.Instance.ApiBaseUrl;
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
             _client = new HttpClient { BaseAddress = new Uri(baseUrl) };
         }

@@ -85,6 +85,7 @@ namespace OCC.API.Services
                             Id = Guid.NewGuid(),
                             EmployeeId = employee.Id,
                             Date = today,
+                            Branch = employee.Branch,
                             CheckInTime = today.Add(shiftStartTime.Value),
                             Status = AttendanceStatus.Present,
                             IsAutoClockIn = true,
