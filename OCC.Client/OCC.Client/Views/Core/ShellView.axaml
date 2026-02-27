@@ -174,10 +174,10 @@
 										<Button Classes="IconButtonClose"
 												Command="{Binding $parent[UserControl].((vm:ShellViewModel)DataContext).CloseWorkspaceCommand}"
 												CommandParameter="{Binding}"
-												HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,2,0"
+												HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,3,0"
 												Width="16" Height="16" Padding="2"
 												IsVisible="{Binding IsActive}"> <!-- Only show close on active tab to reduce clutter? Or all? Let's show on Active for cleaner UI -->
-												<PathIcon Data="{StaticResource IconClose}" Width="8" Height="8"/>
+												<PathIcon Data="{StaticResource IconClose}" Width="9" Height="9"/>
 										</Button>
 									</Grid>
 								</DataTemplate>

@@ -13,6 +13,7 @@
 		Title="Update Available"
 		TransparencyLevelHint="Transparent"
 		Background="Transparent"
+		BorderThickness="0"
 		ExtendClientAreaToDecorationsHint="True">
 
 	<Design.DataContext>

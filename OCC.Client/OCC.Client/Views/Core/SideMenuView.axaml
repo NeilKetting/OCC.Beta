@@ -185,10 +185,6 @@
 					</StackPanel>
 				</Button>
 
-
-
-
-
 				<!-- Notifications Link -->
 				<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Notifications" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Notifications'}" HorizontalAlignment="Stretch">
 					<StackPanel Orientation="Horizontal" Spacing="15">

@@ -12,6 +12,7 @@
 		SystemDecorations="None"
 		Background="Transparent"
 		TransparencyLevelHint="Transparent"
+		BorderThickness="0"
 		Topmost="True">
 
 	<Border Background="{DynamicResource SideMenuGradient}" CornerRadius="35" 

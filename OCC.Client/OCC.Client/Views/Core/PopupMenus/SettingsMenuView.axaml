@@ -25,7 +25,7 @@
             <!-- Buttons -->
             <Button Classes="PopupMenuButton" Command="{Binding CompanyProfileCommand}" IsVisible="{Binding CanAccessCompanyProfile}">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <PathIcon Data="{StaticResource IconBuilding}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    <PathIcon Data="{StaticResource IconCompanyProfile}" Width="16" Height="16" Foreground="{DynamicResource TextSecondaryGray}"/>
                     <TextBlock Text="Company Profile" VerticalAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Button>
