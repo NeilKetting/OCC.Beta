@@ -24,6 +24,14 @@ namespace OCC.Shared.Models
         /// <summary> Global toggle for automatic daily clock-in system. </summary>
         public bool AutoClockInEnabled { get; set; } = false;
 
+        public bool AutoClockInMonday { get; set; } = true;
+        public bool AutoClockInTuesday { get; set; } = true;
+        public bool AutoClockInWednesday { get; set; } = true;
+        public bool AutoClockInThursday { get; set; } = true;
+        public bool AutoClockInFriday { get; set; } = true;
+        public bool AutoClockInSaturday { get; set; } = false;
+        public bool AutoClockInSunday { get; set; } = false;
+
         // --- Backwards Compatibility Wrappers (Default to JHB) ---
 
         /// <summary> Default department emails (defaults to JHB). </summary>

@@ -71,6 +71,16 @@
                             <StackPanel Grid.Column="1" Grid.Row="0" Margin="15,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="Automatic Daily Clock-In" Classes="Label" Margin="0"/>
                                 <TextBlock Text="Automatically clocks in active employees based on their shift start time." Classes="Caption" TextWrapping="Wrap"/>
+                                
+                                <WrapPanel Margin="0,15,0,0" IsVisible="{Binding CompanyDetails.AutoClockInEnabled}">
+                                    <CheckBox Content="Mon" IsChecked="{Binding CompanyDetails.AutoClockInMonday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Tue" IsChecked="{Binding CompanyDetails.AutoClockInTuesday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Wed" IsChecked="{Binding CompanyDetails.AutoClockInWednesday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Thu" IsChecked="{Binding CompanyDetails.AutoClockInThursday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Fri" IsChecked="{Binding CompanyDetails.AutoClockInFriday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Sat" IsChecked="{Binding CompanyDetails.AutoClockInSaturday}" Margin="0,0,15,0" />
+                                    <CheckBox Content="Sun" IsChecked="{Binding CompanyDetails.AutoClockInSunday}" />
+                                </WrapPanel>
                             </StackPanel>
                         </Grid>
                     </StackPanel>

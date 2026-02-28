@@ -989,7 +989,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 // Only do this if the range implies "Current" relevance, or generally helpful to seeing status.
                 // We'll merge them in.
                 var activeRecords = await _timeService.GetActiveAttendanceAsync();
-                foreach (var active in activeRecords)
+                
+                // Filter out ghost records (like historical Sick/Leave that never had a CheckInTime)
+                var validActiveRecords = activeRecords.Where(x => 
+                    (x.Date.Date == DateTime.Today && (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue || x.CheckOutTime?.TimeOfDay == TimeSpan.Zero)) ||
+                    (x.Date.Date < DateTime.Today && x.CheckInTime.HasValue && (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue))
+                ).ToList();
+
+                foreach (var active in validActiveRecords)
                 {
                     if (!attendance.Any(x => x.Id == active.Id))
                     {

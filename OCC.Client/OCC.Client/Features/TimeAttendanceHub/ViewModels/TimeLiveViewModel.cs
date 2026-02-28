@@ -149,11 +149,13 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 var activeList = activeAttendance.ToList();
 
                 // Merge and filter for records that are truly "Active" (no checkout time)
-                // We treat DateTime.MinValue AND 00:00 (placeholder) as "active" if it's today.
+                // 1. Include today's active records (CheckOutTime is null/min/0)
+                // 2. Include historical active records ONLY IF they actually have a CheckInTime (to avoid importing old 'Sick' or 'Leave' records which have NULL for both).
                 var mergedAttendance = todayList.Concat(activeList)
-                                                      .Where(x => x.CheckOutTime == null || 
-                                                                 x.CheckOutTime == DateTime.MinValue || 
-                                                                 (x.Date.Date == today && x.CheckOutTime?.TimeOfDay == TimeSpan.Zero))
+                                                      .Where(x => 
+                                                          (x.Date.Date == today && (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue || x.CheckOutTime?.TimeOfDay == TimeSpan.Zero)) ||
+                                                          (x.Date.Date < today && x.CheckInTime.HasValue && (x.CheckOutTime == null || x.CheckOutTime == DateTime.MinValue))
+                                                      )
                                                       .GroupBy(x => x.EmployeeId ?? x.UserId)
                                                       .Select(g => g.OrderByDescending(r => r.CheckInTime ?? r.Date.Add(r.ClockInTime ?? TimeSpan.Zero)).First())
                                                       .ToList();
