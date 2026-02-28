@@ -32,7 +32,76 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public double TotalPaidHours => NormalHours + ProjectedHours + VarianceHours; 
 
         public decimal HourlyRate => Model.HourlyRate;
+        public decimal RatePerDay => Model.RatePerDay;
+        public double HoursPerDay => Model.HoursPerDay;
         
+        // Left Side Rates
+        public decimal RatePerHour => Model.RatePerHour;
+        public decimal StdOvertimeRate => Model.StdOvertimeRate;
+        public decimal SatOvertimeRate => Model.SatOvertimeRate;
+        public decimal SunOvertimeRate => Model.SunOvertimeRate;
+        public decimal DecRate => Model.DecRate;
+        
+        // Editable Fields
+        public double DaysWeek1
+        {
+            get => Model.DaysWeek1;
+            set { if (Model.DaysWeek1 != value) { Model.DaysWeek1 = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalDays)); RecalculateWage(); } }
+        }
+        
+        public double DaysWeek2
+        {
+            get => Model.DaysWeek2;
+            set { if (Model.DaysWeek2 != value) { Model.DaysWeek2 = value; OnPropertyChanged(); OnPropertyChanged(nameof(TotalDays)); RecalculateWage(); } }
+        }
+
+        public double TotalDays => DaysWeek1 + DaysWeek2;
+
+        public double StdOvertime
+        {
+            get => Model.StdOvertime;
+            set { if (Model.StdOvertime != value) { Model.StdOvertime = value; OnPropertyChanged(); RecalculateWage(); } }
+        }
+
+        public double SatOvertime
+        {
+            get => Model.SatOvertime;
+            set { if (Model.SatOvertime != value) { Model.SatOvertime = value; OnPropertyChanged(); RecalculateWage(); } }
+        }
+
+        public double SunOvertime
+        {
+            get => Model.SunOvertime;
+            set { if (Model.SunOvertime != value) { Model.SunOvertime = value; OnPropertyChanged(); RecalculateWage(); } }
+        }
+
+        public decimal DeductionWashing
+        {
+            get => Model.DeductionWashing;
+            set { if (Model.DeductionWashing != value) { Model.DeductionWashing = value; OnPropertyChanged(); OnPropertyChanged(nameof(NetPay)); } }
+        }
+
+        public decimal DeductionGas
+        {
+            get => Model.DeductionGas;
+            set { if (Model.DeductionGas != value) { Model.DeductionGas = value; OnPropertyChanged(); OnPropertyChanged(nameof(NetPay)); } }
+        }
+        
+        public double DecHrs
+        {
+            get => Model.DecHrs;
+            set { if (Model.DecHrs != value) { Model.DecHrs = value; OnPropertyChanged(); } }
+        }
+
+        public decimal DecTotal
+        {
+            get => Model.DecTotal;
+            set { if (Model.DecTotal != value) { Model.DecTotal = value; OnPropertyChanged(); } }
+        }
+
+        public string? BankName => Model.BankName;
+        public string? AccountNumber => Model.AccountNumber;
+
         public decimal TotalWage => Model.TotalWage;
 
         public decimal DeductionLoan => Model.DeductionLoan;
@@ -54,6 +123,18 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         public decimal NetPay => Model.NetPay;
+
+        private void RecalculateWage()
+        {
+            Model.TotalWage = (decimal)TotalDays * Model.RatePerDay +
+                              (decimal)Model.VarianceHours * Model.HourlyRate +
+                              (decimal)Model.StdOvertime * Model.HourlyRate * 1.5m +
+                              (decimal)Model.SatOvertime * Model.HourlyRate * 1.5m +
+                              (decimal)Model.SunOvertime * Model.HourlyRate * 2.0m;
+            
+            OnPropertyChanged(nameof(TotalWage));
+            OnPropertyChanged(nameof(NetPay));
+        }
 
         public bool HasVariance => System.Math.Abs(VarianceHours) > 0.01;
 

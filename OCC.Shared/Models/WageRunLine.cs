@@ -27,6 +27,42 @@ namespace OCC.Shared.Models
         /// <summary> The branch where the employee is based. </summary>
         public string Branch { get; set; } = string.Empty;
 
+        /// <summary> Number of days worked or credited in Week 1. </summary>
+        public double DaysWeek1 { get; set; }
+
+        /// <summary> Number of days worked or credited in Week 2. </summary>
+        public double DaysWeek2 { get; set; }
+
+        /// <summary> Standard Hours per Day (typically 8.75). </summary>
+        public double HoursPerDay { get; set; } = 8.75;
+
+        /// <summary> Calculated Rate Per Day. </summary>
+        public decimal RatePerDay { get; set; }
+
+        /// <summary> Calculated Rate Per Hour (base hourly rate). </summary>
+        public decimal RatePerHour { get; set; }
+
+        /// <summary> Calculated Standard Overtime Rate (1.5x). </summary>
+        public decimal StdOvertimeRate { get; set; }
+
+        /// <summary> Calculated Saturday Overtime Rate (1.5x). </summary>
+        public decimal SatOvertimeRate { get; set; }
+
+        /// <summary> Calculated Sunday Overtime Rate (2.0x). </summary>
+        public decimal SunOvertimeRate { get; set; }
+
+        /// <summary> Calculated December Rate. </summary>
+        public decimal DecRate { get; set; }
+
+        /// <summary> Standard Overtime hours (Weekday). </summary>
+        public double StdOvertime { get; set; }
+
+        /// <summary> Saturday Overtime hours. </summary>
+        public double SatOvertime { get; set; }
+
+        /// <summary> Sunday Overtime hours. </summary>
+        public double SunOvertime { get; set; }
+
         /// <summary> Total standard working hours verified for this period. </summary>
         public double NormalHours { get; set; }
 
@@ -69,13 +105,31 @@ namespace OCC.Shared.Models
         /// <summary> Other deductions (e.g., washing, damages). </summary>
         public decimal DeductionOther { get; set; }
 
+        /// <summary> Amount deducted for Washing. </summary>
+        public decimal DeductionWashing { get; set; }
+
+        /// <summary> Amount deducted for Gas. </summary>
+        public decimal DeductionGas { get; set; }
+
+        /// <summary> Employee's Bank Name. </summary>
+        public string? BankName { get; set; }
+
+        /// <summary> Employee's Bank Account Number (shown as Comments). </summary>
+        public string? AccountNumber { get; set; }
+
+        /// <summary> December Hours. </summary>
+        public double DecHrs { get; set; }
+
+        /// <summary> December Total. </summary>
+        public decimal DecTotal { get; set; }
+
         /// <summary> Supervisor incentive fee (e.g., R500). </summary>
         public decimal IncentiveSupervisor { get; set; }
 
         /// <summary> 
         /// Final payout amount: TotalWage + Incentives - Deductions. 
         /// </summary>
-        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionOther);
+        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionOther + DeductionWashing + DeductionGas);
 
         // IEntity Implementation - Replaced by BaseEntity
 

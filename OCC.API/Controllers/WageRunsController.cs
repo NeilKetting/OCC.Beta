@@ -105,8 +105,17 @@ namespace OCC.API.Controllers
                     EmployeeId = emp.Id,
                     EmployeeName = $"{emp.FirstName} {emp.LastName}",
                     Branch = emp.Branch,
-                    HourlyRate = (decimal)emp.HourlyRate
+                    HourlyRate = (decimal)emp.HourlyRate,
+                    BankName = emp.BankName,
+                    AccountNumber = emp.AccountNumber,
+                    HoursPerDay = 8.75
                 };
+                line.RatePerDay = line.HourlyRate * (decimal)line.HoursPerDay;
+                line.RatePerHour = line.HourlyRate;
+                line.StdOvertimeRate = line.HourlyRate * 1.5m;
+                line.SatOvertimeRate = line.HourlyRate * 1.5m;
+                line.SunOvertimeRate = line.HourlyRate * 2.0m;
+                line.DecRate = line.HourlyRate;
 
                 // A. Calculate Normal & Overtime Hours (Actual)
                 var empAttendance = attendance
@@ -122,6 +131,33 @@ namespace OCC.API.Controllers
                     line.Overtime15Hours += hours.Overtime15;
                     line.Overtime20Hours += hours.Overtime20;
                     line.LunchDeductionHours += hours.Lunch;
+                    
+                    if (record.CheckInTime != null && record.Status != AttendanceStatus.Absent)
+                    {
+                        var dow = record.Date.DayOfWeek;
+                        bool isWeekend = dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday;
+                        bool isHoliday = OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(record.Date);
+
+                        if (!isWeekend && !isHoliday)
+                        {
+                            if (record.Date < request.StartDate.AddDays(7))
+                                line.DaysWeek1 += 1;
+                            else
+                                line.DaysWeek2 += 1;
+                        }
+
+                        if (hours.Overtime15 > 0)
+                        {
+                            if (dow == DayOfWeek.Saturday)
+                                line.SatOvertime += hours.Overtime15;
+                            else
+                                line.StdOvertime += hours.Overtime15;
+                        }
+                        if (hours.Overtime20 > 0)
+                        {
+                            line.SunOvertime += hours.Overtime20;
+                        }
+                    }
                     
                     if (record.Status == AttendanceStatus.Absent)
                     {
@@ -142,14 +178,13 @@ namespace OCC.API.Controllers
                         if (dow == DayOfWeek.Saturday || dow == DayOfWeek.Sunday || OCC.Shared.Utils.HolidayUtils.IsPublicHoliday(d)) continue;
 
                         // Add Standard Shift (e.g. 9 hours or ShiftDiff)
-                        double dailyHours = 9.0;
+                        double dailyHours = 8.75;
                         if (emp.ShiftStartTime.HasValue && emp.ShiftEndTime.HasValue)
                         {
                             dailyHours = (emp.ShiftEndTime.Value - emp.ShiftStartTime.Value).TotalHours;
-                            // Deduct Lunch? Simplify to 9 for now unless specified.
-                            // Better: Use Shift diff.
                         }
                         line.ProjectedHours += dailyHours;
+                        line.DaysWeek2 += 1;
                     }
                 }
 
@@ -197,11 +232,13 @@ namespace OCC.API.Controllers
                 }
 
                 // D. Total Wage
-                // Formula: ((Normal + Projected + Variance) * Rate) + (OT15 * Rate * 1.5) + (OT20 * Rate * 2.0)
+                // Formula: (Days * RatePerDay) + (Variance * HourlyRate) + (OT rates)
                 
-                line.TotalWage = (decimal)(line.NormalHours + line.ProjectedHours + line.VarianceHours) * line.HourlyRate +
-                                 (decimal)line.Overtime15Hours * line.HourlyRate * 1.5m +
-                                 (decimal)line.Overtime20Hours * line.HourlyRate * 2.0m;
+                line.TotalWage = (decimal)(line.DaysWeek1 + line.DaysWeek2) * line.RatePerDay +
+                                 (decimal)line.VarianceHours * line.HourlyRate +
+                                 (decimal)line.StdOvertime * line.HourlyRate * 1.5m +
+                                 (decimal)line.SatOvertime * line.HourlyRate * 1.5m +
+                                 (decimal)line.SunOvertime * line.HourlyRate * 2.0m;
                     
                 // E. Loans
                 var empLoans = activeLoans.Where(l => l.EmployeeId == emp.Id).ToList();
