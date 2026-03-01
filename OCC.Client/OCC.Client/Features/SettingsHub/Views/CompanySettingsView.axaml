@@ -73,6 +73,20 @@
                                 <TextBlock Text="Automatically clocks in active employees based on their shift start time." Classes="Caption" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Grid>
+
+                        <!-- Days Selection -->
+                        <StackPanel Spacing="10" Margin="0,10,0,0" IsVisible="{Binding CompanyDetails.AutoClockInEnabled}">
+                            <TextBlock Text="Run on following days:" Classes="Label" FontSize="12"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <CheckBox Content="Mon" IsChecked="{Binding IsMondayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Tue" IsChecked="{Binding IsTuesdayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Wed" IsChecked="{Binding IsWednesdayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Thu" IsChecked="{Binding IsThursdayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Fri" IsChecked="{Binding IsFridayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Sat" IsChecked="{Binding IsSaturdayEnabled}" Margin="0,0,15,0"/>
+                                <CheckBox Content="Sun" IsChecked="{Binding IsSundayEnabled}" Margin="0,0,15,0"/>
+                            </WrapPanel>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
                 

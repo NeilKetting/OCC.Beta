@@ -54,8 +54,21 @@ namespace OCC.API.Controllers
         {
             // Request contains StartDate, EndDate. RunDate is Now.
             var runDate = DateTime.Now.Date; // "Today"
+
+            // 1. DUPLICATION CHECK: Prevent generating if a run already exists for this period/branch/type
+            var existingRun = await _context.WageRuns
+                .AnyAsync(w => w.StartDate == request.StartDate && 
+                               w.EndDate == request.EndDate && 
+                               w.Branch == request.Branch && 
+                               w.PayType == request.PayType &&
+                               w.Status != WageRunStatus.Paid); // Allow re-running if previous was paid? Usually no, but definitely block Draft/Finalized.
             
-            // 1. Create the Shell
+            if (existingRun)
+            {
+                return BadRequest($"A Wage Run (Draft or Finalized) already exists for {request.Branch} ({request.PayType}) between {request.StartDate:yyyy-MM-dd} and {request.EndDate:yyyy-MM-dd}.");
+            }
+            
+            // 2. Create the Shell
             var draftRun = new WageRun
             {
                 Id = Guid.NewGuid(),
@@ -64,6 +77,7 @@ namespace OCC.API.Controllers
                 RunDate = runDate,
                 Status = WageRunStatus.Draft,
                 PayType = request.PayType,
+                Branch = request.Branch, // Ensure Branch is set from request
                 Notes = request.Notes
             };
 
@@ -102,11 +116,13 @@ namespace OCC.API.Controllers
                 .Where(l => l.IsActive && l.OutstandingBalance > 0 && l.StartDate <= runDate)
                 .ToListAsync();
 
-            // 4. Fetch Previous Finalized Run (for Variance)
-            // We assume the run strictly before this one. Or we can look for the last finalized run *per employee*.
+            // 4. Fetch Previous Finalized Run (for Variance) - MUST BE BRANCH SPECIFIC
             var lastRun = await _context.WageRuns
                 .Include(w => w.Lines)
-                .Where(w => w.Status == WageRunStatus.Finalized && w.EndDate < request.StartDate)
+                .Where(w => w.Status == WageRunStatus.Finalized && 
+                            w.Branch == request.Branch && 
+                            w.PayType == request.PayType &&
+                            w.EndDate < request.StartDate)
                 .OrderByDescending(w => w.EndDate)
                 .FirstOrDefaultAsync();
 

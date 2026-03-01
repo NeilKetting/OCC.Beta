@@ -56,6 +56,16 @@ namespace OCC.API.Services
                 return; // Feature is disabled
             }
 
+            // Check if today is a scheduled day
+            var todayDay = DateTime.Now.DayOfWeek;
+            if (companyDetails.AutoClockInDays != null && 
+                companyDetails.AutoClockInDays.Count > 0 && 
+                !companyDetails.AutoClockInDays.Contains(todayDay))
+            {
+                _logger.LogInformation($"AutoClockInService: Skipping today ({todayDay}) as it is not in the scheduled days.");
+                return;
+            }
+
             // 2. Get active employees
             var activeEmployees = await dbContext.Employees
                 .Where(e => e.Status == EmployeeStatus.Active)

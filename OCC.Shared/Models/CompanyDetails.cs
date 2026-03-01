@@ -24,6 +24,9 @@ namespace OCC.Shared.Models
         /// <summary> Global toggle for automatic daily clock-in system. </summary>
         public bool AutoClockInEnabled { get; set; } = false;
 
+        /// <summary> Which days of the week auto clock-in should run. </summary>
+        public List<System.DayOfWeek> AutoClockInDays { get; set; } = new();
+
         // --- Backwards Compatibility Wrappers (Default to JHB) ---
 
         /// <summary> Default department emails (defaults to JHB). </summary>

@@ -25,6 +25,61 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
         [ObservableProperty]
         private CompanyDetails _companyDetails = new();
 
+        public bool IsMondayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Monday);
+            set { UpdateDay(DayOfWeek.Monday, value); OnPropertyChanged(); }
+        }
+        public bool IsTuesdayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Tuesday);
+            set { UpdateDay(DayOfWeek.Tuesday, value); OnPropertyChanged(); }
+        }
+        public bool IsWednesdayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Wednesday);
+            set { UpdateDay(DayOfWeek.Wednesday, value); OnPropertyChanged(); }
+        }
+        public bool IsThursdayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Thursday);
+            set { UpdateDay(DayOfWeek.Thursday, value); OnPropertyChanged(); }
+        }
+        public bool IsFridayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Friday);
+            set { UpdateDay(DayOfWeek.Friday, value); OnPropertyChanged(); }
+        }
+        public bool IsSaturdayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Saturday);
+            set { UpdateDay(DayOfWeek.Saturday, value); OnPropertyChanged(); }
+        }
+        public bool IsSundayEnabled
+        {
+            get => CompanyDetails.AutoClockInDays.Contains(DayOfWeek.Sunday);
+            set { UpdateDay(DayOfWeek.Sunday, value); OnPropertyChanged(); }
+        }
+
+        private void UpdateDay(DayOfWeek day, bool enabled)
+        {
+            if (enabled && !CompanyDetails.AutoClockInDays.Contains(day))
+                CompanyDetails.AutoClockInDays.Add(day);
+            else if (!enabled && CompanyDetails.AutoClockInDays.Contains(day))
+                CompanyDetails.AutoClockInDays.Remove(day);
+        }
+
+        private void RefreshDays()
+        {
+            OnPropertyChanged(nameof(IsMondayEnabled));
+            OnPropertyChanged(nameof(IsTuesdayEnabled));
+            OnPropertyChanged(nameof(IsWednesdayEnabled));
+            OnPropertyChanged(nameof(IsThursdayEnabled));
+            OnPropertyChanged(nameof(IsFridayEnabled));
+            OnPropertyChanged(nameof(IsSaturdayEnabled));
+            OnPropertyChanged(nameof(IsSundayEnabled));
+        }
+
         [ObservableProperty]
         private bool _isSaving;
 
@@ -64,6 +119,7 @@ namespace OCC.Client.Features.SettingsHub.ViewModels
                 if (details != null)
                 {
                     CompanyDetails = details;
+                    RefreshDays();
                 }
             }
             catch (Exception ex)

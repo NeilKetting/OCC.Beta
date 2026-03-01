@@ -11,33 +11,33 @@
 
 		<!-- Header / Controls -->
 		<Border Grid.Row="0" Background="{DynamicResource MainPageGradient}" Padding="10">
-			<Grid ColumnDefinitions="Auto, Auto, Auto, Auto, *, Auto" RowDefinitions="Auto, 15, Auto, 15, Auto">
+			<Grid ColumnDefinitions="175, 175, 175, 175, *, Auto" RowDefinitions="Auto, 15, Auto, 15, Auto">
 				<!-- Title -->
 				<TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" Text="New Wage Run" Classes="h2" FontWeight="Bold"/>
 
 				<!-- Row 2: Basic Setup -->
-				<StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,15,0">
+				<StackPanel Grid.Row="2" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
 					<TextBlock Text="Start Date (Monday)" Classes="label"/>
-					<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="150"/>
+					<CalendarDatePicker SelectedDate="{Binding StartDate}" Width="165"/>
 				</StackPanel>
 
-				<StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="0,0,15,0">
+				<StackPanel Grid.Row="2" Grid.Column="1" Spacing="5" Margin="0,0,10,0">
 					<TextBlock Text="End Date (Fortnight)" Classes="label"/>
-					<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="150" IsEnabled="False" Opacity="0.7"/>
+					<CalendarDatePicker SelectedDate="{Binding EndDate}" Width="165" IsEnabled="False" Opacity="0.7"/>
 				</StackPanel>
 
-				<StackPanel Grid.Row="2" Grid.Column="2" Spacing="5" Margin="0,0,15,0">
+				<StackPanel Grid.Row="2" Grid.Column="2" Spacing="5" Margin="0,0,10,0">
 					<TextBlock Text="Pay Type" Classes="label"/>
-					<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}" Width="120"/>
+					<ComboBox ItemsSource="{Binding PayTypeOptions}" SelectedItem="{Binding SelectedPayType}" Width="165" FontSize="10"/>
 				</StackPanel>
 
-				<StackPanel Grid.Row="2" Grid.Column="3" Spacing="5" Margin="0,0,15,0">
+				<StackPanel Grid.Row="2" Grid.Column="3" Spacing="5" Margin="0,0,10,0">
 					<TextBlock Text="Branch" Classes="label"/>
-					<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}" Width="120"/>
+					<ComboBox ItemsSource="{Binding BranchOptions}" SelectedItem="{Binding SelectedBranch}" Width="165" FontSize="10"/>
 				</StackPanel>
 
 				<!-- Info Note (Stretches) -->
-				<StackPanel Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,15,0">
+				<StackPanel Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="10,0,15,0">
 					<TextBlock Text="Note: Run covers 2 weeks (Week 1 = Actuals, Week 2 = Adv. Thu/Fri)." 
 							   FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" FontStyle="Italic" TextWrapping="Wrap"/>
 					<TextBlock Text="Differences adjusted in next run." 
@@ -46,13 +46,13 @@
 
 				<!-- Action Buttons -->
 				<StackPanel Grid.Row="2" Grid.Column="5" Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
-					<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="accent" IsVisible="{Binding !IsGenerated}">
+					<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="Primary" IsVisible="{Binding !IsGenerated}">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconSummary}" Foreground="White"/>
 							<TextBlock Text="Generate Draft"/>
 						</StackPanel>
 					</Button>
-					<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="Secondary" IsVisible="{Binding IsGenerated}" ToolTip.Tip="Regenerate draft to pull in new employee changes">
+					<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="Reset" IsVisible="{Binding IsGenerated}" ToolTip.Tip="Regenerate draft to pull in new employee changes">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<PathIcon Data="{StaticResource IconHistory}" />
 							<TextBlock Text="Refresh Draft"/>
@@ -61,23 +61,21 @@
 				</StackPanel>
 
 				<!-- Row 4: Params & Notes -->
-				<StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal" Spacing="15">
-					<StackPanel Spacing="5">
-						<TextBlock Text="Total Gas Charge (R)" Classes="label"/>
-						<NumericUpDown Value="{Binding TotalGasCharge}" FormatString="C2" Width="150" Minimum="0"/>
-					</StackPanel>
-					<StackPanel Spacing="5">
-						<TextBlock Text="Default Sup. Fee" Classes="label"/>
-						<NumericUpDown Value="{Binding DefaultSupervisorFee}" FormatString="C2" Width="150" Minimum="0"/>
-					</StackPanel>
-					<StackPanel Spacing="5">
-						<TextBlock Text="Washing" Classes="label" ToolTip.Tip="Flat washing fee deducted from all employees in company housing"/>
-						<NumericUpDown Value="{Binding CompanyHousingWashingFee}" FormatString="C2" Width="170" Minimum="0"/>
-					</StackPanel>
-					<StackPanel Spacing="5">
-						<TextBlock Text="Notes" Classes="label"/>
-						<TextBox Watermark="Run Notes (Optional)" Text="{Binding Notes}" Width="250"/>
-					</StackPanel>
+				<StackPanel Grid.Row="4" Grid.Column="0" Spacing="5" Margin="0,0,10,0">
+					<TextBlock Text="Total Gas Charge (R)" Classes="label"/>
+					<NumericUpDown Value="{Binding TotalGasCharge}" FormatString="C2" Width="165" Minimum="0"/>
+				</StackPanel>
+				<StackPanel Grid.Row="4" Grid.Column="1" Spacing="5" Margin="0,0,10,0">
+					<TextBlock Text="Default Sup. Fee" Classes="label"/>
+					<NumericUpDown Value="{Binding DefaultSupervisorFee}" FormatString="C2" Width="165" Minimum="0"/>
+				</StackPanel>
+				<StackPanel Grid.Row="4" Grid.Column="2" Spacing="5" Margin="0,0,10,0">
+					<TextBlock Text="Washing" Classes="label" ToolTip.Tip="Flat washing fee deducted from all employees in company housing"/>
+					<NumericUpDown Value="{Binding CompanyHousingWashingFee}" FormatString="C2" Width="165" Minimum="0"/>
+				</StackPanel>
+				<StackPanel Grid.Row="4" Grid.Column="3" Spacing="5" Margin="0,0,10,0">
+					<TextBlock Text="Notes" Classes="label"/>
+					<TextBox Watermark="Run Notes (Optional)" Text="{Binding Notes}" Width="165" FontSize="11"/>
 				</StackPanel>
 			</Grid>
 		</Border>
@@ -165,14 +163,6 @@
 						<DataGridTextColumn Binding="{Binding SunPHolRate, StringFormat={}{0:F2}}" Width="Auto" IsReadOnly="True">
 							<DataGridTextColumn.Header>
 								<TextBlock Text="SUN-P'HOL&#x0a;RATE" FontWeight="Bold" FontSize="9" TextAlignment="Center" Margin="0,4"/>
-							</DataGridTextColumn.Header>
-						</DataGridTextColumn>
-
-
-						<!-- 11. DEC TOTAL -->
-						<DataGridTextColumn Binding="{Binding DecTotal, StringFormat={}{0:F2}}" Width="Auto" IsReadOnly="True">
-							<DataGridTextColumn.Header>
-								<TextBlock Text="DEC&#x0a;TOTAL" FontWeight="Bold" FontSize="9" TextAlignment="Center" Margin="0,4"/>
 							</DataGridTextColumn.Header>
 						</DataGridTextColumn>
 
