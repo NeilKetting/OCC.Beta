@@ -74,9 +74,23 @@ namespace OCC.API.Controllers
                 rateType = parsedType;
             }
 
-            var employees = await _context.Employees
-                .Where(e => e.Status == EmployeeStatus.Active && e.RateType == rateType)
-                .ToListAsync();
+            var employeesQuery = _context.Employees
+                .Where(e => e.Status == EmployeeStatus.Active && e.RateType == rateType);
+                
+            if (!string.IsNullOrEmpty(request.Branch) && request.Branch != "All")
+            {
+                employeesQuery = employeesQuery.Where(e => e.Branch == request.Branch);
+            }
+
+            var employees = await employeesQuery.ToListAsync();
+            
+            // Calculate gas split
+            var housedEmployees = employees.Where(e => e.LivesInCompanyHousing).ToList();
+            decimal gasPerPerson = 0;
+            if (housedEmployees.Count > 0 && request.InputTotalGasCharge > 0)
+            {
+                gasPerPerson = request.InputTotalGasCharge / housedEmployees.Count;
+            }
 
             // 3. Fetch Attendance for the Period (up to RunDate)
             var attendance = await _context.AttendanceRecords
@@ -104,9 +118,37 @@ namespace OCC.API.Controllers
                     WageRunId = draftRun.Id,
                     EmployeeId = emp.Id,
                     EmployeeName = $"{emp.FirstName} {emp.LastName}",
+                    EmployeeNumber = emp.EmployeeNumber,
                     Branch = emp.Branch,
-                    HourlyRate = (decimal)emp.HourlyRate
+                    HourlyRate = (decimal)emp.HourlyRate,
+                    DeductionGas = 0, // Initialized to 0, set below
+                    DeductionWashing = 0, // Initialized to 0, set below
+                    IncentiveSupervisor = 0, // Initialized to 0, set below
+                    IsCompanyHoused = emp.LivesInCompanyHousing,
+                    IsSupervisor = (emp.Role == EmployeeRole.Supervisor || emp.Role == EmployeeRole.SiteManager ||
+                                    emp.Role == EmployeeRole.BuildingSupervisor || emp.Role == EmployeeRole.PlasterSupervisor ||
+                                    emp.Role == EmployeeRole.ShopfittingSupervisor || emp.Role == EmployeeRole.PaintingSupervisor ||
+                                    emp.Role == EmployeeRole.LabourSupervisor)
                 };
+
+                // Default Supervisor Incentive
+                if (emp.Role == EmployeeRole.Supervisor || emp.Role == EmployeeRole.SiteManager ||
+                    emp.Role == EmployeeRole.BuildingSupervisor || emp.Role == EmployeeRole.PlasterSupervisor ||
+                    emp.Role == EmployeeRole.ShopfittingSupervisor || emp.Role == EmployeeRole.PaintingSupervisor ||
+                    emp.Role == EmployeeRole.LabourSupervisor)
+                {
+                    line.IncentiveSupervisor = request.InputDefaultSupervisorFee;
+                }
+
+                // Gas and specific washing deduction for Company Housing
+                if (emp.LivesInCompanyHousing)
+                {
+                    line.DeductionGas = gasPerPerson;
+                    if (request.InputCompanyHousingWashingFee > 0)
+                    {
+                        line.DeductionWashing = request.InputCompanyHousingWashingFee;
+                    }
+                }
 
                 // A. Calculate Normal & Overtime Hours (Actual)
                 var empAttendance = attendance
@@ -234,6 +276,28 @@ namespace OCC.API.Controllers
             run.Status = WageRunStatus.Finalized;
             await _context.SaveChangesAsync();
             
+            return NoContent();
+        }
+
+        // PUT: api/WageRuns/draft/{id}/lines
+        [HttpPut("draft/{id}/lines")]
+        public async Task<IActionResult> UpdateDraftLines(Guid id, [FromBody] List<WageRunLine> updatedLines)
+        {
+            var run = await _context.WageRuns.Include(w => w.Lines).FirstOrDefaultAsync(w => w.Id == id);
+            if (run == null || run.Status != WageRunStatus.Draft) return BadRequest("Run not found or not in Draft state.");
+
+            foreach (var existingLine in run.Lines)
+            {
+                var update = updatedLines.FirstOrDefault(l => l.Id == existingLine.Id);
+                if (update != null)
+                {
+                    existingLine.DeductionWashing = update.DeductionWashing;
+                    existingLine.IncentiveSupervisor = update.IncentiveSupervisor;
+                    // DeductionGas is set from the initial total generation, so we won't allow edits here unless requested.
+                }
+            }
+
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 

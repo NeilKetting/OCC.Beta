@@ -19,6 +19,12 @@
 		<DataTemplate DataType="{x:Type vm:DailyTimesheetViewModel}">
 			<viewTime:DailyTimesheetView/>
 		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:TimeLiveV2ViewModel}">
+			<viewTime:TimeLiveV2View/>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type vm:DailyTimesheetV2ViewModel}">
+			<viewTime:DailyTimesheetV2View/>
+		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:AttendanceHistoryViewModel}">
 			<viewTime:AttendanceHistoryView/>
 		</DataTemplate>

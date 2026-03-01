@@ -235,7 +235,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     Price = Price,
                     TrackLowStock = IsTrackingLowStock,
                     IsStockItem = IsStockItem,
-                    RowVersion = RowVersion
+                    RowVersion = RowVersion ?? Array.Empty<byte>()
                 };
 
                 if (IsEditMode)

@@ -185,6 +185,11 @@ namespace OCC.Shared.Models
         /// </summary>
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
 
+        /// <summary>
+        /// Indicates if the employee lives in company housing (used for splitting gas bills).
+        /// </summary>
+        public bool LivesInCompanyHousing { get; set; }
+
         // Emergency & Next of Kin
         
         /// <summary> Name of the next of kin. </summary>

@@ -283,7 +283,7 @@
 								<TextBlock Text="Branch" Classes="FormLabel"/>
 								<ComboBox ItemsSource="{Binding Branches}" SelectedItem="{Binding Wrapper.Branch}" HorizontalAlignment="Stretch"
 										  ToolTip.Tip="Select the employee's primary branch"/>
-							</StackPanel>
+							</StackPanel>							
 
 							<!-- Working Hours -->
 							<StackPanel>
@@ -434,6 +434,14 @@
 									<TextBlock Text="Sick Leave Cycle Ends:" FontSize="11" Foreground="{DynamicResource TextSecondaryGray}" />
 									<TextBlock Text="{Binding SickLeaveCycleEndDisplay}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryTeal}"/>
 								</StackPanel>
+							</StackPanel>
+
+							<!-- Company Housing -->
+							<StackPanel>
+								<TextBlock Text="Company Housing" Classes="FormLabel" Margin="0,10,0,0"/>
+								<CheckBox Content="Lives in Company Shared Housing (Pays Gas)" 
+										  IsChecked="{Binding Wrapper.LivesInCompanyHousing}"
+										  ToolTip.Tip="Check this if the employee shares the company gas bill"/>
 							</StackPanel>
 						</StackPanel>
 					</Grid>

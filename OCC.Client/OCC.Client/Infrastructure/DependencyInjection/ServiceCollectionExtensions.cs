@@ -42,6 +42,8 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             services.AddTransient<FailureLoggingHandler>();
             services.AddSingleton(ConnectionSettings.Instance);
             services.AddSingleton<ITimeService, TimeService>();
+            services.AddSingleton<ITimeServiceV2, TimeServiceV2>();
+
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<IPdfService, PdfService>();
             services.AddSingleton<IExportService, ExportService>();
@@ -174,8 +176,10 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             
             services.AddTransient<TimeAttendanceViewModel>();
             services.AddTransient<TimeLiveViewModel>();
+            services.AddTransient<TimeLiveV2ViewModel>();
             services.AddTransient<TimeMenuViewModel>();
             services.AddTransient<DailyTimesheetViewModel>();
+            services.AddTransient<DailyTimesheetV2ViewModel>();
             services.AddTransient<AttendanceHistoryViewModel>();
             services.AddTransient<ManualAttendanceViewModel>();
 

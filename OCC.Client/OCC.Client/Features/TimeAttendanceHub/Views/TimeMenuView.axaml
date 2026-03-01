@@ -44,6 +44,16 @@
                                     <PathIcon Data="{StaticResource IconPlus}" Classes="IconStyle" Width="16" Height="16"/>
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Header="Live V2 (TEST)" Command="{Binding SetActiveTabCommand}" CommandParameter="Live V2">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource clock_regular}" Classes="IconStyle" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Timesheet V2 (TEST)" Command="{Binding SetActiveTabCommand}" CommandParameter="Timesheet V2">
+                                <MenuItem.Icon>
+                                    <PathIcon Data="{StaticResource calculator_regular}" Classes="IconStyle" Width="16" Height="16"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
                             <MenuItem Header="Clock History" Command="{Binding SetActiveTabCommand}" CommandParameter="History">
                                 <MenuItem.Icon>
                                     <PathIcon Data="{StaticResource IconHistory}" Classes="IconStyle" Width="16" Height="16"/>

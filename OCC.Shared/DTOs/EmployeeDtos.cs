@@ -44,6 +44,7 @@ namespace OCC.Shared.DTOs
         public string? ContractDuration { get; set; }
         public DateTime EmploymentDate { get; set; }
         public string Branch { get; set; } = "Johannesburg";
+        public bool LivesInCompanyHousing { get; set; }
         public TimeSpan? ShiftStartTime { get; set; }
         public TimeSpan? ShiftEndTime { get; set; }
         

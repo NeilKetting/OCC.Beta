@@ -34,8 +34,23 @@ namespace OCC.Shared.Models
         /// <summary> Which RateType this wage run applies to (e.g., Hourly or MonthlySalary). If null or empty, assumes Hourly for backward compatibility. </summary>
         public string? PayType { get; set; }
         
+        /// <summary> Which Branch this wage run applies to (e.g., Johannesburg, Cape Town, or All). </summary>
+        public string? Branch { get; set; }
+
         /// <summary> Collection of individual employee wage calculations for this run. </summary>
         public List<WageRunLine> Lines { get; set; } = new();
+
+        /// <summary> Used for inputting the total gas charge to split among housed employees. </summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public decimal InputTotalGasCharge { get; set; }
+
+        /// <summary> Used for inputting the default supervisor fee to apply to supervisors. </summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public decimal InputDefaultSupervisorFee { get; set; }
+
+        /// <summary> Used for inputting a flat washing fee for employees in company housing. </summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public decimal InputCompanyHousingWashingFee { get; set; }
 
         // IEntity Implementation - Replaced by BaseEntity
 

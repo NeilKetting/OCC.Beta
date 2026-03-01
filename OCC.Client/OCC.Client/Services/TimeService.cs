@@ -71,8 +71,8 @@ namespace OCC.Client.Services
             var today = DateTime.Today;
             return await _attendanceRepository.FindAsync(r => 
                 r.Status != AttendanceStatus.Absent && 
-                ((r.Date.Date == today && (r.CheckOutTime == null || r.CheckOutTime == DateTime.MinValue || r.CheckOutTime?.TimeOfDay == TimeSpan.Zero)) ||
-                 (r.Date.Date < today && r.CheckInTime.HasValue && (r.CheckOutTime == null || r.CheckOutTime == DateTime.MinValue)))
+                ((r.Date.Date == today && (r.CheckOutTime == null || r.CheckOutTime == DateTime.MinValue)) ||
+                 (r.Date.Date < today && r.CheckInTime != null && (r.CheckOutTime == null || r.CheckOutTime == DateTime.MinValue)))
             );
         }
 

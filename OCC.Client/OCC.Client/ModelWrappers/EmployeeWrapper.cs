@@ -76,6 +76,9 @@ namespace OCC.Client.ModelWrappers
         private string _branch = "Johannesburg";
 
         [ObservableProperty]
+        private bool _livesInCompanyHousing = false;
+
+        [ObservableProperty]
         private TimeSpan? _shiftStartTime = new TimeSpan(7, 0, 0);
 
         [ObservableProperty]
@@ -145,6 +148,7 @@ namespace OCC.Client.ModelWrappers
             ContractDuration = _model.ContractDuration;
             EmploymentDate = _model.EmploymentDate;
             Branch = _model.Branch;
+            LivesInCompanyHousing = _model.LivesInCompanyHousing;
             ShiftStartTime = _model.ShiftStartTime;
             ShiftEndTime = _model.ShiftEndTime;
             BankName = _model.BankName;
@@ -187,6 +191,7 @@ namespace OCC.Client.ModelWrappers
             _model.ContractDuration = ContractDuration;
             _model.EmploymentDate = EmploymentDate;
             _model.Branch = Branch;
+            _model.LivesInCompanyHousing = LivesInCompanyHousing;
             _model.ShiftStartTime = ShiftStartTime;
             _model.ShiftEndTime = ShiftEndTime;
             _model.BankName = BankName;

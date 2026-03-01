@@ -22,7 +22,10 @@ namespace OCC.Shared.Models
         public Guid EmployeeId { get; set; }
         
         /// <summary> Snapshot of the employee's name at time of generation. </summary>
-        public string EmployeeName { get; set; } = string.Empty; 
+        public string EmployeeName { get; set; } = string.Empty;
+
+        /// <summary> Snapshot of the employee's unique number. </summary>
+        public string EmployeeNumber { get; set; } = string.Empty;
 
         /// <summary> The branch where the employee is based. </summary>
         public string Branch { get; set; } = string.Empty;
@@ -66,7 +69,13 @@ namespace OCC.Shared.Models
         /// <summary> Amount deducted for tax/PAYE/UIF. </summary>
         public decimal DeductionTax { get; set; }
 
-        /// <summary> Other deductions (e.g., washing, damages). </summary>
+        /// <summary> Amount deducted for washing. </summary>
+        public decimal DeductionWashing { get; set; }
+
+        /// <summary> Amount deducted for gas (company housing). </summary>
+        public decimal DeductionGas { get; set; }
+
+        /// <summary> Other deductions (e.g., damages). </summary>
         public decimal DeductionOther { get; set; }
 
         /// <summary> Supervisor incentive fee (e.g., R500). </summary>
@@ -75,7 +84,15 @@ namespace OCC.Shared.Models
         /// <summary> 
         /// Final payout amount: TotalWage + Incentives - Deductions. 
         /// </summary>
-        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionOther);
+        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionWashing + DeductionGas + DeductionOther);
+
+        /// <summary> Flag indicating if the employee lives in company housing. </summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public bool IsCompanyHoused { get; set; }
+
+        /// <summary> Flag indicating if the employee is in a supervisor role. </summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public bool IsSupervisor { get; set; }
 
         // IEntity Implementation - Replaced by BaseEntity
 

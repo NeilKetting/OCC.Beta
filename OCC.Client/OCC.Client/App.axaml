@@ -18,6 +18,7 @@
 
             <conv:StatusColorConverter x:Key="StatusToColorConverter"/>
             <conv:TypeToColorConverter x:Key="TypeToColorConverter"/>
+            <conv:EventTypeToColorConverter x:Key="EventTypeToColorConverter"/>
             <conv:BugStatusBadgeConverter x:Key="BugStatusBadgeConverter"/>
             <conv:GuidToBoolConverter x:Key="GuidToBoolConverter"/>
             <conv:EmployeeToNameConverter x:Key="EmployeeToNameConverter"/>

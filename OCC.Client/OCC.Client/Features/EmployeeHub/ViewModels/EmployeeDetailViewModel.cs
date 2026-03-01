@@ -793,6 +793,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
                 ContractDuration = dto.ContractDuration,
                 EmploymentDate = dto.EmploymentDate,
                 Branch = dto.Branch,
+                LivesInCompanyHousing = dto.LivesInCompanyHousing,
                 ShiftStartTime = dto.ShiftStartTime,
                 ShiftEndTime = dto.ShiftEndTime,
                 RateType = dto.RateType,

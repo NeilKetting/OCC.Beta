@@ -30,7 +30,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 
         // Sub-ViewModels
         [ObservableProperty] private TimeLiveViewModel _liveView;
+        [ObservableProperty] private TimeLiveV2ViewModel _liveV2View;
         [ObservableProperty] private DailyTimesheetViewModel _dailyTimesheetView;
+        [ObservableProperty] private DailyTimesheetV2ViewModel _dailyTimesheetV2View;
         [ObservableProperty] private AttendanceHistoryViewModel _attendanceHistoryView;
         [ObservableProperty] private LeaveApplicationViewModel _leaveApplicationView;
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
@@ -55,7 +57,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             // Design-time
             _timeMenu = null!;
             _liveView = null!;
+            _liveV2View = null!;
             _dailyTimesheetView = null!;
+            _dailyTimesheetV2View = null!;
             _attendanceHistoryView = null!;
             _leaveApplicationView = null!;
             _leaveApprovalVM = null!;
@@ -72,7 +76,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public TimeAttendanceViewModel(
             TimeMenuViewModel timeMenu,
             TimeLiveViewModel liveView,
+            TimeLiveV2ViewModel liveV2View,
             DailyTimesheetViewModel dailyTimesheetView,
+            DailyTimesheetV2ViewModel dailyTimesheetV2View,
             AttendanceHistoryViewModel attendanceHistoryView,
             LeaveApplicationViewModel leaveApplicationView,
             LeaveApprovalViewModel leaveApprovalViewModel,
@@ -85,7 +91,9 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         {
             _timeMenu = timeMenu;
             _liveView = liveView;
+            _liveV2View = liveV2View;
             _dailyTimesheetView = dailyTimesheetView;
+            _dailyTimesheetV2View = dailyTimesheetV2View;
             _attendanceHistoryView = attendanceHistoryView;
             _leaveApplicationView = leaveApplicationView;
             _leaveApprovalVM = leaveApprovalViewModel;
@@ -133,6 +141,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             {
                 case "Timesheet":
                     CurrentView = DailyTimesheetView;
+                    break;
+                case "Timesheet V2":
+                    CurrentView = DailyTimesheetV2View;
+                    _ = DailyTimesheetV2View.LoadDataAsync();
+                    break;
+                case "Live V2":
+                    CurrentView = LiveV2View;
+                    _ = LiveV2View.LoadDataAsync();
                     break;
                 case "History":
                     CurrentView = AttendanceHistoryView;

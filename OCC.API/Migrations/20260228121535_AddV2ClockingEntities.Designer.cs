@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OCC.API.Data;
 
@@ -11,9 +12,11 @@ using OCC.API.Data;
 namespace OCC.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228121535_AddV2ClockingEntities")]
+    partial class AddV2ClockingEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -596,9 +599,6 @@ namespace OCC.API.Migrations
 
                     b.Property<Guid?>("LinkedUserId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("LivesInCompanyHousing")
-                        .HasColumnType("bit");
 
                     b.Property<string>("NextOfKinName")
                         .HasColumnType("nvarchar(max)");
@@ -2308,7 +2308,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("b862c2f5-9fe1-4228-9946-4d0aa0fdb12a"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(2688),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(4725),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2318,7 +2318,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("a1e140e8-e1a8-4acf-b5e0-715ed41c7af3"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3045),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5109),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 3, 21, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2328,7 +2328,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("2d50946b-c807-4e9f-a74d-a6c5493b3c94"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3047),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5111),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2338,7 +2338,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("e91fa4f6-1b80-423b-8755-c8e133c34670"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3049),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5112),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 6, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2348,7 +2348,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("3e473dfe-4182-4c81-8ba8-f5c33a9e1ed1"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3050),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5114),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2358,7 +2358,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("80ce73e9-fd26-47db-b79f-57165ba68111"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3052),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5115),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2368,7 +2368,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("7f422560-941b-4fe4-80ef-b22adeddfbee"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3059),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5116),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 6, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2378,7 +2378,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("e226a941-9246-4dd5-91ec-7dff8a5a96ca"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3061),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5127),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2388,7 +2388,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("0dc5e6d5-2530-40d7-8301-9d41f44c879b"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3062),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5128),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2398,7 +2398,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("5eb30cce-ad23-43a9-9ca2-50236232dccf"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3063),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5138),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 9, 24, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2408,7 +2408,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("b5b21171-4284-4f14-bfa4-e8bd0cdb3264"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3065),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5139),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 16, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2418,7 +2418,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("496a7469-aa27-435d-899c-1a7c540f5187"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3066),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5140),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2428,7 +2428,7 @@ namespace OCC.API.Migrations
                         new
                         {
                             Id = new Guid("fcc99eac-4678-49da-9e2e-f1026fe7c867"),
-                            CreatedAtUtc = new DateTime(2026, 3, 1, 10, 41, 7, 359, DateTimeKind.Utc).AddTicks(3067),
+                            CreatedAtUtc = new DateTime(2026, 2, 28, 12, 15, 35, 17, DateTimeKind.Utc).AddTicks(5142),
                             CreatedBy = "System",
                             Date = new DateTime(2026, 12, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
@@ -2896,9 +2896,6 @@ namespace OCC.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Branch")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -2960,9 +2957,6 @@ namespace OCC.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("DeductionGas")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("DeductionLoan")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -2975,17 +2969,10 @@ namespace OCC.API.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("DeductionWashing")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EmployeeNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

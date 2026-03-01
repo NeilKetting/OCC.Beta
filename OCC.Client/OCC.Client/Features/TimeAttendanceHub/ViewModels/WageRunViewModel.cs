@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using OCC.Client.Services.Interfaces;
 using OCC.Client.ViewModels.Core;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,6 +59,25 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         };
 
         [ObservableProperty]
+        private string _selectedBranch = "All";
+
+        public ObservableCollection<string> BranchOptions { get; } = new ObservableCollection<string>
+        {
+            "All",
+            "Johannesburg",
+            "Cape Town"
+        };
+        
+        [ObservableProperty]
+        private decimal _totalGasCharge = 0m;
+        
+        [ObservableProperty]
+        private decimal _defaultSupervisorFee = 500m;
+
+        [ObservableProperty]
+        private decimal _companyHousingWashingFee = 0m;
+
+        [ObservableProperty]
         private ObservableCollection<WageRunLineViewModel> _lines = new();
 
         [ObservableProperty]
@@ -67,6 +87,37 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private bool _isGenerated;
         
 
+        partial void OnTotalGasChargeChanged(decimal value)
+        {
+            if (Lines == null || !Lines.Any()) return;
+            var housedCount = Lines.Count(x => x.Model.IsCompanyHoused);
+            var gasPerPerson = housedCount > 0 ? value / housedCount : 0;
+            foreach (var line in Lines.Where(x => x.Model.IsCompanyHoused))
+            {
+                line.DeductionGas = gasPerPerson;
+            }
+        }
+
+        partial void OnCompanyHousingWashingFeeChanged(decimal value)
+        {
+            if (Lines == null || !Lines.Any()) return;
+            foreach (var line in Lines.Where(x => x.Model.IsCompanyHoused))
+            {
+                line.DeductionWashing = value;
+            }
+        }
+
+        partial void OnDefaultSupervisorFeeChanged(decimal value)
+        {
+            if (Lines == null || !Lines.Any()) return;
+            foreach (var line in Lines.Where(x => x.Model.IsSupervisor))
+            {
+                line.IncentiveSupervisor = value;
+            }
+        }
+
+        [ObservableProperty]
+        private double _gridZoom = 1.0;
 
         private Guid? _currentDraftId;
 
@@ -78,22 +129,73 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 BusyText = "Generating draft run...";
                 IsBusy = true;
                 
-                var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, SelectedPayType, Notes);
+                // Keep track of existing manual edits before regenerating
+                var existingEdits = new Dictionary<Guid, (decimal Washing, decimal SupFee)>();
+                if (IsGenerated && Lines.Any())
+                {
+                    foreach (var line in Lines)
+                    {
+                        existingEdits[line.Model.EmployeeId] = (line.DeductionWashing, line.IncentiveSupervisor);
+                    }
+                }
+
+                var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, SelectedPayType, SelectedBranch, TotalGasCharge, DefaultSupervisorFee, CompanyHousingWashingFee, Notes);
                 _currentDraftId = draft.Id;
                 
                 Lines.Clear();
-                foreach (var line in draft.Lines.OrderBy(l => l.EmployeeName))
+                int index = 1;
+
+                // Robust Consolidation: Group by Name and Id to catch orphan records or inconsistent IDs
+                var consolidatedLines = draft.Lines
+                    .GroupBy(l => new { Name = l.EmployeeName?.Trim(), Id = l.EmployeeId })
+                    .Select(g => 
+                    {
+                        var first = g.First();
+                        if (g.Count() > 1)
+                        {
+                            foreach (var extra in g.Skip(1))
+                            {
+                                first.TotalWage += extra.TotalWage;
+                                first.IncentiveSupervisor += extra.IncentiveSupervisor;
+                                first.DeductionLoan += extra.DeductionLoan;
+                                first.DeductionTax += extra.DeductionTax;
+                                first.DeductionWashing += extra.DeductionWashing;
+                                first.DeductionGas += extra.DeductionGas;
+                                first.DeductionOther += extra.DeductionOther;
+                                if (!string.IsNullOrEmpty(extra.VarianceNotes))
+                                    first.VarianceNotes = (first.VarianceNotes + " " + extra.VarianceNotes).Trim();
+                                
+                                // Merge hours as well
+                                first.NormalHours += extra.NormalHours;
+                                first.Overtime15Hours += extra.Overtime15Hours;
+                                first.Overtime20Hours += extra.Overtime20Hours;
+                            }
+                        }
+                        return first;
+                    })
+                    .OrderBy(l => l.EmployeeName);
+
+                foreach (var line in consolidatedLines)
                 {
-                    var vm = new WageRunLineViewModel(line);
+                    // Re-apply existing edits if they exist
+                    if (existingEdits.TryGetValue(line.EmployeeId, out var edits))
+                    {
+                        line.DeductionWashing = edits.Washing;
+                        line.IncentiveSupervisor = edits.SupFee;
+                    }
+
+                    var vm = new WageRunLineViewModel(line) { IndexNum = index++ };
                     vm.PropertyChanged += (s, e) => 
                     {
-                        if (e.PropertyName == nameof(WageRunLineViewModel.NetPay))
-                            GrandTotalWage = Lines.Sum(x => x.NetPay);
+                        if (e.PropertyName == nameof(WageRunLineViewModel.NetPay) || e.PropertyName == nameof(WageRunLineViewModel.IncentiveSupervisor))
+                        {
+                             UpdateGrandTotal();
+                        }
                     };
                     Lines.Add(vm);
                 }
-                
-                GrandTotalWage = Lines.Sum(x => x.NetPay);
+
+                UpdateGrandTotal();
                 IsGenerated = true;
             }
             catch (Exception ex)
@@ -104,6 +206,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private void UpdateGrandTotal()
+        {
+            GrandTotalWage = Lines.Sum(x => x.NetPay);
         }
 
         [RelayCommand]
@@ -132,6 +239,31 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowAlertAsync("Error", $"Failed to finalize: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task SaveDraft()
+        {
+            if (_currentDraftId == null || !Lines.Any()) return;
+
+            try
+            {
+                BusyText = "Saving draft edits...";
+                IsBusy = true;
+                
+                var updatedLines = Lines.Select(vm => vm.Model).ToList();
+                await _wageService.UpdateDraftLinesAsync(_currentDraftId.Value, updatedLines);
+                
+                await _dialogService.ShowAlertAsync("Success", "Draft changes saved explicitly.");
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Failed to save draft edits: {ex.Message}");
             }
             finally
             {

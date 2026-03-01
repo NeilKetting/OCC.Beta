@@ -41,6 +41,9 @@ namespace OCC.API.Data
         public DbSet<WageRunLine> WageRunLines { get; set; }
         public DbSet<EmployeeLoan> EmployeeLoans { get; set; }
 
+        public DbSet<ClockingEvent> ClockingEvents { get; set; }
+        public DbSet<DailyTimesheet> DailyTimesheets { get; set; }
+
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<AppSetting> AppSettings { get; set; }
         public DbSet<TaskAssignment> TaskAssignments { get; set; }

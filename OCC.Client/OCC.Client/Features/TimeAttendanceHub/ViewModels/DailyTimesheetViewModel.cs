@@ -16,13 +16,15 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
 {
     public partial class DailyTimesheetViewModel : ViewModelBase
     {
-        private readonly ITimeService _timeService;
         private readonly ILeaveService _leaveService;
         private readonly IRepository<OvertimeRequest> _overtimeRepository;
         private readonly IDialogService _dialogService;
         private readonly IAuthService _authService;
+        private readonly ITimeService _timeService;
+        private readonly ITimeServiceV2 _timeServiceV2;
 
         #region Observables
+
 
         [ObservableProperty]
         private DateTime _date = DateTime.Today;
@@ -90,13 +92,15 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             ILeaveService leaveService,
             IRepository<OvertimeRequest> overtimeRepository, // NEW
             IDialogService dialogService,
-            IAuthService authService)
+            IAuthService authService,
+            ITimeServiceV2 timeServiceV2)
         {
             _timeService = timeService;
             _leaveService = leaveService;
             _overtimeRepository = overtimeRepository;
             _dialogService = dialogService;
             _authService = authService;
+            _timeServiceV2 = timeServiceV2;
             
             _ = LoadDataAsync();
         }
@@ -231,35 +235,22 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                  try
                  {
                      var now = DateTime.Now;
-                     var record = new AttendanceRecord
-                     {
-                         Id = Guid.NewGuid(),
-                         EmployeeId = staff.Id,
-                         Date = now.Date, // Fix: Use actual date
-                         Branch = staff.Branch,
-                         Status = AttendanceStatus.Present,
-                         CheckInTime = now,
-                         ClockInTime = now.TimeOfDay,
-                         CheckOutTime = null, // Open shift
-                         CachedHourlyRate = (decimal?)staff.HourlyRate, // SNAPSHOT RATE
-                         RowVersion = Array.Empty<byte>()
-                     };
 
-                     await _timeService.SaveAttendanceRecordAsync(record);
-
-                     // Create a new VM for this new record
-                     var newVm = new StaffAttendanceViewModel(staff)
-                     {
-                         Id = record.Id,
-                         Status = AttendanceStatus.Present,
-                         ClockInTime = now.TimeOfDay,
-                         ClockOutTime = null
-                     };
-
-                     // Add to cache (at TOP) and refresh
-                     _allLoggedCache.Insert(0, newVm); // Insert at 0 to keep "Newest Top" order consistent
-                     ApplyFilters();
+                     // V2 DUAL WRITE CLOCK IN
+                     var v2ClockIn = await _timeServiceV2.ClockInAsync(staff.Id, now, IsManualMode ? "Manual Override" : "WebPortal");
                      
+                     if (v2ClockIn == null)
+                     {
+                         await _dialogService.ShowAlertAsync("Error", "V2 Clock In failed");
+                         return;
+                     }
+
+                     // Now creating the temporary UI VM... The backend handles creating the V1 AttendanceRecord!
+                     // We need the V1 ID though. If the backend doesn't return it... actually we can just reload data, 
+                     // or we can mock it here for the UI and let signalr / next refresh fix it. Let's just reload.
+                     
+                     await LoadDataAsync();
+
                      WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{staff.FirstName} started a new shift."));
                  }
                  catch (Exception ex)
@@ -328,7 +319,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 }
 
                 DateTime checkInTime = DateTime.Now;
-                DateTime? checkOutTime = null;
 
                 if (IsManualMode)
                 {
@@ -354,28 +344,16 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 IsSaving = true;
                 try
                 {
-                    var record = new AttendanceRecord
+                    // V2 DUAL WRITE CLOCK IN
+                    var v2ClockIn = await _timeServiceV2.ClockInAsync(item.EmployeeId, checkInTime, "Marked Present");
+                     
+                    if (v2ClockIn == null)
                     {
-                        Id = Guid.NewGuid(),
-                        EmployeeId = item.EmployeeId,
-                        Date = checkInTime.Date, // Fix: Use actual date
-                        Branch = item.Branch,
-                        Status = AttendanceStatus.Present,
-                        CheckInTime = checkInTime,
-                        ClockInTime = checkInTime.TimeOfDay,
-                        CheckOutTime = checkOutTime, 
-                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate,
-                        RowVersion = Array.Empty<byte>()
-                    };
+                         await _dialogService.ShowAlertAsync("Error", "V2 Clock In failed");
+                         return;
+                    }
 
-                    await _timeService.SaveAttendanceRecordAsync(record);
-                    
-                    item.Id = record.Id;
-                    item.Status = AttendanceStatus.Present;
-                    item.ClockInTime = record.ClockInTime;
-                    item.ClockOutTime = record.CheckOutTime?.TimeOfDay;
-
-                    MoveToLogged(item);
+                    await LoadDataAsync(); // Let it re-fetch the real entities
                     WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{item.Name} marked Present"));
                 }
                 catch (Exception ex)
@@ -451,33 +429,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 {
                     if (item.IsOnLeave) continue; 
 
-                    var record = new AttendanceRecord
-                    {
-                        Id = Guid.NewGuid(),
-                        EmployeeId = item.EmployeeId,
-                        Date = checkInTime.Date, // Fix: Use the actual date of the clock-in, not the potentially stale ViewModel Date
-                        Branch = item.Branch,
-                        Status = AttendanceStatus.Present,
-                        CheckInTime = checkInTime,
-                        ClockInTime = checkInTime.TimeOfDay,
-                        CheckOutTime = null, 
-                        CachedHourlyRate = (decimal?)item.Staff.HourlyRate,
-                        RowVersion = Array.Empty<byte>() 
-                    };
-
-                    await _timeService.SaveAttendanceRecordAsync(record);
-                    
-                    item.Id = record.Id;
-                    item.Status = AttendanceStatus.Present;
-                    item.ClockInTime = record.ClockInTime;
-                    item.ClockOutTime = null;
-                    count++;
+                    var v2ClockIn = await _timeServiceV2.ClockInAsync(item.EmployeeId, checkInTime, IsManualMode ? "Manual Bulk" : "Web Bulk");
+                    if (v2ClockIn != null) count++;
                 }
 
-                foreach (var item in toClockIn.Where(x => x.Id != Guid.Empty))
-                {
-                    MoveToLogged(item);
-                }
+                await LoadDataAsync();
 
                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{count} staff members clocked in."));
             }
@@ -544,23 +500,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 int count = 0;
                 foreach (var item in toClockOut)
                 {
-                    var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
-                    if (record != null)
-                    {
-                        record.CheckOutTime = checkOutTime;
-                        await _timeService.SaveAttendanceRecordAsync(record);
-                        
-                        item.ClockOutTime = checkOutTime.TimeOfDay;
-                        item.Status = record.Status;
-                        count++;
-                    }
+                    var v2ClockOut = await _timeServiceV2.ClockOutAsync(item.EmployeeId, checkOutTime, IsManualMode ? "Manual Bulk Out" : "Web Bulk Out");
+                    if (v2ClockOut != null) count++;
                 }
 
-                // Refresh the items in the collection
-                foreach (var item in toClockOut)
-                {
-                    MoveToPending(item);
-                }
+                await LoadDataAsync();
 
                 WeakReferenceMessenger.Default.Send(new UpdateStatusMessage($"{count} staff members clocked out."));
             }
@@ -750,49 +694,32 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 IsSaving = true;
                 try 
                 {
-                    var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
-                    if (record != null)
+                    var v2ClockOut = await _timeServiceV2.ClockOutAsync(item.EmployeeId, now, IsManualMode ? "Manual Edit" : "Web UI");
+            
+                    // if we have leave reasons, we update the created RECORD
+                    if (v2ClockOut != null && !string.IsNullOrEmpty(leaveReason))
                     {
-                        record.CheckOutTime = now;
-                        // If we have a reason, update status and notes
-                        if (!string.IsNullOrEmpty(leaveReason))
-                        {
-                            record.Status = AttendanceStatus.LeaveEarly;
-                            record.LeaveReason = leaveReason;
-                            record.Notes = !string.IsNullOrEmpty(leaveNote) ? $"[Leave Early Note] {leaveNote}" : null;
-                            
-                            if (!string.IsNullOrEmpty(sickNotePath))
-                            {
-                                var serverPath = await _timeService.UploadDoctorNoteAsync(sickNotePath);
-                                if (!string.IsNullOrEmpty(serverPath))
-                                {
-                                    record.DoctorsNoteImagePath = serverPath;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // Logic: If status was already something else (e.g. Present), keep it. 
-                            // If they worked full shift, it stays Present.
-                            // If they arrived Late, it stays Late.
-                        }
-                        
-                        await _timeService.SaveAttendanceRecordAsync(record);
-                        
-                        item.ClockOutTime = record.CheckOutTime.Value.TimeOfDay;
-                        // status might update if 'LeaveEarly' was set
-                        item.Status = record.Status; 
-                        
-                        // Trigger UI refresh?
-                        var loggedItem = LoggedStaff.FirstOrDefault(x => x.Id == item.Id);
-                        if (loggedItem != null) 
-                        {
-                            loggedItem.ClockOutTime = item.ClockOutTime;
-                            loggedItem.Status = item.Status;
-                        }
-                        // Move back to Pending
-                        MoveToPending(item);
+                         // Fetch the record again just to update the old V1 fields
+                         var record = await _timeService.GetAttendanceRecordByIdAsync(item.Id);
+                         if (record != null)
+                         {
+                             record.Status = AttendanceStatus.LeaveEarly;
+                             record.LeaveReason = leaveReason;
+                             record.Notes = !string.IsNullOrEmpty(leaveNote) ? $"[Leave Early Note] {leaveNote}" : null;
+                             
+                             if (!string.IsNullOrEmpty(sickNotePath))
+                             {
+                                 var serverPath = await _timeService.UploadDoctorNoteAsync(sickNotePath);
+                                 if (!string.IsNullOrEmpty(serverPath))
+                                 {
+                                     record.DoctorsNoteImagePath = serverPath;
+                                 }
+                             }
+                             await _timeService.SaveAttendanceRecordAsync(record);
+                         }
                     }
+
+                    await LoadDataAsync();
                 }
                 catch (Exception ex)
                 {

@@ -221,6 +221,7 @@ namespace OCC.API.Controllers
                 ContractDuration = employee.ContractDuration,
                 EmploymentDate = employee.EmploymentDate,
                 Branch = employee.Branch,
+                LivesInCompanyHousing = employee.LivesInCompanyHousing,
                 ShiftStartTime = employee.ShiftStartTime,
                 ShiftEndTime = employee.ShiftEndTime,
                 RateType = employee.RateType,
