@@ -54,7 +54,7 @@
 					</Button>
 					<Button Command="{Binding GenerateDraftCommand}" IsEnabled="{Binding !IsBusy}" Classes="Reset" IsVisible="{Binding IsGenerated}" ToolTip.Tip="Regenerate draft to pull in new employee changes">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<PathIcon Data="{StaticResource IconHistory}" />
+							<PathIcon Data="{StaticResource IconRefresh}" />
 							<TextBlock Text="Refresh Draft"/>
 						</StackPanel>
 					</Button>
