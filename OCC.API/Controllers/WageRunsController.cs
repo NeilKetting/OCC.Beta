@@ -136,6 +136,8 @@ namespace OCC.API.Controllers
                     EmployeeName = $"{emp.FirstName} {emp.LastName}",
                     EmployeeNumber = emp.EmployeeNumber,
                     Branch = emp.Branch,
+                    BankName = emp.BankName,
+                    EmploymentType = emp.EmploymentType.ToString(),
                     HourlyRate = (decimal)emp.HourlyRate,
                     DeductionGas = 0, // Initialized to 0, set below
                     DeductionWashing = 0, // Initialized to 0, set below
@@ -275,24 +277,28 @@ namespace OCC.API.Controllers
                 draftRun.Lines.Add(line);
             }
 
-            // Save Draft to DB so we can edit/finalize it
-            _context.WageRuns.Add(draftRun);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetWageRun", new { id = draftRun.Id }, draftRun);
+            // DO NOT SAVE to DB yet. Return the in-memory calculations for review.
+            return Ok(draftRun);
         }
 
-        // POST: api/WageRuns/finalize/5
-        [HttpPost("finalize/{id}")]
-        public async Task<IActionResult> FinalizeRun(Guid id)
+        // POST: api/WageRuns/finalize
+        [HttpPost("finalize")]
+        public async Task<ActionResult<WageRun>> FinalizeRun([FromBody] WageRun run)
         {
-            var run = await _context.WageRuns.FindAsync(id);
-            if (run == null) return NotFound();
-            
+            if (run == null) return BadRequest("Invalid Wage Run data.");
+
+            // Set IDs forLines if missing
+            foreach (var line in run.Lines)
+            {
+                if (line.Id == Guid.Empty) line.Id = Guid.NewGuid();
+                line.WageRunId = run.Id;
+            }
+
             run.Status = WageRunStatus.Finalized;
+            _context.WageRuns.Add(run);
             await _context.SaveChangesAsync();
             
-            return NoContent();
+            return CreatedAtAction("GetWageRun", new { id = run.Id }, run);
         }
 
         // PUT: api/WageRuns/draft/{id}/lines

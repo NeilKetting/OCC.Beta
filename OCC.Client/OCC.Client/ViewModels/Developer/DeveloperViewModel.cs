@@ -90,7 +90,8 @@ namespace OCC.Client.ViewModels.Developer
                 // Opening in browser is easiest if we had a direct link, but endpoint returns a file stream.
                 // Let's us the launcher to open the URL directly which will trigger browser download.
                 
-                var url = $"{ConnectionSettings.Instance.ApiBaseUrl}/api/Logs/download/{log.Id}";
+                var baseUrl = ConnectionSettings.Instance.ApiBaseUrl.TrimEnd('/');
+                var url = $"{baseUrl}/api/Logs/download/{log.Id}";
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = url,

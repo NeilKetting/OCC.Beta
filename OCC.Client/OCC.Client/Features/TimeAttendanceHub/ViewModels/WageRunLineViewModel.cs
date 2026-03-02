@@ -65,7 +65,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public double? SunOt => Model?.Overtime20Hours;
 
         // 15. LOANS
-        public string DeductionLoan => (Model?.DeductionLoan > 0 ? Model.DeductionLoan.ToString("F2") : string.Empty);
+        public string DeductionLoanDisplay => (Model?.DeductionLoan > 0 ? Model.DeductionLoan.ToString("F2") : string.Empty);
 
         // 16. WASHING
         public string DeductionWashingDisplay => (Model?.DeductionWashing > 0 ? Model.DeductionWashing.ToString("F2") : string.Empty);
@@ -76,63 +76,102 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         // 18. OTHER
         public string OtherDisplay => (Model?.DeductionOther > 0) ? Model.DeductionOther.ToString("F2") : string.Empty;
 
-        // 19. TOTAL NETT / Bind to NetPay in user's XAML
-        public decimal NetPay => BasicNett + IncentiveSupervisor;
-
-        // --- COMPUTED SECTION (BLUE IN IMAGE) ---
-
-        // 20. TOTAL REM
-        public decimal TotalRem => Model?.TotalWage ?? 0;
-
-        // 21. RATE P/DAY
-        public decimal? RatePDayDisplay => Model?.HourlyRate * 8.75m;
-
-        // 22. DAYS WEEK 1
-        public double? DaysWeek1Display => (Model?.NormalHours > 0 ? Model.NormalHours / 8.75 : 0);
-
-        // 23. DAYS WEEK 2
-        public double? DaysWeek2Display => 5.0; // Mocking 5 for layout as per image
-
-        // 24. TOTAL DAYS
-        public double? TotalDaysDisplay => (DaysWeek1Display ?? 0) + (DaysWeek2Display ?? 0);
-
-        // 25. HRS P/DAY
-        public double? HrsPDayDisplay => 8.75;
-
         public bool HasSupervisorFee => Model?.IncentiveSupervisor > 0;
+
+        // --- COMPUTED DISPLAY SECTION ---
+
+        public decimal? RatePDayDisplay => Model?.HourlyRate * 8.75m;
+        public double? DaysWeek1Display => (Model?.NormalHours > 0 ? Model.NormalHours / 8.75 : 0);
+        public double? DaysWeek2Display => 5.0; 
+        public double? TotalDaysDisplay => (DaysWeek1Display ?? 0) + (DaysWeek2Display ?? 0);
+        public double? HrsPDayDisplay => 8.75;
 
         // ----------------------------------------
 
-        // Editable Properties (for main row)
+        public void RefreshTotalNett()
+        {
+            RecalculateTotalWage();
+            OnPropertyChanged(nameof(NetPay));
+            OnPropertyChanged(nameof(TotalRem));
+            // Trigger UI updates for string-formatted displays
+            OnPropertyChanged(nameof(DeductionLoanDisplay));
+            OnPropertyChanged(nameof(DeductionWashingDisplay));
+            OnPropertyChanged(nameof(DeductionGasDisplay));
+            OnPropertyChanged(nameof(OtherDisplay));
+            OnPropertyChanged(nameof(DeductionPPEDisplay));
+        }
+
+        private void RecalculateTotalWage()
+        {
+            if (Model == null) return;
+            Model.TotalWage = (decimal)(Model.NormalHours + Model.ProjectedHours + Model.VarianceHours) * Model.HourlyRate +
+                             (decimal)Model.Overtime15Hours * Model.HourlyRate * 1.5m +
+                             (decimal)Model.Overtime20Hours * Model.HourlyRate * 2.0m;
+        }
+
+        // --- Editable Properties for spreadsheet-style corrections ---
+
+        public double NormalHours
+        {
+            get => Model?.NormalHours ?? 0;
+            set { if (Model != null && Math.Abs(Model.NormalHours - value) > 0.001) { Model.NormalHours = value; RefreshTotalNett(); OnPropertyChanged(); OnPropertyChanged(nameof(HrsDisplay)); } }
+        }
+
+        public double Overtime15Hours
+        {
+            get => Model?.Overtime15Hours ?? 0;
+            set { if (Model != null && Math.Abs(Model.Overtime15Hours - value) > 0.001) { Model.Overtime15Hours = value; RefreshTotalNett(); OnPropertyChanged(); OnPropertyChanged(nameof(StdOt)); } }
+        }
+
+        public double Overtime20Hours
+        {
+            get => Model?.Overtime20Hours ?? 0;
+            set { if (Model != null && Math.Abs(Model.Overtime20Hours - value) > 0.001) { Model.Overtime20Hours = value; RefreshTotalNett(); OnPropertyChanged(); OnPropertyChanged(nameof(SunOt)); } }
+        }
+
+        public decimal DeductionLoan
+        {
+            get => Model?.DeductionLoan ?? 0;
+            set { if (Model != null && Model.DeductionLoan != value) { Model.DeductionLoan = value; RefreshTotalNett(); OnPropertyChanged(); } }
+        }
+
+        public decimal DeductionPPE
+        {
+            get => Model?.DeductionPPE ?? 0;
+            set { if (Model != null && Model.DeductionPPE != value) { Model.DeductionPPE = value; RefreshTotalNett(); OnPropertyChanged(); OnPropertyChanged(nameof(DeductionPPEDisplay)); } }
+        }
+
+        public string DeductionPPEDisplay => (Model?.DeductionPPE > 0 ? Model.DeductionPPE.ToString("F2") : string.Empty);
+
+        public decimal DeductionOther
+        {
+            get => Model?.DeductionOther ?? 0;
+            set { if (Model != null && Model.DeductionOther != value) { Model.DeductionOther = value; RefreshTotalNett(); OnPropertyChanged(); OnPropertyChanged(nameof(OtherDisplay)); } }
+        }
+
         public decimal DeductionGas
         {
             get => Model?.DeductionGas ?? 0;
-            set { if (Model != null && Model.DeductionGas != value) { Model.DeductionGas = value; OnPropertyChanged(); OnPropertyChanged(nameof(NetPay)); } }
+            set { if (Model != null && Model.DeductionGas != value) { Model.DeductionGas = value; RefreshTotalNett(); OnPropertyChanged(); } }
         }
 
         public decimal DeductionWashing
         {
             get => Model?.DeductionWashing ?? 0;
-            set { if (Model != null && Model.DeductionWashing != value) { Model.DeductionWashing = value; OnPropertyChanged(); OnPropertyChanged(nameof(NetPay)); } }
+            set { if (Model != null && Model.DeductionWashing != value) { Model.DeductionWashing = value; RefreshTotalNett(); OnPropertyChanged(); } }
         }
 
         public decimal IncentiveSupervisor
         {
             get => Model?.IncentiveSupervisor ?? 0;
-            set { if (Model != null && Model.IncentiveSupervisor != value) { Model.IncentiveSupervisor = value; OnPropertyChanged(); OnPropertyChanged(nameof(NetPay)); } }
+            set { if (Model != null && Model.IncentiveSupervisor != value) { Model.IncentiveSupervisor = value; RefreshTotalNett(); OnPropertyChanged(); } }
         }
 
-        public void RefreshTotalNett()
-        {
-            OnPropertyChanged(nameof(NetPay));
-            OnPropertyChanged(nameof(TotalRem));
-        }
-
-        public decimal BasicNett => (Model?.TotalWage ?? 0) - ((Model?.DeductionLoan ?? 0) + (Model?.DeductionTax ?? 0) + (Model?.DeductionWashing ?? 0) + (Model?.DeductionGas ?? 0) + (Model?.DeductionOther ?? 0));
+        public decimal NetPay => Model?.NetPay ?? 0;
+        public decimal TotalRem => Model?.TotalWage ?? 0;
         public double VarianceHours => Model?.VarianceHours ?? 0;
         public decimal HourlyRate => Model?.HourlyRate ?? 0;
         public decimal TotalWage => Model?.TotalWage ?? 0;
-        public double NormalHours => Model?.NormalHours ?? 0;
         public string Branch => Model?.Branch ?? string.Empty;
     }
 }

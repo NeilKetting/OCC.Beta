@@ -358,6 +358,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             IsLoading = true;
             try
             {
+                // Fetch latest employee record to avoid concurrency conflict and get current balance
+                var latestEmployee = await _employeeService.GetEmployeeAsync(Employee.Id);
+                if (latestEmployee != null)
+                {
+                    Employee.RowVersion = latestEmployee.RowVersion ?? Employee.RowVersion;
+                    Employee.SickLeaveBalance = latestEmployee.SickLeaveBalance;
+                }
+
                 var serverPath = await _timeService.UploadDoctorNoteAsync(filePath);
                 if (!string.IsNullOrEmpty(serverPath))
                 {

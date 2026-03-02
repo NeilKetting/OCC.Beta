@@ -110,7 +110,7 @@
                                         <PathIcon Data="{StaticResource IconEdit}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                                <MenuItem Header="Upload Medical Certificate"
+                                <MenuItem Header="Upload Medical Record"
                                           Command="{Binding #Root.DataContext.UploadSickNoteCommand}"
                                           CommandParameter="{Binding}">
                                     <MenuItem.Icon>

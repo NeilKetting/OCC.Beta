@@ -29,6 +29,12 @@ namespace OCC.Shared.Models
 
         /// <summary> The branch where the employee is based. </summary>
         public string Branch { get; set; } = string.Empty;
+        
+        /// <summary> Snapshot of the employee's bank name. </summary>
+        public string? BankName { get; set; }
+
+        /// <summary> Snapshot of employment type (Permanent/Contract). </summary>
+        public string EmploymentType { get; set; } = string.Empty;
 
         /// <summary> Total standard working hours verified for this period. </summary>
         public double NormalHours { get; set; }
@@ -78,13 +84,16 @@ namespace OCC.Shared.Models
         /// <summary> Other deductions (e.g., damages). </summary>
         public decimal DeductionOther { get; set; }
 
+        /// <summary> Deduction for PPE (Personal Protective Equipment). </summary>
+        public decimal DeductionPPE { get; set; }
+
         /// <summary> Supervisor incentive fee (e.g., R500). </summary>
         public decimal IncentiveSupervisor { get; set; }
 
         /// <summary> 
         /// Final payout amount: TotalWage + Incentives - Deductions. 
         /// </summary>
-        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionWashing + DeductionGas + DeductionOther);
+        public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionWashing + DeductionGas + DeductionOther + DeductionPPE);
 
         /// <summary> Flag indicating if the employee lives in company housing. </summary>
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]

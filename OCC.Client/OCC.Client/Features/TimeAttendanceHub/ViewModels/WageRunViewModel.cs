@@ -14,11 +14,13 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
     {
         private readonly IWageService _wageService;
         private readonly IDialogService _dialogService;
+        private readonly IPdfService _pdfService;
 
-        public WageRunViewModel(IWageService wageService, IDialogService dialogService)
+        public WageRunViewModel(IWageService wageService, IDialogService dialogService, IPdfService pdfService)
         {
             _wageService = wageService;
             _dialogService = dialogService;
+            _pdfService = pdfService;
             
             // Default period: Current Week's Monday
             // If today is Monday, use today. If today is Sunday, go back to previous Monday?
@@ -120,6 +122,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private double _gridZoom = 1.0;
 
         private Guid? _currentDraftId;
+        private OCC.Shared.Models.WageRun? _currentDraft;
 
         [RelayCommand]
         private async Task GenerateDraft()
@@ -139,14 +142,14 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                     }
                 }
 
-                var draft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, SelectedPayType, SelectedBranch, TotalGasCharge, DefaultSupervisorFee, CompanyHousingWashingFee, Notes);
-                _currentDraftId = draft.Id;
+                _currentDraft = await _wageService.GenerateDraftRunAsync(StartDate, EndDate, SelectedPayType, SelectedBranch, TotalGasCharge, DefaultSupervisorFee, CompanyHousingWashingFee, Notes);
+                _currentDraftId = _currentDraft.Id;
                 
                 Lines.Clear();
                 int index = 1;
 
                 // Robust Consolidation: Group by Name and Id to catch orphan records or inconsistent IDs
-                var consolidatedLines = draft.Lines
+                var consolidatedLines = _currentDraft.Lines
                     .GroupBy(l => new { Name = l.EmployeeName?.Trim(), Id = l.EmployeeId })
                     .Select(g => 
                     {
@@ -162,6 +165,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                 first.DeductionWashing += extra.DeductionWashing;
                                 first.DeductionGas += extra.DeductionGas;
                                 first.DeductionOther += extra.DeductionOther;
+                                first.DeductionPPE += extra.DeductionPPE;
                                 if (!string.IsNullOrEmpty(extra.VarianceNotes))
                                     first.VarianceNotes = (first.VarianceNotes + " " + extra.VarianceNotes).Trim();
                                 
@@ -228,13 +232,21 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 BusyText = "Finalizing run...";
                 IsBusy = true;
                 
-                await _wageService.FinalizeRunAsync(_currentDraftId.Value);
-                await _dialogService.ShowAlertAsync("Success", "Wage Run Finalized Successfully.");
+                // Update the model lines from the VM lines before sending
+                if (_currentDraft != null)
+                {
+                    _currentDraft.Lines = Lines.Select(vm => vm.Model).ToList();
+                    _currentDraft.Notes = Notes; // Ensure latest notes are included
+                    
+                    var finalizedRun = await _wageService.FinalizeRunAsync(_currentDraft);
+                    await _dialogService.ShowAlertAsync("Success", $"Wage Run Finalized Successfully (ID: {finalizedRun.Id}).");
+                }
                 
-                // Clear or Navigate away?
+                // Clear state
                 Lines.Clear();
                 IsGenerated = false;
                 _currentDraftId = null;
+                _currentDraft = null;
             }
             catch (Exception ex)
             {
@@ -247,28 +259,54 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         [RelayCommand]
-        private async Task SaveDraft()
+        private async Task PrintPdf()
         {
-            if (_currentDraftId == null || !Lines.Any()) return;
+            if (_currentDraft == null && !Lines.Any()) return;
 
             try
             {
-                BusyText = "Saving draft edits...";
+                BusyText = "Generating PDF...";
                 IsBusy = true;
+
+                // Sync VM lines back to model for the PDF
+                var runToPrint = _currentDraft ?? new OCC.Shared.Models.WageRun
+                {
+                    StartDate = StartDate,
+                    EndDate = EndDate,
+                    Branch = SelectedBranch,
+                    PayType = SelectedPayType,
+                    Lines = Lines.Select(l => l.Model).ToList()
+                };
+
+                if (_currentDraft != null)
+                {
+                    runToPrint.Lines = Lines.Select(l => l.Model).ToList();
+                }
+
+                var path = await _pdfService.GenerateWageRunPdfAsync(runToPrint);
                 
-                var updatedLines = Lines.Select(vm => vm.Model).ToList();
-                await _wageService.UpdateDraftLinesAsync(_currentDraftId.Value, updatedLines);
-                
-                await _dialogService.ShowAlertAsync("Success", "Draft changes saved explicitly.");
+                // Open the PDF
+                var psi = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                };
+                System.Diagnostics.Process.Start(psi);
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowAlertAsync("Error", $"Failed to save draft edits: {ex.Message}");
+                await _dialogService.ShowAlertAsync("Error", $"Failed to generate PDF: {ex.Message}");
             }
             finally
             {
                 IsBusy = false;
             }
+        }
+
+        [RelayCommand]
+        private async Task SaveDraft()
+        {
+             await _dialogService.ShowAlertAsync("Information", "Drafts are now held in-memory until Finalized. Any changes you make here will be included when you click Finalize.");
         }
     }
 }

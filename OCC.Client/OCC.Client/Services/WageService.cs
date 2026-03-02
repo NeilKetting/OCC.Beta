@@ -59,7 +59,11 @@ namespace OCC.Client.Services
                 Notes = notes 
             };
             var response = await _client.PostAsJsonAsync("api/WageRuns/draft", request);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
             return await response.Content.ReadFromJsonAsync<WageRun>() ?? throw new Exception("Failed to deserialize response");
         }
 
@@ -67,21 +71,34 @@ namespace OCC.Client.Services
         {
             AddAuthHeader();
             var response = await _client.PutAsJsonAsync($"api/WageRuns/draft/{id}/lines", lines);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
         }
 
-        public async Task FinalizeRunAsync(Guid id)
+        public async Task<WageRun> FinalizeRunAsync(WageRun run)
         {
             AddAuthHeader();
-            var response = await _client.PostAsync($"api/WageRuns/finalize/{id}", null);
-            response.EnsureSuccessStatusCode();
+            var response = await _client.PostAsJsonAsync("api/WageRuns/finalize", run);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception(error);
+            }
+            return await response.Content.ReadFromJsonAsync<WageRun>() ?? throw new Exception("Failed to deserialize response");
         }
 
         public async Task DeleteRunAsync(Guid id)
         {
              AddAuthHeader();
              var response = await _client.DeleteAsync($"api/WageRuns/{id}");
-             response.EnsureSuccessStatusCode();
+             if (!response.IsSuccessStatusCode)
+             {
+                 var error = await response.Content.ReadAsStringAsync();
+                 throw new Exception(error);
+             }
         }
     }
 }
