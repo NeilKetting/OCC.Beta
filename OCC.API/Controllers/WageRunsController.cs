@@ -55,17 +55,17 @@ namespace OCC.API.Controllers
             // Request contains StartDate, EndDate. RunDate is Now.
             var runDate = DateTime.Now.Date; // "Today"
 
-            // 1. DUPLICATION CHECK: Prevent generating if a run already exists for this period/branch/type
+            // 1. DUPLICATION CHECK: Prevent generating if a FINALIZED run already exists
             var existingRun = await _context.WageRuns
                 .AnyAsync(w => w.StartDate == request.StartDate && 
                                w.EndDate == request.EndDate && 
                                w.Branch == request.Branch && 
                                w.PayType == request.PayType &&
-                               w.Status != WageRunStatus.Paid); // Allow re-running if previous was paid? Usually no, but definitely block Draft/Finalized.
+                               (w.Status == WageRunStatus.Finalized || w.Status == WageRunStatus.Paid));
             
             if (existingRun)
             {
-                return BadRequest($"A Wage Run (Draft or Finalized) already exists for {request.Branch} ({request.PayType}) between {request.StartDate:yyyy-MM-dd} and {request.EndDate:yyyy-MM-dd}.");
+                return BadRequest($"A Finalized Wage Run already exists for {request.Branch} ({request.PayType}) between {request.StartDate:yyyy-MM-dd} and {request.EndDate:yyyy-MM-dd}. Please delete the finalized run first if you need to regenerate.");
             }
             
             // 2. Create the Shell
@@ -174,6 +174,10 @@ namespace OCC.API.Controllers
                     .OrderBy(a => a.Date)
                     .ToList();
 
+                var week1End = request.StartDate.AddDays(6);
+                int daysW1 = 0;
+                int daysW2 = 0;
+
                 foreach (var record in empAttendance)
                 {
                     // Basic Calc matching ViewModel logic
@@ -183,11 +187,20 @@ namespace OCC.API.Controllers
                     line.Overtime20Hours += hours.Overtime20;
                     line.LunchDeductionHours += hours.Lunch;
                     
+                    if (record.Status == AttendanceStatus.Present || record.Status == AttendanceStatus.Late)
+                    {
+                        if (record.Date <= week1End) daysW1++;
+                        else daysW2++;
+                    }
+
                     if (record.Status == AttendanceStatus.Absent)
                     {
                         line.VarianceNotes += $"{record.Date:dd/MM}: Absent; ";
                     }
                 }
+                line.DaysWorkedWeek1 = daysW1;
+                line.DaysWorkedWeek2 = daysW2;
+                line.TotalDaysWorked = daysW1 + daysW2;
 
                 // B. Calculate Projected Hours (RunDate+1 -> EndDate)
                 var projectedStart = runDate.AddDays(1);

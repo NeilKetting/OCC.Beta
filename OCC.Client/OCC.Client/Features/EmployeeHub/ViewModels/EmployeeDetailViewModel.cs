@@ -308,7 +308,7 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
             }
 
             // 2. Sync UI-Only properties to the Wrapper/Model
-            Wrapper.DoB = _calculatedDoB;
+            // Wrapper.DoB is now the source of truth (bound to UI for Passports, auto-calc for RSA)
             
             // Sync Banking details from ViewModel properties to Wrapper
             if (SelectedBank == OCC.Shared.Models.BankName.None)

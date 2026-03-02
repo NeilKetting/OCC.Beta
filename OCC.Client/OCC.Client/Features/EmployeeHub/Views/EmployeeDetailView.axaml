@@ -113,6 +113,21 @@
 								<TextBox Text="{Binding Wrapper.IdNumber}" Classes="FormInput" Watermark="Enter RSA ID or Passport Number"
 										 ToolTip.Tip="Enter the 13-digit RSA ID or Passport Number"/>
 							</StackPanel>
+							<!-- Date of Birth (Visible only for Passport) -->
+							<StackPanel IsVisible="{Binding IsPassport}">
+								<TextBlock Text="Date of Birth" Classes="FormLabel"/>
+								<Grid ColumnDefinitions="*, Auto">
+									<TextBox Grid.Column="0" Text="{Binding Wrapper.DoB, StringFormat='dd MMM yyyy'}" IsReadOnly="True" Classes="FormInput"/>
+									<Button Grid.Column="1" Classes="IconButton" Margin="5,0,0,0" ToolTip.Tip="Select DOB">
+										<PathIcon Data="{StaticResource IconCalendar}" Width="16" Height="16"/>
+										<Button.Flyout>
+											<Flyout Placement="Bottom">
+												<Calendar SelectedDate="{Binding Wrapper.DoB, Mode=TwoWay}" SelectionMode="SingleDate"/>
+											</Flyout>
+										</Button.Flyout>
+									</Button>
+								</Grid>
+							</StackPanel>
 							<!-- Permit Number -->
 							<StackPanel>
 								<TextBlock Text="Permit Number" Classes="FormLabel"/>

@@ -89,24 +89,30 @@ namespace OCC.Client.Services
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.ConstantColumn(15);  // #
-                    columns.ConstantColumn(25);  // BAS
-                    columns.RelativeColumn(2.5f); // NAME
-                    columns.ConstantColumn(35);  // RATE P/HR
-                    columns.ConstantColumn(25);  // HRS
-                    columns.ConstantColumn(35);  // STD O/T RATE
-                    columns.ConstantColumn(35);  // SAT O/T RATE
-                    columns.ConstantColumn(35);  // SUN P/HOL RATE
-                    columns.ConstantColumn(25);  // STD O/T (HRS)
-                    columns.ConstantColumn(25);  // SAT O/T (HRS)
-                    columns.ConstantColumn(25);  // SUN O/T (HRS)
-                    columns.ConstantColumn(35);  // LOANS
-                    columns.ConstantColumn(35);  // WASHING
-                    columns.ConstantColumn(35);  // GAS
-                    columns.ConstantColumn(35);  // OTHER
-                    columns.ConstantColumn(45);  // TOTAL NETT
-                    columns.ConstantColumn(45);  // BANK
-                    columns.RelativeColumn(2);    // COMMENTS
+                    columns.ConstantColumn(12);  // #
+                    columns.ConstantColumn(22);  // BAS
+                    columns.RelativeColumn(2.2f); // NAME
+                    columns.ConstantColumn(28);  // RATE P/HR
+                    columns.ConstantColumn(20);  // HRS
+                    columns.ConstantColumn(28);  // STD O/T RATE
+                    columns.ConstantColumn(28);  // SAT O/T RATE
+                    columns.ConstantColumn(28);  // SUN P/H RATE
+                    columns.ConstantColumn(20);  // STD O/T (HRS)
+                    columns.ConstantColumn(20);  // SAT O/T (HRS)
+                    columns.ConstantColumn(20);  // SUN O/T (HRS)
+                    columns.ConstantColumn(28);  // LOANS
+                    columns.ConstantColumn(28);  // WASHING
+                    columns.ConstantColumn(28);  // GAS
+                    columns.ConstantColumn(28);  // OTHER
+                    columns.ConstantColumn(35);  // TOTAL NETT
+                    columns.ConstantColumn(35);  // BANK
+                    columns.RelativeColumn(1.8f); // COMMENTS
+                    columns.ConstantColumn(35);  // TOTAL REM
+                    columns.ConstantColumn(30);  // RATE P/DAY
+                    columns.ConstantColumn(20);  // W1
+                    columns.ConstantColumn(20);  // W2
+                    columns.ConstantColumn(20);  // TOT D
+                    columns.ConstantColumn(22);  // H/D
                 });
 
                 table.Header(header =>
@@ -123,15 +129,21 @@ namespace OCC.Client.Services
                     header.Cell().Element(HeaderStyle).Text("SAT\nO/T");
                     header.Cell().Element(HeaderStyle).Text("SUN\nO/T");
                     header.Cell().Element(HeaderStyle).Text("LOANS");
-                    header.Cell().Element(HeaderStyle).Text("WASHING");
+                    header.Cell().Element(HeaderStyle).Text("WASH-ING");
                     header.Cell().Element(HeaderStyle).Text("GAS");
                     header.Cell().Element(HeaderStyle).Text("OTHER");
                     header.Cell().Element(HeaderStyle).Text("TOTAL\nNETT");
                     header.Cell().Element(HeaderStyle).Text("BANK");
                     header.Cell().Element(HeaderStyle).Text("COMMENTS");
+                    header.Cell().Element(HeaderStyle).Text("TOTAL\nREM");
+                    header.Cell().Element(HeaderStyle).Text("RATE\nP/DAY");
+                    header.Cell().Element(HeaderStyle).Text("W1");
+                    header.Cell().Element(HeaderStyle).Text("W2");
+                    header.Cell().Element(HeaderStyle).Text("TOT\nD");
+                    header.Cell().Element(HeaderStyle).Text("H/D");
 
                     static IContainer HeaderStyle(IContainer container) => 
-                        container.Border(0.5f).Background(Colors.Grey.Lighten4).Padding(1).AlignCenter().AlignMiddle().DefaultTextStyle(x => x.Bold().FontSize(6));
+                        container.Border(0.5f).Background(Colors.Grey.Lighten4).Padding(1).AlignCenter().AlignMiddle().DefaultTextStyle(x => x.Bold().FontSize(5.5f));
                 });
 
                 int index = 1;
@@ -169,6 +181,19 @@ namespace OCC.Client.Services
                     if (line.IncentiveSupervisor > 0) comments = "SUPERVISOR FEE " + comments;
                     table.Cell().Element(CellStyle).Text(comments);
 
+                    // --- NEW COLUMNS ---
+                    decimal totalRem = line.TotalWage;
+                    table.Cell().Element(CellStyle).AlignRight().Text(totalRem.ToString("F2"));
+                    
+                    table.Cell().Element(CellStyle).AlignRight().Text((line.HourlyRate * 8).ToString("F2"));
+                    table.Cell().Element(CellStyle).AlignCenter().Text(line.DaysWorkedWeek1.ToString("0"));
+                    table.Cell().Element(CellStyle).AlignCenter().Text(line.DaysWorkedWeek2.ToString("0"));
+                    table.Cell().Element(CellStyle).AlignCenter().Text(line.TotalDaysWorked.ToString("0"));
+                    
+                    double totalHrs = line.NormalHours + line.Overtime15Hours + line.Overtime20Hours + line.ProjectedHours;
+                    double hpd = line.TotalDaysWorked > 0 ? totalHrs / line.TotalDaysWorked : 0;
+                    table.Cell().Element(CellStyle).AlignCenter().Text(hpd.ToString("F1"));
+
                     static IContainer CellStyle(IContainer container) => 
                         container.Border(0.5f).Padding(1).AlignMiddle();
                 }
@@ -178,7 +203,7 @@ namespace OCC.Client.Services
                 {
                     footer.Cell().ColumnSpan(15).Element(c => c.AlignRight().PaddingRight(5).Text("TOTAL:").Bold());
                     footer.Cell().Element(c => c.Border(0.5f).Padding(1).AlignRight().Text(lines.Sum(x => x.NetPay).ToString("F2")).Bold());
-                    footer.Cell().ColumnSpan(2).Element(c => c.Border(0.5f));
+                    footer.Cell().ColumnSpan(8).Element(c => c.Border(0.5f));
                 });
             });
         }

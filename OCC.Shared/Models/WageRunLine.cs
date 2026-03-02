@@ -95,6 +95,15 @@ namespace OCC.Shared.Models
         /// </summary>
         public decimal NetPay => (TotalWage + IncentiveSupervisor) - (DeductionLoan + DeductionTax + DeductionWashing + DeductionGas + DeductionOther + DeductionPPE);
 
+        /// <summary> Snapshot of worked days in the first week of the cycle. </summary>
+        public double DaysWorkedWeek1 { get; set; }
+        
+        /// <summary> Snapshot of worked days in the second week of the cycle. </summary>
+        public double DaysWorkedWeek2 { get; set; }
+        
+        /// <summary> Total days worked during the period. </summary>
+        public double TotalDaysWorked { get; set; }
+
         /// <summary> Flag indicating if the employee lives in company housing. </summary>
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public bool IsCompanyHoused { get; set; }
