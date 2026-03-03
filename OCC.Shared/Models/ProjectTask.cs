@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -119,6 +120,7 @@ namespace OCC.Shared.Models
             } 
         }
 
+        [NotMapped]
         public bool IsComplete 
         {
             get => Status == "Completed" || Status == "Done" || PercentComplete == 100;
@@ -138,6 +140,7 @@ namespace OCC.Shared.Models
             }
         }
 
+        [NotMapped]
         public string StatusColor 
         {
             get
@@ -167,6 +170,7 @@ namespace OCC.Shared.Models
         public TaskType Type { get; set; } = TaskType.Task;
 
         /// <summary> Gets a comma-separated string of initials for all assigned staff. </summary>
+        [NotMapped]
         public string AssigneeInitials => Assignments == null || !Assignments.Any() 
             ? "--" 
             : string.Join(", ", Assignments.Select(a => string.Concat(a.AssigneeName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s[0]))).Select(s => s.ToUpper()));

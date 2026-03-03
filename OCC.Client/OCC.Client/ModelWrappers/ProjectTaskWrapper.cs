@@ -361,7 +361,7 @@ namespace OCC.Client.ModelWrappers
 
         private void UpdateStatusColor()
         {
-            StatusColor = Task.StatusColor;
+            StatusColor = _model.StatusColor;
         }
 
         private double CalculatePlannedHours(DateTime start, DateTime end)
