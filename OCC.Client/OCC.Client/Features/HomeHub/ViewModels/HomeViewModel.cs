@@ -154,7 +154,7 @@ namespace OCC.Client.Features.HomeHub.ViewModels
             
             // Initialize Pages
             MySummaryPage = new MySummaryPageViewModel(mySummary, myTasks);
-            TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>());
+            TaskList = new TaskListViewModel(_projectTaskRepository, _loggerFactory.CreateLogger<TaskListViewModel>(), _dialogService);
             TaskList.MyTasksOnly = true;
             
             // Subscribe to selection

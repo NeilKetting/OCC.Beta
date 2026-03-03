@@ -48,6 +48,11 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         [ObservableProperty]
         private ProjectTaskWrapper _task;
 
+        partial void OnTaskChanged(ProjectTaskWrapper value)
+        {
+            // Removed PropertyChanged intercept in favor of Command-based toggle
+        }
+
         // ...
 
 
@@ -75,6 +80,8 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         public bool IsDetailedTask => SelectedTaskType != TaskType.PersonalToDo && SelectedTaskType != TaskType.Meeting;
         
         public bool IsReminderVisible => SelectedTaskType == TaskType.Task || SelectedTaskType == TaskType.PersonalToDo;
+
+        public bool IsManualProgressEnabled => Task != null && !Task.HasSubtasks;
 
         public List<TaskType> AvailableTaskTypes { get; } = new() { TaskType.Task, TaskType.PersonalToDo, TaskType.Meeting };
 
@@ -198,8 +205,6 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         private void Close()
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);
-            // Clean up subscription
-            if(Task != null) Task.PropertyChanged -= Task_PropertyChanged;
         }
 
         /// <summary>
@@ -258,6 +263,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
                  Subtasks.Add(newSubtask);
                  UpdateVisibleSubtasks();
                  OnPropertyChanged(nameof(SubtaskCount));
+                 OnPropertyChanged(nameof(IsManualProgressEnabled));
                  
                  WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
              }
@@ -776,6 +782,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             UpdateVisibleSubtasks();
 
             OnPropertyChanged(nameof(SubtaskCount));
+            OnPropertyChanged(nameof(IsManualProgressEnabled));
         }
 
         /// <summary>
@@ -1028,6 +1035,90 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             // Re-calculate rollup when subtask list changes
             CalculateRollupProgress();
         }
+        
+        [RelayCommand]
+        public async Task ToggleComplete()
+        {
+            if (Task == null) return;
+
+            bool targetState = !Task.IsComplete;
+
+            if (targetState && Task.HasSubtasks)
+            {
+                var confirmed = await _dialogService.ShowConfirmationAsync(
+                    "Complete Subtasks?",
+                    "This task has subtasks. Marking it as done will also mark all subtasks as complete. Do you want to proceed?");
+
+                if (!confirmed) return;
+
+                // Mark parent as done
+                Task.IsComplete = true; 
+                Task.PercentComplete = 100;
+                Task.Status = "Done";
+
+                await SetAllSubtasksCompleteAsync(Task.Id);
+                
+                // Save parent
+                if (!IsCreateMode) await UpdateTask();
+            }
+            else
+            {
+                // Simple toggle for standalone or un-done
+                Task.IsComplete = targetState;
+                Task.PercentComplete = targetState ? 100 : 0;
+                Task.Status = targetState ? "Done" : "To Do";
+                
+                if (!IsCreateMode) await UpdateTask();
+            }
+
+            WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+        }
+
+
+        private async Task SetAllSubtasksCompleteAsync(Guid parentId)
+        {
+            try
+            {
+                BusyText = "Completing subtasks...";
+                IsBusy = true;
+
+                // 1. Get all subtasks from repository to ensure we have the whole tree
+                var children = await _projectTaskRepository.GetAllAsync();
+                var subtasksToUpdate = children.Where(t => t.ParentId == parentId).ToList();
+
+                foreach (var subtask in subtasksToUpdate)
+                {
+                    subtask.PercentComplete = 100;
+                    subtask.Status = "Done";
+                    await _projectTaskRepository.UpdateAsync(subtask);
+
+                    // Recursive call for nested subtasks
+                    await SetAllSubtasksCompleteAsync(subtask.Id);
+                }
+
+                // 2. Reload local collections if it's the current task's children
+                if (parentId == _currentTaskId)
+                {
+                    // Update in-memory collections so UI reflects changes
+                    foreach (var s in Subtasks)
+                    {
+                        s.PercentComplete = 100;
+                        s.Status = "Done";
+                    }
+                    UpdateVisibleSubtasks();
+                }
+
+                WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error completing subtasks: {ex.Message}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
 
         private void CalculateRollupProgress()
         {
@@ -1041,7 +1132,6 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             if (Task.PercentComplete != rounded)
             {
                 Task.PercentComplete = rounded;
-                Task.ProgressPercent = rounded;
                 
                 // Status should also reflect completion
                 if (rounded == 100) Task.Status = "Done";

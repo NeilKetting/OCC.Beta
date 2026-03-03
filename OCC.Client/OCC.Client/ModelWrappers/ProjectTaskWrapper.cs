@@ -20,6 +20,7 @@ namespace OCC.Client.ModelWrappers
     {
         private ProjectTask _model;
         private bool _isUpdatingDuration;
+        private bool _isInitializing;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProjectTaskWrapper"/> class.
@@ -41,6 +42,11 @@ namespace OCC.Client.ModelWrappers
         /// Gets the Task ID.
         /// </summary>
         public Guid Id => _model.Id;
+
+        /// <summary>
+        /// Gets whether this task has subtasks.
+        /// </summary>
+        public bool HasSubtasks => _model.Children != null && _model.Children.Any();
 
         /// <summary>
         /// Gets a formatted display ID (e.g., T-1234).
@@ -107,7 +113,7 @@ namespace OCC.Client.ModelWrappers
         private string _statusColor = "#CBD5E1";
 
         [ObservableProperty]
-        private double _progressPercent;
+        private double _unused_ProgressPercent; // Deprecated, use PercentComplete
 
         [ObservableProperty]
         private Guid? _ownerId;
@@ -129,53 +135,54 @@ namespace OCC.Client.ModelWrappers
         /// </summary>
         private void Initialize()
         {
-            // Initialize simple properties from model
-            Name = _model.Name;
-            Description = _model.Description;
-            IsOnHold = _model.IsOnHold;
-            Priority = _model.Priority;
-            
-            // Initialize status-related properties
-            // Status is set first as it drives defaults for color and progress
-            Status = _model.Status;
-            
-            // Overwrite specific values if model data differs from defaults derived from Status
-            PercentComplete = _model.PercentComplete;
-            ProgressPercent = _model.PercentComplete;
-            IsComplete = _model.IsComplete;
-
-            // Initialize Dates
-            StartDate = _model.StartDate == DateTime.MinValue ? null : _model.StartDate;
-            FinishDate = _model.FinishDate == DateTime.MinValue ? null : _model.FinishDate;
-            ActualStartDate = _model.ActualStartDate;
-            ActualCompleteDate = _model.ActualCompleteDate;
-            
-            // Initialize Duration
-            // Prioritize model's stored duration. If missing, attempt to calculate from dates.
-            var modelPlannedHours = _model.PlannedDurationHours?.TotalHours;
-            if (modelPlannedHours.HasValue)
+            _isInitializing = true;
+            try
             {
-                PlannedHours = modelPlannedHours;
+                // Initialize simple properties from model
+                Name = _model.Name;
+                Description = _model.Description;
+                IsOnHold = _model.IsOnHold;
+                Priority = _model.Priority;
+                
+                // Initialize status-related properties
+                Status = _model.Status;
+                
+                // Overwrite specific values if model data differs from defaults derived from Status
+                PercentComplete = _model.PercentComplete;
+                IsComplete = _model.IsComplete;
+
+                // Initialize Dates
+                StartDate = _model.StartDate == DateTime.MinValue ? null : _model.StartDate;
+                FinishDate = _model.FinishDate == DateTime.MinValue ? null : _model.FinishDate;
+                ActualStartDate = _model.ActualStartDate;
+                ActualCompleteDate = _model.ActualCompleteDate;
+                
+                // Initialize Duration
+                var modelPlannedHours = _model.PlannedDurationHours?.TotalHours;
+                if (modelPlannedHours.HasValue)
+                {
+                    PlannedHours = modelPlannedHours;
+                }
+                else if (StartDate.HasValue && FinishDate.HasValue)
+                {
+                    PlannedHours = CalculatePlannedHours(StartDate.Value, FinishDate.Value);
+                }
+
+                ActualHours = _model.ActualDuration?.TotalHours;
+                
+                if (string.IsNullOrEmpty(PlannedDurationText)) UpdatePlannedDurationText();
+                if (string.IsNullOrEmpty(ActualDurationText)) UpdateActualDurationText();
+                if (string.IsNullOrEmpty(StatusColor)) UpdateStatusColor();
+
+                OwnerId = _model.OwnerId;
+                IsReminderSet = _model.IsReminderSet;
+                Frequency = _model.Frequency;
+                NextReminderDate = _model.NextReminderDate;
             }
-            else if (StartDate.HasValue && FinishDate.HasValue)
+            finally
             {
-                 PlannedHours = CalculatePlannedHours(StartDate.Value, FinishDate.Value);
+                _isInitializing = false;
             }
-
-            ActualHours = _model.ActualDuration?.TotalHours;
-            
-            // Ensure derived text properties are consistent with the values set above
-            if (string.IsNullOrEmpty(PlannedDurationText)) UpdatePlannedDurationText();
-            if (string.IsNullOrEmpty(ActualDurationText)) UpdateActualDurationText();
-            
-            // Ensure status color is consistent with Status/IsOnHold state
-            if (string.IsNullOrEmpty(StatusColor)) UpdateStatusColor();
-
-            // Personal Task & Reminder Init
-            OwnerId = _model.OwnerId;
-            IsReminderSet = _model.IsReminderSet;
-            Frequency = _model.Frequency;
-            NextReminderDate = _model.NextReminderDate;
         }
 
         // --- Synchronization Methods (Push specific changes back to Model) ---
@@ -241,7 +248,6 @@ namespace OCC.Client.ModelWrappers
                 if (PercentComplete == 100) 
                 {
                     PercentComplete = 50; 
-                    ProgressPercent = 50;
                 }
                 ActualCompleteDate = null;
             }
@@ -257,34 +263,37 @@ namespace OCC.Client.ModelWrappers
             _model.Status = value;
             UpdateStatusColor();
             
+            if (_isInitializing) return;
+
             // Auto-update progress based on status
              switch(value)
             {
                 case "Not Started": 
-                    ProgressPercent = 0; 
+                    PercentComplete = 0; 
                     break;
                 case "Started": 
-                    ProgressPercent = 25; 
+                    PercentComplete = 25; 
                     break;
                 case "Halfway": 
-                    ProgressPercent = 50; 
+                    PercentComplete = 50; 
                     break;
                 case "Almost Done": 
-                    ProgressPercent = 75; 
+                    PercentComplete = 75; 
                     break;
                 case "Done": 
                 case "Completed":
-                    ProgressPercent = 100; 
+                    PercentComplete = 100; 
                     IsComplete = true; 
                     break;
             }
             if (value != "Done" && value != "Completed" && IsComplete) IsComplete = false;
         }
 
-        partial void OnProgressPercentChanged(double value)
+        partial void OnPercentCompleteChanged(int value)
         {
-            _percentComplete = (int)value;
-            _model.PercentComplete = (int)value;
+            _model.PercentComplete = value;
+            if (value == 100 && !IsComplete) IsComplete = true;
+            else if (value < 100 && IsComplete) IsComplete = false;
         }
 
         partial void OnIsOnHoldChanged(bool value)

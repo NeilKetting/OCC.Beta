@@ -20,7 +20,8 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         #region Private Members
 
         private readonly IProjectTaskRepository _taskRepository;
-        private readonly ILogger<TaskListViewModel> _logger; // Added Logger
+        private readonly ILogger<TaskListViewModel> _logger; 
+        private readonly IDialogService _dialogService;
         private bool _isDataLoading = false;
 
         #endregion
@@ -54,12 +55,14 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             // Parameterless constructor for design-time support
             _taskRepository = null!;
             _logger = null!;
+            _dialogService = null!;
         }
 
-        public TaskListViewModel(IProjectTaskRepository taskRepository, ILogger<TaskListViewModel> logger)
+        public TaskListViewModel(IProjectTaskRepository taskRepository, ILogger<TaskListViewModel> logger, IDialogService dialogService)
         {
             _taskRepository = taskRepository;
             _logger = logger;
+            _dialogService = dialogService;
 
             // Subscribe to updates
             WeakReferenceMessenger.Default.Register<OCC.Client.ViewModels.Messages.TaskUpdatedMessage>(this, (r, m) =>
@@ -90,6 +93,58 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         public void NewTask()
         {
             WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.CreateNewTaskMessage());
+        }
+
+        [RelayCommand]
+        public async Task ToggleTaskComplete(TaskTreeItemViewModel item)
+        {
+            if (item == null) return;
+
+            bool targetState = !item.IsCompleted;
+
+            if (targetState && item.Children.Any())
+            {
+                var confirmed = await _dialogService.ShowConfirmationAsync(
+                    "Complete Subtasks?",
+                    "This task has subtasks. Marking it as done will also mark all subtasks as complete. Do you want to proceed?");
+
+                if (!confirmed) return;
+
+                await SetAllSubtasksCompleteAsync(item.Id);
+            }
+            else
+            {
+                // Simple update for leaf task
+                var task = await _taskRepository.GetByIdAsync(item.Id);
+                if (task != null)
+                {
+                    task.PercentComplete = targetState ? 100 : 0;
+                    task.Status = targetState ? "Done" : "To Do";
+                    await _taskRepository.UpdateAsync(task);
+                }
+            }
+
+            // Refresh list
+            await LoadTasks();
+        }
+
+        private async Task SetAllSubtasksCompleteAsync(Guid parentId)
+        {
+            var task = await _taskRepository.GetByIdAsync(parentId);
+            if (task != null)
+            {
+                task.PercentComplete = 100;
+                task.Status = "Done";
+                await _taskRepository.UpdateAsync(task);
+            }
+
+            var allTasks = await _taskRepository.GetAllAsync();
+            var subtasks = allTasks.Where(t => t.ParentId == parentId).ToList();
+
+            foreach (var sub in subtasks)
+            {
+                await SetAllSubtasksCompleteAsync(sub.Id);
+            }
         }
 
 

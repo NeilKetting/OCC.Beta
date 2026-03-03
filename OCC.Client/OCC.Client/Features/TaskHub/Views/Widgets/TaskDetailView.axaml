@@ -14,11 +14,8 @@
 
 	<UserControl.Resources>
 		<conv:RelativeDateConverter x:Key="RelativeDateConverter"/>
-		<conv:NameToInitialsConverter x:Key="NameToInitialsConverter"/>
-		<conv:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
 		<conv:PercentToSweepAngleConverter x:Key="PercentToSweepAngleConverter"/>
 		<conv:TimeSpanToHoursConverter x:Key="TimeSpanToHoursConverter"/>
-		<conv:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
 		<conv:PriorityToIconConverter x:Key="PriorityToIconConverter"/>
 		<conv:FriendlyEnumConverter x:Key="FriendlyEnumConverter"/>
 	</UserControl.Resources>
@@ -169,7 +166,9 @@
 										 AcceptsReturn="True"
 										 TextWrapping="Wrap"/>
 								<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" IsVisible="{Binding !IsCreateMode}">
-									<CheckBox IsChecked="{Binding Task.IsComplete}" Classes="TaskCheck" VerticalAlignment="Center" Margin="0" Foreground="{DynamicResource TextSecondaryDark}"/>
+									<CheckBox IsChecked="{Binding Task.IsComplete, Mode=OneWay}" 
+											  Command="{Binding ToggleCompleteCommand}"
+											  Classes="TaskCheck" VerticalAlignment="Center" Margin="0" Foreground="{DynamicResource TextSecondaryDark}"/>
 									<TextBlock Text="Done" VerticalAlignment="Center" Margin="0" Foreground="{DynamicResource TextSecondaryDark}"/>
 								</StackPanel>
 							</Grid>
@@ -210,7 +209,7 @@
 							<StackPanel>
 								<TextBlock Text="% Complete" Classes="LabelXSM" Margin="0,0,0,10"/>
 								<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-									<Button Classes="Ghost" Background="Transparent" Padding="0">
+									<Button Classes="Ghost" Background="Transparent" Padding="0" IsEnabled="{Binding IsManualProgressEnabled}">
 										<Button.Flyout>
 											<Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
 												<Border CornerRadius="12" Background="White" BoxShadow="0 4 12 0 #1A000000" Padding="8">
@@ -264,19 +263,20 @@
 												</Border>
 											</Flyout>
 										</Button.Flyout>
-										<Grid Width="20" Height="20">
+										<Grid Width="20" Height="20"
+											  ToolTip.Tip="Progress is automatically calculated from subtasks.">
 											<!-- Background Ring -->
 											<Ellipse Stroke="#E2E8F0" StrokeThickness="2" Width="20" Height="20"/>
 
 											<!-- Circular Progress using Arc -->
 											<Arc Width="20" Height="20"
 												 StartAngle="-90"
-												 SweepAngle="{Binding Task.ProgressPercent, Converter={StaticResource PercentToSweepAngleConverter}}"
+												 SweepAngle="{Binding Task.PercentComplete, Converter={StaticResource PercentToSweepAngleConverter}}"
 												 Stroke="{Binding Task.StatusColor, Converter={StaticResource StatusToBrushConverter}}"
 												 StrokeThickness="2"/>
 										</Grid>
 									</Button>
-									<TextBlock Text="{Binding Task.ProgressPercent, StringFormat='{}{0}%'}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}" FontSize="14"/>
+									<TextBlock Text="{Binding Task.PercentComplete, StringFormat='{}{0}%'}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryDark}" FontSize="14"/>
 								</StackPanel>
 							</StackPanel>
 							<Border Width="1" Height="3" Background="#CBD5E1" VerticalAlignment="Center" />

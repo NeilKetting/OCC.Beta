@@ -17,6 +17,10 @@
             </ResourceDictionary.MergedDictionaries>
 
             <conv:StatusColorConverter x:Key="StatusToColorConverter"/>
+            <conv:StatusToBrushConverter x:Key="StatusToBrushConverter"/>
+            <conv:PriorityToColorConverter x:Key="PriorityToColorConverter"/>
+            <conv:IntToIndentationConverter x:Key="IntToIndentationConverter"/>
+            <conv:NameToInitialsConverter x:Key="NameToInitialsConverter"/>
             <conv:TypeToColorConverter x:Key="TypeToColorConverter"/>
             <conv:EventTypeToColorConverter x:Key="EventTypeToColorConverter"/>
             <conv:BugStatusBadgeConverter x:Key="BugStatusBadgeConverter"/>

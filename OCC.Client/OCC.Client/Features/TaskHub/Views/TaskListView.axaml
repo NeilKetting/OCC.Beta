@@ -12,7 +12,6 @@
 
 	<UserControl.Resources>
 		<conv:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
-		<conv:IntToIndentationConverter x:Key="IntToIndentationConverter"/>
 	</UserControl.Resources>
 
 	<UserControl.Styles>		
@@ -37,7 +36,11 @@
 					</Interaction.Behaviors>
 
 					<Grid ColumnDefinitions="40, 2.5*, 1*, 1*, 1*, 30, 30, 30">
-						<CheckBox Grid.Column="0" IsChecked="{Binding IsCompleted}" Margin="0,-5,0,0"/>
+						<CheckBox Grid.Column="0" 
+								  IsChecked="{Binding IsCompleted, Mode=OneWay}" 
+								  Command="{Binding $parent[UserControl].((vm:TaskListViewModel)DataContext).ToggleTaskCompleteCommand}"
+								  CommandParameter="{Binding}"
+								  Margin="0,-5,0,0"/>
 
 						<StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="{Binding IndentLevel, Converter={StaticResource IntToIndentationConverter}}">
 							<!-- Chevron for Groups -->
