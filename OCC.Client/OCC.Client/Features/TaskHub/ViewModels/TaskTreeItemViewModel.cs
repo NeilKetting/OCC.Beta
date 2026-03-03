@@ -33,6 +33,12 @@ namespace OCC.Client.Features.TaskHub.ViewModels
         private bool _isCompleted;
 
         [ObservableProperty]
+        private int _percentComplete;
+
+        private ProjectTask _task;
+        public string StatusColor => _task.StatusColor;
+
+        [ObservableProperty]
         private string _assigneeInitials = string.Empty;
 
         [ObservableProperty]
@@ -51,6 +57,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
 
         public TaskTreeItemViewModel(ProjectTask task)
         {
+            _task = task;
             Id = task.Id;
             Title = task.Name;
             Description = task.Description;
@@ -58,6 +65,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             Status = task.Status;
             Priority = task.Priority;
             IsCompleted = task.IsComplete;
+            PercentComplete = task.PercentComplete;
             
             var assignment = task.Assignments?.FirstOrDefault();
             var initials = "UN";

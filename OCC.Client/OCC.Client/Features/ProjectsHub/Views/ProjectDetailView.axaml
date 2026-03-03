@@ -192,14 +192,16 @@
 										</DataGridTemplateColumn.Header>
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
-												<Border Width="100" Background="Transparent" ToolTip.Tip="{Binding PercentComplete, StringFormat='{}{0}%'}">
+												<StackPanel Spacing="8" VerticalAlignment="Center">
 													<ProgressBar Value="{Binding PercentComplete}"
-																 Padding="10,0"
-																 Height="6"
+																 Height="8"
 																 VerticalAlignment="Center"
-																 Foreground="{DynamicResource PrimaryTeal}"
+																 CornerRadius="4"
+																 Background="#E2E8F0"
+																 Foreground="{Binding StatusColor, Converter={StaticResource StatusToBrushConverter}}"
 																 IsHitTestVisible="False"/>
-												</Border>
+													<TextBlock Text="{Binding PercentComplete, StringFormat='{}{0}%'}" FontSize="10" Foreground="{DynamicResource TextSecondaryGray}" HorizontalAlignment="Right" Margin="0,-4,0,0"/>
+												</StackPanel>
 											</DataTemplate>
 										</DataGridTemplateColumn.CellTemplate>
 									</DataGridTemplateColumn>

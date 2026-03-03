@@ -361,17 +361,7 @@ namespace OCC.Client.ModelWrappers
 
         private void UpdateStatusColor()
         {
-            if (IsOnHold)
-            {
-                StatusColor = "#22C55E"; // Green
-                return;
-            }
-
-            switch (Status)
-            {
-                case "Not Started": StatusColor = "#CBD5E1"; break; // Gray
-                default: StatusColor = "#EF4444"; break; // Red for active/done
-            }
+            StatusColor = Task.StatusColor;
         }
 
         private double CalculatePlannedHours(DateTime start, DateTime end)

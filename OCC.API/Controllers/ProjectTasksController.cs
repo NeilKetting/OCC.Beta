@@ -196,23 +196,12 @@ namespace OCC.API.Controllers
                 }
 
                 // Signal automated project status if progress starts
-                if (existingTask.PercentComplete > 0 && existingTask.PercentComplete < 100)
+                await _context.SaveChangesAsync();
+
+                // 2. Perform Rollup: Update parent task progress based on child changes
+                if (existingTask.ParentId.HasValue)
                 {
-                    var project = await _context.Projects.FindAsync(existingTask.ProjectId);
-                    if (project != null && (project.Status == "Planned" || project.Status == "Planning"))
-                    {
-                        project.Status = "In Progress";
-                        _context.AuditLogs.Add(new AuditLog
-                        {
-                            UserId = "System",
-                            TableName = "Projects",
-                            RecordId = project.Id.ToString(),
-                            Action = "Auto Status Update",
-                            Timestamp = DateTime.UtcNow,
-                            NewValues = "Project moved to InProgress because task progress started."
-                        });
-                        // Don't await SignalR here to keep it fast, but let context save it
-                    }
+                    await CalculateParentRollup(existingTask.ParentId.Value);
                 }
 
                 await _context.SaveChangesAsync();
@@ -315,6 +304,52 @@ namespace OCC.API.Controllers
                     await _context.Entry(child).Collection(c => c.Children).LoadAsync();
                     await MarkChildrenCompleted(child);
                 }
+            }
+        }
+
+        private async Task CalculateParentRollup(Guid parentId)
+        {
+            try
+            {
+                var parent = await _context.ProjectTasks
+                    .Include(t => t.Children)
+                    .FirstOrDefaultAsync(t => t.Id == parentId);
+
+                if (parent != null && parent.Children.Any())
+                {
+                    // Compute average progress of children
+                    // We only rollup progress for non-meeting tasks or handle based on business rules
+                    var children = parent.Children.ToList();
+                    double average = children.Average(c => (double)c.PercentComplete);
+                    int rounded = (int)Math.Round(average);
+
+                    if (parent.PercentComplete != rounded)
+                    {
+                        _logger.LogInformation("Rolling up progress for Parent {Id}: {Old}% -> {New}%", parentId, parent.PercentComplete, rounded);
+                        
+                        parent.PercentComplete = rounded;
+
+                        // Sync Status if progress is 100% or just started
+                        if (rounded == 100) parent.Status = "Done";
+                        else if (rounded > 0 && (parent.Status == "To Do" || parent.Status == "Not Started")) 
+                            parent.Status = "Started";
+
+                        await _context.SaveChangesAsync();
+                        
+                        // Notify clients about parent update
+                        await _hubContext.Clients.All.SendAsync("EntityUpdate", "ProjectTask", "Update", parent.Id);
+
+                        // Recurse up the tree
+                        if (parent.ParentId.HasValue)
+                        {
+                            await CalculateParentRollup(parent.ParentId.Value);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CalculateParentRollup for {ParentId}", parentId);
             }
         }
 

@@ -190,14 +190,15 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var today = DateTime.Today;
-                var latestEventsToday = await _context.ClockingEvents
-                    .Where(e => e.Timestamp >= today)
+                // We fetch the absolute latest event for EVERY employee.
+                // If that latest event is a ClockIn, they are physically present.
+                // This correctly handles overnight shifts and legacy data gaps.
+                var latestEvents = await _context.ClockingEvents
                     .GroupBy(e => e.EmployeeId)
                     .Select(g => g.OrderByDescending(e => e.Timestamp).FirstOrDefault())
                     .ToListAsync();
                     
-                var activeEvents = latestEventsToday
+                var activeEvents = latestEvents
                     .Where(e => e != null && e.EventType == ClockEventType.ClockIn)
                     .Cast<ClockingEvent>()
                     .ToList();

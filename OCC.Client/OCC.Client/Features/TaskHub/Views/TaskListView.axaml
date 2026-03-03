@@ -67,7 +67,15 @@
 							</TextBlock>
 						</StackPanel>
 
-						<TextBlock Grid.Column="2" Text="{Binding Status}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+						<!-- Progress Column -->
+						<StackPanel Grid.Column="2" Spacing="5" VerticalAlignment="Center">
+							<ProgressBar Value="{Binding PercentComplete}"
+										 Height="6"
+										 CornerRadius="3"
+										 Background="#E2E8F0"
+										 Foreground="{Binding StatusColor, Converter={StaticResource StatusToBrushConverter}}"/>
+							<TextBlock Text="{Binding PercentComplete, StringFormat='{}{0}%'}" FontSize="9" Foreground="{DynamicResource TextSecondaryGray}" HorizontalAlignment="Right"/>
+						</StackPanel>
 						<TextBlock Grid.Column="3" Text="{Binding Priority}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
 						<TextBlock Grid.Column="4" Text="{Binding DueDate, StringFormat='{}{0:MMM dd}'}" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
 

@@ -28,33 +28,70 @@ namespace OCC.Shared.Models
 
 
 
-        /// <summary>
-        /// The user who owns this task (if it's a personal task). 
-        /// For project tasks, this might typically be the creator or null.
-        /// </summary>
-        public Guid? OwnerId { get; set; }
+        private Guid? _ownerId;
+        public Guid? OwnerId 
+        { 
+            get => _ownerId; 
+            set { if (_ownerId != value) { _ownerId = value; OnPropertyChanged(); } } 
+        }
 
-        /// <summary> Optional ID from external systems like MS Project or Gantt exports. </summary>
-        public string? LegacyId { get; set; }
+        private string? _legacyId;
+        public string? LegacyId 
+        { 
+            get => _legacyId; 
+            set { if (_legacyId != value) { _legacyId = value; OnPropertyChanged(); } } 
+        }
 
-        /// <summary> The name or title of the task. </summary>
+        private string _name = string.Empty;
         [Required]
-        public string Name { get; set; } = string.Empty;
+        public string Name 
+        { 
+            get => _name; 
+            set { if (_name != value) { _name = value; OnPropertyChanged(); } } 
+        }
 
-        /// <summary> Scheduled start date. </summary>
-        public DateTime StartDate { get; set; }
+        private DateTime _startDate;
+        public DateTime StartDate 
+        { 
+            get => _startDate; 
+            set { if (_startDate != value) { _startDate = value; OnPropertyChanged(); } } 
+        }
 
-        /// <summary> Scheduled completion date. </summary>
-        public DateTime FinishDate { get; set; }
+        private DateTime _finishDate;
+        public DateTime FinishDate 
+        { 
+            get => _finishDate; 
+            set { if (_finishDate != value) { _finishDate = value; OnPropertyChanged(); } } 
+        }
         
-        /// <summary> Textual representation of duration (e.g., "5 days"). </summary>
-        public string Duration { get; set; } = string.Empty;
+        private string _duration = string.Empty;
+        public string Duration 
+        { 
+            get => _duration; 
+            set { if (_duration != value) { _duration = value; OnPropertyChanged(); } } 
+        }
 
-        /// <summary> Progress percentage (0-100). </summary>
-        public int PercentComplete { get; set; }
+        private int _percentComplete;
+        public int PercentComplete 
+        { 
+            get => _percentComplete; 
+            set 
+            { 
+               if (_percentComplete != value) 
+               { 
+                   _percentComplete = value; 
+                   OnPropertyChanged(); 
+                   OnPropertyChanged(nameof(IsComplete)); 
+               } 
+            } 
+        }
 
-        /// <summary> Priority level (Low, Medium, High, Critical). Default is "Medium". </summary>
-        public string Priority { get; set; } = "Medium";
+        private string _priority = "Medium";
+        public string Priority 
+        { 
+            get => _priority; 
+            set { if (_priority != value) { _priority = value; OnPropertyChanged(); } } 
+        }
 
         #region Reminders
         /// <summary> Whether a reminder is active for this task. </summary>
@@ -67,11 +104,61 @@ namespace OCC.Shared.Models
         public DateTime? NextReminderDate { get; set; }
         #endregion
 
-        /// <summary> Status string (e.g., "To Do", "In Progress", "Completed"). </summary>
-        public string Status { get; set; } = "To Do";
+        private string _status = "To Do";
+        public string Status 
+        { 
+            get => _status; 
+            set 
+            { 
+                if (_status != value) 
+                { 
+                    _status = value; 
+                    OnPropertyChanged(); 
+                    OnPropertyChanged(nameof(IsComplete)); 
+                } 
+            } 
+        }
 
-        /// <summary> Helper property indicating if the task is finished. </summary>
-        public bool IsComplete => Status == "Completed" || PercentComplete == 100;
+        public bool IsComplete 
+        {
+            get => Status == "Completed" || Status == "Done" || PercentComplete == 100;
+            set
+            {
+                if (value)
+                {
+                    Status = "Done";
+                    PercentComplete = 100;
+                }
+                else
+                {
+                    Status = "Started";
+                    if (PercentComplete == 100) PercentComplete = 75;
+                }
+                OnPropertyChanged();
+            }
+        }
+
+        public string StatusColor 
+        {
+            get
+            {
+                if (IsOnHold) return "#10B981"; // Emerald-500
+                switch (Status)
+                {
+                    case "Not Started": return "#94A3B8"; // Slate-400
+                    case "Started": return "#3B82F6"; // Blue-500
+                    case "Halfway": return "#8B5CF6"; // Violet-500
+                    case "Almost Done": return "#EC4899"; // Pink-500
+                    case "Done": 
+                    case "Completed": return "#22C55E"; // Green-500
+                    default: 
+                        if (PercentComplete >= 90) return "#EC4899";
+                        if (PercentComplete >= 40) return "#8B5CF6";
+                        if (PercentComplete > 0) return "#3B82F6";
+                        return "#94A3B8";
+                }
+            }
+        }
 
         /// <summary> Detailed description or instructions for the task. </summary>
         public string Description { get; set; } = string.Empty;

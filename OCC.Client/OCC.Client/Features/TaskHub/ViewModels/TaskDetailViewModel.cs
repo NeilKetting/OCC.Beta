@@ -278,6 +278,16 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             try
             {
                 await _projectTaskRepository.UpdateAsync(subtask);
+                
+                // Recalculate rollup for parent
+                CalculateRollupProgress();
+                
+                // CRITICAL: Save the parent task as well, since its PercentComplete likely changed
+                if (!IsCreateMode)
+                {
+                    await UpdateTask();
+                }
+                
                 WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
             }
             catch (Exception ex)
@@ -1014,6 +1024,30 @@ namespace OCC.Client.Features.TaskHub.ViewModels
             VisibleSubtasks.Clear();
             foreach(var s in Subtasks) VisibleSubtasks.Add(s);
             HasMoreSubtasks = false;
+            
+            // Re-calculate rollup when subtask list changes
+            CalculateRollupProgress();
+        }
+
+        private void CalculateRollupProgress()
+        {
+            if (Subtasks == null || !Subtasks.Any()) return;
+            if (Task == null) return;
+
+            // Simple average of all child tasks
+            double average = Subtasks.Average(s => s.PercentComplete);
+            int rounded = (int)Math.Round(average);
+
+            if (Task.PercentComplete != rounded)
+            {
+                Task.PercentComplete = rounded;
+                Task.ProgressPercent = rounded;
+                
+                // Status should also reflect completion
+                if (rounded == 100) Task.Status = "Done";
+                else if (rounded > 0 && (Task.Status == "To Do" || Task.Status == "Not Started")) 
+                    Task.Status = "Started";
+            }
         }
 
         #endregion
