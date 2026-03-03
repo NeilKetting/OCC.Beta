@@ -130,6 +130,7 @@ namespace OCC.Client.ViewModels.Core
         public bool CanViewTime => _permissionService.CanAccess(NavigationRoutes.Time);
         public bool CanAccessUserPreferences => _permissionService.CanAccess(NavigationRoutes.UserPreferences);
         public bool CanAccessAlerts => _permissionService.CanAccess(NavigationRoutes.Alerts);
+        public bool CanAccessWages => _permissionService.CanAccess(NavigationRoutes.Feature_Wages);
         
         // Critical Security Fixes
         public bool CanAccessBugs => _permissionService.CanAccess(NavigationRoutes.Feature_BugReports);
@@ -407,6 +408,9 @@ namespace OCC.Client.ViewModels.Core
                     break;
                 case NavigationRoutes.Calendar:
                     // Just navigate
+                    break;
+                case NavigationRoutes.Feature_Wages:
+                    WeakReferenceMessenger.Default.Send(new SwitchTabMessage("WageRun"));
                     break;
             }
         }

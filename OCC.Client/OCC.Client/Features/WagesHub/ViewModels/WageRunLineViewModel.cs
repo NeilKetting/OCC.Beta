@@ -3,7 +3,7 @@ using OCC.Shared.Models;
 using System;
 using System.Linq;
 
-namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
+namespace OCC.Client.Features.WagesHub.ViewModels
 {
     public partial class WageRunLineViewModel : ObservableObject
     {
@@ -79,11 +79,10 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         public bool HasSupervisorFee => Model?.IncentiveSupervisor > 0;
 
         // --- COMPUTED DISPLAY SECTION ---
-
         public decimal? RatePDayDisplay => Model?.HourlyRate * 8.75m;
-        public double? DaysWeek1Display => (Model?.NormalHours > 0 ? Model.NormalHours / 8.75 : 0);
-        public double? DaysWeek2Display => 5.0; 
-        public double? TotalDaysDisplay => (DaysWeek1Display ?? 0) + (DaysWeek2Display ?? 0);
+        public int? DaysWeek1Display => (int?)(Model?.DaysWorkedWeek1 ?? 0);
+        public int? DaysWeek2Display => (int?)(Model?.DaysWorkedWeek2 ?? 0);
+        public int? TotalDaysDisplay => (int?)(Model?.TotalDaysWorked ?? 0);
         public double? HrsPDayDisplay => 8.75;
 
         // ----------------------------------------
@@ -99,6 +98,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             OnPropertyChanged(nameof(DeductionGasDisplay));
             OnPropertyChanged(nameof(OtherDisplay));
             OnPropertyChanged(nameof(DeductionPPEDisplay));
+            OnPropertyChanged(nameof(IncentiveSupervisor));
         }
 
         private void RecalculateTotalWage()
@@ -168,7 +168,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         public decimal NetPay => Model?.NetPay ?? 0;
-        public decimal TotalRem => Model?.TotalWage ?? 0;
+        public decimal TotalRem => (Model?.NetPay ?? 0) + (Model?.IncentiveSupervisor ?? 0);
         public double VarianceHours => Model?.VarianceHours ?? 0;
         public decimal HourlyRate => Model?.HourlyRate ?? 0;
         public decimal TotalWage => Model?.TotalWage ?? 0;

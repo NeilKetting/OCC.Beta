@@ -132,6 +132,19 @@
 						</StackPanel>
 					</Button>
 
+					<!-- Wages Hub Link -->
+					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}"
+							Command="{Binding NavigateCommand}"
+							CommandParameter="Wages" Classes.Active="{Binding ActiveSection,
+							Converter={StaticResource StringEqualityConverter}, ConverterParameter='Wages'}"
+							HorizontalAlignment="Stretch"
+							IsVisible="{Binding CanAccessWages}">
+						<StackPanel Orientation="Horizontal" Spacing="15">
+							<PathIcon Data="{StaticResource IconWagesDollar}" Classes="IconStyle"/>
+							<TextBlock Text="Wages Hub" IsVisible="{Binding !IsCollapsed}" VerticalAlignment="Center"/>
+						</StackPanel>
+					</Button>
+
 					<!-- Employee Management Link (Visible only if permitted) -->
 					<Button Classes="SideMenuButton" Classes.Collapsed="{Binding IsCollapsed}" Command="{Binding NavigateCommand}" CommandParameter="Team" Classes.Active="{Binding ActiveSection, Converter={StaticResource StringEqualityConverter}, ConverterParameter='Team'}" HorizontalAlignment="Stretch" IsVisible="{Binding CanViewStaff}">
 						<StackPanel Orientation="Horizontal" Spacing="15">

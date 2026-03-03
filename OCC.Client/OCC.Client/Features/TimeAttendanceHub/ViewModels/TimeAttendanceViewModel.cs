@@ -38,8 +38,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         [ObservableProperty] private LeaveApprovalViewModel _leaveApprovalVM;
         [ObservableProperty] private OvertimeViewModel _overtimeVM;
         [ObservableProperty] private OvertimeApprovalViewModel _overtimeApprovalVM;
-        [ObservableProperty] private WageRunViewModel _wageRunVM;
-        [ObservableProperty] private LoansManagementViewModel _loansVM;
         [ObservableProperty] private ManualAttendanceViewModel _manualAttendanceView;
 
         [ObservableProperty]
@@ -65,8 +63,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _leaveApprovalVM = null!;
             _overtimeVM = null!;
             _overtimeApprovalVM = null!;
-            _wageRunVM = null!;
-            _loansVM = null!;
             _manualAttendanceView = null!;
             _currentView = null!;
 
@@ -84,8 +80,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             LeaveApprovalViewModel leaveApprovalViewModel,
             OvertimeViewModel overtimeViewModel, 
             OvertimeApprovalViewModel overtimeApprovalViewModel, 
-            WageRunViewModel wageRunViewModel,
-            LoansManagementViewModel loansManagementViewModel,
             ManualAttendanceViewModel manualAttendanceViewModel,
             IAuthService authService)
         {
@@ -99,8 +93,6 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             _leaveApprovalVM = leaveApprovalViewModel;
             _overtimeVM = overtimeViewModel;
             _overtimeApprovalVM = overtimeApprovalViewModel;
-            _wageRunVM = wageRunViewModel;
-            _loansVM = loansManagementViewModel;
             _manualAttendanceView = manualAttendanceViewModel;
             _authService = authService;
             
@@ -159,12 +151,7 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 case NavigationRoutes.Feature_LeaveApproval:
                     CurrentView = LeaveApprovalVM;
                     break;
-                case "WageRun":
-                    CurrentView = WageRunVM;
-                    break;
-                case "Loans":
-                    CurrentView = LoansVM;
-                    break;
+
                 case "Manual":
                     CurrentView = ManualAttendanceView;
                     _ = ManualAttendanceView.LoadEmployeesCommand.ExecuteAsync(null);

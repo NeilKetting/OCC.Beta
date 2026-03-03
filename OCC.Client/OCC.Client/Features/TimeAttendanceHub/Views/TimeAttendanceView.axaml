@@ -31,12 +31,6 @@
 		<DataTemplate DataType="{x:Type vm:LeaveApplicationViewModel}">
 			<viewTime:LeaveApplicationView/>
 		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:LeaveApprovalViewModel}">
-			<viewTime:LeaveApprovalView/>
-		</DataTemplate>
-		<DataTemplate DataType="{x:Type vm:OvertimeViewModel}">
-			<viewTime:OvertimeView/>
-		</DataTemplate>
 		<DataTemplate DataType="{x:Type vm:OvertimeApprovalViewModel}">
 			<viewTime:OvertimeApprovalView/>
 		</DataTemplate>

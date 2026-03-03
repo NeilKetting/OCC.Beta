@@ -17,7 +17,8 @@ using OCC.Client.Features.CustomerHub.ViewModels;
 using OCC.Client.Features.SettingsHub.ViewModels;
 using OCC.Client.Features.AuthHub.ViewModels;
 using OCC.Client.ViewModels.Shared; // For ProfileViewModel
-using OCC.Client.ViewModels.Messages; // Corrected Namespace
+using OCC.Client.ViewModels.Messages;
+using OCC.Client.Features.WagesHub.ViewModels;
 using OCC.Client.Services;
 using System;
 using System.Reflection;
@@ -800,6 +801,11 @@ namespace OCC.Client.ViewModels.Core
                     vm = _serviceProvider.GetRequiredService<UserManagementViewModel>();
                     title = "Users";
                     icon = GetResource("IconUserManagement");
+                    break;
+                case NavigationRoutes.Feature_Wages:
+                    vm = _serviceProvider.GetRequiredService<WagesViewModel>();
+                    title = "Wages Hub";
+                    icon = GetResource("IconWagesDollar");
                     break;
                 case "MyProfile":
                     Receive(new OpenProfileMessage());

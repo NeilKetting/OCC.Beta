@@ -31,6 +31,7 @@ using OCC.Client.Services.External;
 using OCC.Client.Features.CoreHub.ViewModels;
 using OCC.Client.Features.MobileHub.ViewModels;
 using OCC.Client.Features.MobileHub.ViewModels.Shells;
+using OCC.Client.Features.WagesHub.ViewModels;
 
 namespace OCC.Client.Infrastructure.DependencyInjection
 {
@@ -166,14 +167,6 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             services.AddTransient<TeamManagementViewModel>();
             services.AddTransient<TeamDetailViewModel>();
             
-            services.AddTransient<IWageService, WageService>();
-            services.AddTransient<WageRunViewModel>();
-
-            services.AddHttpClient<IEmployeeLoanService, ApiEmployeeLoanService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
-                .AddHttpMessageHandler<FailureLoggingHandler>();
-            services.AddTransient<LoansManagementViewModel>();
-            services.AddTransient<AddLoanDialogViewModel>();
-            
             services.AddTransient<TimeAttendanceViewModel>();
             services.AddTransient<TimeLiveViewModel>();
             services.AddTransient<TimeLiveV2ViewModel>();
@@ -293,5 +286,21 @@ namespace OCC.Client.Infrastructure.DependencyInjection
             
             return services;
         }
+
+        public static IServiceCollection AddWagesHub(this IServiceCollection services)
+        {
+            services.AddTransient<IWageService, WageService>();
+            services.AddTransient<WageRunViewModel>();
+
+            services.AddHttpClient<IEmployeeLoanService, ApiEmployeeLoanService>(client => client.BaseAddress = new Uri(ConnectionSettings.Instance.ApiBaseUrl))
+                .AddHttpMessageHandler<FailureLoggingHandler>();
+            services.AddTransient<LoansManagementViewModel>();
+            services.AddTransient<AddLoanDialogViewModel>();
+
+            services.AddTransient<WagesViewModel>();
+            services.AddTransient<WagesMenuViewModel>();
+
+            return services;
+		}
     }
 }

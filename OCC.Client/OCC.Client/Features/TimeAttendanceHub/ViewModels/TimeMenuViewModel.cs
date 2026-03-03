@@ -16,14 +16,19 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         #region Observables
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsClockSystemActive))]
-        [NotifyPropertyChangedFor(nameof(IsWagesActive))]
+        [NotifyPropertyChangedFor(nameof(IsLiveActive))]
+        [NotifyPropertyChangedFor(nameof(IsDailyActive))]
+        [NotifyPropertyChangedFor(nameof(IsHistoryActive))]
         [NotifyPropertyChangedFor(nameof(IsLeaveActive))]
         [NotifyPropertyChangedFor(nameof(IsOvertimeActive))]
+        [NotifyPropertyChangedFor(nameof(IsManualActive))]
         private string _activeTab = "Live";
 
         public bool IsClockSystemActive => ActiveTab is "Timesheet" or "History" or "Manual" or "Live V2" or "Timesheet V2";
-        public bool IsWagesActive => ActiveTab is "WageRun" or "Loans";
+        public bool IsLiveActive => ActiveTab is "Live" or "Live V2";
+        public bool IsDailyActive => ActiveTab is "Timesheet" or "Timesheet V2";
+        public bool IsHistoryActive => ActiveTab is "History";
+        public bool IsManualActive => ActiveTab is "Manual";
         public bool IsLeaveActive => ActiveTab is "Leave Application" or "LeaveApprovals";
         public bool IsOvertimeActive => ActiveTab is "Overtime" or "OvertimeApproval";
 

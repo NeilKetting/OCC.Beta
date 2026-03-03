@@ -135,6 +135,7 @@ namespace OCC.Client
                     .AddHomeHub()
                     .AddProjectsHub()
                     .AddEmployeeHub()
+                    .AddWagesHub()
                     .AddOrdersHub()
                     .AddHseqHub()
                     .AddSupportHub()

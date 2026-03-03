@@ -26,6 +26,8 @@ namespace OCC.Client.Infrastructure
         
         // Special Feature Permission Keys (non-navigation)
         public const string Feature_WageViewing = "WageViewing";
+        public const string Feature_TimeAttendance = "TimeAttendance";
+        public const string Feature_Wages = "Wages";
         public const string Feature_OrderManagement = "Orders";
         public const string Feature_OrderInventoryOnly = "InventoryOnly";
         public const string Feature_LeaveApproval = "LeaveApprovals";

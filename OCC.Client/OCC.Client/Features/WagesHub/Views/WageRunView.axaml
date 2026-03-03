@@ -2,9 +2,9 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="clr-namespace:OCC.Client.Features.TimeAttendanceHub.ViewModels"
+			 xmlns:vm="clr-namespace:OCC.Client.Features.WagesHub.ViewModels"
 			 mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
-			 x:Class="OCC.Client.Features.TimeAttendanceHub.Views.WageRunView"
+			 x:Class="OCC.Client.Features.WagesHub.Views.WageRunView"
 			 x:DataType="vm:WageRunViewModel">
 
 	<Grid RowDefinitions="Auto, *, Auto" Margin="2">
@@ -245,15 +245,7 @@
 							</DataGridTemplateColumn.Header>
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
-									<StackPanel VerticalAlignment="Center">
-										<TextBox Text="{Binding DeductionOther, Mode=TwoWay, StringFormat={}{0:F2}}" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Margin="2,4"/>
-										<TextBlock Text="SUPERVISOR FEE" IsVisible="{Binding HasSupervisorFee}" 
-												   FontSize="8" FontWeight="SemiBold" Foreground="{DynamicResource Orange}"
-												   HorizontalAlignment="Center"/>
-										<TextBlock Text="{Binding IncentiveSupervisor, StringFormat={}{0:F2}}" IsVisible="{Binding HasSupervisorFee}" 
-												   FontSize="8" FontWeight="SemiBold" Foreground="{DynamicResource Orange}"
-												   HorizontalAlignment="Center"/>
-									</StackPanel>
+									<TextBox Text="{Binding DeductionOther, Mode=TwoWay, StringFormat={}{0:F2}}" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Margin="2,4"/>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
@@ -266,6 +258,18 @@
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
 									<TextBox Text="{Binding DeductionPPE, Mode=TwoWay, StringFormat={}{0:F2}}" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Margin="2,4"/>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+						
+						<!-- SUPERVISOR FEE (OTHER) -->
+						<DataGridTemplateColumn Header="OTHER" Width="Auto">
+							<DataGridTemplateColumn.HeaderTemplate>
+								<DataTemplate><TextBlock Text="OTHER" FontWeight="Bold" FontSize="9" HorizontalAlignment="Center"/></DataTemplate>
+							</DataGridTemplateColumn.HeaderTemplate>
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<TextBox Text="{Binding IncentiveSupervisor, Mode=TwoWay, StringFormat={}{0:F2}}" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextAlignment="Center" Margin="2,4"/>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
@@ -317,7 +321,7 @@
 							</DataGridTemplateColumn.Header>
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
-									<TextBlock Text="{Binding DaysWeek1Display, StringFormat={}{0:F2}}" HorizontalAlignment="Center"/>
+									<TextBlock Text="{Binding DaysWeek1Display}" HorizontalAlignment="Center"/>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
@@ -330,7 +334,7 @@
 							</DataGridTemplateColumn.Header>
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
-									<TextBlock Text="{Binding DaysWeek2Display, StringFormat={}{0:F2}}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4"/>
+									<TextBlock Text="{Binding DaysWeek2Display}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4"/>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
@@ -343,7 +347,7 @@
 							</DataGridTemplateColumn.Header>
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
-									<TextBlock Text="{Binding TotalDaysDisplay, StringFormat={}{0:F2}}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4"/>
+									<TextBlock Text="{Binding TotalDaysDisplay}" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4"/>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace OCC.Client.Features.TimeAttendanceHub.Views
+namespace OCC.Client.Features.WagesHub.Views
 {
     public partial class LoansManagementView : UserControl
     {

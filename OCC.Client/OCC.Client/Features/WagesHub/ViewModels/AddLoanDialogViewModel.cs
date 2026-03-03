@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
+namespace OCC.Client.Features.WagesHub.ViewModels
 {
     public partial class AddLoanDialogViewModel : ObservableObject
     {
