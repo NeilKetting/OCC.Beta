@@ -570,13 +570,22 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         private void CalculateTotalAbsences(System.Collections.Generic.List<HistoryRecordViewModel> records, System.Collections.Generic.List<Employee> employees)
         {
             var absences = 0;
+            var actualStart = StartDate?.Date ?? DateTime.Today;
+            var actualEnd = EndDate?.Date ?? DateTime.Today;
+            
+            if (actualStart > actualEnd)
+            {
+                var temp = actualStart;
+                actualStart = actualEnd;
+                actualEnd = temp;
+            }
+            
+            if (actualEnd > DateTime.Today) actualEnd = DateTime.Today;
+
             foreach(var employee in employees)
             {
-                var current = StartDate?.Date ?? DateTime.Today;
-                var end = EndDate?.Date ?? DateTime.Today;
-                if (end > DateTime.Today) end = DateTime.Today;
-
-                while (current <= end)
+                var current = actualStart;
+                while (current <= actualEnd)
                 {
                     if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
                     {
@@ -587,7 +596,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                                              (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
                                                               r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
                                                               r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
-                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick ||
+                                                              r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveEarly));
                                                               
                             if (!hasRecord) absences++;
                         }
@@ -799,11 +809,20 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         {
              // Similar logic to CalculateAbsences but independent
             int absences = 0;
-            var current = StartDate?.Date ?? DateTime.Today;
-            var end = EndDate?.Date ?? DateTime.Today;
-            if (end > DateTime.Today) end = DateTime.Today; 
+            var actualStart = StartDate?.Date ?? DateTime.Today;
+            var actualEnd = EndDate?.Date ?? DateTime.Today;
+            
+            if (actualStart > actualEnd)
+            {
+                var temp = actualStart;
+                actualStart = actualEnd;
+                actualEnd = temp;
+            }
+            
+            if (actualEnd > DateTime.Today) actualEnd = DateTime.Today;
 
-            while (current <= end)
+            var current = actualStart;
+            while (current <= actualEnd)
             {
                 if (current.DayOfWeek != DayOfWeek.Saturday && current.DayOfWeek != DayOfWeek.Sunday)
                 {
@@ -813,7 +832,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                                                          (r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Present || 
                                                           r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Late ||
                                                           r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveAuthorized ||
-                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick));
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.Sick ||
+                                                          r.Attendance.Status == OCC.Shared.Models.AttendanceStatus.LeaveEarly));
                                                           
                         if (!hasRecord) absences++;
                     }
@@ -949,8 +969,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
         }
 
         partial void OnSearchTextChanged(string value) => FilterRecords();
-        partial void OnSelectedPayTypeChanged(string value) => FilterRecords();
-        partial void OnSelectedBranchChanged(string value) => FilterRecords();
+        async partial void OnSelectedPayTypeChanged(string value) => await LoadData();
+        async partial void OnSelectedBranchChanged(string value) => await LoadData();
 
         // Trigger load when dates change
         async partial void OnStartDateChanged(DateTime? value)
@@ -977,25 +997,24 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             IsBusy = true;
             try
             {
-                var s = StartDate ?? DateTime.Today;
-                var e = EndDate ?? DateTime.Today;
+                var s = StartDate?.Date ?? DateTime.Today;
+                var e = EndDate?.Date ?? DateTime.Today;
+                
+                // Handle inverted range
+                if (s > e)
+                {
+                    var temp = s;
+                    s = e;
+                    e = temp;
+                }
+                
+                // End date is inclusive (end of day)
+                e = e.AddDays(1).AddTicks(-1);
                 
                 // Fetch
                 var attendanceEnumerable = await _timeService.GetAttendanceByRangeAsync(s, e);
                 var attendance = attendanceEnumerable.ToList();
 
-                // FIX: Also include ANY active records (Clocked In) regardless of date, 
-                // so they appear in the history list (e.g. if Shift started yesterday).
-                // Only do this if the range implies "Current" relevance, or generally helpful to seeing status.
-                // We'll merge them in.
-                var activeRecords = await _timeService.GetActiveAttendanceAsync();
-                foreach (var active in activeRecords)
-                {
-                    if (!attendance.Any(x => x.Id == active.Id))
-                    {
-                        attendance.Add(active);
-                    }
-                }
                 var allEmployee = await _timeService.GetAllStaffAsync();
                 _fullStaffList = allEmployee.ToList();
 
