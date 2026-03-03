@@ -106,9 +106,10 @@ namespace OCC.API.Controllers
                 gasPerPerson = request.InputTotalGasCharge / housedEmployees.Count;
             }
 
-            // 3. Fetch Attendance for the Period (up to RunDate)
+            // 3. Fetch Attendance for the Period (exactly between StartDate and EndDate)
+            var attendanceEnd = request.EndDate > runDate ? runDate : request.EndDate; // Don't fetch past RunDate if it's earlier than EndDate, but also don't fetch past EndDate
             var attendance = await _context.AttendanceRecords
-                .Where(a => a.Date >= request.StartDate && a.Date <= runDate)
+                .Where(a => a.Date >= request.StartDate && a.Date <= attendanceEnd)
                 .ToListAsync();
 
             // 4. Fetch Active Loans
@@ -175,8 +176,10 @@ namespace OCC.API.Controllers
                     .ToList();
 
                 var week1End = request.StartDate.AddDays(6);
-                int daysW1 = 0;
-                int daysW2 = 0;
+                
+                // Track distinct dates worked in each week
+                var distinctDaysW1 = new HashSet<DateTime>();
+                var distinctDaysW2 = new HashSet<DateTime>();
 
                 foreach (var record in empAttendance)
                 {
@@ -187,10 +190,10 @@ namespace OCC.API.Controllers
                     line.Overtime20Hours += hours.Overtime20;
                     line.LunchDeductionHours += hours.Lunch;
                     
-                    if (record.Status == AttendanceStatus.Present || record.Status == AttendanceStatus.Late)
+                    if (record.Status == AttendanceStatus.Present || record.Status == AttendanceStatus.Late || record.Status == AttendanceStatus.LeaveEarly)
                     {
-                        if (record.Date <= week1End) daysW1++;
-                        else daysW2++;
+                        if (record.Date.Date <= week1End.Date) distinctDaysW1.Add(record.Date.Date);
+                        else distinctDaysW2.Add(record.Date.Date);
                     }
 
                     if (record.Status == AttendanceStatus.Absent)
@@ -198,9 +201,9 @@ namespace OCC.API.Controllers
                         line.VarianceNotes += $"{record.Date:dd/MM}: Absent; ";
                     }
                 }
-                line.DaysWorkedWeek1 = daysW1;
-                line.DaysWorkedWeek2 = daysW2;
-                line.TotalDaysWorked = daysW1 + daysW2;
+                line.DaysWorkedWeek1 = distinctDaysW1.Count;
+                line.DaysWorkedWeek2 = distinctDaysW2.Count;
+                line.TotalDaysWorked = distinctDaysW1.Count + distinctDaysW2.Count;
 
                 // B. Calculate Projected Hours (RunDate+1 -> EndDate)
                 var projectedStart = runDate.AddDays(1);
