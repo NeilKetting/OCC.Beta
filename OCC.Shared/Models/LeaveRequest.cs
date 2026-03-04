@@ -79,7 +79,9 @@ namespace OCC.Shared.Models
         /// <summary> Long-term leave for new mothers. </summary>
         Maternity,
         /// <summary> Time off without pay. </summary>
-        Unpaid
+        Unpaid,
+        /// <summary> Absent without authorized leave. </summary>
+        AbsentWithoutLeave
     }
 
     /// <summary>

@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:OCC.Client.Features.ProjectsHub.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="50"
-             x:Class="OCC.Client.Features.ProjectsHub.Views.GanttMenuBarView">
+             x:Class="OCC.Client.Features.ProjectsHub.Views.GanttMenuBarView"
+             x:DataType="vm:ProjectGanttViewModel">
 
     <Border Background="{DynamicResource SurfaceBackground}" BorderBrush="{DynamicResource BorderGray}" BorderThickness="0,0,0,1" Padding="10,5">
         <Grid ColumnDefinitions="Auto, *, Auto">
@@ -28,17 +30,10 @@
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
                 <Button Content="Today" Classes="OutlineButton" Padding="10,5"/>
                 
-                <Border Background="{DynamicResource FieldBackground}" CornerRadius="4" BorderBrush="{DynamicResource BorderGray}" BorderThickness="1" Padding="2">
-                     <StackPanel Orientation="Horizontal">
-                        <Button Classes="IconOnlyButton" Padding="5">
-                             <TextBlock Text="-" FontWeight="Bold"/>
-                        </Button>
-                         <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="5,0"/>
-                        <Button Classes="IconOnlyButton" Padding="5">
-                             <TextBlock Text="+" FontWeight="Bold"/>
-                        </Button>
-                     </StackPanel>
-                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="Zoom:" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryGray}"/>
+                    <Slider Value="{Binding ZoomLevel}" Minimum="0.4" Maximum="3.0" Width="100" VerticalAlignment="Center"/>
+                </StackPanel>
             </StackPanel>
         </Grid>
     </Border>

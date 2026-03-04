@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using OCC.Shared.Models;
 using OCC.Client.Services;
 using System;
@@ -37,6 +38,12 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
         /// </summary>
         [ObservableProperty]
         private double _zoomLevel = 1.0;
+
+        partial void OnZoomLevelChanged(double value)
+        {
+            PixelsPerDay = 50.0 * value;
+            RefreshGanttView();
+        }
 
         /// <summary>
         /// The calculated start date for the Gantt timeline.
@@ -112,6 +119,20 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
             if (task == null) return;
             _projectManager.ToggleExpand(task);
             RefreshGanttView();
+        }
+
+        [RelayCommand]
+        public void ZoomIn()
+        {
+            if (ZoomLevel < 3.0)
+                ZoomLevel = Math.Round(ZoomLevel + 0.2, 1);
+        }
+
+        [RelayCommand]
+        public void ZoomOut()
+        {
+            if (ZoomLevel > 0.4)
+                ZoomLevel = Math.Round(ZoomLevel - 0.2, 1);
         }
 
         #endregion

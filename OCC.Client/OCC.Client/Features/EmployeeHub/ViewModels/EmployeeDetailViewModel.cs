@@ -182,7 +182,10 @@ namespace OCC.Client.Features.EmployeeHub.ViewModels
         private bool _isSystemAccessVisible;
 
         // Exposed Enum Values for ComboBox
-        public List<EmployeeRole> EmployeeRoles { get; } = Enum.GetValues<EmployeeRole>().OrderBy(r => r.ToString()).ToList();
+        public List<EmployeeRole> EmployeeRoles { get; } = Enum.GetValues<EmployeeRole>()
+            .Where(r => r != EmployeeRole.LegacySeniorForeman && r != EmployeeRole.Supervisor)
+            .OrderBy(r => r.ToString())
+            .ToList();
 
         public List<string> Branches { get; } = new() { "Johannesburg", "Cape Town" };
 

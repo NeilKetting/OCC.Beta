@@ -262,8 +262,40 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [RelayCommand]
         public virtual async Task DeleteInventoryItem(InventorySummaryDto summary)
         {
-             if (summary == null) return;
-             await _dialogService.ShowAlertAsync("Locked", "Inventory item deletion is currently disabled to maintain historical stock integrity.");
+            if (summary == null) return;
+
+            var confirm = await _dialogService.ShowConfirmationAsync("Confirm Delete", 
+                $"Are you sure you want to delete '{summary.Description}'?\n\nThis action cannot be undone.");
+
+            if (!confirm) return;
+
+            try
+            {
+                IsBusy = true;
+                BusyText = "Deleting item...";
+                await _orderManager.DeleteItemAsync(summary.Id);
+                await LoadInventoryAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting inventory item {ItemId}", summary.Id);
+                
+                // Check if it's a conflict error (item in use)
+                if (ex.Message.Contains("Conflict", StringComparison.OrdinalIgnoreCase) || 
+                    ex.Message.Contains("used in existing", StringComparison.OrdinalIgnoreCase))
+                {
+                    await _dialogService.ShowAlertAsync("Cannot Delete", 
+                        "This item cannot be deleted because it has historical usage (orders, etc.).\n\nYou should rename it or mark it as 'Inactive' if supported.");
+                }
+                else
+                {
+                    await _dialogService.ShowAlertAsync("Error", $"Failed to delete item: {ex.Message}");
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         #endregion

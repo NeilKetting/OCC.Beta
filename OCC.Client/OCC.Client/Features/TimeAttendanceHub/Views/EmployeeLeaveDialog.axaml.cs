@@ -37,8 +37,8 @@ namespace OCC.Client.Features.TimeAttendanceHub.Views
         {
             if (_request == null) return;
             
-            if (StartDatePicker.SelectedDate.HasValue) _request.StartDate = StartDatePicker.SelectedDate.Value;
-            if (EndDatePicker.SelectedDate.HasValue) _request.EndDate = EndDatePicker.SelectedDate.Value;
+            if (StartDatePicker.SelectedDate.HasValue) _request.StartDate = StartDatePicker.SelectedDate.Value.Date;
+            if (EndDatePicker.SelectedDate.HasValue) _request.EndDate = EndDatePicker.SelectedDate.Value.Date;
             
             if (LeaveTypeComboBox.SelectedItem is LeaveType type)
             {
@@ -47,14 +47,12 @@ namespace OCC.Client.Features.TimeAttendanceHub.Views
 
             _request.Reason = ReasonTextBox.Text ?? string.Empty;
 
-            CloseAction?.Invoke(_request);
-            Close();
+            Close(_request);
         }
 
         private void OnCancelClick(object? sender, RoutedEventArgs e)
         {
-            CloseAction?.Invoke(null);
-            Close();
+            Close(null);
         }
     }
 }

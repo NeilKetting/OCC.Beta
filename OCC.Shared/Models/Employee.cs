@@ -262,12 +262,13 @@ namespace OCC.Shared.Models
         Shopfitter = 15,
         Plasterer = 16,
         PlasterLabour = 17,
-        SeniorForeman = 18,
-        Foreman = 19,
+        LegacySeniorForeman = 18,
+        SnrForeman = 19,
         Welder = 20,
         SiteManager = 21,
         BrickLayer = 22,
-        Driver = 23
+        Driver = 23,
+        JnrForeman = 24
     }
 
     /// <summary>

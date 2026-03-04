@@ -206,7 +206,11 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
                 LeaveType = request.LeaveType,
                 Reason = request.Reason,
                 Status = request.Status,
-                NumberOfDays = request.NumberOfDays // Reclaculated in service anyway
+                NumberOfDays = request.NumberOfDays,
+                RowVersion = request.RowVersion,
+                CreatedAtUtc = request.CreatedAtUtc,
+                CreatedBy = request.CreatedBy,
+                IsActive = request.IsActive
             };
 
             var editedRequest = await _dialogService.ShowEditLeaveRequestAsync(clone);

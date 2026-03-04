@@ -78,8 +78,8 @@ namespace OCC.Shared.Models
         TymeBank = 33,
         [Description("Unibank")]
         Unibank = 34,
-        [Description("eNL Mutual Bank")]
-        eNLMutualBank = 35,
+        [Description("Sasfin Bank")]
+        Sasfin = 36,
         [Description("Other")]
         Other = 999
     }

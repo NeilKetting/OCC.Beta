@@ -162,13 +162,7 @@ namespace OCC.Client.Services
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
             {
                 var dialog = new OCC.Client.Features.TimeAttendanceHub.Views.EmployeeLeaveDialog(request);
-                var tcs = new TaskCompletionSource<LeaveRequest?>();
-                
-                dialog.CloseAction = (res) => tcs.TrySetResult(res);
-                dialog.Closed += (s, e) => tcs.TrySetResult(null);
-
-                dialog.Show(desktop.MainWindow);
-                return await tcs.Task;
+                return await dialog.ShowDialog<LeaveRequest?>(desktop.MainWindow);
             }
             return null;
         }
