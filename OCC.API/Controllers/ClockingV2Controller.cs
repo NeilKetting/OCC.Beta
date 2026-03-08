@@ -185,6 +185,85 @@ namespace OCC.API.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpPost("repair-sync-v2")]
+        public async Task<IActionResult> RepairSyncV2()
+        {
+            try
+            {
+                var today = DateTime.Today;
+                var latestEvents = await _context.ClockingEvents
+                    .GroupBy(e => e.EmployeeId)
+                    .Select(g => g.OrderByDescending(e => e.Timestamp).FirstOrDefault())
+                    .ToListAsync();
+
+                int repairedCount = 0;
+
+                // 1. Close stale V2 sessions
+                foreach (var v2Event in latestEvents.Where(e => e != null && e.EventType == ClockEventType.ClockIn))
+                {
+                    // Check if Legacy OR V2 Timesheet says they are clocked out for today
+                    var legacyClosed = await _context.AttendanceRecords
+                        .AnyAsync(r => r.EmployeeId == v2Event.EmployeeId && r.Date.Date == today && r.CheckOutTime != null);
+                    
+                    var timesheetClosed = await _context.DailyTimesheets
+                        .AnyAsync(t => t.EmployeeId == v2Event.EmployeeId && t.Date == today && t.LastOutTime != null);
+
+                    if (legacyClosed || timesheetClosed)
+                    {
+                        // They are closed in source of truth, but V2 event log says ClockIn. Add a synthetic ClockOut.
+                        var outTime = DateTime.Now; // Or fetch from the closed record
+                        var clockingEvent = new ClockingEvent
+                        {
+                            Id = Guid.NewGuid(),
+                            EmployeeId = v2Event.EmployeeId,
+                            Timestamp = outTime,
+                            EventType = ClockEventType.ClockOut,
+                            Source = "RepairTool"
+                        };
+                        _context.ClockingEvents.Add(clockingEvent);
+                        repairedCount++;
+                    }
+                }
+
+                // 2. Open missing V2 sessions (Legacy says present, V2 says logic/missing)
+                var activeLegacy = await _context.AttendanceRecords
+                    .Where(r => r.Date.Date == today && r.CheckOutTime == null)
+                    .ToListAsync();
+
+                foreach (var legacy in activeLegacy)
+                {
+                    var latest = latestEvents.FirstOrDefault(e => e?.EmployeeId == legacy.EmployeeId);
+                    if (latest == null || latest.EventType == ClockEventType.ClockOut)
+                    {
+                        // Legacy says they are here, but V2 says they aren't. Add a synthetic ClockIn.
+                        var clockingEvent = new ClockingEvent
+                        {
+                            Id = Guid.NewGuid(),
+                            EmployeeId = legacy.EmployeeId,
+                            Timestamp = legacy.CheckInTime ?? DateTime.Now,
+                            EventType = ClockEventType.ClockIn,
+                            Source = "RepairTool"
+                        };
+                        _context.ClockingEvents.Add(clockingEvent);
+                        repairedCount++;
+                    }
+                }
+
+                if (repairedCount > 0)
+                {
+                    await _context.SaveChangesAsync();
+                    await _hubContext.Clients.All.SendAsync("EntityUpdate", "ClockingEvent", "Create", Guid.Empty);
+                }
+
+                return Ok(new { Message = $"Sync complete. Repaired {repairedCount} records.", Count = repairedCount });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error repairing V2 sync.");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<ClockingEvent>>> GetActivePhysicalPresence()
         {

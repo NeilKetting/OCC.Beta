@@ -70,6 +70,34 @@ namespace OCC.Client.Features.TimeAttendanceHub.ViewModels
             }
         }
 
+        [RelayCommand]
+        public async Task RepairSyncV2()
+        {
+            if (IsLoading) return;
+            IsLoading = true;
+            try
+            {
+                var result = await _timeServiceV2.RepairSyncV2Async();
+                if (result.Success)
+                {
+                    await _dialogService.ShowAlertAsync("Repair Complete", result.Message);
+                    await LoadDataAsync();
+                }
+                else
+                {
+                    await _dialogService.ShowAlertAsync("Repair Failed", result.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowAlertAsync("Error", $"Repair failed: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
         public async void Receive(EntityUpdatedMessage message)
         {
             if (message.Value.EntityType == "ClockingEvent")
