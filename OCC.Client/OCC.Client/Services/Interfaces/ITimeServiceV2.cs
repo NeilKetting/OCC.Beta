@@ -14,5 +14,7 @@ namespace OCC.Client.Services.Interfaces
         
         Task<IEnumerable<DailyTimesheet>> GetDailyTimesheetsAsync(DateTime date);
         Task<IEnumerable<DailyTimesheet>> GetTimesheetsByRangeAsync(DateTime startDate, DateTime endDate);
+        
+        Task<(bool Success, string Message, int Count)> RepairSyncV2Async();
     }
 }

@@ -125,6 +125,17 @@ namespace OCC.API.Services
                             dbContext.DailyTimesheets.Add(v2Timesheet);
                         }
 
+                        // V2 Immutable Event
+                        var clockingEvent = new ClockingEvent
+                        {
+                            Id = Guid.NewGuid(),
+                            EmployeeId = employee.Id,
+                            Timestamp = inTime,
+                            EventType = ClockEventType.ClockIn,
+                            Source = "AutoService"
+                        };
+                        dbContext.ClockingEvents.Add(clockingEvent);
+
                         madeChanges = true;
                     }
                 }
@@ -155,6 +166,17 @@ namespace OCC.API.Services
                                 v2Timesheet.WageEstimated = v2Timesheet.CalculatedHours * (decimal)employee.HourlyRate;
                             }
                         }
+
+                        // V2 Immutable Event
+                        var clockingEvent = new ClockingEvent
+                        {
+                            Id = Guid.NewGuid(),
+                            EmployeeId = employee.Id,
+                            Timestamp = outTime,
+                            EventType = ClockEventType.ClockOut,
+                            Source = "AutoService"
+                        };
+                        dbContext.ClockingEvents.Add(clockingEvent);
                             
                         madeChanges = true;
                     }

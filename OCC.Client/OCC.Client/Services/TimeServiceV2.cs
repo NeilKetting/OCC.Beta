@@ -92,5 +92,23 @@ namespace OCC.Client.Services
             }
             return new List<DailyTimesheet>();
         }
+
+        public async Task<(bool Success, string Message, int Count)> RepairSyncV2Async()
+        {
+            using var client = CreateClient();
+            var response = await client.PostAsync("api/ClockingV2/repair-sync-v2", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<SyncResult>();
+                return (true, result?.Message ?? "Success", result?.Count ?? 0);
+            }
+            return (false, "Failed to call repair endpoint", 0);
+        }
+
+        private class SyncResult
+        {
+            public string Message { get; set; } = string.Empty;
+            public int Count { get; set; }
+        }
     }
 }
