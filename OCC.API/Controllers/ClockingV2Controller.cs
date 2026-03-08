@@ -227,7 +227,7 @@ namespace OCC.API.Controllers
 
                 // 2. Open missing V2 sessions (Legacy says present, V2 says logic/missing)
                 var activeLegacy = await _context.AttendanceRecords
-                    .Where(r => r.Date.Date == today && r.CheckOutTime == null)
+                    .Where(r => r.Date.Date == today && r.CheckOutTime == null && r.EmployeeId != null)
                     .ToListAsync();
 
                 foreach (var legacy in activeLegacy)
@@ -239,7 +239,7 @@ namespace OCC.API.Controllers
                         var clockingEvent = new ClockingEvent
                         {
                             Id = Guid.NewGuid(),
-                            EmployeeId = legacy.EmployeeId,
+                            EmployeeId = legacy.EmployeeId.Value,
                             Timestamp = legacy.CheckInTime ?? DateTime.Now,
                             EventType = ClockEventType.ClockIn,
                             Source = "RepairTool"

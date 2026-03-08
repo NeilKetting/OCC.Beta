@@ -6,6 +6,33 @@
     </ResourceDictionary.MergedDictionaries>
     
     
+    <!-- Hazard Stripe Brush - Better for continuous borders -->
+    <DrawingBrush x:Key="ChevronPatternBrush" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <!-- Background Yellow -->
+                <GeometryDrawing Brush="{StaticResource SecondaryGold}">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0,20,20" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <!-- Diagonal Stipes -->
+                <GeometryDrawing Brush="{StaticResource BackgroundDark}">
+                    <GeometryDrawing.Geometry>
+                        <PathGeometry Figures="M 0,10 L 10,0 L 20,0 L 0,20 Z M 10,20 L 20,10 L 20,20 Z" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- Border Chevron Style -->
+    <Style x:Key="Border.Chevron" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ChevronPatternBrush}" />
+        <Setter Property="MinHeight" Value="10" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
     <!-- Glass Effect Style -->
     <Style x:Key="GlassCard" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource GlassBackground}" />
@@ -14,7 +41,7 @@
         <Setter Property="CornerRadius" Value="16" />
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="{StaticResource CardBackgroundColor}" Opacity="0.8" />
+                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="{StaticResource CardBackgroundColor}" Opacity="0.9" />
             </Setter.Value>
         </Setter>
     </Style>

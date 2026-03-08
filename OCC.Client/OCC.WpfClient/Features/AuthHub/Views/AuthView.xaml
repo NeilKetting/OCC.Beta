@@ -4,8 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure.Converters"
-             d:DesignHeight="700" d:DesignWidth="1200">
+             xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure.Converters">
     <UserControl.Resources>
         <Storyboard x:Key="FlipToRegister">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX">
@@ -50,18 +49,77 @@
     </UserControl.Resources>
     <Grid>
         <!-- Background Image with Overlay -->
-        <Grid>
-            <Image Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
-            <Rectangle Opacity="0.9">
-            </Rectangle>
+        <Grid Background="Black">
+            <!-- Outer grid for Bottom Fade -->
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="Black" Offset="0.85" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </LinearGradientBrush>
+                </Grid.OpacityMask>
+
+                <!-- Inner grid for Right Fade (User's preferred mask) -->
+                <Grid>
+                    <Grid.OpacityMask>
+                        <RadialGradientBrush Center="0,0" GradientOrigin="0,0" RadiusX="1" RadiusY="3">
+                            <GradientStop Color="Black" Offset="0.9" />
+                            <GradientStop Color="Transparent" Offset="1" />
+                        </RadialGradientBrush>
+                    </Grid.OpacityMask>
+
+                    <Image Source="/Assets/Images/occ_branded_background_final.png" 
+                           Stretch="None"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Grid>
+            </Grid>
         </Grid>
 
         <!-- Main Layout -->
         <Grid Margin="40">
-            <!-- Logo Top Left -->
-            <Image Source="/Assets/Images/occ_logo2.png" 
-                   Width="250" HorizontalAlignment="Left" VerticalAlignment="Top" 
-                   Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+
+            <!-- Logo Hanging Top Left -->
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-40,0,0" RenderTransformOrigin="0.5,0">
+                <StackPanel.RenderTransform>
+                    <RotateTransform x:Name="SwayTransform" />
+                </StackPanel.RenderTransform>
+                <StackPanel.Triggers>
+                    <EventTrigger RoutedEvent="Loaded">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="SwayTransform"
+                                                 Storyboard.TargetProperty="Angle"
+                                                 From="-2" To="2" Duration="0:0:4"
+                                                 AutoReverse="True" RepeatBehavior="Forever"
+                                                 AccelerationRatio="0.5" DecelerationRatio="0.5"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </StackPanel.Triggers>
+
+                <!-- Cables -->
+                <Grid Height="80" Width="180" HorizontalAlignment="Center">
+                    <!-- Left Cable -->
+                    <Border Width="4" Background="#333" HorizontalAlignment="Left" Margin="20,0,0,0" BorderBrush="#555" BorderThickness="1"/>
+                    <!-- Right Cable -->
+                    <Border Width="4" Background="#333" HorizontalAlignment="Right" Margin="0,0,20,0" BorderBrush="#555" BorderThickness="1"/>
+                </Grid>
+                
+                <!-- The Sign -->
+                <Border Background="#E60F172A" 
+                        BorderBrush="{StaticResource OrangeBrush}" 
+                        BorderThickness="3"
+                        Padding="25,20"
+                        CornerRadius="25">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="30" ShadowDepth="15" Color="Black" Opacity="0.9"/>
+                    </Border.Effect>
+                    <Image Source="/Assets/Images/occ_logo.png" 
+                           Width="220" 
+                           Stretch="Uniform" 
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Border>
+            </StackPanel>
 
             <!-- Login/Register Card (Right Aligned) -->
             <Viewbox HorizontalAlignment="Right" VerticalAlignment="Center" StretchDirection="DownOnly">
@@ -71,7 +129,7 @@
                     </Grid.RenderTransform>
 
                     <!-- Front Side (Login) -->
-                    <Border x:Name="LoginSide" Style="{StaticResource GlassCard}" Padding="40" BorderThickness="2" BorderBrush="{StaticResource OrangeBrush}">
+                    <Border x:Name="LoginSide" Style="{StaticResource GlassCard}" Padding="30,20" BorderThickness="4,6" BorderBrush="{StaticResource ChevronPatternBrush}" CornerRadius="0">
                         <StackPanel>
                             <!-- Header -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
@@ -131,8 +189,8 @@
                         </StackPanel>
                     </Border>
 
-                    <Border x:Name="RegisterSide" Style="{StaticResource GlassCard}" Padding="40" 
-                            Visibility="Collapsed" BorderThickness="2" BorderBrush="{StaticResource OrangeBrush}">
+                    <!-- Register -->
+                    <Border x:Name="RegisterSide" Style="{StaticResource GlassCard}" Visibility="Collapsed" Padding="30,20" BorderThickness="4,6" BorderBrush="{StaticResource ChevronPatternBrush}" CornerRadius="0">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                 <Button Style="{StaticResource ModernTabButton}" Content="Login" 

@@ -7,8 +7,7 @@
              xmlns:views="clr-namespace:OCC.WpfClient.Features.Main.Views"
              xmlns:empViews="clr-namespace:OCC.WpfClient.Features.Employees.Views"
              xmlns:empVm="clr-namespace:OCC.WpfClient.Features.Employees.ViewModels"
-             mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="1200">
+             mc:Ignorable="d">
     
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -48,25 +47,13 @@
                 </Grid.RowDefinitions>
 
                 <!-- Branding -->
-                <StackPanel Grid.Row="0" Margin="15,40,15,20">
-                    <Grid Height="60">
+                <StackPanel Grid.Row="0" Margin="10">
+                    <Grid Height="120">
                         <!-- Expanded State Brand -->
                         <Border CornerRadius="8" ClipToBounds="True" 
                                 Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
                             <Grid>
-                                <Image Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" Margin="-10,-50,-10,-50"/>
-                                <Border Background="#AA000000"/> <!-- Darkened overlay for text legibility -->
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <TextBlock Text="ORANGE CIRCLE" Foreground="White" FontSize="18" FontWeight="Bold" 
-                                               HorizontalAlignment="Center"
-                                               FontFamily="{StaticResource MichromaFont}">
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black"/>
-                                        </TextBlock.Effect>
-                                    </TextBlock>
-                                    <TextBlock Text="CONSTRUCTION" Foreground="{StaticResource AccentBlue}" FontSize="10" 
-                                               FontWeight="Bold" HorizontalAlignment="Center" Margin="0,-2,0,0" Opacity="0.8"/>
-                                </StackPanel>
+                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill"  Height="120" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Grid>
                         </Border>
 
@@ -76,7 +63,7 @@
                                 CornerRadius="10" ClipToBounds="True"
                                 Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}}">
                             <Grid>
-                                <Image Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" Margin="-10"/>
+                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill" Margin="-10"/>
                                 <Border Background="#40000000"/>
                                 <TextBlock Text="OCC" Foreground="White" FontSize="10" FontWeight="Bold" 
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
