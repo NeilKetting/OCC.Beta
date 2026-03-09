@@ -11,23 +11,57 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="border" 
-                            Background="{TemplateBinding Background}" 
-                            CornerRadius="8"
-                            BorderThickness="1"
-                            BorderBrush="Transparent">
-                        <ContentPresenter Margin="15,0,0,0" VerticalAlignment="Center"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                BorderBrush="Transparent">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1" CenterX="25" CenterY="22"/>
+                            </Border.RenderTransform>
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                        
+                        <!-- Drawing Border Path -->
+                        <Path x:Name="BorderDraw" Stroke="{StaticResource OrangeBrush}" StrokeThickness="2" 
+                              StrokeDashArray="200" StrokeDashOffset="200" 
+                              Data="M 8,44 L 44,44 A 8,8 0 0 0 52,36 L 52,8 A 8,8 0 0 0 44,0 L 8,0 A 8,8 0 0 0 0,8 L 0,36 A 8,8 0 0 0 8,44 Z"
+                              Visibility="Collapsed" IsHitTestVisible="False"/>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource GlassBackgroundHover}"/>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource GlassBorderLight}"/>
+                            <Setter TargetName="BorderDraw" Property="Visibility" Value="Visible"/>
                             <Setter Property="Foreground" Value="White"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.02" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.02" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="BorderDraw" Storyboard.TargetProperty="StrokeDashOffset" From="200" To="0" Duration="0:0:1"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="BorderDraw" Storyboard.TargetProperty="StrokeDashOffset" To="200" Duration="0:0:0.3"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarActiveGradient}"/>
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource GlassBorderMedium}"/>
                             <Setter Property="Foreground" Value="White"/>
+                            <Setter TargetName="border" Property="Effect">
+                                <Setter.Value>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="{StaticResource AccentBlueColor}" Opacity="0.5"/>
+                                </Setter.Value>
+                            </Setter>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -131,6 +165,118 @@
         <Setter Property="Effect">
             <Setter.Value>
                 <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.3"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Menu Styles -->
+    <Style TargetType="Menu">
+        <Setter Property="Background" Value="{DynamicResource SidebarActiveGradient}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Grid x:Name="Grid">
+                        <Border x:Name="templateRoot" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="4">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemHeaderColumnGroup"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <ContentPresenter x:Name="Icon" ContentSource="Icon" Width="16" Height="16" Margin="8,0" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                
+                                <ContentPresenter x:Name="HeaderHost" Grid.Column="1" ContentSource="Header" Margin="10,5,15,5" VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" IsHitTestVisible="False"/>
+                                
+                                <TextBlock x:Name="SubMenuArrow" Grid.Column="3" Text="" FontFamily="Segoe MDL2 Assets" FontSize="8" Margin="0,0,8,0" VerticalAlignment="Center" Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                        
+                        <Popup x:Name="PART_Popup" AllowsTransparency="true" Focusable="false" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}" Placement="Bottom">
+                            <Border x:Name="SubMenuBorder" Background="{StaticResource BackgroundDark}" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="1" CornerRadius="4" Padding="2" Margin="0,5,0,0">
+                                <ScrollViewer x:Name="SubMenuScrollViewer" CanContentScroll="True">
+                                    <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="true" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" KeyboardNavigation.TabNavigation="Cycle"/>
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Top Level Header -->
+                        <Trigger Property="Role" Value="TopLevelHeader">
+                            <Setter TargetName="HeaderHost" Property="Margin" Value="15,8"/>
+                            <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Padding" Value="0"/>
+                        </Trigger>
+                        
+                        <!-- Top Level Item (no sub-items) -->
+                        <Trigger Property="Role" Value="TopLevelItem">
+                            <Setter TargetName="HeaderHost" Property="Margin" Value="15,8"/>
+                            <Setter TargetName="Icon" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+
+                        <!-- Submenu Header (has sub-items) -->
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Right"/>
+                            <Setter TargetName="SubMenuArrow" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        
+                        <!-- Highlights -->
+                        <Trigger Property="IsHighlighted" Value="true">
+                            <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource GlassBackgroundHover}"/>
+                        </Trigger>
+                        <Trigger Property="IsSubmenuOpen" Value="true">
+                            <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource GlassBackgroundPressed}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- MenuTabButton Style -->
+    <Style x:Key="MenuTabButton" TargetType="RadioButton">
+        <Setter Property="Background" Value="#1AFFFFFF"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Padding" Value="20,0"/>
+        <Setter Property="Margin" Value="0,0,2,0"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="border" 
+                            Background="{TemplateBinding Background}" 
+                            CornerRadius="12,12,0,0"
+                            BorderThickness="2,2,2,0"
+                            BorderBrush="{DynamicResource GlassBorderUltraLight}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource OrangeBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource OrangeBrush}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource PrimaryTeal}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>

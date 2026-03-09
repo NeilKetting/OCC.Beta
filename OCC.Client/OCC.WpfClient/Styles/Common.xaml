@@ -3,11 +3,15 @@
     
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Colors.xaml" />
+        <ResourceDictionary Source="Icons.xaml" />
     </ResourceDictionary.MergedDictionaries>
     
     
     <!-- Hazard Stripe Brush - Better for continuous borders -->
-    <DrawingBrush x:Key="ChevronPatternBrush" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute">
+    <DrawingBrush x:Key="ChevronPatternBrush" x:Shared="False" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute">
+        <DrawingBrush.RelativeTransform>
+            <TranslateTransform x:Name="ChevronTransform" X="0" Y="0" />
+        </DrawingBrush.RelativeTransform>
         <DrawingBrush.Drawing>
             <DrawingGroup>
                 <!-- Background Yellow -->
@@ -28,15 +32,34 @@
 
     <!-- Border Chevron Style -->
     <Style x:Key="Border.Chevron" TargetType="Border">
+        <Style.Resources>
+            <Storyboard x:Key="AnimateChevron">
+                <DoubleAnimation Storyboard.TargetProperty="(Border.Background).(DrawingBrush.RelativeTransform).(TranslateTransform.X)"
+                                 From="0" To="40" Duration="0:20:0" 
+                                 RepeatBehavior="Forever" />
+            </Storyboard>
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource ChevronPatternBrush}" />
         <Setter Property="MinHeight" Value="10" />
         <Setter Property="VerticalAlignment" Value="Top" />
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard Storyboard="{StaticResource AnimateChevron}" />
+            </EventTrigger>
+        </Style.Triggers>
     </Style>
 
     <!-- Glass Effect Style -->
     <Style x:Key="GlassCard" TargetType="Border">
+        <Style.Resources>
+            <Storyboard x:Key="AnimateGlassBorder">
+                <DoubleAnimation Storyboard.TargetProperty="(Border.BorderBrush).(Brush.RelativeTransform).(TranslateTransform.X)"
+                                 From="0" To="1" Duration="0:0:30" 
+                                 RepeatBehavior="Forever" />
+            </Storyboard>
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource GlassBackground}" />
-        <Setter Property="BorderBrush" Value="{StaticResource GlassBorder}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PremiumGlassGlow}" />
         <Setter Property="BorderThickness" Value="3" />
         <Setter Property="CornerRadius" Value="16" />
         <Setter Property="Effect">
@@ -44,6 +67,11 @@
                 <DropShadowEffect BlurRadius="50" ShadowDepth="0" Color="{StaticResource CardBackgroundColor}" Opacity="0.9" />
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard Storyboard="{StaticResource AnimateGlassBorder}" />
+            </EventTrigger>
+        </Style.Triggers>
     </Style>
     
 </ResourceDictionary>

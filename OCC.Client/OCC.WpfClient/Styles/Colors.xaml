@@ -19,8 +19,8 @@
     <Color x:Key="TextSubColor">#A0FFFFFF</Color>
     <Color x:Key="ErrorRedColor">#FF4B4B</Color>
     <Color x:Key="TransparencyColor">#00000000</Color>
-    <Color x:Key="GlassBackgroundColor">#CC1A1F2B</Color>
-    <Color x:Key="GlassBorderColor">#2AFFFFFF</Color>
+    <Color x:Key="GlassBackgroundColor">#B30F172A</Color>
+    <Color x:Key="GlassBorderColor">#40FFFFFF</Color>
     <Color x:Key="AuthGradientStartColor">#B300252E</Color>
     <Color x:Key="AuthGradientEndColor">#D90F172A</Color>
     <Color x:Key="Orange">#FF8F00</Color>
@@ -73,5 +73,21 @@
     <!-- Glass Interactive Colors -->
     <SolidColorBrush x:Key="GlassBackgroundHover" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="GlassBackgroundPressed" Color="#4DFFFFFF" />
+
+    <!-- Ported from Avalonia LightMode.axaml -->
+    <SolidColorBrush x:Key="PrimaryTeal" Color="#00b5ad" />
+    <SolidColorBrush x:Key="PrimaryTealHover" Color="#00a39c" />
+    <SolidColorBrush x:Key="PrimaryTealLight" Color="#e0f2f1" />
+
+    <LinearGradientBrush x:Key="TopMenuGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#BF00252E" Offset="0.0" />
+        <GradientStop Color="#800F172A" Offset="0.5" />
+        <GradientStop Color="#B3FF8F00" Offset="1.0" />
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="PremiumGlassGlow" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#40FFFFFF" Offset="0" />
+        <GradientStop Color="#00FFFFFF" Offset="1" />
+    </LinearGradientBrush>
 
 </ResourceDictionary>

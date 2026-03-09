@@ -48,7 +48,19 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         }
 
         [ObservableProperty]
-        private bool _isSidebarMinimized;
+        private bool _isSidebarMinimized = true;
+
+        [ObservableProperty]
+        private string _userActivityStatus = "Ready";
+
+        [ObservableProperty]
+        private string _dbStatusText = "Connected";
+
+        [ObservableProperty]
+        private bool _isDbConnected = true;
+
+        [ObservableProperty]
+        private int _onlineCount = 1;
 
         [RelayCommand]
         private void ToggleSidebar()
@@ -62,6 +74,9 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             _permissionService = permissionService;
             _serviceProvider = serviceProvider;
             Title = "Main Shell";
+            
+            // Start minimized as requested
+            IsSidebarMinimized = true;
 
             InitializeNavigation();
             

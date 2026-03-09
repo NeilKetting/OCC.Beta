@@ -11,202 +11,315 @@
              d:Height="700" d:Width="1024">
     
     <UserControl.Resources>
+        <Storyboard x:Key="ExpandSidebar">
+            <DoubleAnimation Storyboard.TargetName="SidebarBorder" 
+                             Storyboard.TargetProperty="Width" 
+                             To="200" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+        <Storyboard x:Key="CollapseSidebar">
+            <DoubleAnimation Storyboard.TargetName="SidebarBorder" 
+                             Storyboard.TargetProperty="Width" 
+                             To="72" Duration="0:0:0.3">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
             <views:DashboardView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type empVm:EmployeeListViewModel}">
             <empViews:EmployeeListView />
         </DataTemplate>
-        <!-- Add other hub templates here (e.g., Employees) -->
     </UserControl.Resources>
 
     <Grid x:Name="ShellRoot" 
           Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ContentControl}}"
           Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ContentControl}}">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="SidebarColumn">
-                <ColumnDefinition.Style>
-                    <Style TargetType="ColumnDefinition">
-                        <Setter Property="Width" Value="200"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsSidebarMinimized}" Value="True">
-                                <Setter Property="Width" Value="80"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ColumnDefinition.Style>
-            </ColumnDefinition> <!-- Sidebar -->
-            <ColumnDefinition Width="*" />   <!-- Content area -->
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Top Menu (File, etc.) -->
+            <RowDefinition Height="*" />    <!-- Main Shell -->
+        </Grid.RowDefinitions>
 
-        <!-- Full Window Background -->
-        <Image Grid.ColumnSpan="2" Grid.RowSpan="4" Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
-        <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource BackgroundDark}" Opacity="0.85" />
+        <!-- Top Menu (File, Edit, etc.) -->
+        <Menu Grid.Row="0" WindowChrome.IsHitTestVisibleInChrome="True">
+            <MenuItem Header="File">
+                <MenuItem Header="Exit" Command="{Binding LogoutCommand}">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource IconLogout}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Cut"/>
+                <MenuItem Header="Copy"/>
+                <MenuItem Header="Paste"/>
+            </MenuItem>
+            <MenuItem Header="Hubs">
+                <MenuItem Header="Home">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource IconSummary}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Employees">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource IconTeam}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About"/>
+            </MenuItem>
+        </Menu>
 
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Style="{StaticResource ModernSidebar}" Background="Transparent" MouseLeftButtonDown="OnSidebarClick">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" /> <!-- Logo/Brand -->
-                    <RowDefinition Height="Auto" /> <!-- Workspace hubs -->
-                    <RowDefinition Height="*" />    <!-- Nav Items -->
-                    <RowDefinition Height="Auto" /> <!-- User Profile -->
-                </Grid.RowDefinitions>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <!-- Branding -->
-                <StackPanel Grid.Row="0" Margin="0">
-                    <Grid Width="180">
-                        <!-- Expanded State Brand -->
-                        <Border CornerRadius="8" ClipToBounds="True" 
-                                Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
-                            <Grid>
-                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            </Grid>
-                        </Border>
+            <!-- Full Window Background -->
+            <Image Grid.ColumnSpan="2" Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
+            <Rectangle Grid.ColumnSpan="2" Fill="{StaticResource BackgroundDark}" Opacity="0.85" />
 
-                        <!-- Minimized State Brand Icon -->
-                        <Border Width="40" Height="40" HorizontalAlignment="Center" 
-                                Background="{StaticResource GlassBackgroundHover}" 
-                                CornerRadius="10" ClipToBounds="True"
-                                Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}}">
-                            <Grid>
-                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill" Margin="-10"/>
-                                <Border Background="#40000000"/>
-                                <TextBlock Text="OCC" Foreground="White" FontSize="10" FontWeight="Bold" 
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontFamily="{StaticResource MichromaFont}">
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect BlurRadius="4" ShadowDepth="0" Color="Black"/>
-                                    </TextBlock.Effect>
-                                </TextBlock>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                    <Border Height="1" Background="{StaticResource GlassBorderUltraLight}" Margin="10,20,10,0" />
-                </StackPanel>
-
-                <!-- Workspace (Moved Hub Bar) -->
-                <StackPanel Grid.Row="1" Margin="10,0,10,20">
-                    <TextBlock Text="WORKSPACE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSub}" 
-                               Margin="15,10,0,10" Opacity="0.5"
-                               Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
-                    <ItemsControl ItemsSource="{Binding OpenHubs}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <RadioButton Style="{StaticResource SidebarNavItem}" 
-                                             IsChecked="{Binding IsActiveHub, Mode=TwoWay}"
-                                             GroupName="WorkspaceNav"
-                                             Command="{Binding DataContext.NavigateToHubCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                             CommandParameter="{Binding}"
-                                             ToolTip="{Binding Title}">
-                                    <Grid HorizontalAlignment="Stretch">
-                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="14"
-                                                   Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
-                                        <TextBlock Text="" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" FontSize="18" HorizontalAlignment="Center"
-                                                   Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}}"/>
-                                    </Grid>
-                                </RadioButton>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-
-                <!-- Navigation -->
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding NavigationItems}" Margin="0,10">
-                        <!-- Grouping Logic -->
-                        <ItemsControl.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}" 
-                                                   Foreground="{StaticResource TextSub}" 
-                                                   Margin="25,20,0,10" 
-                                                   FontSize="11" 
-                                                   FontWeight="Bold" 
-                                                   Opacity="0.5"
-                                                   Visibility="{Binding Name, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter='Main'}"/>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
-                            </GroupStyle>
-                        </ItemsControl.GroupStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <RadioButton Style="{StaticResource SidebarNavItem}" 
-                                             IsChecked="{Binding IsActive, Mode=TwoWay}"
-                                             GroupName="PrimaryNav"
-                                             Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                             CommandParameter="{Binding}"
-                                             ToolTip="{Binding Label}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                        <Grid Width="20" Margin="0,0,15,0" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="18"/>
-                                        </Grid>
-                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center" FontSize="15" 
-                                                   Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
-                                    </StackPanel>
-                                </RadioButton>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-
-                <!-- User Section -->
-                <Border Grid.Row="3" Padding="20" Background="#0D000000" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Border Width="40" Height="40" CornerRadius="20" Background="{StaticResource AccentBlue}">
-                            <TextBlock Text="NK" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontWeight="Bold"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center"
-                                    Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
-                            <TextBlock Text="{Binding UserName}" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
-                            <TextBlock Text="{Binding UserEmail}" Foreground="{StaticResource TextSub}" FontSize="11"/>
-                        </StackPanel>
-                        <Button Grid.Column="2" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSub}" Cursor="Hand">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="16"/>
-                        </Button>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Border>
-
-        <!-- Main Content Area (Multi-Hub Workspace) -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" /> <!-- Top Bar -->
-                <RowDefinition Height="*" />    <!-- Workspace -->
-                <RowDefinition Height="*" />    <!-- Status Bar -->
-            </Grid.RowDefinitions>
-
-            <!-- Top Bar -->
-            <Border Grid.Row="0" Height="70" Padding="30,0" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,0,0,1">
+            <!-- Sidebar -->
+            <Border x:Name="SidebarBorder" Grid.Column="0" Width="72" Style="{StaticResource ModernSidebar}" Background="Transparent" MouseLeftButtonDown="OnSidebarClick">
                 <Grid>
-                    <TextBlock Text="{Binding ActiveHub.Title}" VerticalAlignment="Center" 
-                               FontFamily="{StaticResource MichromaFont}" FontSize="16" Foreground="White" Opacity="0.9"/>
-                    
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Background="Transparent" BorderThickness="0" Foreground="White" Margin="0,0,20,0" Opacity="0.6"
-                                Command="{Binding LogoutCommand}">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="20"/>
-                        </Button>
-                        <Button Background="Transparent" BorderThickness="0" Foreground="White" Opacity="0.6">
-                            <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="20"/>
-                        </Button>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" /> <!-- Logo/Brand -->
+                        <RowDefinition Height="Auto" /> <!-- Workspace hubs -->
+                        <RowDefinition Height="*" />    <!-- Nav Items -->
+                        <RowDefinition Height="Auto" /> <!-- User Profile -->
+                    </Grid.RowDefinitions>
+
+                    <!-- Branding -->
+                    <StackPanel Grid.Row="0" Margin="0,15,0,0">
+                        <Grid Height="60">
+                            <!-- Expanded State Brand -->
+                            <Border Margin="15,0" 
+                                    Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
+                                <Image Source="/Assets/Images/occ_logo.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+
+                            <!-- Minimized State Brand Icon (Centered like Avalonia) -->
+                            <Border Width="42" Height="42" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}}">
+                                <Image Source="/Assets/Images/occ_logo.png" Stretch="Uniform" Margin="2"/>
+                            </Border>
+                        </Grid>
+                        <Border Height="1" Background="{StaticResource GlassBorderUltraLight}" Margin="10,20,10,0" />
                     </StackPanel>
+
+                    <!-- Workspace (Hubs) -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,20">
+                        <Grid Margin="15,10,15,10">
+                            <TextBlock Text="WORKSPACE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextSub}" Opacity="0.5"
+                                       Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                            <Border Height="1" Background="{StaticResource GlassBorderUltraLight}" Opacity="0.3" VerticalAlignment="Center"
+                                    Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}}"/>
+                        </Grid>
+                        
+                        <ItemsControl ItemsSource="{Binding OpenHubs}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Style="{StaticResource SidebarNavItem}" 
+                                                 IsChecked="{Binding IsActiveHub, Mode=TwoWay}"
+                                                 GroupName="WorkspaceNav"
+                                                 Command="{Binding DataContext.NavigateToHubCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}"
+                                                 ToolTip="{Binding Title}">
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid Width="40" Height="40" HorizontalAlignment="Center">
+                                                <Path Data="{StaticResource IconSummary}" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Height="18" Stretch="Uniform" Opacity="0.6"/>
+                                            </Grid>
+                                            
+                                            <TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center" FontSize="14" Margin="55,0,0,0"
+                                                       Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Navigation -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding NavigationItems}" Margin="0,10">
+                            <ItemsControl.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="15,20,15,10">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           Foreground="{StaticResource TextSub}" 
+                                                           FontSize="11" 
+                                                           FontWeight="Bold" 
+                                                           Opacity="0.5"
+                                                           Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                                                <Border Height="1" Background="{StaticResource GlassBorderUltraLight}" Opacity="0.3" VerticalAlignment="Center"
+                                                        Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ItemsControl.GroupStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Style="{StaticResource SidebarNavItem}" 
+                                                 IsChecked="{Binding IsActive, Mode=TwoWay}"
+                                                 GroupName="PrimaryNav"
+                                                 Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}"
+                                                 ToolTip="{Binding Label}">
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Grid x:Name="IconContainer" Width="40" Height="40" HorizontalAlignment="Center">
+                                                <Ellipse x:Name="ActiveIndicator" Fill="{DynamicResource AccentBlue}" Opacity="0" Margin="-2">
+                                                    <Ellipse.Effect>
+                                                        <DropShadowEffect BlurRadius="10" Color="{StaticResource AccentBlueColor}" ShadowDepth="0" Opacity="0.5"/>
+                                                    </Ellipse.Effect>
+                                                </Ellipse>
+                                                <Path x:Name="IconPath" Fill="White" Opacity="0.6" Width="18" Height="18" Stretch="Uniform">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Setter Property="Fill" Value="White"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Dashboard">
+                                                                    <Setter Property="Data" Value="{StaticResource IconSummary}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Global Calendar">
+                                                                    <Setter Property="Data" Value="{StaticResource IconClock}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Wages Hub">
+                                                                    <Setter Property="Data" Value="{StaticResource IconDatabase}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Inventory">
+                                                                    <Setter Property="Data" Value="{StaticResource IconList}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Projects">
+                                                                    <Setter Property="Data" Value="{StaticResource IconPortfolio}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Employees">
+                                                                    <Setter Property="Data" Value="{StaticResource IconTeam}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Label}" Value="Settings">
+                                                                    <Setter Property="Data" Value="{StaticResource IconBug}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                            </Grid>
+                                            
+                                            <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center" FontSize="15" Margin="55,0,0,0"
+                                                       Visibility="{Binding DataContext.IsSidebarMinimized, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                                        </Grid>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- User Profile -->
+                    <Border Grid.Row="3" Background="{DynamicResource GlassBackgroundVibrant}" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="5,15">
+                        <Grid>
+                            <!-- NK Circle (Centered when collapsed) -->
+                            <Border x:Name="ProfileCircle" Width="42" Height="42" HorizontalAlignment="Center" CornerRadius="21" Background="{StaticResource AccentBlue}">
+                                <TextBlock Text="NK" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="14"/>
+                            </Border>
+                            
+                            <StackPanel Orientation="Horizontal" Margin="55,0,0,0" VerticalAlignment="Center"
+                                          Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
+                                <TextBlock Text="{Binding UserName}" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                                <TextBlock Text="{Binding UserEmail}" Foreground="{StaticResource TextSub}" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 
-            <!-- Multi-Hub Workspace Content -->
-            <ContentControl Grid.Row="1" Content="{Binding ActiveHub}"/>
-            
-            <!-- Status Bar-->
-            <Grid Grid.Row="2" Background="red" Height="25">
-                
+            <!-- Content Area -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" /> <!-- Top Bar (Title + Nav icons) -->
+                    <RowDefinition Height="*" />    <!-- Main Content -->
+                    <RowDefinition Height="32" />   <!-- Status Bar -->
+                </Grid.RowDefinitions>
+
+                <!-- Top Bar -->
+                <Border Grid.Row="0" Height="50" Padding="30,0" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,0,0,1">
+                    <Grid>
+                        <TextBlock Text="{Binding ActiveHub.Title}" VerticalAlignment="Center" 
+                                 FontFamily="{StaticResource MichromaFont}" FontSize="14" Foreground="White" Opacity="0.9"/>
+                        
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Background="Transparent" BorderThickness="0" Foreground="White" Margin="0,0,20,0" Opacity="0.6"
+                                    Command="{Binding LogoutCommand}">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+                            </Button>
+                            <Button Background="Transparent" BorderThickness="0" Foreground="White" Opacity="0.6">
+                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+
+                <!-- Active Content -->
+                <ContentControl Grid.Row="1" Content="{Binding ActiveHub}" Margin="10"/>
+
+                <!-- Status Bar (Complete Parity) -->
+                <Border Grid.Row="2" Background="#1A000000" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="15,0">
+                    <Grid>
+                        <!-- Left Section -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                                <Path Data="{DynamicResource IconClock}" Fill="{DynamicResource TextSub}" Width="14" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Stretch="Uniform"/>
+                                <TextBlock Text="{Binding UserActivityStatus}" Foreground="{StaticResource TextSub}" FontSize="11" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
+                            <Border Width="1" Height="12" Background="{StaticResource GlassBorderUltraLight}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                            
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource IconDatabase}" Width="14" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Stretch="Uniform">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Setter Property="Fill" Value="{StaticResource ErrorRed}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDbConnected}" Value="True">
+                                                    <Setter Property="Fill" Value="#10B981"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                                <TextBlock Text="{Binding DbStatusText}" Foreground="{StaticResource TextSub}" FontSize="11" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Right Section -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Background="Transparent" BorderThickness="0" Margin="0,0,15,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{DynamicResource IconBug}" Fill="{DynamicResource SecondaryGold}" Width="12" Height="12" Margin="0,1,8,0" VerticalAlignment="Center" Stretch="Uniform"/>
+                                    <TextBlock Text="Report Bug" Foreground="{StaticResource TextSub}" FontSize="11" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Border Width="1" Height="12" Background="{StaticResource GlassBorderUltraLight}" VerticalAlignment="Center" Margin="0,0,15,0"/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{DynamicResource IconUserOnline}" Fill="{DynamicResource AccentBlue}" Width="14" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Stretch="Uniform"/>
+                                <TextBlock Text="Online: " Foreground="{StaticResource TextSub}" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding OnlineCount}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
         </Grid>
     </Grid>
