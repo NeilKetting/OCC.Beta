@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure.Converters">
+             xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure.Converters"
+             xmlns:ap="clr-namespace:OCC.WpfClient.Infrastructure.AttachedProperties">
     <UserControl.Resources>
         <Storyboard x:Key="FlipToRegister">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX">
@@ -121,6 +122,28 @@
                 </Border>
             </StackPanel>
 
+            <!-- Building in Progress Sign -->
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,0">
+                <!-- The Hanging Sign -->
+                <Border x:Name="AuthHangingSign" Background="#EAB308" BorderBrush="{DynamicResource AccentBlue}" BorderThickness="2" CornerRadius="4" Padding="10,5" RenderTransformOrigin="0.5,0">
+                    <StackPanel>
+                        <TextBlock Text="🚧 BUILDING IN PROGRESS" FontWeight="Bold" Foreground="#1F2937" FontSize="11" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding CurrentDate}" Foreground="#374151" FontSize="9" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding CurrentTime}" Foreground="#374151" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,0" FontFamily="{StaticResource MichromaFont}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- The Pole -->
+                <Grid HorizontalAlignment="Center" Margin="0,-2,0,0">
+                    <Rectangle Width="6" Height="40" Fill="#4B5563" RadiusX="3" RadiusY="3">
+                        <Rectangle.Effect>
+                            <DropShadowEffect BlurRadius="4" ShadowDepth="2" Opacity="0.5"/>
+                        </Rectangle.Effect>
+                    </Rectangle>
+                    <Rectangle Width="2" Height="40" Fill="#9CA3AF" HorizontalAlignment="Left" Margin="1,0,0,0"/>
+                </Grid>
+            </StackPanel>
+
             <!-- Login/Register Card (Right Aligned) -->
             <Viewbox HorizontalAlignment="Right" VerticalAlignment="Center" StretchDirection="DownOnly">
                 <Grid Width="450" x:Name="CardContainer">
@@ -145,14 +168,15 @@
 
                             <!-- Inputs -->
                             <StackPanel Margin="0,10,0,0">
-                                <TextBlock Text="Email" Foreground="{StaticResource TextSub}" Margin="0,0,0,5" FontSize="{StaticResource FontSizeSmall}"/>
                                 <TextBox Style="{StaticResource ModernInput}" 
+                                         ap:WatermarkProperties.Watermark="Email"
                                          Text="{Binding LoginModel.Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                             </StackPanel>
 
                             <StackPanel Margin="0,15,0,0">
-                                <TextBlock Text="Password" Foreground="{StaticResource TextSub}" Margin="0,0,0,5" FontSize="{StaticResource FontSizeSmall}"/>
-                                <PasswordBox Name="LoginPasswordBox" Padding="10" Style="{StaticResource ModernPasswordInput}"/>
+                                <PasswordBox Name="LoginPasswordBox" Padding="10" 
+                                             ap:WatermarkProperties.Watermark="Password"
+                                             Style="{StaticResource ModernPasswordInput}"/>
                             </StackPanel>
 
                             <!-- Options -->
@@ -208,26 +232,27 @@
 
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,5,0">
-                                    <TextBlock Text="First Name" Foreground="{StaticResource TextSub}" FontSize="{StaticResource FontSizeSmall}" Margin="0,0,0,3"/>
                                     <TextBox Style="{StaticResource ModernInput}" 
+                                             ap:WatermarkProperties.Watermark="First Name"
                                              Text="{Binding RegisterModel.FirstName, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                                 </StackPanel>
                                 <StackPanel Margin="5,0,0,0">
-                                    <TextBlock Text="Last Name" Foreground="{StaticResource TextSub}" FontSize="{StaticResource FontSizeSmall}" Margin="0,0,0,3"/>
                                     <TextBox Style="{StaticResource ModernInput}" 
+                                             ap:WatermarkProperties.Watermark="Last Name"
                                              Text="{Binding RegisterModel.LastName, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                                 </StackPanel>
                             </UniformGrid>
 
                             <StackPanel Margin="0,15,0,0">
-                                <TextBlock Text="Email" Foreground="{StaticResource TextSub}" FontSize="{StaticResource FontSizeSmall}" Margin="0,0,0,3"/>
                                 <TextBox Style="{StaticResource ModernInput}" 
+                                         ap:WatermarkProperties.Watermark="Email"
                                          Text="{Binding RegisterModel.Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                             </StackPanel>
 
                             <StackPanel Margin="0,15,0,0">
-                                <TextBlock Text="Password" Foreground="{StaticResource TextSub}" FontSize="{StaticResource FontSizeSmall}" Margin="0,0,0,3"/>
-                                <PasswordBox Name="RegisterPasswordBox" Padding="10" Style="{StaticResource ModernPasswordInput}"/>
+                                <PasswordBox Name="RegisterPasswordBox" Padding="10" 
+                                             ap:WatermarkProperties.Watermark="Password"
+                                             Style="{StaticResource ModernPasswordInput}"/>
                             </StackPanel>
 
                             <Button Style="{StaticResource ModernPrimaryButton}" 

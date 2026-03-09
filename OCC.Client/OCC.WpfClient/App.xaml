@@ -12,7 +12,9 @@
                 <ResourceDictionary Source="/Styles/Inputs.xaml"/>
                 <ResourceDictionary Source="/Styles/Buttons.xaml"/>
                 <ResourceDictionary Source="/Styles/ShellStyles.xaml"/>
+                <ResourceDictionary Source="/Styles/ScrollStyles.xaml"/>
                 <ResourceDictionary Source="/Styles/Validation.xaml"/>
+                <ResourceDictionary Source="/Styles/Icons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />

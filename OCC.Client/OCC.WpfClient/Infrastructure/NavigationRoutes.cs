@@ -6,6 +6,8 @@ namespace OCC.WpfClient.Infrastructure
         public const string StaffManagement = "Team";
         public const string Projects = "Portfolio";
         public const string Time = "Time";
+        public const string AttendanceLive = "AttendanceLive";
+        public const string AttendanceHistory = "AttendanceHistory";
         public const string Calendar = "Calendar";
         public const string Notifications = "Notifications";
         public const string Developer = "Developer";

@@ -7,6 +7,8 @@
         <Setter Property="Foreground" Value="{StaticResource TextSub}"/>
         <Setter Property="Height" Value="45"/>
         <Setter Property="Margin" Value="10,2,10,2"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -17,51 +19,99 @@
                                 CornerRadius="8"
                                 BorderThickness="1"
                                 BorderBrush="Transparent">
-                            <Border.RenderTransform>
-                                <ScaleTransform ScaleX="1" ScaleY="1" CenterX="25" CenterY="22"/>
-                            </Border.RenderTransform>
                             <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Border>
-                        
-                        <!-- Drawing Border Path -->
-                        <Path x:Name="BorderDraw" Stroke="{StaticResource OrangeBrush}" StrokeThickness="2" 
-                              StrokeDashArray="200" StrokeDashOffset="200" 
-                              Data="M 8,44 L 44,44 A 8,8 0 0 0 52,36 L 52,8 A 8,8 0 0 0 44,0 L 8,0 A 8,8 0 0 0 0,8 L 0,36 A 8,8 0 0 0 8,44 Z"
-                              Visibility="Collapsed" IsHitTestVisible="False"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource GlassBackgroundHover}"/>
-                            <Setter TargetName="BorderDraw" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource OrangeBrush}"/>
                             <Setter Property="Foreground" Value="White"/>
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.02" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.02" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetName="BorderDraw" Storyboard.TargetProperty="StrokeDashOffset" From="200" To="0" Duration="0:0:1"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.0" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetName="border" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.0" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetName="BorderDraw" Storyboard.TargetProperty="StrokeDashOffset" To="200" Duration="0:0:0.3"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarActiveGradient}"/>
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource GlassBorderMedium}"/>
-                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Foreground" Value="white"/>
                             <Setter TargetName="border" Property="Effect">
                                 <Setter.Value>
                                     <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="{StaticResource AccentBlueColor}" Opacity="0.5"/>
                                 </Setter.Value>
                             </Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Sidebar Parent Item Style -->
+    <Style x:Key="SidebarParentItemStyle" TargetType="ToggleButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSub}"/>
+        <Setter Property="Height" Value="45"/>
+        <Setter Property="Margin" Value="10,2,10,2"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Grid>
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" BorderThickness="1" BorderBrush="Transparent">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource GlassBackgroundHover}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource OrangeBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#0AFFFFFF"/> <!-- Subtle difference for open parent -->
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Sidebar Child Item Style -->
+    <Style x:Key="SidebarChildItemStyle" TargetType="RadioButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSub}"/>
+        <Setter Property="Height" Value="40"/>
+        <Setter Property="Margin" Value="25,2,10,2"/> <!-- Indented -->
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid>
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" BorderThickness="1" BorderBrush="Transparent">
+                            <Grid>
+                                <!-- The neon circuit trace line -->
+                                <Border x:Name="ActiveTrace" Width="3" HorizontalAlignment="Left" Background="{StaticResource AccentBlue}" CornerRadius="1.5" Opacity="0" Margin="10,8,0,8">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="{StaticResource AccentBlueColor}" Opacity="1"/>
+                                    </Border.Effect>
+                                </Border>
+                                <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="5,0,0,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource GlassBackgroundHover}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource OrangeBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#1A000000"/>
+                            <Setter TargetName="ActiveTrace" Property="Opacity" Value="1"/>
+                            <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -179,6 +229,7 @@
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">

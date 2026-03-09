@@ -60,7 +60,15 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         private bool _isDbConnected = true;
 
         [ObservableProperty]
-        private int _onlineCount = 1;
+        private string _onlineCount = "1"; // Just matching type if it was int
+
+        [ObservableProperty]
+        private string _currentTime;
+
+        [ObservableProperty]
+        private string _currentDate;
+
+        private readonly System.Windows.Threading.DispatcherTimer _clockTimer;
 
         [RelayCommand]
         private void ToggleSidebar()
@@ -84,29 +92,138 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             var view = System.Windows.Data.CollectionViewSource.GetDefaultView(NavigationItems);
             view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(NavItem.Category)));
 
+            _clockTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _clockTimer.Tick += (s, e) => UpdateTime();
+            _clockTimer.Start();
+            UpdateTime(); // initial call
+            
             // Open Dashboard by default - Removed to start blank as requested
             // OpenHub<DashboardViewModel>();
+        }
+
+        private void UpdateTime()
+        {
+            var now = DateTime.Now;
+            CurrentTime = now.ToString("HH:mm:ss");
+            CurrentDate = now.ToString("dddd, d") + GetDaySuffix(now.Day) + now.ToString(" MMMM yyyy");
+        }
+
+        private string GetDaySuffix(int day)
+        {
+            switch (day)
+            {
+                case 1:
+                case 21:
+                case 31:
+                    return "st";
+                case 2:
+                case 22:
+                    return "nd";
+                case 3:
+                case 23:
+                    return "rd";
+                default:
+                    return "th";
+            }
         }
 
         private void InitializeNavigation()
         {
             var items = new List<NavItem>
             {
-                new NavItem("Dashboard", "", NavigationRoutes.Home, "Main", true),
-                new NavItem("Global Calendar", "", NavigationRoutes.Calendar, "Main"),
-                new NavItem("Wages Hub", "", NavigationRoutes.Feature_Wages, "Main"),
-                new NavItem("Inventory", "", NavigationRoutes.Receiving, "Main"),
-                new NavItem("Projects", "", NavigationRoutes.Projects, "Main"),
+                new NavItem("Dashboard", "IconHome", NavigationRoutes.Home, "Main"),
+                new NavItem("Global Calendar", "IconCalendar", NavigationRoutes.Calendar, "Main"),
                 
-                new NavItem("Employees", "", NavigationRoutes.StaffManagement, "Administration"),
-                new NavItem("Settings", "", NavigationRoutes.CompanySettings, "Administration"),
+                new NavItem("Time & Attendance", "IconTime", string.Empty, "Main")
+                {
+                    Children = 
+                    {
+                        new NavItem("Live Attendance", "IconLiveView", NavigationRoutes.AttendanceLive, "Main"),
+                        new NavItem("Clock History", "IconHistory", NavigationRoutes.AttendanceHistory, "Main"),
+                        new NavItem("Leave Application", "IconInformation", string.Empty, "Main"),
+                        new NavItem("Leave Approvals", "IconCheck", string.Empty, "Main"),
+                        new NavItem("Overtime Request", "IconHistory", string.Empty, "Main"),
+                        new NavItem("Overtime Approval", "IconOvertimeApproved", string.Empty, "Main")
+                    }
+                },
+
+                new NavItem("Wages", "IconWagesDollar", string.Empty, "Main")
+                {
+                    Children =
+                    {
+                        new NavItem("Wage Run", "IconWagesDollar", NavigationRoutes.Feature_Wages, "Main"),
+                        new NavItem("Loans", "IconBank", NavigationRoutes.Feature_Wages, "Main") // Adjust routes as needed later
+                    }
+                },
+
+                new NavItem("Settings", "IconGear", string.Empty, "Main")
+                {
+                    Children =
+                    {
+                        new NavItem("User Preferences", "IconCompanyProfile", string.Empty, "Main"),
+                        new NavItem("Alerts", "IconAlertCircle", string.Empty, "Main")
+                    }
+                },
+
+                new NavItem("Projects", "IconPortfolio", NavigationRoutes.Projects, "Main"),
+
+                new NavItem("Orders", "IconDelivery", string.Empty, "Main")
+                {
+                    Children =
+                    {
+                        new NavItem("Suppliers", "IconTeam", string.Empty, "Main"),
+                        new NavItem("Purchase Orders", "IconFile", string.Empty, "Main"),
+                        new NavItem("Receive Stock", "IconDelivery", string.Empty, "Main"),
+                        new NavItem("Picking Slip", "IconList", string.Empty, "Main")
+                    }
+                },
+
+                new NavItem("HSEQ", "IconHealthSafety", string.Empty, "Main")
+                {
+                    Children =
+                    {
+                        new NavItem("Dashboard", "IconHome", string.Empty, "Main"),
+                        new NavItem("Capture Audit", "IconAudit", string.Empty, "Main"),
+                        new NavItem("Training and Medicals", "IconTeam", string.Empty, "Main"),
+                        new NavItem("Report Incident", "IconAlertCircle", string.Empty, "Main"),
+                        new NavItem("Documents", "IconFile", string.Empty, "Main")
+                    }
+                },
+
+                new NavItem("Admin", "IconGear", string.Empty, "Administration")
+                {
+                    Children =
+                    {
+                        new NavItem("Company Profile", "IconCompanyProfile", string.Empty, "Administration"),
+                        new NavItem("Users", "IconTeam", string.Empty, "Administration"),
+                        new NavItem("Employees", "IconTeam", NavigationRoutes.StaffManagement, "Administration"),
+                        new NavItem("System Settings", "IconGear", NavigationRoutes.CompanySettings, "Administration")
+                    }
+                }
             };
 
             foreach (var item in items)
             {
-                if (_permissionService.CanAccess(item.Route))
+                // Top-level permission check or just add directly if route is empty/parent
+                if (string.IsNullOrEmpty(item.Route) || _permissionService.CanAccess(item.Route))
                 {
-                    NavigationItems.Add(item);
+                    // Filter children by permissions
+                    var accessibleChildren = item.Children.Where(c => string.IsNullOrEmpty(c.Route) || _permissionService.CanAccess(c.Route)).ToList();
+                    
+                    item.Children.Clear();
+                    foreach (var child in accessibleChildren)
+                    {
+                        item.Children.Add(child);
+                    }
+
+                    // Only add parent if it has children, or if it's a standalone endpoint
+                    if (item.IsParent || !string.IsNullOrEmpty(item.Route))
+                    {
+                        NavigationItems.Add(item);
+                    }
                 }
             }
         }
@@ -122,6 +239,15 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         {
             if (item == null) return;
             
+            // If it's a parent node, just expand/collapse it
+            if (item.IsParent)
+            {
+                item.IsExpanded = !item.IsExpanded;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(item.Route)) return;
+            
             // Map routes to ViewModels
             switch (item.Route)
             {
@@ -134,7 +260,17 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             }
 
             // Sync sidebar state
-            foreach (var nav in NavigationItems) nav.IsActive = (nav == item);
+            foreach (var current in NavigationItems)
+            {
+                current.IsActive = current == item;
+                if (current.IsParent)
+                {
+                    foreach (var child in current.Children)
+                    {
+                        child.IsActive = child == item;
+                    }
+                }
+            }
         }
 
         [RelayCommand]
@@ -174,17 +310,23 @@ namespace OCC.WpfClient.Features.Main.ViewModels
     public partial class NavItem : ObservableObject
     {
         public string Label { get; }
-        public string Icon { get; }
+        public System.Windows.Media.Geometry? Icon { get; }
         public string Route { get; }
         public string Category { get; }
+
+        public ObservableCollection<NavItem> Children { get; } = new();
+        public bool IsParent => Children.Any();
 
         [ObservableProperty]
         private bool _isActive;
 
-        public NavItem(string label, string icon, string route, string category, bool isActive = false)
+        [ObservableProperty]
+        private bool _isExpanded;
+
+        public NavItem(string label, string iconKey, string route, string category, bool isActive = false)
         {
             Label = label;
-            Icon = icon;
+            Icon = System.Windows.Application.Current?.TryFindResource(iconKey) as System.Windows.Media.Geometry;
             Route = route;
             Category = category;
             IsActive = isActive;

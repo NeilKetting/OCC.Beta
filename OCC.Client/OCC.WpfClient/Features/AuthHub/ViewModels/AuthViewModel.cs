@@ -33,6 +33,14 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
         [ObservableProperty]
         private bool _isDevUser;
 
+        [ObservableProperty]
+        private string _currentTime;
+
+        [ObservableProperty]
+        private string _currentDate;
+
+        private readonly System.Windows.Threading.DispatcherTimer _clockTimer;
+
         public ConnectionSettings.AppEnvironment SelectedEnvironment
         {
             get => _connectionSettings.SelectedEnvironment;
@@ -78,6 +86,40 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
                 }
             };
             Title = "Authentication";
+
+            _clockTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _clockTimer.Tick += (s, e) => UpdateTime();
+            _clockTimer.Start();
+            UpdateTime();
+        }
+
+        private void UpdateTime()
+        {
+            var now = DateTime.Now;
+            CurrentTime = now.ToString("HH:mm:ss");
+            CurrentDate = now.ToString("dddd, d") + GetDaySuffix(now.Day) + now.ToString(" MMMM yyyy");
+        }
+
+        private string GetDaySuffix(int day)
+        {
+            switch (day)
+            {
+                case 1:
+                case 21:
+                case 31:
+                    return "st";
+                case 2:
+                case 22:
+                    return "nd";
+                case 3:
+                case 23:
+                    return "rd";
+                default:
+                    return "th";
+            }
         }
 
 
