@@ -69,8 +69,8 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             var view = System.Windows.Data.CollectionViewSource.GetDefaultView(NavigationItems);
             view.GroupDescriptions.Add(new System.Windows.Data.PropertyGroupDescription(nameof(NavItem.Category)));
 
-            // Open Dashboard by default
-            OpenHub<DashboardViewModel>();
+            // Open Dashboard by default - Removed to start blank as requested
+            // OpenHub<DashboardViewModel>();
         }
 
         private void InitializeNavigation()

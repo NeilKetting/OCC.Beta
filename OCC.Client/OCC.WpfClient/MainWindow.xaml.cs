@@ -1,7 +1,6 @@
-using System;
-using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.WpfClient.Features.AuthHub.ViewModels;
+using System.Windows;
 
 namespace OCC.WpfClient
 {
@@ -16,7 +15,7 @@ namespace OCC.WpfClient
             
             if (Application.Current is App app && app.ServiceProvider != null)
             {
-                var shellVm = app.ServiceProvider.GetRequiredService<OCC.WpfClient.Features.Shell.ViewModels.ShellViewModel>();
+                var shellVm = app.ServiceProvider.GetRequiredService<Features.Shell.ViewModels.ShellViewModel>();
                 DataContext = shellVm;
                 
                 // Set initial view

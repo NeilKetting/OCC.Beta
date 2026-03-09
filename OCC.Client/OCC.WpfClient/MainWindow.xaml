@@ -8,9 +8,11 @@
         xmlns:main="clr-namespace:OCC.WpfClient.Features.Main.Views"
         xmlns:mainVm="clr-namespace:OCC.WpfClient.Features.Main.ViewModels"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="768" Width="1024"
-        WindowStartupLocation="CenterScreen"
-        Background="{StaticResource BackgroundDark}">
+        Title="{Binding Title}"
+        Width="1024" Height="768"
+        MinWidth="1024" MinHeight="768"
+        WindowStartupLocation="CenterScreen">
+    
     <Window.Resources>
         <DataTemplate DataType="{x:Type authVm:AuthViewModel}">
             <auth:AuthView />
@@ -19,14 +21,10 @@
             <main:MainView />
         </DataTemplate>
     </Window.Resources>
-    
-    <Grid>
-        <!-- Full Window Background (Consistently futuristic) -->
-        <Image Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
-        <Rectangle Fill="{StaticResource BackgroundDark}" Opacity="0.85" />
 
+    <Grid>
         <!-- Root Content Switcher -->
-        <ContentControl Content="{Binding Navigation.CurrentView}" />
+            <ContentControl Content="{Binding Navigation.CurrentView}" />            
 
         <!-- Global Progress Overlay (for transitions) -->
         <Border Background="#99000000" Visibility="Collapsed" x:Name="GlobalLoadingOverlay">

@@ -7,7 +7,8 @@
              xmlns:views="clr-namespace:OCC.WpfClient.Features.Main.Views"
              xmlns:empViews="clr-namespace:OCC.WpfClient.Features.Employees.Views"
              xmlns:empVm="clr-namespace:OCC.WpfClient.Features.Employees.ViewModels"
-             mc:Ignorable="d">
+             mc:Ignorable="d"
+             d:Height="700" d:Width="1024">
     
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -19,12 +20,14 @@
         <!-- Add other hub templates here (e.g., Employees) -->
     </UserControl.Resources>
 
-    <Grid x:Name="ShellRoot">
+    <Grid x:Name="ShellRoot" 
+          Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+          Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ContentControl}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="SidebarColumn">
                 <ColumnDefinition.Style>
                     <Style TargetType="ColumnDefinition">
-                        <Setter Property="Width" Value="280"/>
+                        <Setter Property="Width" Value="200"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsSidebarMinimized}" Value="True">
                                 <Setter Property="Width" Value="80"/>
@@ -35,6 +38,10 @@
             </ColumnDefinition> <!-- Sidebar -->
             <ColumnDefinition Width="*" />   <!-- Content area -->
         </Grid.ColumnDefinitions>
+
+        <!-- Full Window Background -->
+        <Image Grid.ColumnSpan="2" Grid.RowSpan="4" Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
+        <Rectangle Grid.ColumnSpan="2" Grid.RowSpan="4" Fill="{StaticResource BackgroundDark}" Opacity="0.85" />
 
         <!-- Sidebar -->
         <Border Grid.Column="0" Style="{StaticResource ModernSidebar}" Background="Transparent" MouseLeftButtonDown="OnSidebarClick">
@@ -47,13 +54,13 @@
                 </Grid.RowDefinitions>
 
                 <!-- Branding -->
-                <StackPanel Grid.Row="0" Margin="10">
-                    <Grid Height="120">
+                <StackPanel Grid.Row="0" Margin="0">
+                    <Grid Width="180">
                         <!-- Expanded State Brand -->
                         <Border CornerRadius="8" ClipToBounds="True" 
                                 Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}">
                             <Grid>
-                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill"  Height="120" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Image Source="/Assets/Images/occ_logo.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Grid>
                         </Border>
 
@@ -173,6 +180,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" /> <!-- Top Bar -->
                 <RowDefinition Height="*" />    <!-- Workspace -->
+                <RowDefinition Height="*" />    <!-- Status Bar -->
             </Grid.RowDefinitions>
 
             <!-- Top Bar -->
@@ -195,6 +203,11 @@
 
             <!-- Multi-Hub Workspace Content -->
             <ContentControl Grid.Row="1" Content="{Binding ActiveHub}"/>
+            
+            <!-- Status Bar-->
+            <Grid Grid.Row="2" Background="red" Height="25">
+                
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
