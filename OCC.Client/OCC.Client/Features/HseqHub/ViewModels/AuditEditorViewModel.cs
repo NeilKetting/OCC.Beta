@@ -55,6 +55,7 @@ namespace OCC.Client.Features.HseqHub.ViewModels
 
             var newAudit = new HseqAudit
             {
+                Id = Guid.Empty, // Key Fix: ensure it's empty so Save() knows it's new
                 Date = DateTime.Today,
                 Status = OCC.Shared.Enums.AuditStatus.InProgress,
                 TargetScore = 100
@@ -189,43 +190,9 @@ namespace OCC.Client.Features.HseqHub.ViewModels
             IsBusy = true;
             try
             {
-                bool isUpdate = CurrentAudit.Id != Guid.Empty;
-                // Note: Guid might be initialized to non-empty in InitializeForNew if we did that, 
-                // but usually new objects have empty guid or we check DB existence. 
-                // For safety, we can attempt update if ID exists, else create?
-                // Actually InitializeForNew usually leaves ID as default or new Guid.
-                // The service create returns an ID.
-                
-                // We'll rely on the fact that if we just created it in memory, it's not in DB.
-                // But simplest is to just try Update if we think it's existing.
-                // In InitForNew we didn't set ID? `new HseqAudit` has ID?
-                // HseqAudit doesn't have a default constructor that sets ID usually?
-                // Let's assume ID is gathered from property.
-                
-                // Better approach: use a flag? Or try Update, if false then Create?
-                // Let's assume if we Loaded it, it exists. If we initialized New, it's new.
-                // But we can enable saving multiple times on a new one.
-                
-                // Let's stick to: Try Update. If fail/returns false (or based on ID check), Create.
-                
-                // However, we don't know easily if it exists without querying.
-                // Let's use the assumption: If we called InitializeForNew, it's new... 
-                // BUT after first save, it becomes existing!
-                
-                // We can check if CurrentAudit.Id is known to be persisted.
-                // Since this VM doesn't persist the "IsNew" state easily across saves unless we track it.
-                // The safest is checking if the Service Update returns not found, or Create returns success.
-                // But `UpdateAuditAsync` usually returns bool.
-                
-                // Refined Logic from Monolith:
-                // It checked `Audits.Any(ID)` to see if existing. We don't have the list here.
-                // We can query GetAuditAsync(Id) to check existence? Slow.
-                
-                // Let's try Update First.
-                // If ID is Empty, definitely Create.
+                // Key Logic: If ID is Empty, it's a new audit.
                 if (CurrentAudit.Id == Guid.Empty)
                 {
-                     // Definitely new
                      await CreateInternal();
                 }
                 else
@@ -259,32 +226,47 @@ namespace OCC.Client.Features.HseqHub.ViewModels
              var createdDto = await _hseqService.CreateAuditAsync(ToDto(CurrentAudit));
              if (createdDto != null)
              {
-                 CurrentAudit.Id = createdDto.Id;
-                 
-                 // Map generated section IDs back to our UI models so subsequent saves work
-                 if (CurrentAudit.Sections != null && createdDto.Sections != null)
-                 {
-                     foreach (var section in CurrentAudit.Sections)
-                     {
-                         var matchedDbSection = createdDto.Sections.FirstOrDefault(s => s.Name == section.Name);
-                         if (matchedDbSection != null && matchedDbSection.Id != Guid.Empty)
-                         {
-                             section.Id = matchedDbSection.Id;
-                             section.RowVersion = matchedDbSection.RowVersion ?? Array.Empty<byte>();
-                         }
-                     }
-                 }
+                  CurrentAudit.Id = createdDto.Id;
+                  CurrentAudit.RowVersion = createdDto.RowVersion ?? Array.Empty<byte>();
+                  
+                  // Map generated section IDs back to our UI models so subsequent saves work
+                  if (CurrentAudit.Sections != null && createdDto.Sections != null)
+                  {
+                      foreach (var section in CurrentAudit.Sections)
+                      {
+                          var matchedDbSection = createdDto.Sections.FirstOrDefault(s => s.Name == section.Name);
+                          if (matchedDbSection != null && matchedDbSection.Id != Guid.Empty)
+                          {
+                              section.Id = matchedDbSection.Id;
+                              section.RowVersion = matchedDbSection.RowVersion ?? Array.Empty<byte>();
+                          }
+                      }
+                  }
 
-                 _toastService.ShowSuccess("Created", "New audit created.");
-                 AuditSaved?.Invoke(this, EventArgs.Empty);
-                 // We don't close automatically? Usually yes or no. 
-                 // Monolith closed editor. Let's fire Saved and let Parent decide or we close.
-                 // The monolith: IsEditorOpen = false.
-                 RequestClose?.Invoke(this, EventArgs.Empty);
+                  // Sync findings (NonComplianceItems)
+                  if (CurrentAudit.NonComplianceItems != null && createdDto.NonComplianceItems != null)
+                  {
+                      foreach (var item in CurrentAudit.NonComplianceItems)
+                      {
+                          var matchedDbItem = createdDto.NonComplianceItems.FirstOrDefault(i => 
+                              (i.Id != Guid.Empty && i.Id == item.Id) || 
+                              (i.Description == item.Description && i.TargetDate == item.TargetDate));
+
+                          if (matchedDbItem != null)
+                          {
+                              item.Id = matchedDbItem.Id;
+                              item.RowVersion = matchedDbItem.RowVersion ?? Array.Empty<byte>();
+                          }
+                      }
+                  }
+
+                  _toastService.ShowSuccess("Created", "New audit created.");
+                  AuditSaved?.Invoke(this, EventArgs.Empty);
+                  RequestClose?.Invoke(this, EventArgs.Empty);
              }
              else
              {
-                 _toastService.ShowError("Error", "Failed to create audit.");
+                  _toastService.ShowError("Error", "Failed to create audit.");
              }
         }
 
@@ -333,7 +315,6 @@ namespace OCC.Client.Features.HseqHub.ViewModels
                 // Must ensure Audit exists
                 if (CurrentAudit.Id == Guid.Empty) // Strict check for "Is Saved"
                 {
-                     // ... same logic usually ...
                      await CreateInternal();
                      if (CurrentAudit.Id == Guid.Empty) return; // failed
                 }
