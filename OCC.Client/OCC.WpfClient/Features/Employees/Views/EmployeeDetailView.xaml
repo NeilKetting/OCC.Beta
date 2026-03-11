@@ -25,13 +25,13 @@
                 BorderBrush="{StaticResource GlassBorder}" 
                 BorderThickness="1" 
                 CornerRadius="20" 
-                Width="900" 
+                Width="700" 
                 VerticalAlignment="Center" 
                 HorizontalAlignment="Center" 
                 MaxHeight="950"
                 Margin="20">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.5"/>
+                <DropShadowEffect BlurRadius="50" ShadowDepth="0" Opacity="0.9"/>
             </Border.Effect>
             
             <Grid>

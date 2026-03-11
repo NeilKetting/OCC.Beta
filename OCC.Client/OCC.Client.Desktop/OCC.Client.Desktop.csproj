@@ -13,7 +13,7 @@
     <Copyright>Copyright © 2026 Origize63</Copyright>
     <!-- Icon Configuration -->
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.7.20</Version>
+    <Version>1.7.22</Version>
     <!-- Deployment Configuration -->
     <SelfContained>true</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
