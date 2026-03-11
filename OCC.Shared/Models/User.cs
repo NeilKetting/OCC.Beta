@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace OCC.Shared.Models
 {
@@ -47,6 +47,9 @@ namespace OCC.Shared.Models
         
         /// <summary> detailed permission string (e.g. JSON or delimited list) for fine-grained access. </summary>
         public string? Permissions { get; set; }
+        
+        /// <summary> Public RSA Key used for Client-Side Hybrid E2EE. </summary>
+        public string? PublicKey { get; set; }
         
         /// <summary> The branch this user is primarily associated with (e.g. JHB or CPT). </summary>
         public Branch? Branch { get; set; }

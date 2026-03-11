@@ -73,6 +73,51 @@ namespace OCC.API.Controllers
             }
         }
 
+        // GET: api/Users/5/public-key
+        [HttpGet("{id}/public-key")]
+        public async Task<ActionResult<string>> GetUserPublicKey(Guid id)
+        {
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound();
+
+            if (string.IsNullOrEmpty(user.PublicKey))
+                return NoContent(); // User hasn't registered a key yet
+
+            return Ok(new { PublicKey = user.PublicKey });
+        }
+
+        // GET: api/Users/contacts
+        [HttpGet("contacts")]
+        public async Task<ActionResult<IEnumerable<OCC.Shared.DTOs.ChatUserDto>>> GetContacts()
+        {
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            try
+            {
+                var contacts = await _context.Users
+                    .AsNoTracking()
+                    .Where(u => u.Id.ToString() != currentUserId) // Exclude self
+                    .Select(u => new OCC.Shared.DTOs.ChatUserDto
+                    {
+                        UserId = u.Id,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Email = u.Email,
+                        PublicKey = u.PublicKey
+                    })
+                    .OrderBy(u => u.FirstName)
+                    .ThenBy(u => u.LastName)
+                    .ToListAsync();
+                    
+                return Ok(contacts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving contacts");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         // POST: api/Users
         [HttpPost]
         [Authorize(Roles = "Admin")]

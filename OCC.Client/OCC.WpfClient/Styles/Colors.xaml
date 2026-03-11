@@ -85,7 +85,10 @@
         <GradientStop Color="#B3FF8F00" Offset="1.0" />
     </LinearGradientBrush>
     
-    <LinearGradientBrush x:Key="PremiumGlassGlow" StartPoint="0,0" EndPoint="1,1">
+    <LinearGradientBrush x:Key="PremiumGlassGlow" x:Shared="False" StartPoint="0,0" EndPoint="1,1">
+        <LinearGradientBrush.RelativeTransform>
+            <TranslateTransform X="0" Y="0" />
+        </LinearGradientBrush.RelativeTransform>
         <GradientStop Color="#40FFFFFF" Offset="0" />
         <GradientStop Color="#00FFFFFF" Offset="1" />
     </LinearGradientBrush>

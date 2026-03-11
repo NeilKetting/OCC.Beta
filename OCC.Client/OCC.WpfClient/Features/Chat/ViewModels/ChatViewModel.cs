@@ -1,0 +1,495 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.AspNetCore.SignalR.Client;
+using OCC.Shared.DTOs;
+using OCC.WpfClient.Features.Chat.Models;
+using OCC.WpfClient.Infrastructure;
+using OCC.WpfClient.Services.Infrastructure;
+using OCC.WpfClient.Services.Interfaces;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Windows.Data;
+
+namespace OCC.WpfClient.Features.Chat.ViewModels
+{
+    public enum ChatFilter
+    {
+        All,
+        Unread,
+        Favourites
+    }
+
+    public partial class ChatViewModel : ViewModelBase, IAsyncDisposable
+    {
+        private readonly IAuthService _authService;
+        private readonly ConnectionSettings _connectionSettings;
+        private readonly HttpClient _httpClient;
+        private readonly ILocalEncryptionService _encryptionService;
+        private HubConnection? _hubConnection;
+
+        [ObservableProperty]
+        private ObservableCollection<ChatSessionModel> _chatSessions = new();
+
+        public ICollectionView SessionsView { get; }
+
+        [ObservableProperty]
+        private bool _isAllFilterSelected = true;
+
+        [ObservableProperty]
+        private bool _isUnreadFilterSelected;
+
+        [ObservableProperty]
+        private bool _isFavouritesFilterSelected;
+
+        private ChatFilter _currentFilter = ChatFilter.All;
+
+        private ChatSessionModel? _selectedSession;
+        public ChatSessionModel? SelectedSession
+        {
+            get => _selectedSession;
+            set
+            {
+                if (SetProperty(ref _selectedSession, value))
+                {
+                    if (value != null)
+                    {
+                        if (value.UnreadCount > 0)
+                        {
+                            value.UnreadCount = 0;
+                            _ = MarkSessionAsReadAsync(value.Id);
+                        }
+                        _ = LoadMessagesForSessionAsync(value);
+                    }
+                }
+            }
+        }
+
+        [ObservableProperty]
+        private string _messageInput = string.Empty;
+
+        [ObservableProperty]
+        private string _searchQuery = string.Empty;
+
+        [ObservableProperty]
+        private bool _isConnected;
+
+        // --- New Chat Properties ---
+        [ObservableProperty]
+        private bool _isNewChatVisible;
+
+        [ObservableProperty]
+        private string _searchContactsText = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<ChatUserDto> _availableContacts = new();
+
+        public ICollectionView ContactsView { get; }
+
+        public ChatViewModel(IAuthService authService,
+                             ConnectionSettings connectionSettings,
+                             IHttpClientFactory httpClientFactory,
+                             ILocalEncryptionService encryptionService)
+        {
+            _authService = authService;
+            _connectionSettings = connectionSettings;
+            _httpClient = httpClientFactory.CreateClient();
+            _encryptionService = encryptionService;
+
+            // Add authorization header for HTTP requests
+            if (!string.IsNullOrEmpty(_authService.CurrentToken))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.CurrentToken);
+            }
+
+            Title = "Chat";
+
+            SessionsView = CollectionViewSource.GetDefaultView(ChatSessions);
+            SessionsView.Filter = FilterSessions;
+
+            ContactsView = CollectionViewSource.GetDefaultView(AvailableContacts);
+            ContactsView.Filter = FilterContacts;
+
+            // Initialize in background
+            _ = InitializeAsync();
+        }
+
+        private bool FilterContacts(object item)
+        {
+            if (item is ChatUserDto contact)
+            {
+                if (string.IsNullOrWhiteSpace(SearchContactsText)) return true;
+                var term = SearchContactsText.ToLower();
+                return contact.FirstName.ToLower().Contains(term) || 
+                       contact.LastName.ToLower().Contains(term) ||
+                       contact.Email.ToLower().Contains(term);
+            }
+            return false;
+        }
+
+        partial void OnSearchContactsTextChanged(string value)
+        {
+            ContactsView.Refresh();
+        }
+
+        private bool FilterSessions(object item)
+        {
+            if (item is ChatSessionModel session)
+            {
+                if (_currentFilter == ChatFilter.Unread) return session.UnreadCount > 0;
+                if (_currentFilter == ChatFilter.Favourites) return session.IsFavourite;
+                return true;
+            }
+            return false;
+        }
+
+        [RelayCommand]
+        private void SetFilter(string filterString)
+        {
+            if (Enum.TryParse<ChatFilter>(filterString, out var filter))
+            {
+                _currentFilter = filter;
+                IsAllFilterSelected = _currentFilter == ChatFilter.All;
+                IsUnreadFilterSelected = _currentFilter == ChatFilter.Unread;
+                IsFavouritesFilterSelected = _currentFilter == ChatFilter.Favourites;
+                SessionsView.Refresh();
+            }
+        }
+
+        private async Task MarkSessionAsReadAsync(Guid sessionId)
+        {
+            if (_hubConnection != null && IsConnected)
+            {
+                try
+                {
+                    await _hubConnection.InvokeAsync("MarkSessionAsRead", sessionId);
+                    SessionsView.Refresh(); // Refresh filter in case we're on "Unread" tab
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to mark session as read: {ex.Message}");
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task ShowNewChatAsync()
+        {
+            IsNewChatVisible = true;
+            await LoadContactsAsync();
+        }
+
+        [RelayCommand]
+        private void HideNewChat()
+        {
+            IsNewChatVisible = false;
+        }
+
+        private async Task LoadContactsAsync()
+        {
+            try
+            {
+                var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+                var contacts = await _httpClient.GetFromJsonAsync<ChatUserDto[]>($"{baseUrl}/api/users/contacts");
+                
+                if (contacts != null)
+                {
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        AvailableContacts.Clear();
+                        foreach (var dto in contacts)
+                        {
+                            AvailableContacts.Add(dto);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load contacts: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task StartNewChatAsync(ChatUserDto contact)
+        {
+            if (contact != null)
+            {
+                await StartDirectChatAsync(contact.UserId);
+            }
+        }
+
+        [RelayCommand]
+        private async Task ToggleFavouriteAsync(ChatSessionModel session)
+        {
+            if (session == null || _hubConnection == null || !IsConnected) return;
+
+            try
+            {
+                var isFav = await _hubConnection.InvokeAsync<bool>("ToggleFavourite", session.Id);
+                session.IsFavourite = isFav;
+                SessionsView.Refresh(); // Refresh list if we are filtering by Favourites
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to toggle favourite: {ex.Message}");
+            }
+        }
+
+        private async Task InitializeAsync()
+        {
+            await LoadSessionsAsync();
+            await ConnectToSignalRAsync();
+        }
+
+        private async Task LoadSessionsAsync()
+        {
+            try
+            {
+                var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+                var sessions = await _httpClient.GetFromJsonAsync<ChatSessionDto[]>($"{baseUrl}/api/messages/sessions");
+
+                if (sessions != null)
+                {
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        ChatSessions.Clear();
+                        foreach (var dto in sessions)
+                        {
+                            var model = new ChatSessionModel(dto);
+
+                            // Decrypt AES Key for this session
+                            var myUserDto = dto.Users.FirstOrDefault(u => u.UserId == _authService.CurrentUser?.Id);
+                            if (myUserDto != null && !string.IsNullOrEmpty(myUserDto.EncryptedAesKey))
+                            {
+                                model.DecryptedAesKey = _encryptionService.DecryptAesKeyWithRsa(myUserDto.EncryptedAesKey);
+                            }
+
+                            // Decrypt LastMessagePreview if there's a key
+                            if (!string.IsNullOrEmpty(model.DecryptedAesKey) && dto.LastMessage != null && !dto.LastMessage.HasAttachment)
+                            {
+                                model.LastMessagePreview = _encryptionService.DecryptMessage(dto.LastMessage.Content, model.DecryptedAesKey);
+                            }
+
+                            ChatSessions.Add(model);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load sessions: {ex.Message}");
+            }
+        }
+
+        private async Task ConnectToSignalRAsync()
+        {
+            if (_authService.CurrentToken == null) return;
+
+            var hubUrl = $"{_connectionSettings.ApiBaseUrl.TrimEnd('/')}/hubs/chat";
+
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(hubUrl, options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult(_authService.CurrentToken);
+                })
+                .WithAutomaticReconnect()
+                .Build();
+
+            _hubConnection.On<ChatMessageDto>("ReceiveMessage", (messageDto) =>
+            {
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    HandleIncomingMessage(messageDto);
+                });
+            });
+
+            _hubConnection.On<Guid, Guid>("MessageRead", (messageId, userId) =>
+            {
+                // Handle read receipts
+            });
+
+            try
+            {
+                await _hubConnection.StartAsync();
+                IsConnected = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to connect to SignalR Chat Hub: {ex.Message}");
+                IsConnected = false;
+            }
+        }
+
+        private void HandleIncomingMessage(ChatMessageDto messageDto)
+        {
+            var session = ChatSessions.FirstOrDefault(s => s.Id == messageDto.ChatSessionId);
+            if (session != null)
+            {
+                // Add message if session is active
+                if (SelectedSession?.Id == session.Id && _authService.CurrentUser != null)
+                {
+                    // Decrypt incoming message content
+                    if (!string.IsNullOrEmpty(session.DecryptedAesKey) && !messageDto.HasAttachment)
+                    {
+                        messageDto.Content = _encryptionService.DecryptMessage(messageDto.Content, session.DecryptedAesKey);
+                    }
+                    var msgModel = new ChatMessageModel(messageDto, _authService.CurrentUser.Id);
+                    session.Messages.Add(msgModel);
+                }
+                else
+                {
+                    // Even if not selected, we may need to decrypt it for the preview
+                    if (!string.IsNullOrEmpty(session.DecryptedAesKey) && !messageDto.HasAttachment)
+                    {
+                        messageDto.Content = _encryptionService.DecryptMessage(messageDto.Content, session.DecryptedAesKey);
+                    }
+                }
+
+                // Update preview
+                session.LastMessagePreview = messageDto.HasAttachment ? "📎 Attachment" : messageDto.Content;
+                session.LastMessageTime = messageDto.SentDate;
+
+                // Re-sort sessions
+                var sorted = ChatSessions.OrderByDescending(s => s.LastMessageTime).ToList();
+                ChatSessions.Clear();
+                foreach (var s in sorted) ChatSessions.Add(s);
+            }
+            // else: Handle new session created by incoming message (refresh sessions)
+        }
+
+
+
+        private async Task LoadMessagesForSessionAsync(ChatSessionModel session)
+        {
+            if (_authService.CurrentUser == null) return;
+
+            try
+            {
+                var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+                // Get last 50 messages
+                var messages = await _httpClient.GetFromJsonAsync<ChatMessageDto[]>($"{baseUrl}/api/messages/sessions/{session.Id}/messages?take=50");
+
+                if (messages != null)
+                {
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        session.Messages.Clear();
+                        foreach (var dto in messages)
+                        {
+                            if (!string.IsNullOrEmpty(session.DecryptedAesKey) && !dto.HasAttachment)
+                            {
+                                dto.Content = _encryptionService.DecryptMessage(dto.Content, session.DecryptedAesKey);
+                            }
+                            session.Messages.Add(new ChatMessageModel(dto, _authService.CurrentUser.Id));
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to load messages for session {session.Id}: {ex.Message}");
+            }
+        }
+
+        public async Task StartDirectChatAsync(Guid targetUserId)
+        {
+            if (_authService.CurrentUser == null || targetUserId == Guid.Empty) return;
+
+            var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+            
+            // Step 1: Check if session exists
+            var checkResponse = await _httpClient.PostAsync($"{baseUrl}/api/messages/direct/{targetUserId}", null);
+            if (!checkResponse.IsSuccessStatusCode) return;
+
+            var result = await checkResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
+
+            if (result?.RequiresKeys == true)
+            {
+                // Step 2: Fetch Target Public Key
+                var keyResponse = await _httpClient.GetFromJsonAsync<PublicKeyResponse>($"{baseUrl}/api/users/{targetUserId}/public-key");
+                
+                if (keyResponse == null || string.IsNullOrEmpty(keyResponse.PublicKey))
+                {
+                    System.Windows.MessageBox.Show("This user hasn't logged in with the new version yet and doesn't have an encryption key. You cannot chat with them yet.", "Encryption Key Missing", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                    return; // Cannot E2EE chat without their public key
+                }
+
+                // Step 3: Generate and Encrypt AES Key
+                var rawAesKey = _encryptionService.GenerateAesKey();
+                var myEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, _encryptionService.GetPublicKey());
+                var targetEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, keyResponse.PublicKey);
+
+                // Step 4: Create Session with Keys
+                var createRequest = new { MyEncryptedAesKey = myEncryptedKey, TargetEncryptedAesKey = targetEncryptedKey };
+                var createResponse = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/messages/direct/{targetUserId}", createRequest);
+                
+                if (createResponse.IsSuccessStatusCode)
+                {
+                    var createResult = await createResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
+                    if (createResult?.SessionId != null)
+                    {
+                        await LoadSessionsAsync();
+                        SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == createResult.SessionId);
+                    }
+                }
+            }
+            else if (result?.SessionId != null)
+            {
+                // Session already exists
+                SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == result.SessionId);
+            }
+
+            // Close the overlay
+            IsNewChatVisible = false;
+        }
+
+        private class DirectSessionResponse 
+        {
+            public Guid? SessionId { get; set; }
+            public bool RequiresKeys { get; set; }
+        }
+
+        private class PublicKeyResponse
+        {
+            public string PublicKey { get; set; } = string.Empty;
+        }
+
+        [RelayCommand]
+        private async Task SendMessageAsync()
+        {
+            if (SelectedSession == null || string.IsNullOrWhiteSpace(MessageInput) || _hubConnection == null || !IsConnected)
+                return;
+
+            var plainContent = MessageInput;
+            MessageInput = string.Empty; // Clear immediately
+
+            try
+            {
+                var contentToSend = plainContent;
+                if (!string.IsNullOrEmpty(SelectedSession.DecryptedAesKey))
+                {
+                    contentToSend = _encryptionService.EncryptMessage(plainContent, SelectedSession.DecryptedAesKey);
+                }
+
+                await _hubConnection.InvokeAsync("SendMessage", SelectedSession.Id, contentToSend);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to send message: {ex.Message}");
+                MessageInput = plainContent; // Restore on fail
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_hubConnection != null)
+            {
+                await _hubConnection.StopAsync();
+                await _hubConnection.DisposeAsync();
+            }
+        }
+    }
+}

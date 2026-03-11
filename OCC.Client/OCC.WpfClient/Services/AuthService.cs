@@ -15,20 +15,24 @@ namespace OCC.WpfClient.Services
         private readonly ILogger<AuthService> _logger;
         private readonly ConnectionSettings _connectionSettings;
         private readonly HttpClient _httpClient;
+        private readonly ILocalEncryptionService _encryptionService;
         
         private User? _currentUser;
         private string? _authToken;
 
         public User? CurrentUser => _currentUser;
+        public string? CurrentToken => _authToken;
         public bool IsAuthenticated => _currentUser != null;
 
         public AuthService(ILogger<AuthService> logger, 
                            ConnectionSettings connectionSettings,
-                           IHttpClientFactory httpClientFactory)
+                           IHttpClientFactory httpClientFactory,
+                           ILocalEncryptionService encryptionService)
         {
             _logger = logger;
             _connectionSettings = connectionSettings;
             _httpClient = httpClientFactory.CreateClient();
+            _encryptionService = encryptionService;
         }
 
         private string GetFullUrl(string path)
@@ -59,6 +63,21 @@ namespace OCC.WpfClient.Services
                         // Add token to default headers for future requests
                         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authToken);
                         
+                        // Initialize E2EE RSA Keys
+                        _encryptionService.InitializeOrLoadKeys(_currentUser.Id);
+                        
+                        // If the server doesn't have our public key yet, upload it
+                        if (string.IsNullOrEmpty(_currentUser.PublicKey))
+                        {
+                            _currentUser.PublicKey = _encryptionService.GetPublicKey();
+                            var updateUrl = GetFullUrl($"api/users/{_currentUser.Id}");
+                            var updateResponse = await _httpClient.PutAsJsonAsync(updateUrl, _currentUser);
+                            if (!updateResponse.IsSuccessStatusCode)
+                            {
+                                _logger.LogWarning("Failed to upload Public RSA Key for {Email}", email);
+                            }
+                        }
+
                         _logger.LogInformation("Login successful for {Email}. User: {FirstName} {LastName}", email, _currentUser.FirstName, _currentUser.LastName);
                         return (true, string.Empty);
                     }

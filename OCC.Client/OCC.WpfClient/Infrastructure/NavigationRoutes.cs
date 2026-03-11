@@ -3,6 +3,7 @@ namespace OCC.WpfClient.Infrastructure
     public static class NavigationRoutes
     {
         public const string Home = "Home";
+        public const string Chat = "Chat";
         public const string StaffManagement = "Team";
         public const string Projects = "Portfolio";
         public const string Time = "Time";

@@ -61,6 +61,7 @@ namespace OCC.WpfClient
             // Infrastructure
             services.AddSingleton<ConnectionSettings>();
             services.AddSingleton<LocalSettingsService>();
+            services.AddSingleton<ILocalEncryptionService, LocalEncryptionService>();
 
             // Services
             services.AddHttpClient();
@@ -74,6 +75,7 @@ namespace OCC.WpfClient
             services.AddTransient<ShellViewModel>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<DashboardViewModel>(); // Registered DashboardViewModel
+            services.AddTransient<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
             services.AddTransient<EmployeeListViewModel>();
             services.AddTransient<SplashViewModel>();
             services.AddTransient<AuthViewModel>();

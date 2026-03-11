@@ -70,6 +70,12 @@ namespace OCC.Client.Data
 
         public DbSet<TaskAssignment> TaskAssignments { get; set; }
 
+        public DbSet<ChatSession> ChatSessions { get; set; }
+        public DbSet<ChatSessionUser> ChatSessionUsers { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ChatMessageAttachment> ChatMessageAttachments { get; set; }
+        public DbSet<ChatMessageReadReceipt> ChatMessageReadReceipts { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

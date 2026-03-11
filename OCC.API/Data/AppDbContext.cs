@@ -74,6 +74,13 @@ namespace OCC.API.Data
         public DbSet<ProjectVariationOrder> ProjectVariationOrders { get; set; }
         public DbSet<LogUploadRequest> LogUploads { get; set; }
 
+        // Chat System
+        public DbSet<ChatSession> ChatSessions { get; set; }
+        public DbSet<ChatSessionUser> ChatSessionUsers { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ChatMessageAttachment> ChatMessageAttachments { get; set; }
+        public DbSet<ChatMessageReadReceipt> ChatMessageReadReceipts { get; set; }
+
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var auditEntries = OnBeforeSaveChanges();
@@ -437,6 +444,49 @@ namespace OCC.API.Data
                 .HasOne<ProjectTask>()
                 .WithMany()
                 .HasForeignKey(tr => tr.TaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Chat Configuration
+            modelBuilder.Entity<ChatSessionUser>()
+                .HasOne(csu => csu.ChatSession)
+                .WithMany(cs => cs.SessionUsers)
+                .HasForeignKey(csu => csu.ChatSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatSessionUser>()
+                .HasOne(csu => csu.User)
+                .WithMany()
+                .HasForeignKey(csu => csu.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(cm => cm.ChatSession)
+                .WithMany(cs => cs.Messages)
+                .HasForeignKey(cm => cm.ChatSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(cm => cm.Sender)
+                .WithMany()
+                .HasForeignKey(cm => cm.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessageAttachment>()
+                .HasOne(cma => cma.Message)
+                .WithMany(cm => cm.Attachments)
+                .HasForeignKey(cma => cma.MessageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatMessageReadReceipt>()
+                .HasOne(cmrr => cmrr.Message)
+                .WithMany(cm => cm.ReadReceipts)
+                .HasForeignKey(cmrr => cmrr.MessageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatMessageReadReceipt>()
+                .HasOne(cmrr => cmrr.User)
+                .WithMany()
+                .HasForeignKey(cmrr => cmrr.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Apply Global Query Filter and Concurrency Config for BaseEntity types

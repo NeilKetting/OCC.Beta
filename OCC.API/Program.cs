@@ -182,5 +182,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<OCC.API.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<OCC.API.Hubs.ChatHub>("/hubs/chat");
 
 app.Run();

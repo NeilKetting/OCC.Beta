@@ -9,6 +9,7 @@ namespace OCC.WpfClient.Services.Interfaces
         Task<bool> RegisterAsync(User user);
         Task LogoutAsync();
         User? CurrentUser { get; }
+        string? CurrentToken { get; }
         bool IsAuthenticated { get; }
     }
 }

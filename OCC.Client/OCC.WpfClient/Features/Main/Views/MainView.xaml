@@ -8,6 +8,8 @@
              xmlns:views="clr-namespace:OCC.WpfClient.Features.Main.Views"
              xmlns:empViews="clr-namespace:OCC.WpfClient.Features.Employees.Views"
              xmlns:empVm="clr-namespace:OCC.WpfClient.Features.Employees.ViewModels"
+             xmlns:chatViews="clr-namespace:OCC.WpfClient.Features.Chat.Views"
+             xmlns:chatVm="clr-namespace:OCC.WpfClient.Features.Chat.ViewModels"
              mc:Ignorable="d"
              d:Height="700" d:Width="1024">
 
@@ -37,6 +39,9 @@
         <DataTemplate DataType="{x:Type empVm:EmployeeListViewModel}">
             <empViews:EmployeeListView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type chatVm:ChatViewModel}">
+            <chatViews:ChatView />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid x:Name="ShellRoot" 
@@ -63,6 +68,7 @@
                     <MenuItem Header="Cut"/>
                     <MenuItem Header="Copy"/>
                     <MenuItem Header="Paste"/>
+                    <MenuItem Header="Delete"/>
                 </MenuItem>
                 <MenuItem Header="Hubs">
                     <MenuItem Header="Home">
@@ -76,7 +82,14 @@
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
+                <MenuItem Header="Window">
+                    <MenuItem Header="Close All Tabs"/>
+                    <MenuItem Header="Close Other"/>
+                    <MenuItem Header="Close to the Right"/>
+                </MenuItem>
                 <MenuItem Header="Help">
+                    <MenuItem Header="Check for Updates"/>
+                    <MenuItem Header="Release Notes"/>
                     <MenuItem Header="About"/>
                 </MenuItem>
             </Menu>
@@ -335,18 +348,88 @@
                 <!-- Top Bar -->
                 <Border Grid.Row="0" Height="50" Padding="30,0" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,0,0,1">
                     <Grid>
-                        <TextBlock Text="{Binding ActiveHub.Title}" VerticalAlignment="Center" 
-                                 FontFamily="{StaticResource MichromaFont}" FontSize="14" Foreground="White" Opacity="0.9"/>
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Background="Transparent" BorderThickness="0" Foreground="White" Margin="0,0,20,0" Opacity="0.6"
-                                    Command="{Binding LogoutCommand}">
-                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
-                            </Button>
-                            <Button Background="Transparent" BorderThickness="0" Foreground="White" Opacity="0.6">
-                                <TextBlock Text="" FontFamily="Segoe MDL2 Assets" FontSize="18"/>
-                            </Button>
-                        </StackPanel>
+                        <!-- Workspace Tabs -->
+                        <ListBox ItemsSource="{Binding OpenHubs}" SelectedItem="{Binding ActiveHub}" 
+                                 Background="Transparent" BorderThickness="0" 
+                                 ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 VerticalAlignment="Bottom" Margin="0,0,120,0">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="TabBorder" Height="40" MinWidth="120" Margin="0,0,4,0" 
+                                                        Background="#08FFFFFF" BorderBrush="#20FFFFFF" BorderThickness="1,1,1,0" CornerRadius="8,8,0,0">
+                                                    <Grid Margin="15,0,10,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        
+                                                        <TextBlock Text="{Binding Title}" Foreground="White" Opacity="0.5" x:Name="TabText"
+                                                                   FontFamily="{StaticResource MichromaFont}" VerticalAlignment="Center" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,15,0"/>
+                                                                   
+                                                        <Button Grid.Column="1" Command="{Binding DataContext.CloseHubCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Width="20" Height="20" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" x:Name="CloseButton">
+                                                            <Path Data="M0,0 L8,8 M8,0 L0,8" Stroke="White" StrokeThickness="1.5" Opacity="0.3" x:Name="CloseIcon"
+                                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Background" Value="#40FF3b30"/>
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="TabBorder" Property="Background" Value="#1500FF88"/>
+                                                        <Setter TargetName="TabBorder" Property="BorderBrush" Value="#00FF88"/>
+                                                        <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,1,1,2"/>
+                                                        <Setter TargetName="TabText" Property="Opacity" Value="1.0"/>
+                                                        <Setter TargetName="TabText" Property="Foreground" Value="#00FF88"/>
+                                                    </Trigger>
+                                                    <Trigger SourceName="CloseButton" Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="CloseIcon" Property="Opacity" Value="1.0" />
+                                                        <Setter TargetName="CloseIcon" Property="Stroke" Value="#FF3b30" />
+                                                    </Trigger>
+                                                    <MultiTrigger>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsMouseOver" Value="True"/>
+                                                            <Condition Property="IsSelected" Value="False"/>
+                                                        </MultiTrigger.Conditions>
+                                                        <Setter TargetName="TabBorder" Property="Background" Value="#15FFFFFF"/>
+                                                        <Setter TargetName="TabText" Property="Opacity" Value="0.8"/>
+                                                    </MultiTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>                       
                     </Grid>
                 </Border>
 

@@ -135,6 +135,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             var items = new List<NavItem>
             {
                 new NavItem("Dashboard", "IconHome", NavigationRoutes.Home, "Main"),
+                new NavItem("Chat", "IconChat", NavigationRoutes.Chat, "Main"),
                 new NavItem("Global Calendar", "IconCalendar", NavigationRoutes.Calendar, "Main"),
                 
                 new NavItem("Time & Attendance", "IconTime", string.Empty, "Main")
@@ -253,6 +254,9 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             {
                 case NavigationRoutes.Home:
                     OpenHub<DashboardViewModel>();
+                    break;
+                case NavigationRoutes.Chat:
+                    OpenHub<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
                     break;
                 case NavigationRoutes.StaffManagement:
                     OpenHub<EmployeeListViewModel>();
