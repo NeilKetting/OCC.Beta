@@ -293,7 +293,7 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(hubUrl, options =>
                 {
-                    options.AccessTokenProvider = () => Task.FromResult(_authService.CurrentToken);
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(_authService.CurrentToken);
                 })
                 .WithAutomaticReconnect()
                 .Build();

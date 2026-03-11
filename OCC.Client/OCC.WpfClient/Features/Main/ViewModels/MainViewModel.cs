@@ -31,19 +31,64 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         [ObservableProperty]
         private ObservableCollection<ViewModelBase> _openHubs = new();
 
+        [ObservableProperty]
+        private bool _isAppBusy;
+
+        [ObservableProperty]
+        private string _busyMessage = "Please wait...";
+
+        [ObservableProperty]
+        private string _featureSearchQuery = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<NavItem> _filteredNavigationItems = new();
+
         private ViewModelBase? _activeHub;
         public ViewModelBase? ActiveHub
         {
             get => _activeHub;
             set
             {
+                var oldHub = _activeHub;
                 if (SetProperty(ref _activeHub, value))
                 {
+                    if (oldHub != null)
+                    {
+                        oldHub.PropertyChanged -= OnActiveHubPropertyChanged;
+                    }
+
+                    if (_activeHub != null)
+                    {
+                        _activeHub.PropertyChanged += OnActiveHubPropertyChanged;
+                        UpdateBusyState();
+                    }
+
                     foreach (var hub in OpenHubs)
                     {
                         hub.IsActiveHub = (hub == value);
                     }
                 }
+            }
+        }
+
+        private void OnActiveHubPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ViewModelBase.IsBusy) || e.PropertyName == nameof(ViewModelBase.BusyText))
+            {
+                UpdateBusyState();
+            }
+        }
+
+        private void UpdateBusyState()
+        {
+            if (ActiveHub != null)
+            {
+                IsAppBusy = ActiveHub.IsBusy;
+                BusyMessage = ActiveHub.BusyText;
+            }
+            else
+            {
+                IsAppBusy = false;
             }
         }
 
@@ -63,10 +108,10 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         private string _onlineCount = "1"; // Just matching type if it was int
 
         [ObservableProperty]
-        private string _currentTime;
+        private string _currentTime = string.Empty;
 
         [ObservableProperty]
-        private string _currentDate;
+        private string _currentDate = string.Empty;
 
         private readonly System.Windows.Threading.DispatcherTimer _clockTimer;
 
@@ -87,6 +132,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             IsSidebarMinimized = true;
 
             InitializeNavigation();
+            UpdateFilteredNavigationItems();
             
             // Setup CollectionView filtering/grouping
             var view = System.Windows.Data.CollectionViewSource.GetDefaultView(NavigationItems);
@@ -308,6 +354,54 @@ namespace OCC.WpfClient.Features.Main.ViewModels
                 OpenHubs.Add(hub);
                 ActiveHub = hub;
             }
+        }
+
+        partial void OnFeatureSearchQueryChanged(string value)
+        {
+            UpdateFilteredNavigationItems();
+        }
+
+        private void UpdateFilteredNavigationItems()
+        {
+            if (string.IsNullOrWhiteSpace(FeatureSearchQuery))
+            {
+                FilteredNavigationItems = NavigationItems == null 
+                    ? new ObservableCollection<NavItem>() 
+                    : new ObservableCollection<NavItem>(NavigationItems);
+                return;
+            }
+
+            var results = new List<NavItem>();
+            var query = FeatureSearchQuery.ToLower();
+
+            foreach (var item in NavigationItems)
+            {
+                // Check parent
+                bool parentMatches = item.Label.ToLower().Contains(query);
+                
+                // Check children
+                var matchedChildren = item.Children
+                    .Where(c => c.Label.ToLower().Contains(query))
+                    .ToList();
+
+                if (parentMatches || matchedChildren.Any())
+                {
+                    // Create a result item that includes the matches
+                    var resultItem = new NavItem(item.Label, "IconSummary", item.Route, item.Category)
+                    {
+                        IsExpanded = true
+                    };
+                    
+                    foreach (var child in matchedChildren)
+                    {
+                        resultItem.Children.Add(child);
+                    }
+                    
+                    results.Add(resultItem);
+                }
+            }
+
+            FilteredNavigationItems = new ObservableCollection<NavItem>(results);
         }
     }
 

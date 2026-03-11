@@ -16,6 +16,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
     public partial class EmployeeListViewModel : ViewModelBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly IUserService _userService;
         private readonly ILogger<EmployeeListViewModel> _logger;
         private List<EmployeeSummaryDto> _allEmployees = new();
 
@@ -43,11 +44,26 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         [ObservableProperty]
         private EmployeeSummaryDto? _selectedEmployee;
 
-        public EmployeeListViewModel(IEmployeeService employeeService, ILogger<EmployeeListViewModel> logger)
+
+        [ObservableProperty]
+        private EmployeeDetailViewModel? _detailViewModel = null;
+
+        // Column Visibility
+        [ObservableProperty] private bool _isNumberVisible = true;
+        [ObservableProperty] private bool _isPositionVisible = true;
+        [ObservableProperty] private bool _isTypeVisible = true;
+        [ObservableProperty] private bool _isBranchVisible = true;
+
+        [ObservableProperty]
+        private bool _isColumnPickerOpen;
+
+        public EmployeeListViewModel(IEmployeeService employeeService, IUserService userService, ILogger<EmployeeListViewModel> logger)
         {
             _employeeService = employeeService;
+            _userService = userService;
             _logger = logger;
             Title = "Employees";
+            DetailViewModel = null;
             
             _ = LoadData();
         }
@@ -78,21 +94,61 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         [RelayCommand]
         private void AddEmployee()
         {
-            // TODO: Implement Add Employee Dialog
+            var employee = new Models.EmployeeModel();
+            DetailViewModel = new EmployeeDetailViewModel(this, employee, _employeeService, _userService, (ILogger)_logger);
         }
 
         [RelayCommand]
-        private void EditEmployee(EmployeeSummaryDto? employee)
+        private async Task EditEmployee(EmployeeSummaryDto? summary)
         {
-            if (employee == null) return;
-            // TODO: Implement Edit Employee Dialog
+            if (summary == null) return;
+            
+            try
+            {
+                IsBusy = true;
+                BusyText = "Loading employee details...";
+                var dto = await _employeeService.GetEmployeeAsync(summary.Id);
+                if (dto != null)
+                {
+                    var model = new Models.EmployeeModel(dto);
+                    DetailViewModel = new EmployeeDetailViewModel(this, model, _employeeService, _userService, (ILogger)_logger);
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         [RelayCommand]
-        private void DeleteEmployee(EmployeeSummaryDto? employee)
+        private async Task DeleteEmployee(EmployeeSummaryDto? employee)
         {
             if (employee == null) return;
-            // TODO: Implement Delete Confirmation and Logic
+            
+            // In a real app, we'd show a confirmation dialog here.
+            // For now, let's assume confirmation and implement the logic.
+            try
+            {
+                IsBusy = true;
+                BusyText = "Deleting employee...";
+                var success = await _employeeService.DeleteEmployeeAsync(employee.Id);
+                if (success)
+                {
+                    await LoadData();
+                }
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private void ToggleColumnPicker() => IsColumnPickerOpen = !IsColumnPickerOpen;
+
+        public void CloseDetailView()
+        {
+            DetailViewModel = null;
         }
 
         partial void OnSearchQueryChanged(string value) => FilterEmployees();

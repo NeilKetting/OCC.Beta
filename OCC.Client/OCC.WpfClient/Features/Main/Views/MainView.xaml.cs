@@ -42,5 +42,21 @@ namespace OCC.WpfClient.Features.Main.Views
                 }
             }
         }
+
+        private void OnSidebarMouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (DataContext is ViewModels.MainViewModel vm)
+            {
+                vm.IsSidebarMinimized = false;
+            }
+        }
+
+        private void OnSidebarMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (DataContext is ViewModels.MainViewModel vm)
+            {
+                vm.IsSidebarMinimized = true;
+            }
+        }
     }
 }

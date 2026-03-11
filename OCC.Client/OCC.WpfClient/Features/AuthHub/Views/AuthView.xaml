@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure.Converters"
-             xmlns:ap="clr-namespace:OCC.WpfClient.Infrastructure.AttachedProperties">
+             xmlns:ap="clr-namespace:OCC.WpfClient.Infrastructure.AttachedProperties"
+             Loaded="OnAuthViewLoaded">
     <UserControl.Resources>
         <Storyboard x:Key="FlipToRegister">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX">
@@ -168,15 +169,17 @@
 
                             <!-- Inputs -->
                             <StackPanel Margin="0,10,0,0">
-                                <TextBox Style="{StaticResource ModernInput}" 
+                                <TextBox x:Name="EmailTextBox" Style="{StaticResource ModernInput}" 
                                          ap:WatermarkProperties.Watermark="Email"
-                                         Text="{Binding LoginModel.Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                                         Text="{Binding LoginModel.Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
+                                         KeyDown="OnLoginFieldKeyDown"/>
                             </StackPanel>
 
                             <StackPanel Margin="0,15,0,0">
                                 <PasswordBox Name="LoginPasswordBox" Padding="10" 
                                              ap:WatermarkProperties.Watermark="Password"
-                                             Style="{StaticResource ModernPasswordInput}"/>
+                                             Style="{StaticResource ModernPasswordInput}"
+                                             KeyDown="OnLoginFieldKeyDown"/>
                             </StackPanel>
 
                             <!-- Options -->

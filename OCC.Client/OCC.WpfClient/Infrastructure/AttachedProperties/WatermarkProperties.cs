@@ -10,7 +10,7 @@ namespace OCC.WpfClient.Infrastructure.AttachedProperties
                 "Watermark",
                 typeof(object),
                 typeof(WatermarkProperties),
-                new FrameworkPropertyMetadata((object)null));
+                new FrameworkPropertyMetadata(null));
 
         public static object GetWatermark(DependencyObject d)
         {

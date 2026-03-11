@@ -34,10 +34,10 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
         private bool _isDevUser;
 
         [ObservableProperty]
-        private string _currentTime;
+        private string _currentTime = string.Empty;
 
         [ObservableProperty]
-        private string _currentDate;
+        private string _currentDate = string.Empty;
 
         private readonly System.Windows.Threading.DispatcherTimer _clockTimer;
 

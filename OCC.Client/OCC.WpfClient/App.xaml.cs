@@ -70,6 +70,7 @@ namespace OCC.WpfClient
             services.AddSingleton<IUpdateService, UpdateService>();
             services.AddSingleton<IAuthService, AuthService>();
             services.AddSingleton<IEmployeeService, EmployeeService>();
+            services.AddSingleton<IUserService, UserService>();
 
             // ViewModels
             services.AddTransient<ShellViewModel>();
