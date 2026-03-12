@@ -201,12 +201,15 @@ namespace OCC.API.Controllers
                 // 1. Close stale V2 sessions
                 foreach (var v2Event in latestEvents.Where(e => e != null && e.EventType == ClockEventType.ClockIn))
                 {
+                    // v2Event is filtered to be non-null above
+                    var currentEvent = v2Event!;
+
                     // Check if Legacy OR V2 Timesheet says they are clocked out for today
                     var legacyClosed = await _context.AttendanceRecords
-                        .AnyAsync(r => r.EmployeeId == v2Event.EmployeeId && r.Date.Date == today && r.CheckOutTime != null);
+                        .AnyAsync(r => r.EmployeeId == currentEvent.EmployeeId && r.Date.Date == today && r.CheckOutTime != null);
                     
                     var timesheetClosed = await _context.DailyTimesheets
-                        .AnyAsync(t => t.EmployeeId == v2Event.EmployeeId && t.Date == today && t.LastOutTime != null);
+                        .AnyAsync(t => t.EmployeeId == currentEvent.EmployeeId && t.Date == today && t.LastOutTime != null);
 
                     if (legacyClosed || timesheetClosed)
                     {
@@ -215,7 +218,7 @@ namespace OCC.API.Controllers
                         var clockingEvent = new ClockingEvent
                         {
                             Id = Guid.NewGuid(),
-                            EmployeeId = v2Event.EmployeeId,
+                            EmployeeId = currentEvent.EmployeeId,
                             Timestamp = outTime,
                             EventType = ClockEventType.ClockOut,
                             Source = "RepairTool"
@@ -239,7 +242,7 @@ namespace OCC.API.Controllers
                         var clockingEvent = new ClockingEvent
                         {
                             Id = Guid.NewGuid(),
-                            EmployeeId = legacy.EmployeeId.Value,
+                            EmployeeId = legacy.EmployeeId ?? Guid.Empty,
                             Timestamp = legacy.CheckInTime ?? DateTime.Now,
                             EventType = ClockEventType.ClockIn,
                             Source = "RepairTool"

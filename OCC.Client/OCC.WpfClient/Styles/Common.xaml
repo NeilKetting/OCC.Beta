@@ -35,7 +35,7 @@
         <Style.Resources>
             <Storyboard x:Key="AnimateChevron">
                 <DoubleAnimation Storyboard.TargetProperty="(Border.Background).(DrawingBrush.RelativeTransform).(TranslateTransform.X)"
-                                 From="0" To="40" Duration="0:20:0" 
+                                 From="0" To="100" Duration="0:20:0" 
                                  RepeatBehavior="Forever" />
             </Storyboard>
         </Style.Resources>

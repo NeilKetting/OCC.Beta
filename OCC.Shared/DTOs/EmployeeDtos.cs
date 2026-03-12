@@ -7,12 +7,13 @@ namespace OCC.Shared.DTOs
     public class EmployeeSummaryDto
     {
         public Guid Id { get; set; }
-        public Guid? LinkedUserId { get; set; } // Added for validation
+        public Guid? LinkedUserId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string DisplayName => $"{FirstName}, {LastName}".Trim();
-        public string IdNumber { get; set; } = string.Empty; // Added for validation
-        public string Email { get; set; } = string.Empty; // Added for validation
+        public string IdNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public string EmployeeNumber { get; set; } = string.Empty;
         public EmployeeRole Role { get; set; }
         public EmployeeStatus Status { get; set; }
@@ -22,6 +23,10 @@ namespace OCC.Shared.DTOs
         public double HourlyRate { get; set; }
         public TimeSpan? ShiftStartTime { get; set; }
         public TimeSpan? ShiftEndTime { get; set; }
+        public string TaxNumber { get; set; } = string.Empty;
+        public string? BankName { get; set; }
+        public double LeaveBalance { get; set; }
+        public DateTime EmploymentDate { get; set; }
     }
 
     public class EmployeeDto

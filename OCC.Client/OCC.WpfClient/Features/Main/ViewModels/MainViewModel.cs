@@ -282,6 +282,12 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         }
 
         [RelayCommand]
+        private void ExitApp()
+        {
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        [RelayCommand]
         private void Navigate(NavItem item)
         {
             if (item == null) return;

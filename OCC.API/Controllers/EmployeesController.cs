@@ -182,11 +182,12 @@ namespace OCC.API.Controllers
             return new EmployeeSummaryDto
             {
                 Id = employee.Id,
-                LinkedUserId = employee.LinkedUserId, // Added for validation
+                LinkedUserId = employee.LinkedUserId,
                 FirstName = employee.FirstName,
                 LastName = employee.LastName,
-                IdNumber = employee.IdNumber, // Added
-                Email = employee.Email,       // Added
+                IdNumber = employee.IdNumber,
+                Email = employee.Email,
+                Phone = employee.Phone,
                 EmployeeNumber = employee.EmployeeNumber,
                 Role = employee.Role,
                 Status = employee.Status,
@@ -195,7 +196,11 @@ namespace OCC.API.Controllers
                 RateType = employee.RateType,
                 HourlyRate = employee.HourlyRate,
                 ShiftStartTime = employee.ShiftStartTime,
-                ShiftEndTime = employee.ShiftEndTime
+                ShiftEndTime = employee.ShiftEndTime,
+                TaxNumber = employee.TaxNumber,
+                BankName = employee.BankName,
+                LeaveBalance = employee.LeaveBalance,
+                EmploymentDate = employee.EmploymentDate
             };
         }
 

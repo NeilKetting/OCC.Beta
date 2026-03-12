@@ -22,6 +22,23 @@ namespace OCC.WpfClient
                 
                 // Set initial view
                 shellVm.Navigation.NavigateTo<AuthViewModel>();
+
+                // Monitor navigation for logout resizing
+                if (shellVm.Navigation is System.ComponentModel.INotifyPropertyChanged npc)
+                {
+                    npc.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == "CurrentView")
+                        {
+                            if (shellVm.Navigation.CurrentView is AuthViewModel)
+                            {
+                                WindowState = WindowState.Normal;
+                                Width = 1024;
+                                Height = 700;
+                            }
+                        }
+                    };
+                }
             }
         }
 

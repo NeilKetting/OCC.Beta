@@ -8,6 +8,7 @@ namespace OCC.WpfClient.Services.Infrastructure
     {
         public string LastEmail { get; set; } = string.Empty;
         public bool RememberMe { get; set; } = false;
+        public Features.Employees.Models.EmployeeListLayout? EmployeeListLayout { get; set; }
     }
 
     public class LocalSettingsService

@@ -25,7 +25,7 @@ namespace OCC.WpfClient.Infrastructure.Converters
             }
 
             // Invert logic if parameter is 'Invert'
-            if (parameter?.ToString() == "Invert")
+            if (parameter?.ToString()?.Equals("Invert", StringComparison.OrdinalIgnoreCase) == true)
             {
                 isVisible = !isVisible;
             }
@@ -35,7 +35,7 @@ namespace OCC.WpfClient.Infrastructure.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            return Binding.DoNothing;
         }
     }
 }

@@ -17,15 +17,18 @@ namespace OCC.WpfClient.Services
         private readonly ILogger<EmployeeService> _logger;
         private readonly HttpClient _httpClient;
         private readonly ConnectionSettings _connectionSettings;
+        private readonly IAuthService _authService;
         private readonly JsonSerializerOptions _options;
 
         public EmployeeService(ILogger<EmployeeService> logger, 
                                IHttpClientFactory httpClientFactory,
-                               ConnectionSettings connectionSettings)
+                               ConnectionSettings connectionSettings,
+                               IAuthService authService)
         {
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
             _connectionSettings = connectionSettings;
+            _authService = authService;
             _options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -33,15 +36,25 @@ namespace OCC.WpfClient.Services
             };
         }
 
+        private void EnsureAuthorization()
+        {
+            var token = _authService.CurrentToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
         private string GetFullUrl(string path)
         {
-            var baseUrl = _connectionSettings.ApiBaseUrl;
+            var baseUrl = _connectionSettings.ApiBaseUrl ?? "http://localhost:5000/";
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
             return $"{baseUrl}{path}";
         }
 
         public async Task<IEnumerable<EmployeeSummaryDto>> GetEmployeesAsync()
         {
+            EnsureAuthorization();
             var url = GetFullUrl("api/Employees");
             try
             {
@@ -57,6 +70,7 @@ namespace OCC.WpfClient.Services
 
         public async Task<EmployeeDto?> GetEmployeeAsync(Guid id)
         {
+            EnsureAuthorization();
             var url = GetFullUrl($"api/Employees/{id}");
             try
             {
@@ -71,6 +85,7 @@ namespace OCC.WpfClient.Services
 
         public async Task<EmployeeDto?> CreateEmployeeAsync(Employee employee)
         {
+            EnsureAuthorization();
             var url = GetFullUrl("api/Employees");
             try
             {
@@ -93,6 +108,7 @@ namespace OCC.WpfClient.Services
 
         public async Task<bool> UpdateEmployeeAsync(Employee employee)
         {
+            EnsureAuthorization();
             var url = GetFullUrl($"api/Employees/{employee.Id}");
             try
             {
@@ -115,6 +131,7 @@ namespace OCC.WpfClient.Services
 
         public async Task<bool> DeleteEmployeeAsync(Guid id)
         {
+            EnsureAuthorization();
             var url = GetFullUrl($"api/Employees/{id}");
             try
             {

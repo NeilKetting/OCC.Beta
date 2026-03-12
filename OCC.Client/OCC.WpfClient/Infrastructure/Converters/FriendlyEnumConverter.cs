@@ -1,20 +1,21 @@
 using System;
 using System.Globalization;
-using System.Windows;
+using System.Text.RegularExpressions;
 using System.Windows.Data;
 
 namespace OCC.WpfClient.Infrastructure.Converters
 {
-    public class StringToVisibilityConverter : IValueConverter
+    public class FriendlyEnumConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is string s && parameter is string p)
-            {
-                // Hide if the value matches the parameter (e.g. don't show "Main" header)
-                return s.Equals(p, StringComparison.OrdinalIgnoreCase) ? Visibility.Collapsed : Visibility.Visible;
-            }
-            return Visibility.Visible;
+            if (value == null) return string.Empty;
+
+            string? enumString = value?.ToString();
+            if (string.IsNullOrEmpty(enumString)) return string.Empty;
+
+            // Split by capital letters: "SiteManager" -> "Site Manager"
+            return Regex.Replace(enumString, "([a-z])([A-Z])", "$1 $2");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

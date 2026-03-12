@@ -9,7 +9,8 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="Template">
@@ -27,7 +28,8 @@
                                        VerticalAlignment="Center" 
                                        Visibility="Collapsed" 
                                        IsHitTestVisible="False"/>
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -64,7 +66,8 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="Template">
@@ -83,7 +86,8 @@
                                        Margin="{TemplateBinding Padding}" 
                                        VerticalAlignment="Center" 
                                        IsHitTestVisible="False"/>
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -269,6 +273,157 @@
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="templateRoot" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern DatePicker Style -->
+    <Style x:Key="ModernDatePicker" TargetType="DatePicker">
+        <Setter Property="Background" Value="{StaticResource InputBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DatePicker">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <DatePickerTextBox x:Name="PART_TextBox" 
+                                              Grid.Column="0" 
+                                              Focusable="{TemplateBinding Focusable}" 
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              Padding="{TemplateBinding Padding}"/>
+
+                            <Button x:Name="PART_Button" 
+                                    Grid.Column="1" 
+                                    Width="30" 
+                                    Margin="0,0,5,0"
+                                    Focusable="False">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid Background="Transparent">
+                                            <Path Data="{StaticResource IconCalendar}" 
+                                                  Fill="{StaticResource TextSub}" 
+                                                  Stretch="Uniform" 
+                                                  Width="14" Height="14" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"
+                                                  Opacity="0.6"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Watermark for DatePicker -->
+                            <TextBlock x:Name="watermark" 
+                                       Grid.Column="0"
+                                       Text="{Binding Path=(ap:WatermarkProperties.Watermark), RelativeSource={RelativeSource TemplatedParent}}" 
+                                       Foreground="{StaticResource TextSub}" 
+                                       Margin="12,0,0,0"
+                                       VerticalAlignment="Center" 
+                                       Visibility="Collapsed" 
+                                       IsHitTestVisible="False"/>
+
+                            <Popup x:Name="PART_Popup" 
+                                   Placement="Bottom" 
+                                   PlacementTarget="{Binding ElementName=border}"
+                                   StaysOpen="False" 
+                                   AllowsTransparency="True"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding Text, ElementName=PART_TextBox}" Value=""/>
+                                <Condition Binding="{Binding IsFocused, ElementName=PART_TextBox}" Value="False"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="watermark" Property="Visibility" Value="Visible"/>
+                        </MultiDataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource InputBorderHover}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="DatePickerTextBox">
+        <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource TextMain}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DatePickerTextBox">
+                    <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                  Background="Transparent" VerticalAlignment="Center"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern TimePicker Style (Uses TextBox with Clock Icon) -->
+    <Style x:Key="ModernTimePicker" TargetType="TextBox" BasedOn="{StaticResource ModernInput}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" 
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock x:Name="watermark" 
+                                       Text="{Binding Path=(ap:WatermarkProperties.Watermark), RelativeSource={RelativeSource TemplatedParent}}" 
+                                       Foreground="{StaticResource TextSub}" 
+                                       Margin="{TemplateBinding Padding}" 
+                                       VerticalAlignment="Center" 
+                                       Visibility="Collapsed" 
+                                       IsHitTestVisible="False"/>
+                            
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            
+                            <Path Grid.Column="1" Data="{StaticResource IconClock}" 
+                                  Fill="{StaticResource TextSub}" 
+                                  Stretch="Uniform" 
+                                  Width="14" Height="14" 
+                                  Margin="0,0,10,0"
+                                  VerticalAlignment="Center"
+                                  Opacity="0.6"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
+                            <Setter TargetName="watermark" Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource InputBackgroundHover}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource InputBorderHover}"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource CardBackground}"/>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBlue}"/>
+                            <Setter TargetName="watermark" Property="Visibility" Value="Collapsed" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

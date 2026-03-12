@@ -17,30 +17,43 @@ namespace OCC.WpfClient.Services
         private readonly ILogger<UserService> _logger;
         private readonly HttpClient _httpClient;
         private readonly ConnectionSettings _connectionSettings;
+        private readonly IAuthService _authService;
         private readonly JsonSerializerOptions _options;
 
         public UserService(ILogger<UserService> logger, 
                             IHttpClientFactory httpClientFactory,
-                            ConnectionSettings connectionSettings)
+                            ConnectionSettings connectionSettings,
+                            IAuthService authService)
         {
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
             _connectionSettings = connectionSettings;
+            _authService = authService;
             _options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
         }
 
+        private void EnsureAuthorization()
+        {
+            var token = _authService.CurrentToken;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
         private string GetFullUrl(string path)
         {
-            var baseUrl = _connectionSettings.ApiBaseUrl;
+            var baseUrl = _connectionSettings.ApiBaseUrl ?? "http://localhost:5000/";
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
             return $"{baseUrl}{path}";
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync()
         {
+            EnsureAuthorization();
             var url = GetFullUrl("api/Users");
             try
             {

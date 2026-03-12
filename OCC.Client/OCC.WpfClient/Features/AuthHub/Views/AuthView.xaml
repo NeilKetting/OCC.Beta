@@ -176,7 +176,7 @@
                             </StackPanel>
 
                             <StackPanel Margin="0,15,0,0">
-                                <PasswordBox Name="LoginPasswordBox" Padding="10" 
+                                <PasswordBox Name="LoginPasswordBox" 
                                              ap:WatermarkProperties.Watermark="Password"
                                              Style="{StaticResource ModernPasswordInput}"
                                              KeyDown="OnLoginFieldKeyDown"/>
@@ -253,7 +253,7 @@
                             </StackPanel>
 
                             <StackPanel Margin="0,15,0,0">
-                                <PasswordBox Name="RegisterPasswordBox" Padding="10" 
+                                <PasswordBox Name="RegisterPasswordBox" 
                                              ap:WatermarkProperties.Watermark="Password"
                                              Style="{StaticResource ModernPasswordInput}"/>
                             </StackPanel>

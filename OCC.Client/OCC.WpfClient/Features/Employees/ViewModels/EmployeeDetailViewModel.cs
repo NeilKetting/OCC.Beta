@@ -33,14 +33,34 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         [ObservableProperty]
         private List<User> _availableUsers = new();
 
-        private readonly IUserService _userService;
+        [ObservableProperty]
+        private string _leaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
 
-        public EmployeeDetailViewModel(EmployeeListViewModel parent, EmployeeModel employee, IEmployeeService employeeService, IUserService userService, ILogger logger)
+        [ObservableProperty]
+        private double _currentAnnualLeaveBalance;
+
+        [ObservableProperty]
+        private string _sickLeaveCycleEndDisplay = "N/A";
+
+        [ObservableProperty]
+        private bool _isSystemAccessVisible;
+
+        [ObservableProperty]
+        private bool _showPermissionsButton;
+
+        public bool IsPassportVisible => Employee.IdType == IdType.Passport;
+        public bool IsContractVisible => Employee.EmploymentType == EmploymentType.Contract;
+
+        private readonly IUserService _userService;
+        private readonly IAuthService _authService;
+
+        public EmployeeDetailViewModel(EmployeeListViewModel parent, EmployeeModel employee, IEmployeeService employeeService, IUserService userService, IAuthService authService, ILogger logger)
         {
             _parent = parent;
             _employee = employee;
             _employeeService = employeeService;
             _userService = userService;
+            _authService = authService;
             _logger = logger;
             _isNew = employee.Id == Guid.Empty;
             
@@ -55,6 +75,11 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
             {
                 var users = await _userService.GetUsersAsync();
                 AvailableUsers = users.OrderBy(u => u.DisplayName).ToList();
+
+                UpdateSystemAccessVisibility();
+                UpdatePermissionsButtonVisibility();
+                UpdateAccrualRule();
+                UpdateSickLeaveCycleEnd();
             }
             catch (Exception ex)
             {
@@ -75,6 +100,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                     }
                     else if (e.PropertyName == nameof(EmployeeModel.IdType))
                     {
+                        OnPropertyChanged(nameof(IsPassportVisible));
                         if (Employee.IdType == IdType.RSAId)
                             CalculateDoBFromRsaId(Employee.IdNumber);
                     }
@@ -82,9 +108,24 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                     {
                         UpdateShiftTimes();
                     }
+                    else if (e.PropertyName == nameof(EmployeeModel.Role))
+                    {
+                        UpdateSystemAccessVisibility();
+                        UpdatePermissionsButtonVisibility();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeModel.EmploymentType))
+                    {
+                        OnPropertyChanged(nameof(IsContractVisible));
+                        UpdateAccrualRule();
+                    }
+                    else if (e.PropertyName == nameof(EmployeeModel.LeaveCycleStartDate))
+                    {
+                        UpdateSickLeaveCycleEnd();
+                    }
                     else if (e.PropertyName == nameof(EmployeeModel.LinkedUserId))
                     {
                         HandleLinkedUserChange(Employee.LinkedUserId);
+                        UpdatePermissionsButtonVisibility();
                     }
                 };
             }
@@ -105,16 +146,72 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
 
         private void UpdateShiftTimes()
         {
-            if (Employee.Branch == "Johannesburg")
+            var jhbStart = new TimeSpan(7, 0, 0);
+            var jhbEnd = new TimeSpan(16, 45, 0);
+            var cptStart = new TimeSpan(7, 0, 0);
+            var cptEnd = new TimeSpan(16, 30, 0);
+
+            if (string.Equals(Employee.Branch, "Johannesburg", StringComparison.OrdinalIgnoreCase))
             {
-                Employee.ShiftStartTime = new TimeSpan(7, 0, 0);
-                Employee.ShiftEndTime = new TimeSpan(16, 45, 0);
+                Employee.ShiftStartTime = jhbStart;
+                Employee.ShiftEndTime = jhbEnd;
             }
-            else if (Employee.Branch == "Cape Town")
+            else if (string.Equals(Employee.Branch, "Cape Town", StringComparison.OrdinalIgnoreCase))
             {
-                Employee.ShiftStartTime = new TimeSpan(7, 0, 0);
-                Employee.ShiftEndTime = new TimeSpan(16, 30, 0);
+                Employee.ShiftStartTime = cptStart;
+                Employee.ShiftEndTime = cptEnd;
             }
+        }
+
+        private void UpdateAccrualRule()
+        {
+            if (Employee.EmploymentType == EmploymentType.Contract)
+            {
+                LeaveAccrualRule = "Accrual: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
+            }
+            else
+            {
+                LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
+            }
+        }
+
+        private void UpdateSickLeaveCycleEnd()
+        {
+            if (Employee.LeaveCycleStartDate.HasValue && Employee.LeaveCycleStartDate.Value > new DateTime(1900, 1, 1))
+            {
+                var endDate = Employee.LeaveCycleStartDate.Value.AddMonths(36).AddDays(-1);
+                SickLeaveCycleEndDisplay = endDate.ToString("dd MMM yyyy");
+            }
+            else
+            {
+                SickLeaveCycleEndDisplay = "N/A";
+            }
+        }
+
+        private void UpdateSystemAccessVisibility()
+        {
+            IsSystemAccessVisible = Employee.Role == EmployeeRole.Office || Employee.Role == EmployeeRole.SiteManager;
+        }
+
+        private void UpdatePermissionsButtonVisibility()
+        {
+            var currentUser = _authService.CurrentUser;
+            if (currentUser?.UserRole != UserRole.Admin)
+            {
+                ShowPermissionsButton = false;
+                return;
+            }
+
+            bool isRoleManaged = Employee.Role == EmployeeRole.Office;
+            bool isLinkedAdmin = false;
+
+            if (Employee.LinkedUserId.HasValue)
+            {
+                var linkedUser = AvailableUsers.FirstOrDefault(u => u.Id == Employee.LinkedUserId.Value);
+                isLinkedAdmin = linkedUser?.UserRole == UserRole.Admin || linkedUser?.UserRole == UserRole.SiteManager;
+            }
+
+            ShowPermissionsButton = isRoleManaged && !isLinkedAdmin;
         }
 
         private void HandleLinkedUserChange(Guid? userId)
@@ -127,6 +224,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                     if (string.IsNullOrWhiteSpace(Employee.FirstName)) Employee.FirstName = selectedUser.FirstName ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(Employee.LastName)) Employee.LastName = selectedUser.LastName ?? string.Empty;
                     if (string.IsNullOrWhiteSpace(Employee.Email)) Employee.Email = selectedUser.Email ?? string.Empty;
+                    if (string.IsNullOrWhiteSpace(Employee.Phone)) Employee.Phone = selectedUser.Phone ?? string.Empty;
                 }
             }
         }
@@ -173,6 +271,18 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         private void Cancel()
         {
             _parent.CloseDetailView();
+        }
+
+        [RelayCommand]
+        private void Print()
+        {
+            _logger.LogInformation("Print Profile requested for {DisplayName}", Employee.DisplayName);
+        }
+
+        [RelayCommand]
+        private void OpenPermissions()
+        {
+            _logger.LogInformation("Open Permissions requested for {DisplayName}", Employee.DisplayName);
         }
     }
 }

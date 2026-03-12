@@ -183,7 +183,7 @@ namespace OCC.WpfClient.Features.Employees.Models
                 DoB = DoB,
                 ShiftStartTime = ShiftStartTime,
                 ShiftEndTime = ShiftEndTime,
-                BankName = BankName == BankName.None ? null : BankName.ToString(),
+                BankName = BankName != BankName.None ? BankName.ToString() : (string?)null,
                 AccountNumber = AccountNumber,
                 BranchCode = BranchCode,
                 AccountType = AccountType,
