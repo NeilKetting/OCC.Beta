@@ -60,6 +60,7 @@ namespace OCC.Client.Features.ProjectsHub.ViewModels
                             Tasks[i].Priority != newTask.Priority ||
                             Tasks[i].PercentComplete != newTask.PercentComplete ||
                             Tasks[i].Name != newTask.Name ||
+                            Tasks[i].AssigneeInitials != newTask.AssigneeInitials ||
                             Tasks[i].FinishDate != newTask.FinishDate)
                         {
                             Tasks[i] = newTask;

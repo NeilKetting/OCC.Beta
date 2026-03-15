@@ -17,8 +17,8 @@
         <Storyboard x:Key="ExpandSidebar">
             <DoubleAnimation Storyboard.TargetName="SidebarBorder" 
                              Storyboard.TargetProperty="Width" 
-                             To="280" Duration="0:0:0.8"
-                             BeginTime="0:0:1">
+                             To="280" Duration="0:0:0.6"
+                             BeginTime="0:0:0.3">
                 <DoubleAnimation.EasingFunction>
                     <CubicEase EasingMode="EaseOut"/>
                 </DoubleAnimation.EasingFunction>
@@ -111,7 +111,7 @@
 
             <!-- Full Window Background -->
             <Image Grid.ColumnSpan="2" Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
-            <Rectangle Grid.ColumnSpan="2" Fill="{StaticResource BackgroundDark}" Opacity="0.85" />
+            <Rectangle Grid.ColumnSpan="2" Fill="{StaticResource BackgroundDark}" Opacity="0.75" />
 
             <!-- Sidebar -->
             <Border x:Name="SidebarBorder" Grid.Column="0" Width="72" Style="{StaticResource ModernSidebar}" Background="Transparent" 

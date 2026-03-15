@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,17 @@ namespace OCC.WpfClient
         {
             // Initialize Velopack
             Velopack.VelopackApp.Build().Run();
+
+            // Set Culture to South Africa for Rands (R) currency formatting
+            var culture = new CultureInfo("en-ZA");
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+
+            // Ensure WPF uses the same culture for bindings by default
+            FrameworkElement.LanguageProperty.OverrideMetadata(
+                typeof(FrameworkElement),
+                new FrameworkPropertyMetadata(
+                    System.Windows.Markup.XmlLanguage.GetLanguage(culture.IetfLanguageTag)));
 
             base.OnStartup(e);
 

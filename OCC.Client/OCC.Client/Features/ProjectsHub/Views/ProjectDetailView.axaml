@@ -144,8 +144,8 @@
 										</DataGridTemplateColumn.Header>
 										<DataGridTemplateColumn.CellTemplate>
 											<DataTemplate>
-												<Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource PrimaryTealLight}" HorizontalAlignment="Center">
-													<TextBlock Text="Multiple" Margin="5,0,0,0" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource TextPrimaryGray}" />
+												<Border Height="28" CornerRadius="14" Padding="8,0" Background="{DynamicResource PrimaryTealLight}" HorizontalAlignment="Center">
+													<TextBlock Text="{Binding AssigneeInitials}" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryGray}" />
 												</Border>
 											</DataTemplate>
 										</DataGridTemplateColumn.CellTemplate>

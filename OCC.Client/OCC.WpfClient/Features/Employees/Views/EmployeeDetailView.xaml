@@ -19,9 +19,7 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- Background Overlay Effect -->
-        <Border Background="#40000000" IsHitTestVisible="False"/>
-
+        <!-- Redundant background overlay removed, handled by host -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -34,7 +32,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource CardBackground}" CornerRadius="12" Margin="0,20">
+            <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource CardBackground}" CornerRadius="12" Margin="0,20" BorderBrush="{StaticResource OrangeBrush}" BorderThickness="1">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="30" ShadowDepth="5" Opacity="0.5"/>
                 </Border.Effect>
@@ -59,7 +57,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="{Binding Employee.DisplayName}" FontSize="26" FontWeight="Bold" Foreground="White"/>
+                                        <TextBlock Text="{Binding Employee.DisplayName}" FontSize="32" FontWeight="Bold" Foreground="White"/>
                                         <TextBlock Text="Employee Profile &amp; Management Details." FontSize="14" Foreground="{StaticResource TextSub}" Margin="0,4,0,0"/>
                                     </StackPanel>
 
@@ -91,21 +89,15 @@
                                             <TextBox Text="{Binding Employee.EmployeeNumber}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. EMP001"/>
                                         </StackPanel>
 
-                                        <Grid Margin="0,0,0,15">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="10"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="First Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                                <TextBox Text="{Binding Employee.FirstName}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="John"/>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock Text="Last Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                                <TextBox Text="{Binding Employee.LastName}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="Doe"/>
-                                            </StackPanel>
-                                        </Grid>
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="First Name" Foreground="{StaticResource TextSub}" FontSize="14" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding Employee.FirstName}" Style="{StaticResource ModernInput}" FontSize="14" ap:WatermarkProperties.Watermark="John"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Last Name" Foreground="{StaticResource TextSub}" FontSize="14" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding Employee.LastName}" Style="{StaticResource ModernInput}" FontSize="14" ap:WatermarkProperties.Watermark="Doe"/>
+                                        </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Identification Type" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
@@ -118,6 +110,16 @@
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="ID / Passport Number" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <TextBox Text="{Binding Employee.IdNumber}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="13 Digit ID or Passport"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Email Address" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding Employee.Email}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="name@example.com"/>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Phone Number" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                            <TextBox Text="{Binding Employee.Phone}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="082 ..."/>
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15" Visibility="{Binding IsPassportVisible, Converter={StaticResource VisibilityConverter}}">
@@ -164,6 +166,17 @@
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Employee Status" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                            <ComboBox ItemsSource="{Binding Statuses}" SelectedValue="{Binding Employee.Status}" Style="{StaticResource ModernComboBox}">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Converter={StaticResource FriendlyEnumConverter}}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Job Role" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <ComboBox ItemsSource="{Binding Roles}" SelectedValue="{Binding Employee.Role}" Style="{StaticResource ModernComboBox}">
                                                 <ComboBox.ItemTemplate>
@@ -172,6 +185,11 @@
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Employment Date" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                            <DatePicker SelectedDate="{Binding Employee.EmploymentDate}" Style="{StaticResource ModernDatePicker}"/>
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">
@@ -210,7 +228,7 @@
 
                                         <StackPanel Margin="0,0,0,25">
                                             <TextBlock Text="Physical Address" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                            <TextBox Text="{Binding Employee.PhysicalAddress}" Style="{StaticResource ModernInput}" Height="80" TextWrapping="Wrap" AcceptsReturn="True" ap:WatermarkProperties.Watermark="Street, Suburb, City..."/>
+                                            <TextBox Text="{Binding Employee.PhysicalAddress}" Style="{StaticResource ModernInput}" MinHeight="60" Height="Auto" TextWrapping="Wrap" AcceptsReturn="True" ap:WatermarkProperties.Watermark="Street, Suburb, City..." VerticalContentAlignment="Top"/>
                                         </StackPanel>
 
                                         <!-- Emergency -->
@@ -271,6 +289,11 @@
                                                     </DataTemplate>
                                                 </ComboBox.ItemTemplate>
                                             </ComboBox>
+                                        </StackPanel>
+
+                                        <StackPanel Margin="0,0,0,15">
+                                            <TextBlock Text="Account Type" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                            <ComboBox ItemsSource="{Binding AccountTypes}" SelectedItem="{Binding Employee.AccountType}" Style="{StaticResource ModernComboBox}"/>
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">

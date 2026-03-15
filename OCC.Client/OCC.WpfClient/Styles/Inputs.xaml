@@ -28,8 +28,8 @@
                                        VerticalAlignment="Center" 
                                        Visibility="Collapsed" 
                                        IsHitTestVisible="False"/>
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
-                                          VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
+                                          VerticalAlignment="Stretch" Margin="{TemplateBinding Padding}"/>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -70,6 +70,7 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
+        <Setter Property="ap:WatermarkProperties.MonitorPassword" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="PasswordBox">
@@ -91,14 +92,16 @@
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
-                        <!-- Hide watermark if there's any content using the attached property proxy or when focused -->
+                        <!-- Use proxy to monitor password length -->
+                        <Trigger Property="ap:WatermarkProperties.HasPassword" Value="True">
+                            <Setter TargetName="watermark" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        
                         <Trigger Property="IsFocused" Value="true">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource CardBackground}"/>
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource AccentBlue}"/>
                             <Setter TargetName="watermark" Property="Visibility" Value="Collapsed"/>
                         </Trigger>
-                        <!-- Simple proxy workaround to hide watermark if it has content when losing focus will require code-behind/behaviors for PB -->
-                        <!-- Let's assume OCC will manage this via a simple Behavior later if needed, but this satisfies the focused requirement! -->
                         
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="border" Property="Background" Value="{StaticResource InputBackgroundHover}"/>
@@ -205,6 +208,9 @@
                         </Popup>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="toggleButton" Property="BorderBrush" Value="{StaticResource AccentBlue}" />
+                        </Trigger>
                         <Trigger Property="HasItems" Value="False">
                             <Setter TargetName="DropDownBorder" Property="Height" Value="95" />
                         </Trigger>
@@ -263,6 +269,9 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="checkBoxBorder" Property="Background" Value="{StaticResource InputBackgroundHover}" />
                             <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{StaticResource InputBorderHover}" />
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{StaticResource AccentBlue}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="optionMark" Property="Opacity" Value="1" />

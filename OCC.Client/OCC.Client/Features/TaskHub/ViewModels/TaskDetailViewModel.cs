@@ -355,6 +355,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
              
              Assignments.Add(assignment);
              await SaveAssignment(assignment);
+             WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
         }
 
         [RelayCommand]
@@ -373,6 +374,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
              
              Assignments.Add(assignment);
              await SaveAssignment(assignment);
+             WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
         }
 
         [RelayCommand]
@@ -391,6 +393,7 @@ namespace OCC.Client.Features.TaskHub.ViewModels
              
              Assignments.Add(assignment);
              await SaveAssignment(assignment);
+             WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
         }
 
         private async Task SaveAssignment(TaskAssignment assignment)
@@ -404,6 +407,29 @@ namespace OCC.Client.Features.TaskHub.ViewModels
              {
                 _updateLock.Release();
              }
+        }
+
+        [RelayCommand]
+        private async Task RemoveAssignment(TaskAssignment assignment)
+        {
+            if (assignment == null) return;
+
+            Assignments.Remove(assignment);
+            
+            if (!IsCreateMode)
+            {
+                await _updateLock.WaitAsync();
+                try
+                {
+                    await _assignmentRepository.DeleteAsync(assignment.Id);
+                }
+                finally
+                {
+                    _updateLock.Release();
+                }
+                
+                WeakReferenceMessenger.Default.Send(new OCC.Client.ViewModels.Messages.TaskUpdatedMessage(_currentTaskId));
+            }
         }
 
         [RelayCommand]

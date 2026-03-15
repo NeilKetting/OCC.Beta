@@ -14,7 +14,7 @@ using OCC.WpfClient.Services.Infrastructure;
 
 namespace OCC.WpfClient.Features.Employees.ViewModels
 {
-    public partial class EmployeeListViewModel : ViewModelBase
+    public partial class EmployeeListViewModel : OverlayHostViewModel
     {
         private readonly IEmployeeService _employeeService;
         private readonly IUserService _userService;
@@ -40,7 +40,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         [ObservableProperty] private int _contractCount;
 
         [ObservableProperty] private EmployeeSummaryDto? _selectedEmployee;
-        [ObservableProperty] private EmployeeDetailViewModel? _detailViewModel = null;
 
         // Column Visibility - Core
         [ObservableProperty] private bool _isNumberVisible = true;
@@ -81,7 +80,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
             _settingsService = settingsService;
             _logger = logger;
             Title = "Employees";
-            DetailViewModel = null;
+            OverlayViewModel = null;
             
             LoadLayout();
             _ = LoadData();
@@ -171,7 +170,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         private void AddEmployee()
         {
             var employee = new Models.EmployeeModel();
-            DetailViewModel = new EmployeeDetailViewModel(this, employee, _employeeService, _userService, _authService, (ILogger)_logger);
+            OpenOverlay(new EmployeeDetailViewModel(this, employee, _employeeService, _userService, _authService, (ILogger)_logger));
         }
 
         [RelayCommand]
@@ -187,7 +186,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                 if (dto != null)
                 {
                     var model = new Models.EmployeeModel(dto);
-                    DetailViewModel = new EmployeeDetailViewModel(this, model, _employeeService, _userService, _authService, (ILogger)_logger);
+                    OpenOverlay(new EmployeeDetailViewModel(this, model, _employeeService, _userService, _authService, (ILogger)_logger));
                 }
             }
             finally
@@ -261,7 +260,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
 
         public void CloseDetailView()
         {
-            DetailViewModel = null;
+            CloseOverlay();
         }
 
         partial void OnSearchQueryChanged(string value) => FilterEmployees();

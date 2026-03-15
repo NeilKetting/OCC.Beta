@@ -385,9 +385,27 @@
 										</ItemsControl.ItemsPanel>
 										<ItemsControl.ItemTemplate>
 											<DataTemplate>
-												<Border Background="{DynamicResource PrimaryTeal}" CornerRadius="15" Width="30" Height="30" BorderBrush="White" BorderThickness="2" Margin="0,0,5,0" ToolTip.Tip="{Binding AssigneeName}">
-													<TextBlock Text="{Binding AssigneeName, Converter={StaticResource NameToInitialsConverter}}" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-												</Border>
+												<Panel Margin="0,0,5,0">
+													<Border Background="{DynamicResource PrimaryTeal}" CornerRadius="15" Width="30" Height="30" BorderBrush="White" BorderThickness="2" ToolTip.Tip="{Binding AssigneeName}">
+														<TextBlock Text="{Binding AssigneeName, Converter={StaticResource NameToInitialsConverter}}" FontSize="10" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+													</Border>
+													
+													<!-- Remove Button -->
+													<Button Command="{Binding $parent[UserControl].((vm:TaskDetailViewModel)DataContext).RemoveAssignmentCommand}" 
+															CommandParameter="{Binding}"
+															Classes="Ghost" 
+															Width="16" Height="16" 
+															CornerRadius="8"
+															Padding="0"
+															HorizontalAlignment="Right" 
+															VerticalAlignment="Top"
+															Margin="0,-2,-2,0"
+															Background="#EF4444"
+															BorderBrush="White"
+															BorderThickness="1">
+														<PathIcon Data="{StaticResource IconX}" Width="8" Height="8" Foreground="White"/>
+													</Button>
+												</Panel>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>

@@ -21,6 +21,7 @@ namespace OCC.WpfClient.Features.Employees.Views
         public ModernTimePicker()
         {
             InitializeComponent();
+            Loaded += (s, e) => UpdateSelectors();
         }
 
         private static void OnSelectedTimeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -33,7 +34,7 @@ namespace OCC.WpfClient.Features.Employees.Views
 
         private void UpdateSelectors()
         {
-            if (_isUpdating) return;
+            if (_isUpdating || !IsLoaded) return;
             _isUpdating = true;
 
             try
@@ -60,14 +61,17 @@ namespace OCC.WpfClient.Features.Employees.Views
 
         private void TimePartChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdating) return;
+            if (_isUpdating || !IsLoaded) return;
             _isUpdating = true;
 
             try
             {
-                if (HourBox.SelectedItem is ComboBoxItem hItem && MinuteBox.SelectedItem is ComboBoxItem mItem)
+                string? hStr = HourBox.SelectedValue as string;
+                string? mStr = MinuteBox.SelectedValue as string;
+
+                if (hStr != null && mStr != null)
                 {
-                    if (int.TryParse(hItem.Content.ToString(), out int h) && int.TryParse(mItem.Content.ToString(), out int m))
+                    if (int.TryParse(hStr, out int h) && int.TryParse(mStr, out int m))
                     {
                         SelectedTime = new TimeSpan(h, m, 0);
                     }

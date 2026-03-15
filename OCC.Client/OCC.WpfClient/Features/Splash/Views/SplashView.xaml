@@ -8,19 +8,20 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="Transparent"
+        Background="{x:Null}"
         Topmost="True"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
     <Window.Resources>
         <Storyboard x:Key="FadeIn">
             <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.8"/>
         </Storyboard>
     </Window.Resources>
     
-    <Border CornerRadius="20" Background="{StaticResource BackgroundDark}" BorderBrush="{StaticResource AccentBlue}" BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect Color="{StaticResource AccentBlueColor}" BlurRadius="30" ShadowDepth="0" Opacity="0.4"/>
-        </Border.Effect>
+    <Border Margin="10" CornerRadius="20" Background="{StaticResource BackgroundDark}" BorderBrush="{StaticResource AccentBlue}" BorderThickness="1">
         <Grid>
             <!-- Background Glow -->
             <Ellipse Fill="{StaticResource AccentBlue}" Opacity="0.05" Margin="50">

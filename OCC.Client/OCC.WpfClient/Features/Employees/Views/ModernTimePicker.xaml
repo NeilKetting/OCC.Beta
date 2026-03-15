@@ -14,6 +14,7 @@
 
         <ComboBox x:Name="HourBox" Grid.Column="0" 
                   Style="{StaticResource ModernComboBox}"
+                  SelectedValuePath="Content"
                   SelectionChanged="TimePartChanged">
             <ComboBoxItem Content="00"/><ComboBoxItem Content="01"/><ComboBoxItem Content="02"/><ComboBoxItem Content="03"/>
             <ComboBoxItem Content="04"/><ComboBoxItem Content="05"/><ComboBoxItem Content="06"/><ComboBoxItem Content="07"/>
@@ -27,6 +28,7 @@
 
         <ComboBox x:Name="MinuteBox" Grid.Column="2" 
                   Style="{StaticResource ModernComboBox}"
+                  SelectedValuePath="Content"
                   SelectionChanged="TimePartChanged">
             <ComboBoxItem Content="00"/><ComboBoxItem Content="15"/><ComboBoxItem Content="30"/><ComboBoxItem Content="45"/>
         </ComboBox>

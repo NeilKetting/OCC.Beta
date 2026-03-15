@@ -53,6 +53,11 @@ namespace OCC.Client.ModelWrappers
         /// </summary>
         public string DisplayId => $"T-{_model.Id.ToString().Substring(_model.Id.ToString().Length - 4)}";
 
+        /// <summary>
+        /// Gets the initials of all assigned staff.
+        /// </summary>
+        public string AssigneeInitials => _model.AssigneeInitials;
+
         [ObservableProperty]
         [Required(ErrorMessage = "Task name is required")]
         private string _name = string.Empty;
@@ -74,7 +79,7 @@ namespace OCC.Client.ModelWrappers
         private bool _isComplete;
 
         [ObservableProperty]
-        private string _status = "To Do";
+        private string _status = "Not Started";
 
         [ObservableProperty]
         private int _percentComplete;
@@ -242,13 +247,11 @@ namespace OCC.Client.ModelWrappers
             }
             else
             {
-                if (Status == "Completed" || Status == "Done") 
-                    Status = "In Progress";
-                
                 if (PercentComplete == 100) 
                 {
                     PercentComplete = 50; 
                 }
+                Status = PercentComplete == 0 ? "Not Started" : "Started";
                 ActualCompleteDate = null;
             }
             
@@ -268,7 +271,8 @@ namespace OCC.Client.ModelWrappers
             // Auto-update progress based on status
              switch(value)
             {
-                case "Not Started": 
+                case "Not Started":
+                case "To Do":
                     PercentComplete = 0; 
                     break;
                 case "Started": 

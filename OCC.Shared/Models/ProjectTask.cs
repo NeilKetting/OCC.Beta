@@ -105,7 +105,7 @@ namespace OCC.Shared.Models
         public DateTime? NextReminderDate { get; set; }
         #endregion
 
-        private string _status = "To Do";
+        private string _status = "Not Started";
         public string Status 
         { 
             get => _status; 
@@ -133,7 +133,7 @@ namespace OCC.Shared.Models
                 }
                 else
                 {
-                    Status = "Started";
+                    Status = PercentComplete == 0 ? "Not Started" : "Started";
                     if (PercentComplete == 100) PercentComplete = 75;
                 }
                 OnPropertyChanged();
@@ -148,8 +148,10 @@ namespace OCC.Shared.Models
                 if (IsOnHold) return "#10B981"; // Emerald-500
                 switch (Status)
                 {
-                    case "Not Started": return "#94A3B8"; // Slate-400
-                    case "Started": return "#3B82F6"; // Blue-500
+                    case "Not Started": 
+                    case "To Do": return "#94A3B8"; // Slate-400
+                    case "Started": 
+                    case "In Progress": return "#3B82F6"; // Blue-500
                     case "Halfway": return "#8B5CF6"; // Violet-500
                     case "Almost Done": return "#EC4899"; // Pink-500
                     case "Done": 

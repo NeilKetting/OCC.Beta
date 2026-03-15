@@ -13,15 +13,19 @@
         MinWidth="1024" MinHeight="700"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
-        Background="{StaticResource BackgroundDark}"
+        Background="Transparent"
         Icon="/Assets/Images/occ_logo_transparent.png"
-        AllowsTransparency="False">
+        AllowsTransparency="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="Auto"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32" 
                       ResizeBorderThickness="8" 
-                      CornerRadius="0" 
-                      GlassFrameThickness="0" />
+                      CornerRadius="12"                      
+                      GlassFrameThickness="-1" />
     </WindowChrome.WindowChrome>
     
     <Window.Resources>
@@ -33,27 +37,64 @@
         </DataTemplate>
     </Window.Resources>
 
-    <Border Background="{StaticResource BackgroundDark}" CornerRadius="0" BorderThickness="0">
-        <Grid>
-            <!-- Title Bar -->
-            <Grid VerticalAlignment="Top" Height="32" Panel.ZIndex="10">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button Content="" Style="{StaticResource WindowControlButton}" Click="OnMinimizeClick"/>
-                    <Button x:Name="BtnMaximize" Content="" Style="{StaticResource WindowControlButton}" Click="OnMaximizeRestoreClick"/>
-                    <Button Content="" Style="{StaticResource WindowCloseButton}" Click="OnCloseClick"/>
-                </StackPanel>
+    <!-- The Root Border provides the visible border and background -->
+    <Border x:Name="RootBorder" 
+            Background="{StaticResource BackgroundDark}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="CornerRadius" Value="0"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Normal">
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource OrangeBrush}"/>
+                        <Setter Property="CornerRadius" Value="12"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <!-- The Content Grid handles clipping of all child elements -->
+        <Grid x:Name="ContentGrid">
+            <Grid.OpacityMask>
+                <VisualBrush Stretch="None" AlignmentX="Left" AlignmentY="Top">
+                    <VisualBrush.Visual>
+                        <Border Background="Black" 
+                                SnapsToDevicePixels="True"
+                                Width="{Binding ActualWidth, ElementName=ContentGrid}"
+                                Height="{Binding ActualHeight, ElementName=ContentGrid}"
+                                CornerRadius="{Binding CornerRadius, ElementName=RootBorder}"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Grid.OpacityMask>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Title Bar -->
+                <Grid VerticalAlignment="Top" Height="32" Panel.ZIndex="10">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button Content="&#xE108;" Style="{StaticResource WindowControlButton}" Click="OnMinimizeClick"/>
+                        <Button x:Name="BtnMaximize" Content="&#xE922;" Style="{StaticResource WindowControlButton}" Click="OnMaximizeRestoreClick"/>
+                        <Button Content="&#xE10A;" Style="{StaticResource WindowCloseButton}" Click="OnCloseClick"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Root Content Switcher -->
+                <ContentControl Content="{Binding Navigation.CurrentView}" Grid.RowSpan="2"/>
+
+                <!-- Global Progress Overlay (for transitions) -->
+                <Border Grid.RowSpan="2" Background="#99000000" Visibility="Collapsed" x:Name="GlobalLoadingOverlay">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Optimizing Experience..." Foreground="White" FontSize="16" Margin="0,0,0,10"/>
+                        <ProgressBar IsIndeterminate="True" Width="200" Height="4" Background="#33FFFFFF" Foreground="{StaticResource AccentBlue}"/>
+                    </StackPanel>
+                </Border>
             </Grid>
-
-            <!-- Root Content Switcher -->
-            <ContentControl Content="{Binding Navigation.CurrentView}" />
-
-            <!-- Global Progress Overlay (for transitions) -->
-            <Border Background="#99000000" Visibility="Collapsed" x:Name="GlobalLoadingOverlay">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <TextBlock Text="Optimizing Experience..." Foreground="White" FontSize="16" Margin="0,0,0,10"/>
-                    <ProgressBar IsIndeterminate="True" Width="200" Height="4" Background="#33FFFFFF" Foreground="{StaticResource AccentBlue}"/>
-                </StackPanel>
-            </Border>
         </Grid>
     </Border>
 </Window>

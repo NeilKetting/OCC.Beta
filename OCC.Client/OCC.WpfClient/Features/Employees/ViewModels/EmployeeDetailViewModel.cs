@@ -25,6 +25,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
 
         public List<EmployeeRole> Roles { get; } = new(Enum.GetValues<EmployeeRole>());
         public List<EmploymentType> EmploymentTypes { get; } = new(Enum.GetValues<EmploymentType>());
+        public List<EmployeeStatus> Statuses { get; } = new(Enum.GetValues<EmployeeStatus>());
         public List<IdType> IdTypes { get; } = new(Enum.GetValues<IdType>());
         public List<string> Branches { get; } = new() { "Johannesburg", "Cape Town", "Durban" };
         public List<string> AccountTypes { get; } = new() { "Savings", "Cheque", "Transmission" };
@@ -57,7 +58,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         public EmployeeDetailViewModel(EmployeeListViewModel parent, EmployeeModel employee, IEmployeeService employeeService, IUserService userService, IAuthService authService, ILogger logger)
         {
             _parent = parent;
-            _employee = employee;
+            Employee = employee;
             _employeeService = employeeService;
             _userService = userService;
             _authService = authService;
@@ -127,6 +128,10 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                         HandleLinkedUserChange(Employee.LinkedUserId);
                         UpdatePermissionsButtonVisibility();
                     }
+                    else if (e.PropertyName == nameof(EmployeeModel.FirstName) || e.PropertyName == nameof(EmployeeModel.LastName))
+                    {
+                        OnPropertyChanged(nameof(Title));
+                    }
                 };
             }
         }
@@ -168,10 +173,19 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
             if (Employee.EmploymentType == EmploymentType.Contract)
             {
                 LeaveAccrualRule = "Accrual: 1 day / 17 days (Annual) | 1 day / 26 days (Sick)";
+                if (IsNew && Employee.AnnualLeaveBalance == 0)
+                {
+                    Employee.AnnualLeaveBalance = 0;
+                    Employee.SickLeaveBalance = 0;
+                }
             }
             else
             {
                 LeaveAccrualRule = "Standard: 15 Working Days Annual / 30 Days Sick Leave Cycle";
+                if (IsNew && Employee.AnnualLeaveBalance == 0)
+                {
+                    Employee.SickLeaveBalance = 30;
+                }
             }
         }
 
