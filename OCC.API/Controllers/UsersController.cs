@@ -6,6 +6,7 @@ using OCC.Shared.Models;
 using Microsoft.AspNetCore.SignalR;
 using OCC.API.Services;
 using OCC.API.Hubs;
+using System.Security.Cryptography;
 
 namespace OCC.API.Controllers
 {
@@ -77,45 +78,88 @@ namespace OCC.API.Controllers
         [HttpGet("{id}/public-key")]
         public async Task<ActionResult<string>> GetUserPublicKey(Guid id)
         {
-            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null) return NotFound();
 
             if (string.IsNullOrEmpty(user.PublicKey))
-                return NoContent(); // User hasn't registered a key yet
+            {
+                await GenerateProvisionalKeysAsync(user);
+            }
 
             return Ok(new { PublicKey = user.PublicKey });
+        }
+
+        [HttpGet("me/provisional-key")]
+        public async Task<ActionResult<string>> GetMyProvisionalKey()
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdStr, out var userId))
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null) return NotFound();
+
+                return Ok(new { ProvisionalPrivateKey = user.ProvisionalPrivateKey });
+            }
+            return Unauthorized();
         }
 
         // GET: api/Users/contacts
         [HttpGet("contacts")]
         public async Task<ActionResult<IEnumerable<OCC.Shared.DTOs.ChatUserDto>>> GetContacts()
         {
-            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             
             try
             {
-                var contacts = await _context.Users
-                    .AsNoTracking()
-                    .Where(u => u.Id.ToString() != currentUserId) // Exclude self
-                    .Select(u => new OCC.Shared.DTOs.ChatUserDto
+                var users = await _context.Users
+                    .Where(u => u.Id.ToString() != currentUserIdStr) // Exclude self
+                    .ToListAsync();
+
+                var contacts = new List<OCC.Shared.DTOs.ChatUserDto>();
+                bool anyGenerated = false;
+
+                foreach (var u in users)
+                {
+                    if (string.IsNullOrEmpty(u.PublicKey))
+                    {
+                        await GenerateProvisionalKeysAsync(u);
+                        anyGenerated = true;
+                    }
+
+                    contacts.Add(new OCC.Shared.DTOs.ChatUserDto
                     {
                         UserId = u.Id,
                         FirstName = u.FirstName,
                         LastName = u.LastName,
                         Email = u.Email,
                         PublicKey = u.PublicKey
-                    })
-                    .OrderBy(u => u.FirstName)
-                    .ThenBy(u => u.LastName)
-                    .ToListAsync();
+                    });
+                }
+
+                if (anyGenerated)
+                {
+                    await _context.SaveChangesAsync();
+                }
                     
-                return Ok(contacts);
+                return Ok(contacts.OrderBy(u => u.FirstName).ThenBy(u => u.LastName));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving contacts");
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        private async Task GenerateProvisionalKeysAsync(User user)
+        {
+            using var rsa = RSA.Create(2048);
+            user.ProvisionalPrivateKey = rsa.ToXmlString(true);
+            user.PublicKey = rsa.ToXmlString(false);
+            
+            // Note: We don't call SaveChanges here, the caller should.
+            // But for GetUserPublicKey we might want to save immediately.
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync(); 
         }
 
         // POST: api/Users
@@ -188,6 +232,21 @@ namespace OCC.API.Controllers
                 else 
                 {
                     user.Password = existingUser.Password; // Keep old if empty
+                }
+            }
+
+            if (existingUser != null)
+            {
+                // If PublicKey is being updated, it means rotation is happening or initial setup is complete.
+                // Clear the provisional private key as it's no longer needed (the user has their own).
+                if (!string.IsNullOrEmpty(user.PublicKey) && user.PublicKey != existingUser.PublicKey)
+                {
+                    user.ProvisionalPrivateKey = null;
+                }
+                // Otherwise, if not provided in request, preserve it (handles profile updates)
+                else if (string.IsNullOrEmpty(user.ProvisionalPrivateKey))
+                {
+                    user.ProvisionalPrivateKey = existingUser.ProvisionalPrivateKey;
                 }
             }
 

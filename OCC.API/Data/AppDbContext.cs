@@ -287,14 +287,10 @@ namespace OCC.API.Data
                 entity.Property(e => e.CachedHourlyRate).HasPrecision(18, 2);
             });
 
-            modelBuilder.Entity<WageRunLine>(entity =>
+            modelBuilder.Entity<DailyTimesheet>(entity =>
             {
-                entity.Property(e => e.HourlyRate).HasPrecision(18, 2);
-                entity.Property(e => e.TotalWage).HasPrecision(18, 2);
-                entity.Property(e => e.DeductionLoan).HasPrecision(18, 2);
-                entity.Property(e => e.DeductionTax).HasPrecision(18, 2);
-                entity.Property(e => e.DeductionOther).HasPrecision(18, 2);
-                entity.Property(e => e.IncentiveSupervisor).HasPrecision(18, 2);
+                entity.Property(e => e.CalculatedHours).HasPrecision(18, 2);
+                entity.Property(e => e.WageEstimated).HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<EmployeeLoan>(entity =>
@@ -302,6 +298,20 @@ namespace OCC.API.Data
                 entity.Property(e => e.PrincipalAmount).HasPrecision(18, 2);
                 entity.Property(e => e.MonthlyInstallment).HasPrecision(18, 2);
                 entity.Property(e => e.OutstandingBalance).HasPrecision(18, 2);
+                entity.Property(e => e.InterestRate).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<WageRunLine>(entity =>
+            {
+                entity.Property(e => e.HourlyRate).HasPrecision(18, 2);
+                entity.Property(e => e.TotalWage).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionLoan).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionTax).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionWashing).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionGas).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionOther).HasPrecision(18, 2);
+                entity.Property(e => e.DeductionPPE).HasPrecision(18, 2);
+                entity.Property(e => e.IncentiveSupervisor).HasPrecision(18, 2);
             });
 
             modelBuilder.Entity<Order>(entity =>

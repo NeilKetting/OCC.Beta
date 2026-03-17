@@ -154,8 +154,8 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Path Data="{StaticResource IconSearch}" Fill="#64748b" Width="14" Height="14" Stretch="Uniform" Margin="0,0,10,0"/>
-                            <TextBlock Text="Search or start new chat" Foreground="#64748b" Grid.Column="1" VerticalAlignment="Center" Visibility="{Binding ElementName=SearchBox, Path=Text.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                            <TextBox x:Name="SearchBox" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" CaretBrush="White"/>
+                            <TextBlock Text="Search or start new chat" Foreground="#64748b" Grid.Column="1" VerticalAlignment="Center" Visibility="{Binding SearchQuery, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                            <TextBox x:Name="SearchBox" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Background="Transparent" BorderThickness="0" Foreground="White" CaretBrush="White"/>
                         </Grid>
                     </Border>
                 </Border>
@@ -202,112 +202,202 @@
                     </StackPanel>
                 </Border>
 
-                <!-- List of Chats -->
-                <ListView x:Name="ChatsListView" Grid.Row="3" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          ItemsSource="{Binding SessionsView}" SelectedItem="{Binding SelectedSession}">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Padding="10" Margin="0,2">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <Ellipse Grid.Column="0" Width="40" Height="40" Fill="#334155" HorizontalAlignment="Left" />
-                                    
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
-                                        <TextBlock Text="{Binding Name}" Foreground="White" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="{Binding LastMessagePreview}" Foreground="#94a3b8" FontSize="13" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                    
-                                    <Grid Grid.Column="2" VerticalAlignment="Stretch" Margin="0,2,0,0">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="{Binding LastMessageTime, StringFormat='HH:mm'}" Foreground="#64748b" FontSize="11" HorizontalAlignment="Right"/>
-                                        
-                                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,5,0,0">
+                <!-- List of Chats and Search Results -->
+                <ScrollViewer Grid.Row="3" Background="Transparent" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Section Header: Chats -->
+                        <TextBlock Text="CHATS" Foreground="#64748b" FontSize="11" FontWeight="Bold" Margin="15,10,15,5"
+                                   Visibility="{Binding SearchQuery, Converter={StaticResource VisibilityConverter}}"/>
+                        
+                        <!-- List of Chats -->
+                        <ListView x:Name="ChatsListView" Background="Transparent" BorderThickness="0" 
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                  ItemsSource="{Binding SessionsView}" SelectedItem="{Binding SelectedSession}">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10" Margin="0,2">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="50"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
                                             
-                                            <!-- Favourite Toggle -->
-                                            <Button Command="{Binding DataContext.ToggleFavouriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,5,0" Width="16" Height="16">
-                                                <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="&#xE734;" /> <!-- Outline Star -->
-                                                            <Setter Property="Foreground" Value="#64748b" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsFavourite}" Value="True">
-                                                                    <Setter Property="Text" Value="&#xE735;" /> <!-- Solid Star -->
-                                                                    <Setter Property="Foreground" Value="#eab308" /> <!-- Yellow -->
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <!-- Simple button style strip -->
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <ContentPresenter/>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
+                                            <Ellipse Grid.Column="0" Width="40" Height="40" Fill="#334155" HorizontalAlignment="Left" />
+                                            <TextBlock Grid.Column="0" Text="{Binding Name[0]}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                            
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding LastMessagePreview}" Foreground="#94a3b8" FontSize="13" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            
+                                            <Grid Grid.Column="2" VerticalAlignment="Stretch" Margin="0,2,0,0">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="*"/>
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Text="{Binding LastMessageTime, StringFormat='HH:mm'}" Foreground="#64748b" FontSize="11" HorizontalAlignment="Right"/>
+                                                
+                                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,5,0,0">
+                                                    
+                                                    <!-- Favourite Toggle -->
+                                                    <Button Command="{Binding DataContext.ToggleFavouriteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,5,0" Width="16" Height="16">
+                                                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Text" Value="&#xE734;" /> <!-- Outline Star -->
+                                                                    <Setter Property="Foreground" Value="#64748b" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsFavourite}" Value="True">
+                                                                            <Setter Property="Text" Value="&#xE735;" /> <!-- Solid Star -->
+                                                                            <Setter Property="Foreground" Value="#eab308" /> <!-- Yellow -->
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                        <!-- Simple button style strip -->
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <ContentPresenter/>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+    
+                                                    <!-- Unread Bubble -->
+                                                    <Border Background="#10b981" CornerRadius="10" MinWidth="20" Height="20" Padding="5,0"
+                                                            Visibility="{Binding UnreadCount, Converter={StaticResource VisibilityConverter}}">
+                                                        <TextBlock Text="{Binding UnreadCount}" Foreground="#0f172a" FontSize="11" FontWeight="Bold" 
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding UnreadCount}" Value="0">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu Background="#232d36" BorderBrush="#3b4a54" Foreground="White">
+                                                <MenuItem Header="Delete Chat" 
+                                                          Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          CommandParameter="{Binding}"
+                                                          Visibility="{Binding IsGroupChat, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                                                
+                                                <MenuItem Header="Delete Group" 
+                                                          Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          CommandParameter="{Binding}"
+                                                          Visibility="{Binding IsGroupChat, Converter={StaticResource VisibilityConverter}}"
+                                                          IsEnabled="{Binding IsCurrentUserAdmin}"/>
+        
+                                                <MenuItem Header="Exit Group" 
+                                                          Command="{Binding DataContext.ExitGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          CommandParameter="{Binding}"
+                                                          Visibility="{Binding IsGroupChat, Converter={StaticResource VisibilityConverter}}"/>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Cursor="Hand">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#334155"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#0f172a"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                        
+                        <!-- Section Header: People -->
+                        <TextBlock Text="PEOPLE" Foreground="#64748b" FontSize="11" FontWeight="Bold" Margin="15,20,15,5"
+                                   Visibility="{Binding UserSearchResults, Converter={StaticResource VisibilityConverter}}"/>
 
-                                            <!-- Unread Bubble -->
-                                            <Border Background="#10b981" CornerRadius="10" MinWidth="20" Height="20" Padding="5,0"
-                                                    Visibility="{Binding UnreadCount, Converter={StaticResource VisibilityConverter}}">
-                                                <TextBlock Text="{Binding UnreadCount}" Foreground="#0f172a" FontSize="11" FontWeight="Bold" 
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding UnreadCount}" Value="0">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                            </Border>
-                                        </StackPanel>
-                                    </Grid>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListViewItem">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Cursor="Hand">
-                                            <ContentPresenter/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#334155"/>
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="#0f172a"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
+                        <!-- User Search Results -->
+                        <ListView ItemsSource="{Binding UserSearchResults}" Background="Transparent" BorderThickness="0" 
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                             <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10" Margin="0,2">
+                                        <Button Command="{Binding DataContext.StartNewChatFromSearchCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                CommandParameter="{Binding}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <ContentPresenter/>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="50"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <Ellipse Grid.Column="0" Width="40" Height="40" Fill="#00a884" HorizontalAlignment="Left" />
+                                                <TextBlock Grid.Column="0" Text="{Binding FirstName[0]}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                                
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                                    <TextBlock Foreground="White" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
+                                                        <Run Text="{Binding FirstName}"/> <Run Text="{Binding LastName}"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Email}" Foreground="#94a3b8" FontSize="13" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Button>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Cursor="Hand">
+                                                    <ContentPresenter/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#334155"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
         </Border>
 
@@ -331,7 +421,30 @@
                         <Button Command="{Binding HideNewChatCommand}" Background="Transparent" BorderThickness="0" Padding="0,0,20,0" Cursor="Hand" VerticalAlignment="Center">
                             <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" Fill="#00a884" Stretch="Uniform" Width="24" Height="24"/>
                         </Button>
-                        <TextBlock Grid.Column="1" Text="New chat" Foreground="White" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="New chat" Foreground="White" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Visibility="{Binding IsSelectionMode, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                        <TextBlock Grid.Column="1" Text="New group" Foreground="White" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"
+                                   Visibility="{Binding IsSelectionMode, Converter={StaticResource VisibilityConverter}}"/>
+
+                        <Button Grid.Column="1" HorizontalAlignment="Right" Content="New group" Foreground="#00a884" Background="Transparent" BorderThickness="0"
+                                Command="{Binding ToggleSelectionModeCommand}"
+                                Visibility="{Binding IsSelectionMode, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Group Name Input (Only in Selection Mode) -->
+                <Border Grid.Row="1" Background="#111b21" Padding="12"
+                        Visibility="{Binding IsSelectionMode, Converter={StaticResource VisibilityConverter}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#202c33" CornerRadius="8" Padding="12,10">
+                            <TextBox x:Name="GroupNameBox" Tag="Group name..." Background="Transparent" BorderThickness="0" Foreground="White" CaretBrush="White" FontSize="14"/>
+                        </Border>
+                        <Button Grid.Column="1" Command="{Binding CreateGroupCommand}" CommandParameter="{Binding Text, ElementName=GroupNameBox}"
+                                Background="#00a884" Foreground="White" Padding="15,5" Margin="10,0,0,0" Content="Create"/>
                     </Grid>
                 </Border>
 
@@ -365,6 +478,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="60"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Ellipse Grid.Column="0" Width="48" Height="48" Fill="#00a884" HorizontalAlignment="Left" />
                                         <TextBlock Grid.Column="0" Text="{Binding FirstName[0]}" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="16,0,0,0" IsHitTestVisible="False"/>
@@ -375,6 +489,17 @@
                                             </TextBlock>
                                             <TextBlock Text="{Binding Email}" Foreground="#8696a0" FontSize="14" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/>
                                         </StackPanel>
+
+                                        <!-- Multi-select Checkbox -->
+                                        <CheckBox Grid.Column="2" IsChecked="False" VerticalAlignment="Center"
+                                                  Visibility="{Binding DataContext.IsSelectionMode, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource VisibilityConverter}}">
+                                            <CheckBox.Style>
+                                                <Style TargetType="CheckBox">
+                                                    <EventSetter Event="Checked" Handler="Contact_Checked"/>
+                                                    <EventSetter Event="Unchecked" Handler="Contact_Unchecked"/>
+                                                </Style>
+                                            </CheckBox.Style>
+                                        </CheckBox>
                                     </Grid>
                                 </Button>
                             </Border>
@@ -429,7 +554,13 @@
                     <Ellipse Width="40" Height="40" Fill="#334155" />
                     
                     <StackPanel Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding SelectedSession.Name}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding SelectedSession.Name}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                            <Border Background="#334155" CornerRadius="4" Padding="6,2" Margin="10,0,0,0"
+                                    Visibility="{Binding SelectedSession.IsGroupChat, Converter={StaticResource VisibilityConverter}}">
+                                <TextBlock Text="Admin" Foreground="#10b981" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
                         <TextBlock Text="{Binding SelectedSession.Users.Count, StringFormat='{}{0} participants'}" Foreground="#10b981" FontSize="12" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>

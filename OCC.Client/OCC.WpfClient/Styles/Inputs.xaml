@@ -236,34 +236,43 @@
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
                     <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
-                        <StackPanel Orientation="Horizontal">
-                            <Border x:Name="checkBoxBorder"
-                                    Width="20"
-                                    Height="20"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="5"
-                                    VerticalAlignment="Center">
-                                <Path x:Name="optionMark"
-                                      Data="M 4 10 L 8 14 L 16 6"
-                                      Stroke="{StaticResource AccentBlue}"
-                                      StrokeThickness="2"
-                                      StrokeStartLineCap="Round"
-                                      StrokeEndLineCap="Round"
-                                      Opacity="0"
-                                      Stretch="Uniform"
-                                      Margin="3" />
-                            </Border>
-                            <ContentPresenter x:Name="contentPresenter"
-                                              Grid.Column="1"
-                                              Focusable="False"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              Margin="{TemplateBinding Padding}"
-                                              RecognizesAccessKey="True"
-                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        </StackPanel>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="checkBoxBorder"
+                                Width="20"
+                                Height="20"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                VerticalAlignment="Top"
+                                Margin="0,2,0,0">
+                            <Path x:Name="optionMark"
+                                  Data="M 4 10 L 8 14 L 16 6"
+                                  Stroke="{StaticResource AccentBlue}"
+                                  StrokeThickness="2"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Opacity="0"
+                                  Stretch="Uniform"
+                                  Margin="3" />
+                        </Border>
+                        <ContentPresenter x:Name="contentPresenter"
+                                          Grid.Column="1"
+                                          Focusable="False"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          Margin="{TemplateBinding Padding}"
+                                          RecognizesAccessKey="True"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -279,6 +288,79 @@
                         </Trigger>
                         <Trigger Property="IsChecked" Value="{x:Null}">
                             <Setter TargetName="optionMark" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="templateRoot" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern RadioButton Style -->
+    <Style x:Key="ModernRadioButton" TargetType="RadioButton">
+        <Setter Property="Background" Value="{StaticResource InputBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMain}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="8,0,0,0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="radioBorder"
+                                Width="20"
+                                Height="20"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                VerticalAlignment="Center">
+                            <Ellipse x:Name="dot"
+                                     Fill="{StaticResource AccentBlue}"
+                                     Width="10"
+                                     Height="10"
+                                     Opacity="0"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="{StaticResource AccentBlueColor}" Opacity="0.8"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Border>
+                        <ContentPresenter x:Name="contentPresenter"
+                                          Grid.Column="1"
+                                          Focusable="False"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          Margin="{TemplateBinding Padding}"
+                                          RecognizesAccessKey="True"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="radioBorder" Property="Background" Value="{StaticResource InputBackgroundHover}" />
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource OrangeBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource OrangeBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="dot" Property="Opacity" Value="1" />
+                            <Setter TargetName="radioBorder" Property="BorderBrush" Value="{StaticResource AccentBlue}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="templateRoot" Property="Opacity" Value="0.5" />
@@ -460,6 +542,64 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentBlue}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern Toggle Switch Style -->
+    <Style x:Key="ModernToggleSwitch" TargetType="CheckBox">
+        <Setter Property="Background" Value="#33FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource GlassBorder}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal" Cursor="Hand">
+                        <Grid x:Name="ToggleRail" Width="44" Height="24">
+                            <Border x:Name="RailBorder" 
+                                    Background="{TemplateBinding Background}" 
+                                    CornerRadius="12" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="1"/>
+                            <Ellipse x:Name="Thumb" Fill="White" Width="18" Height="18" HorizontalAlignment="Left" Margin="3,0">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform X="0" />
+                                </Ellipse.RenderTransform>
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <!-- FIX: Target the Border's Background, not the Grid's -->
+                            <Setter TargetName="RailBorder" Property="Background" Value="{StaticResource AccentBlue}"/>
+                            <Setter TargetName="RailBorder" Property="BorderBrush" Value="{StaticResource AccentBlue}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Thumb" 
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
+                                                         To="20" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Thumb" 
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" 
+                                                         To="0" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RailBorder" Property="Opacity" Value="0.8"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

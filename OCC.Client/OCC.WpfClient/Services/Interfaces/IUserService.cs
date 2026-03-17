@@ -7,5 +7,8 @@ namespace OCC.WpfClient.Services.Interfaces
     public interface IUserService
     {
         Task<IEnumerable<User>> GetUsersAsync();
+        Task<bool> CreateUserAsync(User user);
+        Task<bool> UpdateUserAsync(User user);
+        Task<bool> DeleteUserAsync(Guid id);
     }
 }

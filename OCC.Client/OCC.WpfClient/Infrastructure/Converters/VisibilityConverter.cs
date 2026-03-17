@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
@@ -19,13 +21,29 @@ namespace OCC.WpfClient.Infrastructure.Converters
             {
                 isVisible = !string.IsNullOrWhiteSpace(s);
             }
+            else if (value is int i)
+            {
+                isVisible = i != 0;
+            }
+            else if (value is long l)
+            {
+                isVisible = l != 0;
+            }
+            else if (value is ICollection collection)
+            {
+                isVisible = collection.Count > 0;
+            }
+            else if (value is IEnumerable enumerable)
+            {
+                isVisible = enumerable.Cast<object>().Any();
+            }
             else
             {
                 isVisible = value != null;
             }
 
-            // Invert logic if parameter is 'Invert'
-            if (parameter?.ToString()?.Equals("Invert", StringComparison.OrdinalIgnoreCase) == true)
+            // Invert logic if parameter contains 'Invert'
+            if (parameter?.ToString()?.Contains("Invert", StringComparison.OrdinalIgnoreCase) == true)
             {
                 isVisible = !isVisible;
             }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -66,6 +67,35 @@ namespace OCC.WpfClient.Services
                         // Initialize E2EE RSA Keys
                         _encryptionService.InitializeOrLoadKeys(_currentUser.Id);
                         
+                        // Check for provisional keys (Seamless Onboarding)
+                        var provKeyUrl = GetFullUrl("api/users/me/provisional-key");
+                        var provKeyResponse = await _httpClient.GetAsync(provKeyUrl);
+                        if (provKeyResponse.IsSuccessStatusCode)
+                        {
+                            var provResult = await provKeyResponse.Content.ReadFromJsonAsync<ProvisionalKeyResponse>();
+                            if (provResult != null && !string.IsNullOrEmpty(provResult.ProvisionalPrivateKey))
+                            {
+                                _logger.LogInformation("Claiming provisional private key for {Email}", email);
+                                _encryptionService.InitializeWithKey(_currentUser.Id, provResult.ProvisionalPrivateKey);
+                                
+                                // Immediately rotate to new Client-Side keys for better security
+                                _logger.LogInformation("Rotating to fresh client-side keys for {Email}", email);
+                                
+                                // InitializeOrLoadKeys with a non-existent file path would generate new ones, 
+                                // but we already have a file now. We need to force a regenerate.
+                                // Let's just use the default InitializeOrLoadKeys logic but we might need a way to force.
+                                // For now, let's just generate a new one manually if we want true rotation.
+                                // Actually, if we just delete the local file and call InitializeOrLoadKeys again, it will rotate.
+                                var keyPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OCC", "Keys", $"{_currentUser.Id}_rsa.xml");
+                                if (File.Exists(keyPath)) File.Delete(keyPath);
+                                _encryptionService.InitializeOrLoadKeys(_currentUser.Id);
+                                
+                                _currentUser.PublicKey = _encryptionService.GetPublicKey();
+                                var updateUrl = GetFullUrl($"api/users/{_currentUser.Id}");
+                                await _httpClient.PutAsJsonAsync(updateUrl, _currentUser);
+                            }
+                        }
+
                         // If the server doesn't have our public key yet, upload it
                         if (string.IsNullOrEmpty(_currentUser.PublicKey))
                         {
@@ -137,6 +167,11 @@ namespace OCC.WpfClient.Services
         {
             public string Token { get; set; } = string.Empty;
             public User User { get; set; } = new();
+        }
+
+        private class ProvisionalKeyResponse
+        {
+            public string ProvisionalPrivateKey { get; set; } = string.Empty;
         }
     }
 }

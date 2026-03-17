@@ -8,6 +8,7 @@ namespace OCC.Shared.DTOs
         public Guid Id { get; set; }
         public string? Name { get; set; }
         public bool IsGroupChat { get; set; }
+        public Guid CreatedById { get; set; }
         public DateTime CreatedAtUtc { get; set; }
         public int UnreadCount { get; set; }
         public bool IsFavourite { get; set; }

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OCC.WpfClient.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
 using OCC.WpfClient.Features.Employees.ViewModels;
+using OCC.WpfClient.Features.Admin.Users.ViewModels;
 
 namespace OCC.WpfClient.Features.Main.ViewModels
 {
@@ -245,7 +246,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
                     Children =
                     {
                         new NavItem("Company Profile", "IconCompanyProfile", string.Empty, "Administration"),
-                        new NavItem("Users", "IconTeam", string.Empty, "Administration"),
+                        new NavItem("Users", "IconTeam", NavigationRoutes.UserManagement, "Administration"),
                         new NavItem("Employees", "IconTeam", NavigationRoutes.StaffManagement, "Administration"),
                         new NavItem("System Settings", "IconGear", NavigationRoutes.CompanySettings, "Administration")
                     }
@@ -312,6 +313,9 @@ namespace OCC.WpfClient.Features.Main.ViewModels
                     break;
                 case NavigationRoutes.StaffManagement:
                     OpenHub<EmployeeListViewModel>();
+                    break;
+                case NavigationRoutes.UserManagement:
+                    OpenHub<UserListViewModel>();
                     break;
             }
 

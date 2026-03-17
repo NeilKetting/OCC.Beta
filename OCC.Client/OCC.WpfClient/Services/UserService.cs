@@ -66,5 +66,53 @@ namespace OCC.WpfClient.Services
                 return new List<User>();
             }
         }
+
+        public async Task<bool> CreateUserAsync(User user)
+        {
+            EnsureAuthorization();
+            var url = GetFullUrl("api/Users");
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(url, user, _options);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating user at {Url}", url);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateUserAsync(User user)
+        {
+            EnsureAuthorization();
+            var url = GetFullUrl($"api/Users/{user.Id}");
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync(url, user, _options);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user at {Url}", url);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteUserAsync(Guid id)
+        {
+            EnsureAuthorization();
+            var url = GetFullUrl($"api/Users/{id}");
+            try
+            {
+                var response = await _httpClient.DeleteAsync(url);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user at {Url}", url);
+                return false;
+            }
+        }
     }
 }

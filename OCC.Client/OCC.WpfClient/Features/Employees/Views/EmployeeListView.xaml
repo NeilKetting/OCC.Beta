@@ -15,7 +15,7 @@
         <infra:VisibilityConverter x:Key="VisibilityConverter" />
         <utils:BindingProxy x:Key="BindingProxy" Data="{Binding}" />
     </UserControl.Resources>
-    
+
     <Grid Margin="30,20,30,30">
         <!-- Main Background Content (will be blurred/dimmed) -->
         <Grid>
@@ -33,44 +33,61 @@
                     </Style.Triggers>
                 </Style>
             </Grid.Style>
-            
+
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" /> <!-- Header -->
-                <RowDefinition Height="Auto" /> <!-- Compact Filters & Stats -->
-                <RowDefinition Height="*" />    <!-- Grid -->
+                <RowDefinition Height="Auto" />
+                <!-- Header -->
+                <RowDefinition Height="Auto" />
+                <!-- Compact Filters & Stats -->
+                <RowDefinition Height="*" />
+                <!-- Grid -->
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid Grid.Row="0" Margin="5,0,5,20">
                 <StackPanel>
                     <TextBlock Text="Employee Overview" FontSize="26" FontWeight="Bold" Foreground="White" />
                     <TextBlock Text="Manage staff records and teams." Foreground="{StaticResource TextSub}" FontSize="13" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button Content="" FontFamily="Segoe MDL2 Assets" Style="{StaticResource SecondaryButton}" Command="{Binding LoadDataCommand}" Width="40" Height="36" Margin="0,0,10,0" ToolTip="Refresh Data"/>
-                    <Button Content="Add Employee" Style="{StaticResource PrimaryButton}" Command="{Binding AddEmployeeCommand}" Width="140" Height="36"/>
+
+                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding AddEmployeeCommand}" Width="140" Height="36" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlus}" Fill="White" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Add Employee" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Grid>
 
             <!-- Compact Filters & Stats Line -->
-            <Border Grid.Row="1" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" BorderThickness="1" CornerRadius="10" Padding="15,10" Margin="0,0,0,15">
+            <Border Grid.Row="1" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" 
+                    BorderThickness="1" CornerRadius="10" Padding="15,10" Margin="5,0,5,15">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" /> <!-- Search Icon -->
-                        <ColumnDefinition Width="200" />  <!-- Search Box -->
-                        <ColumnDefinition Width="Auto" /> <!-- Divider -->
-                        <ColumnDefinition Width="Auto" /> <!-- Status Filter -->
-                        <ColumnDefinition Width="Auto" /> <!-- Branch Filter -->
-                        <ColumnDefinition Width="Auto" /> <!-- Columns Button -->
-                        <ColumnDefinition Width="*" />    <!-- Spacer -->
-                        <ColumnDefinition Width="Auto" /> <!-- Subtle Stats -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Search Icon -->
+                        <ColumnDefinition Width="200" />
+                        <!-- Search Box -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Divider -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Status Filter -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Branch Filter -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Columns Button -->
+                        <ColumnDefinition Width="*" />
+                        <!-- Spacer -->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Subtle Stats -->
                     </Grid.ColumnDefinitions>
 
                     <!-- Search -->
                     <Path Grid.Column="0" Data="{StaticResource IconSearch}" Fill="{StaticResource TextSub}" Width="14" Height="14" Margin="5,0,10,0" VerticalAlignment="Center" Stretch="Uniform"/>
                     <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Tag="Search staff..." Style="{StaticResource ModernInput}" Height="32" BorderThickness="0" Background="Transparent"/>
-                    
+
                     <Border Grid.Column="2" Width="1" Height="20" Background="{StaticResource GlassBorder}" Margin="15,0" VerticalAlignment="Center"/>
 
                     <!-- Employment Type -->
@@ -102,13 +119,13 @@
                                 </ControlTemplate>
                             </ToggleButton.Template>
                         </ToggleButton>
-                        
+
                         <Popup IsOpen="{Binding IsChecked, ElementName=ColumnsBtn}" StaysOpen="False" PlacementTarget="{Binding ElementName=ColumnsBtn}" Placement="Bottom" AllowsTransparency="True">
                             <Border Background="{StaticResource BackgroundDarker}" BorderBrush="{StaticResource GlassBorder}" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,5,0,0" Width="200">
                                 <ScrollViewer MaxHeight="400">
                                     <StackPanel>
                                         <TextBlock Text="DISPLAY COLUMNS" FontSize="10" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,8"/>
-                                        
+
                                         <TextBlock Text="Core" FontSize="9" Foreground="{StaticResource TextSub}" Margin="0,5,0,2"/>
                                         <CheckBox Content="Number" IsChecked="{Binding IsNumberVisible}" Command="{Binding SaveLayoutCommand}" Foreground="White" Margin="0,2"/>
                                         <CheckBox Content="Position" IsChecked="{Binding IsPositionVisible}" Command="{Binding SaveLayoutCommand}" Foreground="White" Margin="0,2"/>
@@ -187,17 +204,17 @@
                         <DataGridTextColumn Header="POSITION" Binding="{Binding Role}" Width="Auto" Visibility="{Binding Data.IsPositionVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="TYPE" Binding="{Binding EmploymentType}" Width="Auto" Visibility="{Binding Data.IsTypeVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="BRANCH" Binding="{Binding Branch}" Width="Auto" Visibility="{Binding Data.IsBranchVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
-                        
+
                         <!-- New Columns -->
                         <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="Auto" Visibility="{Binding Data.IsPhoneVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="EMAIL" Binding="{Binding Email}" Width="Auto" Visibility="{Binding Data.IsEmailVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="ID NUMBER" Binding="{Binding IdNumber}" Width="Auto" Visibility="{Binding Data.IsIdNumberVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
-                        
+
                         <DataGridTextColumn Header="RATE TYPE" Binding="{Binding RateType}" Width="Auto" Visibility="{Binding Data.IsRateTypeVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="RATE" Binding="{Binding HourlyRate, StringFormat=C}" Width="Auto" Visibility="{Binding Data.IsHourlyRateVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="TAX #" Binding="{Binding TaxNumber}" Width="Auto" Visibility="{Binding Data.IsTaxNumberVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="BANK" Binding="{Binding BankName}" Width="Auto" Visibility="{Binding Data.IsBankNameVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
-                        
+
                         <DataGridTextColumn Header="LEAVE" Binding="{Binding LeaveBalance, StringFormat=\{0:N1\}}" Width="Auto" Visibility="{Binding Data.IsLeaveBalanceVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="START DATE" Binding="{Binding EmploymentDate, StringFormat=d}" Width="Auto" Visibility="{Binding Data.IsEmploymentDateVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
                         <DataGridTextColumn Header="SHIFT START" Binding="{Binding ShiftStartTime}" Width="Auto" Visibility="{Binding Data.IsShiftStartVisible, Source={StaticResource BindingProxy}, Converter={StaticResource VisibilityConverter}}" />
@@ -211,7 +228,7 @@
                                                 Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextSub}" Margin="0,0,15,0"
                                                 Command="{Binding DataContext.EditEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                 CommandParameter="{Binding}" Cursor="Hand" ToolTip="Edit Employee" />
-                                        
+
                                         <Button Content="" FontFamily="Segoe MDL2 Assets" 
                                                 Background="Transparent" BorderThickness="0" Foreground="#80FF4B4B"
                                                 Command="{Binding DataContext.DeleteEmployeeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"

@@ -23,6 +23,7 @@ namespace OCC.WpfClient.Features.Employees.Models
         private string _employeeNumber = string.Empty;
 
         [ObservableProperty]
+        [Required(ErrorMessage = "ID Number is required")]
         private string _idNumber = string.Empty;
 
         [ObservableProperty]

@@ -9,6 +9,7 @@ namespace OCC.WpfClient.Services.Infrastructure
     {
         void InitializeOrLoadKeys(Guid userId);
         string GetPublicKey();
+        void InitializeWithKey(Guid userId, string privateKeyXml);
         
         string GenerateAesKey(); // Returns Base64 AES Key
         
@@ -56,6 +57,22 @@ namespace OCC.WpfClient.Services.Infrastructure
         }
 
         public string GetPublicKey() => _publicKeyXml;
+
+        public void InitializeWithKey(Guid userId, string privateKeyXml)
+        {
+            _currentUserId = userId;
+            _privateKeyXml = privateKeyXml;
+
+            using var rsa = RSA.Create();
+            rsa.FromXmlString(_privateKeyXml);
+            _publicKeyXml = rsa.ToXmlString(false);
+
+            var dir = Path.GetDirectoryName(_keyStoragePath);
+            if (!Directory.Exists(dir) && dir != null)
+                Directory.CreateDirectory(dir);
+
+            File.WriteAllText(_keyStoragePath, _privateKeyXml);
+        }
 
         public string GenerateAesKey()
         {

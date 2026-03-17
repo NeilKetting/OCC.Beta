@@ -11,4 +11,12 @@
     <sys:Double x:Key="FontSizeLarge">18</sys:Double>
     <sys:Double x:Key="FontSizeHeader">25</sys:Double>
 
+    <!-- Standard Label Style -->
+    <Style x:Key="LabelText" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextSub}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
 </ResourceDictionary>

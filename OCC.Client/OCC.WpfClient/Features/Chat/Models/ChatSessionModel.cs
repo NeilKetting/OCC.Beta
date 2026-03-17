@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OCC.Shared.DTOs;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -28,7 +29,15 @@ namespace OCC.WpfClient.Features.Chat.Models
         private int _unreadCount;
 
         [ObservableProperty]
+        private bool _isCurrentUserAdmin;
+
+        [ObservableProperty]
         private bool _isFavourite;
+
+        public Guid CreatedById => Dto.CreatedById;
+        public List<ChatUserDto> Users => Dto.Users;
+
+        public bool IsAdmin(Guid userId) => Dto.CreatedById == userId;
 
         public string DecryptedAesKey { get; set; } = string.Empty;
 

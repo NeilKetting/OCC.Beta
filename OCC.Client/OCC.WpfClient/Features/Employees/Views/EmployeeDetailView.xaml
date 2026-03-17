@@ -19,7 +19,6 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- Redundant background overlay removed, handled by host -->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -32,14 +31,17 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Column="1" Grid.Row="1" Background="{StaticResource CardBackground}" CornerRadius="12" Margin="0,20" BorderBrush="{StaticResource OrangeBrush}" BorderThickness="1">
+            <!-- Detail Modal -->
+            <Border Grid.Column="1" Grid.Row="1" Style="{StaticResource DetailViewModalBorder}" Margin="0,20">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="30" ShadowDepth="5" Opacity="0.5"/>
                 </Border.Effect>
 
                 <Grid>
                     <!-- Background Decoration -->
-                    <Path Data="{StaticResource IconPersonal}" Fill="White" Opacity="0.02" Stretch="Uniform" Margin="40" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="300" Height="300"/>
+                    <Path Data="{StaticResource IconPersonal}" Fill="White" Opacity="0.02" 
+                          Stretch="Uniform" Margin="40" HorizontalAlignment="Right" 
+                          VerticalAlignment="Bottom" Width="300" Height="300"/>
 
                     <Grid>
                         <Grid>
@@ -50,7 +52,7 @@
                             </Grid.RowDefinitions>
 
                             <!-- Header -->
-                            <Border Grid.Row="0" Background="{StaticResource BackgroundDark}" CornerRadius="12,12,0,0" Padding="25,20">
+                            <Border Grid.Row="0" Style="{StaticResource DetailViewHeader}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -58,7 +60,8 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock Text="{Binding Employee.DisplayName}" FontSize="32" FontWeight="Bold" Foreground="White"/>
-                                        <TextBlock Text="Employee Profile &amp; Management Details." FontSize="14" Foreground="{StaticResource TextSub}" Margin="0,4,0,0"/>
+                                        <TextBlock Text="Employee Profile &amp; Management Details." FontSize="14" 
+                                                   Foreground="{StaticResource TextSub}" Margin="0,4,0,0"/>
                                     </StackPanel>
 
                                     <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -67,8 +70,8 @@
                             </Border>
 
                             <!-- Scrollable Content -->
-                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="30,20">
-                                <Grid>
+                            <ScrollViewer Grid.Row="1" Style="{StaticResource DetailViewContentScroll}">
+ salmon                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="40"/>
@@ -80,8 +83,8 @@
                                     <!-- Col 1: Personal + System Access -->
                                     <StackPanel Grid.Column="0">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                            <Path Data="{StaticResource IconPersonal}" Fill="{StaticResource AccentBlue}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Personal Info" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                            <Path Data="{StaticResource IconPersonal}" Style="{StaticResource SectionIcon}"/>
+                                            <TextBlock Text="Personal Info" Style="{StaticResource SectionHeaderText}"/>
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">
@@ -102,8 +105,8 @@
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Identification Type" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,5">
-                                                <RadioButton IsChecked="{Binding Employee.IdType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='RSAId'}" Content="RSA ID" Foreground="White" Margin="0,0,20,0"/>
-                                                <RadioButton IsChecked="{Binding Employee.IdType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Passport'}" Content="Passport" Foreground="White"/>
+                                                <RadioButton IsChecked="{Binding Employee.IdType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='RSAId'}" Content="RSA ID" Style="{StaticResource ModernRadioButton}" Margin="0,0,20,0"/>
+                                                <RadioButton IsChecked="{Binding Employee.IdType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Passport'}" Content="Passport" Style="{StaticResource ModernRadioButton}"/>
                                             </StackPanel>
                                         </StackPanel>
 
@@ -142,8 +145,8 @@
                                                 Visibility="{Binding IsSystemAccessVisible, Converter={StaticResource VisibilityConverter}}">
                                             <StackPanel>
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                                    <Path Data="{StaticResource IconPersonal}" Fill="{StaticResource AccentBlue}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                                    <TextBlock Text="System Access" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <Path Data="{StaticResource IconPersonal}" Style="{StaticResource SectionIcon}"/>
+                                                    <TextBlock Text="System Access" Style="{StaticResource SectionHeaderText}"/>
                                                 </StackPanel>
 
                                                 <TextBlock Text="Linked User Account" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
@@ -161,8 +164,8 @@
                                     <!-- Col 2: Employment + Emergency -->
                                     <StackPanel Grid.Column="2">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                            <Path Data="{StaticResource IconEmployment}" Fill="{StaticResource AccentBlue}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Employment" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                            <Path Data="{StaticResource IconEmployment}" Style="{StaticResource SectionIcon}"/>
+                                            <TextBlock Text="Employment" Style="{StaticResource SectionHeaderText}"/>
                                         </StackPanel>
 
                                         <StackPanel Margin="0,0,0,15">
@@ -195,8 +198,8 @@
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Employment Type" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,5">
-                                                <RadioButton IsChecked="{Binding Employee.EmploymentType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Permanent'}" Content="Permanent" Foreground="White" Margin="0,0,20,0"/>
-                                                <RadioButton IsChecked="{Binding Employee.EmploymentType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Contract'}" Content="Contract" Foreground="White"/>
+                                                <RadioButton IsChecked="{Binding Employee.EmploymentType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Permanent'}" Content="Permanent" Style="{StaticResource ModernRadioButton}" Margin="0,0,20,0"/>
+                                                <RadioButton IsChecked="{Binding Employee.EmploymentType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Contract'}" Content="Contract" Style="{StaticResource ModernRadioButton}"/>
                                             </StackPanel>
                                         </StackPanel>
 
@@ -235,8 +238,8 @@
                                         <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="0,20,0,0">
                                             <StackPanel>
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                                    <Path Data="{StaticResource IconAlert}" Fill="{StaticResource ErrorRed}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                                    <TextBlock Text="Emergency" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <Path Data="{StaticResource IconAlert}" Style="{StaticResource SectionIcon}" Fill="{StaticResource ErrorRed}"/>
+                                                    <TextBlock Text="Emergency" Style="{StaticResource SectionHeaderText}"/>
                                                 </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,15">
@@ -244,21 +247,15 @@
                                                     <TextBox Text="{Binding Employee.NextOfKinName}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="Full Name"/>
                                                 </StackPanel>
 
-                                                <Grid Margin="0,0,0,15">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="10"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="Relation" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                                        <TextBox Text="{Binding Employee.NextOfKinRelation}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. Spouse"/>
-                                                    </StackPanel>
-                                                    <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="Phone" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                                        <TextBox Text="{Binding Employee.NextOfKinPhone}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="082 ..."/>
-                                                    </StackPanel>
-                                                </Grid>
+                                                <StackPanel Margin="0,0,0,15">
+                                                    <TextBlock Text="Relation" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                                    <TextBox Text="{Binding Employee.NextOfKinRelation}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. Spouse"/>
+                                                </StackPanel>
+
+                                                <StackPanel Margin="0,0,0,15">
+                                                    <TextBlock Text="Phone" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                                    <TextBox Text="{Binding Employee.NextOfKinPhone}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="082 ..."/>
+                                                </StackPanel>
 
                                                 <StackPanel Margin="0,0,0,15">
                                                     <TextBlock Text="Secondary Contact Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
@@ -276,10 +273,10 @@
                                     <!-- Col 3: Remuneration + Banking + Leave -->
                                     <StackPanel Grid.Column="4">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                            <Path Data="{StaticResource IconBank}" Fill="{StaticResource AccentBlue}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                            <TextBlock Text="Banking &amp; Leave" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                            <Path Data="{StaticResource IconBank}" Style="{StaticResource SectionIcon}"/>
+                                            <TextBlock Text="Banking &amp; Leave" Style="{StaticResource SectionHeaderText}"/>
                                         </StackPanel>
-
+ salmon
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Bank Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <ComboBox ItemsSource="{Binding Banks}" SelectedItem="{Binding Employee.BankName}" Style="{StaticResource ModernComboBox}">
@@ -310,8 +307,8 @@
                                         <StackPanel Margin="0,10,0,15">
                                             <TextBlock Text="Remuneration Type" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,5">
-                                                <RadioButton IsChecked="{Binding Employee.RateType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Hourly'}" Content="Hourly" Foreground="White" Margin="0,0,20,0"/>
-                                                <RadioButton IsChecked="{Binding Employee.RateType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='MonthlySalary'}" Content="Salary" Foreground="White"/>
+                                                <RadioButton IsChecked="{Binding Employee.RateType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='Hourly'}" Content="Hourly" Style="{StaticResource ModernRadioButton}" Margin="0,0,20,0"/>
+                                                <RadioButton IsChecked="{Binding Employee.RateType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter='MonthlySalary'}" Content="Salary" Style="{StaticResource ModernRadioButton}"/>
                                             </StackPanel>
                                         </StackPanel>
 
@@ -324,10 +321,10 @@
                                         <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="0,20,0,0">
                                             <StackPanel>
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                                    <Path Data="{StaticResource IconClock}" Fill="{StaticResource AccentBlue}" Width="20" Height="20" Stretch="Uniform" Margin="0,0,10,0"/>
-                                                    <TextBlock Text="Initial Leave Balances" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                                                    <Path Data="{StaticResource IconClock}" Style="{StaticResource SectionIcon}"/>
+                                                    <TextBlock Text="Initial Leave Balances" Style="{StaticResource SectionHeaderText}"/>
                                                 </StackPanel>
-
+ salmon
                                                 <TextBlock Text="{Binding LeaveAccrualRule}" FontSize="11" Foreground="{StaticResource TextSub}" TextWrapping="Wrap" Margin="0,0,0,10" Opacity="0.7"/>
 
                                                 <Grid Margin="0,0,0,15">
@@ -363,7 +360,7 @@
                             </ScrollViewer>
 
                             <!-- Footer Actions -->
-                            <Border Grid.Row="2" Background="{StaticResource BackgroundDark}" Padding="25,20" CornerRadius="0,0,12,12">
+                            <Border Grid.Row="2" Style="{StaticResource DetailViewFooter}">
                                 <Grid>
                                     <Button HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Command="{Binding PrintCommand}" Width="150" Height="40">
                                         <StackPanel Orientation="Horizontal">
@@ -373,7 +370,7 @@
                                     </Button>
 
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Command="{Binding CancelCommand}" Width="110" Height="40" Margin="0,0,15,0"/>
+                                        <Button Content="Cancel" Style="{StaticResource CancelButton}" Command="{Binding CancelCommand}" Width="110" Height="40" Margin="0,0,15,0"/>
                                         <Button Content="Save Employee" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Width="150" Height="40"/>
                                     </StackPanel>
                                 </Grid>
@@ -385,7 +382,7 @@
         </Grid>
 
         <!-- Busy Overlay -->
-        <Grid Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}" Panel.ZIndex="100">
+        <Grid Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=False}" Panel.ZIndex="100">
             <Border Background="{StaticResource BackgroundDark}" Opacity="0.7"/>
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ProgressBar IsIndeterminate="True" Width="200" Height="4" Background="#33FFFFFF" Foreground="{StaticResource AccentBlue}"/>

@@ -48,6 +48,7 @@ namespace OCC.API.Controllers
                     Name = cs.Name,
                     IsGroupChat = cs.IsGroupChat,
                     CreatedAtUtc = cs.CreatedAtUtc,
+                    CreatedById = cs.CreatedById,
                     UnreadCount = cs.Messages.Count(m => m.SenderId != userId && !m.ReadReceipts.Any(r => r.UserId == userId)),
                     IsFavourite = cs.SessionUsers.Where(su => su.UserId == userId).Select(su => su.IsFavourite).FirstOrDefault(),
                     Users = cs.SessionUsers.Select(su => new ChatUserDto { 
@@ -119,6 +120,18 @@ namespace OCC.API.Controllers
         {
             public string MyEncryptedAesKey { get; set; } = string.Empty;
             public string TargetEncryptedAesKey { get; set; } = string.Empty;
+        }
+
+        public class CreateGroupSessionRequest
+        {
+            public string Name { get; set; } = string.Empty;
+            public List<GroupParticipantKey> Participants { get; set; } = new();
+        }
+
+        public class GroupParticipantKey
+        {
+            public Guid UserId { get; set; }
+            public string EncryptedAesKey { get; set; } = string.Empty;
         }
 
         [HttpPost("direct/{targetUserId}")]
@@ -250,6 +263,119 @@ namespace OCC.API.Controllers
             }
 
             return Ok(message);
+        }
+
+        [HttpPost("groups")]
+        public async Task<IActionResult> CreateGroupSession([FromBody] CreateGroupSessionRequest request)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == Guid.Empty) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("Group name is required.");
+            if (request.Participants == null || !request.Participants.Any()) return BadRequest("Participants are required.");
+
+            // Create new group session
+            var newSession = new ChatSession
+            {
+                Id = Guid.NewGuid(),
+                IsGroupChat = true,
+                Name = request.Name,
+                CreatedById = currentUserId,
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            _context.ChatSessions.Add(newSession);
+
+            // Add all participants (including creator)
+            foreach (var participant in request.Participants)
+            {
+                _context.ChatSessionUsers.Add(new ChatSessionUser
+                {
+                    Id = Guid.NewGuid(),
+                    ChatSessionId = newSession.Id,
+                    UserId = participant.UserId,
+                    EncryptedAesKey = participant.EncryptedAesKey,
+                    JoinedDate = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Notify participants via SignalR (optional, or rely on client to fetch)
+            foreach (var p in request.Participants)
+            {
+                await _hubContext.Clients.Group($"User_{p.UserId}").SendAsync("SessionCreated", newSession.Id);
+            }
+
+            return Ok(new { SessionId = newSession.Id });
+        }
+
+        [HttpDelete("sessions/{sessionId}")]
+        public async Task<IActionResult> DeleteSession(Guid sessionId)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == Guid.Empty) return Unauthorized();
+
+            var session = await _context.ChatSessions
+                .Include(cs => cs.SessionUsers)
+                .FirstOrDefaultAsync(cs => cs.Id == sessionId);
+
+            if (session == null) return NotFound();
+
+            // permission check:
+            // If group chat, only creator can delete.
+            // If direct chat, it's personal? Or should both be able to delete? 
+            // The request says "Person who creates the group will be the group dmin and only he can delete the group."
+            if (session.IsGroupChat && session.CreatedById != currentUserId)
+            {
+                return Forbid("Only the group creator can delete this group.");
+            }
+            
+            // For direct chat, let's allow either person to delete the "session" (which hides it for both).
+            // Usually in apps like WhatsApp, deleting a chat only deletes it for you locally. 
+            // In our DB model, deleting the ChatSession deletes it for everyone.
+            if (!session.IsGroupChat && !session.SessionUsers.Any(su => su.UserId == currentUserId))
+            {
+                return Forbid();
+            }
+
+            // Delete messages and sessions
+            // Note: Cascade delete should handle messages and session users if configured in EF
+            _context.ChatSessions.Remove(session);
+            await _context.SaveChangesAsync();
+
+            // Notify all relevant users
+            foreach (var user in session.SessionUsers)
+            {
+                await _hubContext.Clients.Group($"User_{user.UserId}").SendAsync("SessionDeleted", sessionId);
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost("sessions/{sessionId}/exit")]
+        public async Task<IActionResult> ExitGroup(Guid sessionId)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == Guid.Empty) return Unauthorized();
+
+            var sessionUser = await _context.ChatSessionUsers
+                .Include(su => su.ChatSession)
+                .FirstOrDefaultAsync(su => su.ChatSessionId == sessionId && su.UserId == currentUserId);
+
+            if (sessionUser == null) return NotFound();
+            if (sessionUser.ChatSession != null && !sessionUser.ChatSession.IsGroupChat) 
+                return BadRequest("Cannot exit a direct chat.");
+
+            _context.ChatSessionUsers.Remove(sessionUser);
+            await _context.SaveChangesAsync();
+
+            // Notify others
+            await _hubContext.Clients.Group($"Session_{sessionId}").SendAsync("UserLeft", sessionId, currentUserId);
+            // And notify the user themselves to remove it from their list
+            await _hubContext.Clients.Group($"User_{currentUserId}").SendAsync("SessionDeleted", sessionId);
+
+            return NoContent();
         }
     }
 }

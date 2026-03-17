@@ -2,7 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:OCC.WpfClient"
-             xmlns:conv="clr-namespace:OCC.WpfClient.Infrastructure.Converters">
+             xmlns:conv="clr-namespace:OCC.WpfClient.Infrastructure.Converters"
+             xmlns:userViews="clr-namespace:OCC.WpfClient.Features.Admin.Users.Views"
+             xmlns:userVm="clr-namespace:OCC.WpfClient.Features.Admin.Users.ViewModels">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -16,11 +18,17 @@
                 <ResourceDictionary Source="/Styles/Validation.xaml"/>
                 <ResourceDictionary Source="/Styles/Icons.xaml"/>
                 <ResourceDictionary Source="/Styles/DataGrid.xaml"/>
+                <ResourceDictionary Source="/Styles/Modals.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <conv:VisibilityConverter x:Key="VisibilityConverter" />
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+            <!-- Global Feature View Mapping -->
+            <DataTemplate DataType="{x:Type userVm:UserListViewModel}">
+                <userViews:UserListView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

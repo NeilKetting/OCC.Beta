@@ -14,6 +14,7 @@ using OCC.WpfClient.Features.Main.ViewModels;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Infrastructure.Logging;
 using OCC.WpfClient.Features.Employees.ViewModels;
+using OCC.WpfClient.Features.Admin.Users.ViewModels;
 
 namespace OCC.WpfClient
 {
@@ -93,6 +94,8 @@ namespace OCC.WpfClient
             services.AddTransient<EmployeeListViewModel>();
             services.AddTransient<SplashViewModel>();
             services.AddTransient<AuthViewModel>();
+            services.AddTransient<UserListViewModel>();
+            services.AddTransient<UserDetailViewModel>();
         }
     }
 }

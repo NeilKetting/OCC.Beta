@@ -26,9 +26,9 @@
         </StackPanel>
 
         <!-- Summary Cards -->
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,40">
+        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,40">
             <!-- Tasks Card -->
-            <Border Style="{StaticResource GlassCard}" Margin="0,0,15,0" Padding="25">
+            <Border Style="{StaticResource GlassCard}" Margin="0,0,10,0" Padding="25">
                 <Grid>
                     <StackPanel>
                         <TextBlock Text="TASKS" Foreground="{StaticResource TextSub}" FontSize="12" FontWeight="Bold"/>
@@ -42,7 +42,7 @@
             </Border>
 
             <!-- To-Dos Card -->
-            <Border Style="{StaticResource GlassCard}" Margin="7,0,7,0" Padding="25">
+            <Border Style="{StaticResource GlassCard}" Margin="5,0" Padding="25">
                 <Grid>
                     <StackPanel>
                         <TextBlock Text="TO-DOS" Foreground="{StaticResource TextSub}" FontSize="12" FontWeight="Bold"/>
@@ -55,8 +55,22 @@
                 </Grid>
             </Border>
 
+            <!-- User Management Card -->
+            <Border Style="{StaticResource GlassCard}" Margin="5,0" Padding="25">
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="USERS" Foreground="{StaticResource TextSub}" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding UserCount}" Foreground="White" FontSize="42" FontWeight="Bold" Margin="0,10,0,5"/>
+                        <TextBlock Text="Total Registered" Foreground="{StaticResource TextSub}" FontSize="13"/>
+                    </StackPanel>
+                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" Width="40" Height="40" CornerRadius="12" Background="#1A6B39FF">
+                        <TextBlock Text="" FontFamily="Segoe MDL2 Assets" Foreground="#BE9DFF" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
             <!-- Productivity Card -->
-            <Border Style="{StaticResource GlassCard}" Margin="15,0,0,0" Padding="25">
+            <Border Style="{StaticResource GlassCard}" Margin="10,0,0,0" Padding="25">
                 <Grid>
                     <StackPanel>
                         <TextBlock Text="PRODUCTIVITY" Foreground="{StaticResource TextSub}" FontSize="12" FontWeight="Bold"/>

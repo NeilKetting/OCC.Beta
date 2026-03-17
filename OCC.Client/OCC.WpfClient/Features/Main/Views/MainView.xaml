@@ -52,18 +52,14 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid x:Name="ShellRoot" 
-          Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ContentControl}}"
-          Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ContentControl}}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="32" />
-            <!-- Top Menu (File, etc.) matching CaptionHeight -->
-            <RowDefinition Height="*" />
-            <!-- Main Shell -->
-        </Grid.RowDefinitions>
+    <Grid x:Name="ShellRoot">
+        <!-- Full Window Background (No row constraints) -->
+        <Image Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
+        <Rectangle Fill="{StaticResource BackgroundDark}" Opacity="0.75" />
 
         <!-- Top Menu (File, Edit, etc.) -->
-        <Grid Grid.Row="0" Panel.ZIndex="10" Background="Transparent" VerticalAlignment="Top" Height="32">
+        <!-- Floating at the top, matching the MainWindow's height, but not using Panel.ZIndex to avoid blocking window buttons -->
+        <Grid VerticalAlignment="Top" Height="32" Background="Transparent">
             <Menu HorizontalAlignment="Left" Background="Transparent" WindowChrome.IsHitTestVisibleInChrome="True">
                 <MenuItem Header="File">
                     <MenuItem Header="Exit" Command="{Binding ExitAppCommand}">
@@ -103,15 +99,12 @@
             </Menu>
         </Grid>
 
-        <Grid Grid.Row="1">
+        <!-- Main Shell (Displaced by the menu/title bar height) -->
+        <Grid Margin="0,32,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
-            <!-- Full Window Background -->
-            <Image Grid.ColumnSpan="2" Source="/Assets/Images/occ_future_logo.png" Stretch="UniformToFill" />
-            <Rectangle Grid.ColumnSpan="2" Fill="{StaticResource BackgroundDark}" Opacity="0.75" />
 
             <!-- Sidebar -->
             <Border x:Name="SidebarBorder" Grid.Column="0" Width="72" Style="{StaticResource ModernSidebar}" Background="Transparent" 
@@ -142,9 +135,9 @@
                                 </Border>
 
                                 <!-- Minimized State Brand Icon (Original Image) -->
-                                <Border Width="40" Height="40" Margin="0,10" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    <Border Margin="15,10,15,5" Height="60"
                                         Visibility="{Binding IsSidebarMinimized, Converter={StaticResource VisibilityConverter}}">
-                                    <Image Source="/Assets/Images/occ_logo.png" Stretch="Uniform" Margin="4"/>
+                                        <Image Source="/Assets/Images/occ_logo.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 </Border>
                             </Grid>
 
@@ -368,7 +361,7 @@
                         <ListBox ItemsSource="{Binding OpenHubs}" SelectedItem="{Binding ActiveHub}" 
                                  Background="Transparent" BorderThickness="0" 
                                  ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 VerticalAlignment="Bottom" Margin="0,0,120,0">
+                                 VerticalAlignment="Bottom" Margin="0,0,40,0">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal"/>
@@ -451,10 +444,10 @@
 
 
                 <!-- Active Content -->
-                <ContentControl Grid.Row="1" Content="{Binding ActiveHub}" Margin="10"/>
+                <ContentControl Grid.Row="1" Content="{Binding ActiveHub}" Margin="0"/>
 
                 <!-- Status Bar (Complete Parity) -->
-                <Border Grid.Row="2" Background="#1A000000" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="15,0">
+                <Border Grid.Row="2" Background="#1A000000" BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="30,0">
                     <Grid>
                         <!-- Left Section -->
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

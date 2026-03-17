@@ -6,11 +6,16 @@ using OCC.WpfClient.Features.Chat.Models;
 using OCC.WpfClient.Infrastructure;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 
 namespace OCC.WpfClient.Features.Chat.ViewModels
@@ -70,15 +75,36 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         [ObservableProperty]
         private string _messageInput = string.Empty;
 
-        [ObservableProperty]
         private string _searchQuery = string.Empty;
+        public string SearchQuery
+        {
+            get => _searchQuery;
+            set
+            {
+                if (SetProperty(ref _searchQuery, value))
+                {
+                    SessionsView.Refresh();
+                    UpdateUserSearchResults();
+                }
+            }
+        }
+
+        [ObservableProperty]
+        private ObservableCollection<ChatUserDto> _userSearchResults = new();
 
         [ObservableProperty]
         private bool _isConnected;
 
-        // --- New Chat Properties ---
         [ObservableProperty]
         private bool _isNewChatVisible;
+
+        [ObservableProperty]
+        private bool _isSelectionMode;
+
+        [ObservableProperty]
+        private ObservableCollection<ChatUserDto> _selectedContacts = new();
+
+        public Guid CurrentUserId => _authService.CurrentUser?.Id ?? Guid.Empty;
 
         [ObservableProperty]
         private string _searchContactsText = string.Empty;
@@ -134,10 +160,41 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             ContactsView.Refresh();
         }
 
+        private void UpdateUserSearchResults()
+        {
+            if (string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                UserSearchResults.Clear();
+                return;
+            }
+
+            var term = SearchQuery.ToLower();
+            var results = AvailableContacts
+                .Where(u => u.UserId != CurrentUserId &&
+                           (u.FirstName.ToLower().Contains(term) || 
+                            u.LastName.ToLower().Contains(term) || 
+                            u.Email.ToLower().Contains(term)))
+                .Take(10)
+                .ToList();
+
+            UserSearchResults.Clear();
+            foreach (var user in results)
+            {
+                // Optionally filter out users who already have an active session showing in the list
+                UserSearchResults.Add(user);
+            }
+        }
+
         private bool FilterSessions(object item)
         {
             if (item is ChatSessionModel session)
             {
+                if (!string.IsNullOrWhiteSpace(SearchQuery))
+                {
+                    var term = SearchQuery.ToLower();
+                    if (!session.Name.ToLower().Contains(term)) return false;
+                }
+
                 if (_currentFilter == ChatFilter.Unread) return session.UnreadCount > 0;
                 if (_currentFilter == ChatFilter.Favourites) return session.IsFavourite;
                 return true;
@@ -222,6 +279,17 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         }
 
         [RelayCommand]
+        private async Task StartNewChatFromSearchAsync(ChatUserDto contact)
+        {
+            if (contact != null)
+            {
+                var targetUserId = contact.UserId;
+                SearchQuery = string.Empty; // Clear search
+                await StartDirectChatAsync(targetUserId);
+            }
+        }
+
+        [RelayCommand]
         private async Task ToggleFavouriteAsync(ChatSessionModel session)
         {
             if (session == null || _hubConnection == null || !IsConnected) return;
@@ -241,6 +309,7 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         private async Task InitializeAsync()
         {
             await LoadSessionsAsync();
+            await LoadContactsAsync(); // Load all contacts for search
             await ConnectToSignalRAsync();
         }
 
@@ -272,6 +341,8 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                             {
                                 model.LastMessagePreview = _encryptionService.DecryptMessage(dto.LastMessage.Content, model.DecryptedAesKey);
                             }
+
+                            model.IsCurrentUserAdmin = model.IsGroupChat && model.CreatedById == CurrentUserId;
 
                             ChatSessions.Add(model);
                         }
@@ -309,6 +380,20 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             _hubConnection.On<Guid, Guid>("MessageRead", (messageId, userId) =>
             {
                 // Handle read receipts
+            });
+
+            _hubConnection.On<Guid>("SessionDeleted", (sessionId) =>
+            {
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    var session = ChatSessions.FirstOrDefault(s => s.Id == sessionId);
+                    if (session != null)
+                    {
+                        ChatSessions.Remove(session);
+                        if (SelectedSession?.Id == sessionId) SelectedSession = null;
+                        SessionsView.Refresh();
+                    }
+                });
             });
 
             try
@@ -398,52 +483,57 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         {
             if (_authService.CurrentUser == null || targetUserId == Guid.Empty) return;
 
-            var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
-            
-            // Step 1: Check if session exists
-            var checkResponse = await _httpClient.PostAsync($"{baseUrl}/api/messages/direct/{targetUserId}", null);
-            if (!checkResponse.IsSuccessStatusCode) return;
-
-            var result = await checkResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
-
-            if (result?.RequiresKeys == true)
+            try
             {
-                // Step 2: Fetch Target Public Key
-                var keyResponse = await _httpClient.GetFromJsonAsync<PublicKeyResponse>($"{baseUrl}/api/users/{targetUserId}/public-key");
+                var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
                 
-                if (keyResponse == null || string.IsNullOrEmpty(keyResponse.PublicKey))
-                {
-                    System.Windows.MessageBox.Show("This user hasn't logged in with the new version yet and doesn't have an encryption key. You cannot chat with them yet.", "Encryption Key Missing", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                    return; // Cannot E2EE chat without their public key
-                }
+                // Step 1: Check if session exists
+                var checkResponse = await _httpClient.PostAsync($"{baseUrl}/api/messages/direct/{targetUserId}", null);
+                if (!checkResponse.IsSuccessStatusCode) return;
 
-                // Step 3: Generate and Encrypt AES Key
-                var rawAesKey = _encryptionService.GenerateAesKey();
-                var myEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, _encryptionService.GetPublicKey());
-                var targetEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, keyResponse.PublicKey);
+                var result = await checkResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
 
-                // Step 4: Create Session with Keys
-                var createRequest = new { MyEncryptedAesKey = myEncryptedKey, TargetEncryptedAesKey = targetEncryptedKey };
-                var createResponse = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/messages/direct/{targetUserId}", createRequest);
-                
-                if (createResponse.IsSuccessStatusCode)
+                if (result?.RequiresKeys == true)
                 {
-                    var createResult = await createResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
-                    if (createResult?.SessionId != null)
+                    // Step 2: Fetch Target Public Key
+                    var keyResponse = await _httpClient.GetFromJsonAsync<PublicKeyResponse>($"{baseUrl}/api/users/{targetUserId}/public-key");
+                    
+                    if (keyResponse != null && !string.IsNullOrEmpty(keyResponse.PublicKey))
                     {
-                        await LoadSessionsAsync();
-                        SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == createResult.SessionId);
+                        // Step 3: Generate and Encrypt AES Key
+                        var rawAesKey = _encryptionService.GenerateAesKey();
+                        var myEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, _encryptionService.GetPublicKey());
+                        var targetEncryptedKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, keyResponse.PublicKey);
+
+                        // Step 4: Create Session with Keys
+                        var createRequest = new { MyEncryptedAesKey = myEncryptedKey, TargetEncryptedAesKey = targetEncryptedKey };
+                        var createResponse = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/messages/direct/{targetUserId}", createRequest);
+                        
+                        if (createResponse.IsSuccessStatusCode)
+                        {
+                            var createResult = await createResponse.Content.ReadFromJsonAsync<DirectSessionResponse>();
+                            if (createResult?.SessionId != null)
+                            {
+                                await LoadSessionsAsync();
+                                SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == createResult.SessionId);
+                            }
+                        }
                     }
                 }
-            }
-            else if (result?.SessionId != null)
-            {
-                // Session already exists
-                SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == result.SessionId);
-            }
+                else if (result?.SessionId != null)
+                {
+                    // Session already exists
+                    SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == result.SessionId);
+                }
 
-            // Close the overlay
-            IsNewChatVisible = false;
+                // Close the overlay
+                IsNewChatVisible = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error starting direct chat: {ex.Message}");
+                System.Windows.MessageBox.Show("Failed to initiate chat session. Please try again or check your connection.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
         }
 
         private class DirectSessionResponse 
@@ -480,6 +570,145 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             {
                 Debug.WriteLine($"Failed to send message: {ex.Message}");
                 MessageInput = plainContent; // Restore on fail
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteSessionAsync(ChatSessionModel session)
+        {
+            if (session == null) return;
+
+            // Confirm delete
+            if (session.IsGroupChat && !session.IsAdmin(_authService.CurrentUser?.Id ?? Guid.Empty))
+            {
+                // Should not happen as UI should hide it, but just in case
+                return;
+            }
+
+            var confirm = System.Windows.MessageBox.Show(
+                session.IsGroupChat ? "Are you sure you want to delete this group for everyone?" : "Are you sure you want to delete this chat?",
+                "Confirm Delete",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning);
+
+            if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_connectionSettings.ApiBaseUrl.TrimEnd('/')}/api/messages/sessions/{session.Id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    ChatSessions.Remove(session);
+                    if (SelectedSession == session) SelectedSession = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to delete session: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ExitGroupAsync(ChatSessionModel session)
+        {
+            if (session == null || !session.IsGroupChat) return;
+
+            var confirm = System.Windows.MessageBox.Show("Are you sure you want to exit this group?", "Exit Group", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Question);
+            if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
+            try
+            {
+                var response = await _httpClient.PostAsync($"{_connectionSettings.ApiBaseUrl.TrimEnd('/')}/api/messages/sessions/{session.Id}/exit", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    ChatSessions.Remove(session);
+                    if (SelectedSession == session) SelectedSession = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to exit group: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private void ToggleSelectionMode()
+        {
+            IsSelectionMode = !IsSelectionMode;
+            SelectedContacts.Clear();
+        }
+
+        [RelayCommand]
+        private void ToggleContactSelection(ChatUserDto contact)
+        {
+            if (contact == null) return;
+            if (SelectedContacts.Contains(contact))
+                SelectedContacts.Remove(contact);
+            else
+                SelectedContacts.Add(contact);
+        }
+
+        [RelayCommand]
+        private async Task CreateGroupAsync(string groupName)
+        {
+            if (string.IsNullOrWhiteSpace(groupName) || SelectedContacts.Count < 1) return;
+
+            try
+            {
+                // 1. Generate Session AES Key
+                var rawAesKey = _encryptionService.GenerateAesKey();
+                
+                // 2. Encrypt for all participants (including self)
+                var participants = new List<object>();
+                
+                // Add self
+                participants.Add(new { 
+                    UserId = CurrentUserId, 
+                    EncryptedAesKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, _encryptionService.GetPublicKey()) 
+                });
+
+                // Add others
+                foreach (var contact in SelectedContacts)
+                {
+                    if (string.IsNullOrEmpty(contact.PublicKey))
+                    {
+                        // Fetch public key if missing
+                        var baseUrl = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+                        var keyResponse = await _httpClient.GetFromJsonAsync<PublicKeyResponse>($"{baseUrl}/api/users/{contact.UserId}/public-key");
+                        if (keyResponse != null) contact.PublicKey = keyResponse.PublicKey;
+                    }
+
+                    if (!string.IsNullOrEmpty(contact.PublicKey))
+                    {
+                        participants.Add(new { 
+                            UserId = contact.UserId, 
+                            EncryptedAesKey = _encryptionService.EncryptAesKeyWithRsa(rawAesKey, contact.PublicKey) 
+                        });
+                    }
+                }
+
+                // 3. Send to API
+                var baseUrlFinal = _connectionSettings.ApiBaseUrl.TrimEnd('/');
+                var request = new { Name = groupName, Participants = participants };
+                var response = await _httpClient.PostAsJsonAsync($"{baseUrlFinal}/api/messages/groups", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<DirectSessionResponse>();
+                    if (result?.SessionId != null)
+                    {
+                        await LoadSessionsAsync();
+                        SelectedSession = ChatSessions.FirstOrDefault(s => s.Id == result.SessionId);
+                        IsNewChatVisible = false;
+                        IsSelectionMode = false;
+                        SelectedContacts.Clear();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to create group: {ex.Message}");
+                System.Windows.MessageBox.Show("Failed to create group. Please try again.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
