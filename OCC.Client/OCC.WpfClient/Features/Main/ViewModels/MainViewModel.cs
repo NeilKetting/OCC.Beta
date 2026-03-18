@@ -181,74 +181,14 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         {
             var items = new List<NavItem>
             {
-                new NavItem("Dashboard", "IconHome", NavigationRoutes.Home, "Main"),
                 new NavItem("Chat", "IconChat", NavigationRoutes.Chat, "Main"),
-                new NavItem("Global Calendar", "IconCalendar", NavigationRoutes.Calendar, "Main"),
                 
-                new NavItem("Time & Attendance", "IconTime", string.Empty, "Main")
-                {
-                    Children = 
-                    {
-                        new NavItem("Live Attendance", "IconLiveView", NavigationRoutes.AttendanceLive, "Main"),
-                        new NavItem("Clock History", "IconHistory", NavigationRoutes.AttendanceHistory, "Main"),
-                        new NavItem("Leave Application", "IconInformation", string.Empty, "Main"),
-                        new NavItem("Leave Approvals", "IconCheck", string.Empty, "Main"),
-                        new NavItem("Overtime Request", "IconHistory", string.Empty, "Main"),
-                        new NavItem("Overtime Approval", "IconOvertimeApproved", string.Empty, "Main")
-                    }
-                },
-
-                new NavItem("Wages", "IconWagesDollar", string.Empty, "Main")
-                {
-                    Children =
-                    {
-                        new NavItem("Wage Run", "IconWagesDollar", NavigationRoutes.Feature_Wages, "Main"),
-                        new NavItem("Loans", "IconBank", NavigationRoutes.Feature_Wages, "Main") // Adjust routes as needed later
-                    }
-                },
-
-                new NavItem("Settings", "IconGear", string.Empty, "Main")
-                {
-                    Children =
-                    {
-                        new NavItem("User Preferences", "IconCompanyProfile", string.Empty, "Main"),
-                        new NavItem("Alerts", "IconAlertCircle", string.Empty, "Main")
-                    }
-                },
-
-                new NavItem("Projects", "IconPortfolio", NavigationRoutes.Projects, "Main"),
-
-                new NavItem("Orders", "IconDelivery", string.Empty, "Main")
-                {
-                    Children =
-                    {
-                        new NavItem("Suppliers", "IconTeam", string.Empty, "Main"),
-                        new NavItem("Purchase Orders", "IconFile", string.Empty, "Main"),
-                        new NavItem("Receive Stock", "IconDelivery", string.Empty, "Main"),
-                        new NavItem("Picking Slip", "IconList", string.Empty, "Main")
-                    }
-                },
-
-                new NavItem("HSEQ", "IconHealthSafety", string.Empty, "Main")
-                {
-                    Children =
-                    {
-                        new NavItem("Dashboard", "IconHome", string.Empty, "Main"),
-                        new NavItem("Capture Audit", "IconAudit", string.Empty, "Main"),
-                        new NavItem("Training and Medicals", "IconTeam", string.Empty, "Main"),
-                        new NavItem("Report Incident", "IconAlertCircle", string.Empty, "Main"),
-                        new NavItem("Documents", "IconFile", string.Empty, "Main")
-                    }
-                },
-
                 new NavItem("Admin", "IconGear", string.Empty, "Administration")
                 {
                     Children =
                     {
-                        new NavItem("Company Profile", "IconCompanyProfile", string.Empty, "Administration"),
                         new NavItem("Users", "IconTeam", NavigationRoutes.UserManagement, "Administration"),
-                        new NavItem("Employees", "IconTeam", NavigationRoutes.StaffManagement, "Administration"),
-                        new NavItem("System Settings", "IconGear", NavigationRoutes.CompanySettings, "Administration")
+                        new NavItem("Employees", "IconTeam", NavigationRoutes.StaffManagement, "Administration")
                     }
                 }
             };

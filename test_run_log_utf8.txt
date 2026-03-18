@@ -1,0 +1,32 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  OCC.Shared -> c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Shared\bin\Debug\net9.0\OCC.Shared.dll
+  OCC.WpfClient -> c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Client\OCC.WpfClient\bin\Debug\net9.0-windows\OCC.WpfClient.dll
+  OCC.API -> c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.API\bin\Debug\net9.0\OCC.API.dll
+c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Tests\Client\ViewModels\ChatViewModelTests.cs(77,27): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Tests\OCC.Tests.csproj]
+  OCC.Tests -> c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Tests\bin\Debug\net9.0-windows\OCC.Tests.dll
+Test run for c:\Users\Neil\source\repos\NeilKetting\OCC\OCC.Tests\bin\Debug\net9.0-windows\OCC.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.14)
+[xUnit.net 00:00:00.03]   Discovering: OCC.Tests
+[xUnit.net 00:00:00.05]   Discovered:  OCC.Tests
+[xUnit.net 00:00:00.05]   Starting:    OCC.Tests
+[xUnit.net 00:00:00.67]   Finished:    OCC.Tests
+  Passed OCC.Tests.Client.ViewModels.ChatViewModelTests.SetFilter_UpdatesFilteredView [200 ms]
+  Passed OCC.Tests.Client.ViewModels.ChatViewModelTests.InitialState_IsCorrect [4 ms]
+  Passed OCC.Tests.Client.ViewModels.ChatViewModelTests.SendMessageAsync_EncryptsContentAndInvokesHub [3 ms]
+  Passed OCC.Tests.API.Hubs.ChatHubTests.MarkSessionAsRead_CreatesReadReceiptsForUnreadMessages [540 ms]
+  Passed OCC.Tests.API.Controllers.MessagesControllerTests.GetMySessions_ReturnsOnlyUserSessions [548 ms]
+  Passed OCC.Tests.API.Controllers.MessagesControllerTests.DeleteSession_OnlyAllowedByCreatorForGroups [21 ms]
+  Passed OCC.Tests.API.Hubs.ChatHubTests.SendMessage_SavesToDbAndBroadcastsToAllParticipants [33 ms]
+  Passed OCC.Tests.API.Controllers.MessagesControllerTests.CreateGroupSession_SavesToDbAndNotifiesParticipants [31 ms]
+
+Test Run Successful.
+Total tests: 8
+     Passed: 8
+ Total time: 0,9657 Seconds
+
+Workload updates are available. Run `dotnet workload list` for more information.

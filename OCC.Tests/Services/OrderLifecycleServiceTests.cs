@@ -1,10 +1,10 @@
 using Moq;
-using OCC.Client.Features.OrdersHub.ViewModels;
-using OCC.Client.Features.OrdersHub.UseCases;
-using OCC.Client.Services;
-using OCC.Client.Services.Infrastructure;
-using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
+using OCC.WpfClient.Features.OrdersHub.ViewModels;
+using OCC.WpfClient.Features.OrdersHub.UseCases;
+using OCC.WpfClient.Services;
+using OCC.WpfClient.Services.Infrastructure;
+using OCC.WpfClient.Services.Interfaces;
+using OCC.WpfClient.Services.Managers.Interfaces;
 using OCC.Shared.Models;
 using Microsoft.Extensions.Logging;
 using System;

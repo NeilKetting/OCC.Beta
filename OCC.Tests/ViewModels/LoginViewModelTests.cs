@@ -1,6 +1,6 @@
 using Moq;
 using Xunit;
-using OCC.Client.Features.AuthHub.ViewModels;
+using OCC.WpfClient.Features.AuthHub.ViewModels;
 using System.Threading.Tasks;
 
 namespace OCC.Tests.ViewModels

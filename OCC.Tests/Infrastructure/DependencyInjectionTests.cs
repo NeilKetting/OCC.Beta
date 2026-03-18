@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using OCC.Client;
-using OCC.Client.Features.AuthHub.ViewModels;
-using OCC.Client.Features.EmployeeHub.ViewModels;
-using OCC.Client.Features.HseqHub.ViewModels;
-using OCC.Client.Features.OrdersHub.ViewModels;
-using OCC.Client.Features.TimeAttendanceHub.ViewModels;
-using OCC.Client.Services.Interfaces;
+using OCC.WpfClient.Features.AuthHub.ViewModels;
+using OCC.WpfClient.Features.EmployeeHub.ViewModels;
+using OCC.WpfClient.Features.HseqHub.ViewModels;
+using OCC.WpfClient.Features.OrdersHub.ViewModels;
+using OCC.WpfClient.Features.TimeAttendanceHub.ViewModels;
+using OCC.WpfClient.Services.Interfaces;
 using System;
 using Xunit;
 

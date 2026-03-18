@@ -1,7 +1,7 @@
 using Moq;
-using OCC.Client.Features.HseqHub.ViewModels;
-using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Repositories.Interfaces;
+using OCC.WpfClient.Features.HseqHub.ViewModels;
+using OCC.WpfClient.Services.Interfaces;
+using OCC.WpfClient.Services.Repositories.Interfaces;
 using OCC.Shared.DTOs;
 using OCC.Shared.Models;
 using System;

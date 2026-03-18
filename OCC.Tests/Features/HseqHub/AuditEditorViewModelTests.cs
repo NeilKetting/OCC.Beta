@@ -1,7 +1,7 @@
 using Moq;
-using OCC.Client.Features.HseqHub.ViewModels;
-using OCC.Client.ModelWrappers;
-using OCC.Client.Services.Interfaces;
+using OCC.WpfClient.Features.HseqHub.ViewModels;
+using OCC.WpfClient.ModelWrappers;
+using OCC.WpfClient.Services.Interfaces;
 using OCC.Shared.DTOs;
 using OCC.Shared.Models;
 using OCC.Shared.Enums;

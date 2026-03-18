@@ -1,8 +1,8 @@
 using Moq;
-using OCC.Client.Features.OrdersHub.ViewModels;
-using OCC.Client.ModelWrappers;
-using OCC.Client.Services.Interfaces;
-using OCC.Client.Services.Managers.Interfaces;
+using OCC.WpfClient.Features.OrdersHub.ViewModels;
+using OCC.WpfClient.ModelWrappers;
+using OCC.WpfClient.Services.Interfaces;
+using OCC.WpfClient.Services.Managers.Interfaces;
 using OCC.Shared.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

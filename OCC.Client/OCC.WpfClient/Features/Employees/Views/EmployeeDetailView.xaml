@@ -71,7 +71,7 @@
 
                             <!-- Scrollable Content -->
                             <ScrollViewer Grid.Row="1" Style="{StaticResource DetailViewContentScroll}">
- salmon                                <Grid>
+                                <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="40"/>
@@ -276,7 +276,7 @@
                                             <Path Data="{StaticResource IconBank}" Style="{StaticResource SectionIcon}"/>
                                             <TextBlock Text="Banking &amp; Leave" Style="{StaticResource SectionHeaderText}"/>
                                         </StackPanel>
- salmon
+
                                         <StackPanel Margin="0,0,0,15">
                                             <TextBlock Text="Bank Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
                                             <ComboBox ItemsSource="{Binding Banks}" SelectedItem="{Binding Employee.BankName}" Style="{StaticResource ModernComboBox}">
@@ -324,7 +324,7 @@
                                                     <Path Data="{StaticResource IconClock}" Style="{StaticResource SectionIcon}"/>
                                                     <TextBlock Text="Initial Leave Balances" Style="{StaticResource SectionHeaderText}"/>
                                                 </StackPanel>
- salmon
+
                                                 <TextBlock Text="{Binding LeaveAccrualRule}" FontSize="11" Foreground="{StaticResource TextSub}" TextWrapping="Wrap" Margin="0,0,0,10" Opacity="0.7"/>
 
                                                 <Grid Margin="0,0,0,15">

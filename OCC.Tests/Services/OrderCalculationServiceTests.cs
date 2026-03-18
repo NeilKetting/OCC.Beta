@@ -1,4 +1,4 @@
-using OCC.Client.Services;
+using OCC.WpfClient.Services;
 using System.Collections.Generic;
 using Xunit;
 
