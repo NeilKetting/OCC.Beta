@@ -25,7 +25,8 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         [ObservableProperty] private string? _location;
         [ObservableProperty] private UserRole _selectedRole;
         [ObservableProperty] private bool _isApproved;
-        [ObservableProperty] private bool _isEmailUnknown;
+        [ObservableProperty] private bool _isEmailVerified;
+        [ObservableProperty] private string? _password;
 
         // Module Access
         [ObservableProperty] private bool _hasChatAccess;
@@ -56,7 +57,7 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             _location = user.Location;
             _selectedRole = user.UserRole;
             _isApproved = user.IsApproved;
-            _isEmailUnknown = !user.IsEmailVerified;
+            _isEmailVerified = user.IsEmailVerified;
 
             _showModuleAccess = _selectedRole == UserRole.Office;
             LoadPermissions(user.Permissions);
@@ -108,7 +109,13 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
                 _user.Location = Location;
                 _user.UserRole = SelectedRole;
                 _user.IsApproved = IsApproved;
-                _user.IsEmailVerified = !IsEmailUnknown;
+                _user.IsEmailVerified = IsEmailVerified;
+                
+                if (!string.IsNullOrWhiteSpace(Password))
+                {
+                    _user.Password = Password;
+                }
+                
                 _user.Permissions = GetPermissionsString();
 
                 bool success;
@@ -143,11 +150,5 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             _parent.CloseDetailView();
         }
 
-        [RelayCommand]
-        private void ResetPassword()
-        {
-            // Placeholder for password reset logic
-            _logger.LogInformation("Password reset requested for {Email}", Email);
-        }
     }
 }

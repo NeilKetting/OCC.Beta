@@ -29,6 +29,18 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
 
         [ObservableProperty]
         private string? _errorMessage;
+        
+        [ObservableProperty]
+        private string? _forgotPasswordEmail;
+        
+        [ObservableProperty]
+        private string? _resetCode;
+        
+        [ObservableProperty]
+        private string? _newPassword;
+        
+        [ObservableProperty]
+        private bool _isResetCodeSent;
 
         [ObservableProperty]
         private bool _isDevUser;
@@ -219,6 +231,67 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
                 {
                     ErrorMessage = "Registration failed.";
                 }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"An error occurred: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+        
+        [RelayCommand]
+        private async Task SendResetRequestAsync()
+        {
+            if (string.IsNullOrWhiteSpace(ForgotPasswordEmail))
+            {
+                ErrorMessage = "Please enter your email address.";
+                return;
+            }
+            
+            try
+            {
+                IsBusy = true;
+                ErrorMessage = null;
+                // Mocking reset request logic
+                await Task.Delay(1500);
+                IsResetCodeSent = true;
+                _logger.LogInformation("Password reset code sent to {Email}", ForgotPasswordEmail);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"An error occurred: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+        
+        [RelayCommand]
+        private async Task VerifyResetAndSaveAsync()
+        {
+            if (string.IsNullOrWhiteSpace(ResetCode) || string.IsNullOrWhiteSpace(NewPassword))
+            {
+                ErrorMessage = "Please fill in all reset fields.";
+                return;
+            }
+            
+            try
+            {
+                IsBusy = true;
+                ErrorMessage = null;
+                // Mocking reset verification and save
+                await Task.Delay(2000);
+                _logger.LogInformation("Password successfully reset for {Email}", ForgotPasswordEmail);
+                
+                ErrorMessage = "Password reset successful! You can now login.";
+                IsResetCodeSent = false;
+                ForgotPasswordEmail = null;
+                ResetCode = null;
+                NewPassword = null;
             }
             catch (Exception ex)
             {

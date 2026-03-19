@@ -17,6 +17,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using Microsoft.Extensions.Logging;
 
 namespace OCC.WpfClient.Features.Chat.ViewModels
 {
@@ -34,6 +35,7 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         private readonly ConnectionSettings _connectionSettings;
         private readonly HttpClient _httpClient;
         private readonly ILocalEncryptionService _encryptionService;
+        private readonly ILogger<ChatViewModel> _logger;
         private HubConnection? _hubConnection;
 
         [ObservableProperty]
@@ -132,12 +134,14 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         public ChatViewModel(IAuthService authService,
                              ConnectionSettings connectionSettings,
                              IHttpClientFactory httpClientFactory,
-                             ILocalEncryptionService encryptionService)
+                             ILocalEncryptionService encryptionService,
+                             ILogger<ChatViewModel> logger)
         {
             _authService = authService;
             _connectionSettings = connectionSettings;
             _httpClient = httpClientFactory.CreateClient();
             _encryptionService = encryptionService;
+            _logger = logger;
 
             // Add authorization header for HTTP requests
             if (!string.IsNullOrEmpty(_authService.CurrentToken))
@@ -413,19 +417,22 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
 
             try
             {
+                _logger.LogInformation("Connecting to SignalR Chat Hub at {HubUrl}...", hubUrl);
                 await _hubConnection.StartAsync();
                 IsConnected = true;
+                _logger.LogInformation("Successfully connected to Chat Hub.");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to connect to SignalR Chat Hub: {ex.Message}");
+                _logger.LogError(ex, "Failed to connect to SignalR Chat Hub.");
                 IsConnected = false;
             }
         }
 
         private void HandleIncomingMessage(ChatMessageDto messageDto)
         {
-            Debug.WriteLine($"[ChatVM {_instanceId}] HandleIncomingMessage received. From: {messageDto.SenderName}, Session: {messageDto.ChatSessionId}, Content: {messageDto.Content?.Substring(0, Math.Min(10, messageDto.Content.Length))}...");
+            _logger.LogInformation("ReceiveMessage: From={Sender}, Session={SessionId}, HasAttachment={HasAttachment}", 
+                messageDto.SenderName, messageDto.ChatSessionId, messageDto.HasAttachment);
             
             var session = ChatSessions.FirstOrDefault(s => s.Id == messageDto.ChatSessionId);
             if (session != null)
@@ -587,22 +594,28 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         [RelayCommand]
         private async Task SendMessageAsync()
         {
-            Debug.WriteLine($"[ChatVM {_instanceId}] SendMessageAsync started. Thread ID: {Environment.CurrentManagedThreadId}");
+            _logger.LogInformation("SendMessageAsync started. Session: {SessionId}, Connection: {ConnectionState}", 
+                SelectedSession?.Id, _hubConnection?.State);
             
-            if (SelectedSession == null || string.IsNullOrWhiteSpace(MessageInput) || _hubConnection == null || !IsConnected)
+            if (SelectedSession == null || string.IsNullOrWhiteSpace(MessageInput))
             {
-                Debug.WriteLine($"[ChatVM {_instanceId}] SendMessageAsync blocked. Session: {SelectedSession?.Id}, InputEmpty: {string.IsNullOrWhiteSpace(MessageInput)}, HubNull: {_hubConnection == null}, Connected: {IsConnected}");
+                _logger.LogWarning("SendMessage blocked: Session is null or input is empty.");
+                return;
+            }
+
+            if (_hubConnection == null || !IsConnected || _hubConnection.State != HubConnectionState.Connected)
+            {
+                _logger.LogWarning("SendMessage blocked: SignalR not connected. State: {State}", _hubConnection?.State);
+                // Attempt to reconnect if disconnected
+                if (_hubConnection != null && _hubConnection.State == HubConnectionState.Disconnected)
+                {
+                    _ = ConnectToSignalRAsync();
+                }
                 return;
             }
 
             var plainContent = MessageInput;
-            
-            // Initial clear attempt
-            App.Current.Dispatcher.Invoke(() => {
-                MessageInput = string.Empty;
-                OnPropertyChanged(nameof(MessageInput));
-            });
-            Debug.WriteLine($"[ChatVM {_instanceId}] Initial input clear attempted. Content length: {plainContent.Length}");
+            bool success = false;
 
             try
             {
@@ -612,24 +625,28 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                     contentToSend = _encryptionService.EncryptMessage(plainContent, SelectedSession.DecryptedAesKey);
                 }
 
-                Debug.WriteLine($"[ChatVM {_instanceId}] Invoking SendMessage on Hub...");
+                _logger.LogDebug("Invoking SendMessage on Hub for session {SessionId}", SelectedSession.Id);
                 await _hubConnection.InvokeAsync("SendMessage", SelectedSession.Id, contentToSend);
-                Debug.WriteLine($"[ChatVM {_instanceId}] Hub invocation successful.");
+                _logger.LogInformation("Message sent successfully via Hub.");
+                success = true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[ChatVM {_instanceId}] SendMessage failure: {ex.Message}");
-                // Restore input on failure
-                App.Current.Dispatcher.Invoke(() => MessageInput = plainContent);
+                _logger.LogError(ex, "Failed to send message via SignalR hub.");
             }
             finally
             {
-                // FORCE CLEAR via event and property
-                App.Current.Dispatcher.Invoke(() => {
-                    MessageInput = string.Empty;
-                    RequestClearInput?.Invoke(this, EventArgs.Empty);
-                });
-                Debug.WriteLine($"[ChatVM {_instanceId}] Finally block: Input clear event raised.");
+                if (success)
+                {
+                    App.Current.Dispatcher.Invoke(() => {
+                        MessageInput = string.Empty;
+                        RequestClearInput?.Invoke(this, EventArgs.Empty);
+                    });
+                }
+                else
+                {
+                    _logger.LogWarning("Message send failed. Input preserved.");
+                }
             }
         }
 

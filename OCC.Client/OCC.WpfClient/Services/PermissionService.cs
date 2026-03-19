@@ -32,11 +32,11 @@ namespace OCC.WpfClient.Services
             var user = _authService.CurrentUser;
             if (user == null) return false;
 
-            // 1. System Overrides (Bypass)
+            // 1. System Overrides (Bypass for Devs/Admins/SiteManagers)
             if (IsDev || user.UserRole == UserRole.Admin || user.UserRole == UserRole.SiteManager) 
                 return true;
 
-            // 2. Global Deny
+            // 2. Global Deny (Critical Security Restrictions)
             var restricted = new[] 
             { 
                 NavigationRoutes.AuditLog, 
@@ -50,7 +50,7 @@ namespace OCC.WpfClient.Services
             };
             if (restricted.Contains(route, StringComparer.OrdinalIgnoreCase)) return false;
 
-            // 3. Global Allow
+            // 3. Global Allow (Basic Dashboard/Utility access)
             var basic = new[] 
             { 
                 NavigationRoutes.Home, 
@@ -67,42 +67,23 @@ namespace OCC.WpfClient.Services
             };
             if (basic.Contains(route, StringComparer.OrdinalIgnoreCase)) return true;
 
-            // 4. Role-Based Whitelisting (Office)
+            // 4. Explicit User-Specific Permission Check (THE CORE FIX)
+            // If the user has the permission string explicitly assigned to them, grant access.
+            if (HasPermission(user, route)) return true;
+
+            // 5. Special Feature Logic (Mapping UI routes to underlying feature permissions)
             if (user.UserRole == UserRole.Office)
             {
+                // Mapping UI routes to broader feature permissions
                 if (route == "OrderList" || route == "Suppliers" || route == "CreateOrder")
                     return HasPermission(user, NavigationRoutes.Feature_OrderManagement);
 
                 if (route == "Inventory" || route == "ItemList" || route == "RestockReview")
                     return HasPermission(user, NavigationRoutes.Feature_OrderManagement) || 
                            HasPermission(user, NavigationRoutes.Feature_OrderInventoryOnly);
-
-                var toggleable = new[] 
-                { 
-                    NavigationRoutes.Time, 
-                    NavigationRoutes.StaffManagement, 
-                    NavigationRoutes.Projects, 
-                    NavigationRoutes.Customers, 
-                    NavigationRoutes.HealthSafety, 
-                    NavigationRoutes.Feature_OrderManagement, 
-                    NavigationRoutes.Feature_OrderInventoryOnly 
-                };
-
-                if (toggleable.Contains(route, StringComparer.OrdinalIgnoreCase))
-                {
-                    if (route == NavigationRoutes.Feature_OrderManagement)
-                    {
-                        return HasPermission(user, NavigationRoutes.Feature_OrderManagement) || 
-                               HasPermission(user, NavigationRoutes.Feature_OrderInventoryOnly);
-                    }
-
-                    return HasPermission(user, route);
-                }
-
-                return false;
             }
 
-            // 5. Contractor/Guest Access
+            // 6. Project/Time access for contractors and guests
             if (user.UserRole == UserRole.ExternalContractor || user.UserRole == UserRole.Guest)
             {
                 return route switch

@@ -34,6 +34,15 @@ namespace OCC.WpfClient.Features.Chat.Models
         [ObservableProperty]
         private bool _isFavourite;
 
+        [ObservableProperty]
+        private string _initials;
+
+        [ObservableProperty]
+        private string _badgeColor;
+
+        [ObservableProperty]
+        private string? _profilePictureUrl;
+
         public Guid CreatedById => Dto.CreatedById;
         public List<ChatUserDto> Users => Dto.Users;
 
@@ -73,6 +82,53 @@ namespace OCC.WpfClient.Features.Chat.Models
                 _lastMessagePreview = "";
                 _lastMessageTime = dto.CreatedAtUtc;
             }
+
+            // Set Initials and Color
+            UpdateMetadata();
+        }
+
+        private void UpdateMetadata()
+        {
+            if (!_isGroupChat && Dto.Users.Count >= 2)
+            {
+                var otherUser = Dto.Users.FirstOrDefault(u => u.UserId != _currentUserId);
+                if (otherUser != null)
+                {
+                    Initials = GetInitials(otherUser.FirstName, otherUser.LastName);
+                    BadgeColor = GetColorFromGuid(otherUser.UserId);
+                    // ProfilePictureUrl = otherUser.ProfilePictureUrl; // Not in Dto yet, but ready
+                }
+            }
+            else
+            {
+                Initials = GetInitials(Name, "");
+                BadgeColor = GetColorFromGuid(Id);
+            }
+        }
+
+        private string GetInitials(string first, string last)
+        {
+            if (string.IsNullOrWhiteSpace(first)) return "?";
+            if (string.IsNullOrWhiteSpace(last)) return first[0].ToString().ToUpper();
+            return (first[0].ToString() + last[0].ToString()).ToUpper();
+        }
+
+        private string GetColorFromGuid(Guid id)
+        {
+            // Curated harmonious color palette (HSL tailored)
+            string[] colors = { 
+                "#0ea5e9", // Sky 500
+                "#8b5cf6", // Violet 500
+                "#d946ef", // Fuchsia 500
+                "#f43f5e", // Rose 500
+                "#f97316", // Orange 500
+                "#eab308", // Yellow 500
+                "#22c55e", // Green 500
+                "#06b6d4"  // Cyan 500
+            };
+            
+            var hash = id.ToByteArray().Sum(b => (int)b);
+            return colors[hash % colors.Length];
         }
     }
 }

@@ -231,6 +231,9 @@ namespace OCC.API.Controllers
             await _context.SaveChangesAsync();
 
             // Broadcast
+            var sender = await _context.Users.FindAsync(userId);
+            var senderName = sender != null ? $"{sender.FirstName} {sender.LastName}" : "Unknown";
+            
             var session = await _context.ChatSessions.Include(cs => cs.SessionUsers).FirstOrDefaultAsync(cs => cs.Id == chatSessionId);
             if (session != null)
             {
@@ -242,6 +245,7 @@ namespace OCC.API.Controllers
                         Id = message.Id,
                         ChatSessionId = message.ChatSessionId,
                         SenderId = message.SenderId,
+                        SenderName = senderName,
                         Content = message.Content,
                         HasAttachment = message.HasAttachment,
                         SentDate = message.SentDate,

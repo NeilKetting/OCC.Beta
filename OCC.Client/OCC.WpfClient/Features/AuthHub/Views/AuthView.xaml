@@ -44,7 +44,33 @@
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RegisterSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
             </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ForgotPasswordSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
+            </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LoginSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
+            </ObjectAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="FlipToForgotPassword">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <PowerEase EasingMode="EaseIn" Power="2"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <PowerEase EasingMode="EaseOut" Power="2"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LoginSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RegisterSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
+                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}"/>
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ForgotPasswordSide" Storyboard.TargetProperty="Visibility" BeginTime="0:0:0.3">
                 <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
             </ObjectAnimationUsingKeyFrames>
         </Storyboard>
@@ -193,7 +219,9 @@
                                            Foreground="{StaticResource TextSub}" 
                                            Cursor="Hand" 
                                            VerticalAlignment="Center" 
-                                           FontSize="{StaticResource FontSizeSmall}"/>
+                                           FontSize="{StaticResource FontSizeSmall}"
+                                           MouseLeftButtonUp="OnForgotPasswordClick"
+                                           Background="Transparent"/>
                             </Grid>
 
                             <!-- Environment Selection (Dev Only) -->
@@ -212,7 +240,7 @@
                                     Content="Login" Margin="0,10,0,0" />
 
                             <TextBlock Text="Don't have an account? Register" Foreground="{StaticResource TextSub}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="{StaticResource FontSizeSmall}" Cursor="Hand" MouseLeftButtonUp="OnRegisterClick" Background="Transparent" />
-                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorRed}" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="{Binding ErrorMessage, Converter={StaticResource VisibilityConverter}}"/>
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorRed}" HorizontalAlignment="Center" Margin="0,10,0,0" TextWrapping="Wrap" TextAlignment="Center" Visibility="{Binding ErrorMessage, Converter={StaticResource VisibilityConverter}}"/>
                         </StackPanel>
                     </Border>
 
@@ -265,7 +293,48 @@
                                     Content="Create Account" Margin="0,15,0,0" />
 
                             <TextBlock Text="By registering, you agree to our Terms" Foreground="{StaticResource TextSub}" HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="{StaticResource FontSizeSmall}"/>
-                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorRed}" HorizontalAlignment="Center" Margin="0,10,0,0" Visibility="{Binding ErrorMessage, Converter={StaticResource VisibilityConverter}}"/>
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorRed}" HorizontalAlignment="Center" Margin="0,10,0,0" TextWrapping="Wrap" TextAlignment="Center" Visibility="{Binding ErrorMessage, Converter={StaticResource VisibilityConverter}}"/>
+                        </StackPanel>
+                    </Border>
+                    
+                    <!-- Forgot Password -->
+                    <Border x:Name="ForgotPasswordSide" Style="{StaticResource GlassCard}" Visibility="Collapsed" Padding="30,20" BorderThickness="4,6" BorderBrush="{StaticResource ChevronPatternBrush}" CornerRadius="0">
+                        <StackPanel>
+                            <Border BorderBrush="{StaticResource AccentBlue}" BorderThickness="0,0,0,2" Padding="0,0,0,5" Margin="0,0,0,10">
+                                <TextBlock Text="Forgot Password" FontFamily="{StaticResource MichromaFont}" FontSize="{StaticResource FontSizeHeader}" Foreground="{StaticResource TextMain}" FontWeight="SemiBold"/>
+                            </Border>
+
+                            <!-- Step 1: Request Reset -->
+                            <StackPanel Visibility="{Binding IsResetCodeSent, Converter={StaticResource VisibilityConverter}, ConverterParameter=Invert}">
+                                <TextBlock Text="Enter your email to receive a reset code." Foreground="{StaticResource TextMain}" FontSize="{StaticResource FontSizeLarge}" Margin="0,0,0,20" TextWrapping="Wrap"/>
+                                <TextBox Style="{StaticResource ModernInput}" 
+                                         ap:WatermarkProperties.Watermark="Email Address"
+                                         Text="{Binding ForgotPasswordEmail, UpdateSourceTrigger=PropertyChanged}"/>
+                                <Button Style="{StaticResource ModernPrimaryButton}" 
+                                        Content="Send Reset Code" 
+                                        Command="{Binding SendResetRequestCommand}"
+                                        Margin="0,20,0,0"/>
+                            </StackPanel>
+
+                            <!-- Step 2: Set New Password -->
+                            <StackPanel Visibility="{Binding IsResetCodeSent, Converter={StaticResource VisibilityConverter}}">
+                                <TextBlock Text="Enter the code sent to your email and your new password." Foreground="{StaticResource TextMain}" FontSize="{StaticResource FontSizeLarge}" Margin="0,0,0,20" TextWrapping="Wrap"/>
+                                <TextBox Style="{StaticResource ModernInput}" 
+                                         ap:WatermarkProperties.Watermark="Reset Code"
+                                         Text="{Binding ResetCode, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,0,15"/>
+                                <PasswordBox Name="NewPasswordBox" 
+                                             ap:WatermarkProperties.Watermark="New Password"
+                                             Style="{StaticResource ModernPasswordInput}"/>
+                                <Button Style="{StaticResource ModernPrimaryButton}" 
+                                        Content="Update Password" 
+                                        Command="{Binding VerifyResetAndSaveCommand}"
+                                        CommandParameter="{Binding ElementName=NewPasswordBox}"
+                                        Margin="0,20,0,0"/>
+                            </StackPanel>
+
+                            <TextBlock Text="Back to Login" Foreground="{StaticResource TextSub}" HorizontalAlignment="Center" Margin="0,20,0,0" FontSize="{StaticResource FontSizeSmall}" Cursor="Hand" MouseLeftButtonUp="OnLoginClick" Background="Transparent" />
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorRed}" HorizontalAlignment="Center" Margin="0,10,0,0" TextWrapping="Wrap" TextAlignment="Center" Visibility="{Binding ErrorMessage, Converter={StaticResource VisibilityConverter}}"/>
                         </StackPanel>
                     </Border>
                 </Grid>

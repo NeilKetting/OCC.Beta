@@ -6,7 +6,7 @@ namespace OCC.Shared.Models
     public abstract class BaseEntity : IEntity, IAuditableEntity
     {
         [Key]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
 
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
         public string CreatedBy { get; set; } = "System";

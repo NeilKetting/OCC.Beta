@@ -125,12 +125,10 @@
                                         </ComboBox>
                                     </StackPanel>
 
-                                    <StackPanel Margin="0,0,0,25">
-                                        <TextBlock Text="Security" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,8"/>
-                                        <Button Content="Reset User Password" Style="{StaticResource SecondaryButton}" 
-                                                Command="{Binding ResetPasswordCommand}" Height="40" 
-                                                HorizontalContentAlignment="Left" Padding="15,0"/>
-                                        <TextBlock Text="User will be prompted to change password on next login." 
+                                    <StackPanel Margin="0,0,0,15">
+                                        <TextBlock Text="Set Password" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Password}" Style="{StaticResource ModernInput}"/>
+                                        <TextBlock Text="Provide a password for new users or to change existing." 
                                                    FontSize="11" Foreground="{StaticResource TextSub}" Margin="0,8,0,0" FontStyle="Italic" Opacity="0.7"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -149,10 +147,10 @@
                                         </StackPanel>
                                     </CheckBox>
 
-                                    <CheckBox IsChecked="{Binding IsEmailUnknown}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,0,10">
+                                    <CheckBox IsChecked="{Binding IsEmailVerified}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,0,10">
                                         <StackPanel>
-                                            <TextBlock Text="Email Unverified" Foreground="White" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Mark email as pending verification." FontSize="11" Foreground="{StaticResource TextSub}"/>
+                                            <TextBlock Text="Email Verified" Foreground="White" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Mark email as verified and confirmed." FontSize="11" Foreground="{StaticResource TextSub}"/>
                                         </StackPanel>
                                     </CheckBox>
 

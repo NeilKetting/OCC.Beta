@@ -53,5 +53,11 @@ namespace OCC.WpfClient.Features.AuthHub.Views
             var sb = (Storyboard)this.Resources["FlipToLogin"];
             if (sb != null) sb.Begin();
         }
+
+        private void OnForgotPasswordClick(object sender, RoutedEventArgs e)
+        {
+            var sb = (Storyboard)this.Resources["FlipToForgotPassword"];
+            if (sb != null) sb.Begin();
+        }
     }
 }

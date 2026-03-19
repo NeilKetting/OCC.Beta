@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OCC.API.Data;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using System.Security.Claims;
 
 namespace OCC.API.Hubs
@@ -50,6 +51,9 @@ namespace OCC.API.Hubs
             if (session == null || !session.SessionUsers.Any(su => su.UserId == senderId))
                 return; // Unauthorized or doesn't exist
 
+            var sender = await _context.Users.FindAsync(senderId);
+            var senderName = sender != null ? $"{sender.FirstName} {sender.LastName}" : "Unknown";
+
             var message = new ChatMessage
             {
                 Id = Guid.NewGuid(),
@@ -63,10 +67,22 @@ namespace OCC.API.Hubs
             _context.ChatMessages.Add(message);
             await _context.SaveChangesAsync();
 
+            // Map to DTO to avoid serialization cycles (entity -> session -> users -> session...)
+            var dto = new ChatMessageDto
+            {
+                Id = message.Id,
+                ChatSessionId = message.ChatSessionId,
+                SenderId = message.SenderId,
+                SenderName = senderName,
+                Content = message.Content,
+                HasAttachment = message.HasAttachment,
+                SentDate = message.SentDate
+            };
+
             // Broadcast to all users in the session
             foreach (var user in session.SessionUsers)
             {
-                await Clients.Group($"User_{user.UserId}").SendAsync("ReceiveMessage", message);
+                await Clients.Group($"User_{user.UserId}").SendAsync("ReceiveMessage", dto);
             }
         }
 

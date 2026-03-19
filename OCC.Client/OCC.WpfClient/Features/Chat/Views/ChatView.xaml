@@ -223,8 +223,17 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             
-                                            <Ellipse Grid.Column="0" Width="40" Height="40" Fill="#334155" HorizontalAlignment="Left" />
-                                            <TextBlock Grid.Column="0" Text="{Binding Name[0]}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                            <Grid Grid.Column="0" Width="40" Height="40" HorizontalAlignment="Left">
+                                                <Ellipse Fill="{Binding BadgeColor}" />
+                                                <TextBlock Text="{Binding Initials}" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                                
+                                                <!-- Profile Picture Support -->
+                                                <Ellipse Visibility="{Binding ProfilePictureUrl, Converter={StaticResource VisibilityConverter}}">
+                                                    <Ellipse.Fill>
+                                                        <ImageBrush ImageSource="{Binding ProfilePictureUrl}" Stretch="UniformToFill"/>
+                                                    </Ellipse.Fill>
+                                                </Ellipse>
+                                            </Grid>
                                             
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
                                                 <TextBlock Text="{Binding Name}" Foreground="White" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
@@ -551,7 +560,16 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <Ellipse Width="40" Height="40" Fill="#334155" />
+                    <Grid Grid.Column="0" Width="40" Height="40">
+                        <Ellipse Fill="{Binding SelectedSession.BadgeColor}" />
+                        <TextBlock Text="{Binding SelectedSession.Initials}" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        
+                        <Ellipse Visibility="{Binding SelectedSession.ProfilePictureUrl, Converter={StaticResource VisibilityConverter}}">
+                            <Ellipse.Fill>
+                                <ImageBrush ImageSource="{Binding SelectedSession.ProfilePictureUrl}" Stretch="UniformToFill"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                    </Grid>
                     
                     <StackPanel Grid.Column="1" Margin="15,0,0,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
