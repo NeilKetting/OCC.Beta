@@ -29,6 +29,7 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
 
     public partial class ChatViewModel : ViewModelBase, IAsyncDisposable
     {
+        private readonly Guid _instanceId = Guid.NewGuid();
         private readonly IAuthService _authService;
         private readonly ConnectionSettings _connectionSettings;
         private readonly HttpClient _httpClient;
@@ -72,8 +73,22 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             }
         }
 
-        [ObservableProperty]
+        public event EventHandler? RequestClearInput;
+
         private string _messageInput = string.Empty;
+        public string MessageInput
+        {
+            get => _messageInput;
+            set 
+            {
+                if (SetProperty(ref _messageInput, value))
+                {
+                    // Minimal logging here to avoid flood, but enough to see it's working
+                    if (!string.IsNullOrEmpty(value))
+                        Debug.WriteLine($"[ChatVM {_instanceId}] Input actual: '{value}'");
+                }
+            }
+        }
 
         private string _searchQuery = string.Empty;
         public string SearchQuery
@@ -131,9 +146,11 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             }
 
             Title = "Chat";
-
+            Debug.WriteLine($"[ChatVM {_instanceId}] Constructor initialized. Thread ID: {Environment.CurrentManagedThreadId}");
+            
             SessionsView = CollectionViewSource.GetDefaultView(ChatSessions);
             SessionsView.Filter = FilterSessions;
+            SessionsView.SortDescriptions.Add(new SortDescription(nameof(ChatSessionModel.LastMessageTime), ListSortDirection.Descending));
 
             ContactsView = CollectionViewSource.GetDefaultView(AvailableContacts);
             ContactsView.Filter = FilterContacts;
@@ -222,7 +239,6 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                 try
                 {
                     await _hubConnection.InvokeAsync("MarkSessionAsRead", sessionId);
-                    SessionsView.Refresh(); // Refresh filter in case we're on "Unread" tab
                 }
                 catch (Exception ex)
                 {
@@ -298,7 +314,6 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
             {
                 var isFav = await _hubConnection.InvokeAsync<bool>("ToggleFavourite", session.Id);
                 session.IsFavourite = isFav;
-                SessionsView.Refresh(); // Refresh list if we are filtering by Favourites
             }
             catch (Exception ex)
             {
@@ -327,7 +342,7 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                         ChatSessions.Clear();
                         foreach (var dto in sessions)
                         {
-                            var model = new ChatSessionModel(dto);
+                            var model = new ChatSessionModel(dto, CurrentUserId);
 
                             // Decrypt AES Key for this session
                             var myUserDto = dto.Users.FirstOrDefault(u => u.UserId == _authService.CurrentUser?.Id);
@@ -410,19 +425,46 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
 
         private void HandleIncomingMessage(ChatMessageDto messageDto)
         {
+            Debug.WriteLine($"[ChatVM {_instanceId}] HandleIncomingMessage received. From: {messageDto.SenderName}, Session: {messageDto.ChatSessionId}, Content: {messageDto.Content?.Substring(0, Math.Min(10, messageDto.Content.Length))}...");
+            
             var session = ChatSessions.FirstOrDefault(s => s.Id == messageDto.ChatSessionId);
             if (session != null)
             {
+                App.Current.Dispatcher.Invoke(() => 
+                {
+                    // Update preview immediately for the session list
+                    session.LastMessagePreview = messageDto.HasAttachment ? "📎 Attachment" : messageDto.Content;
+                    session.LastMessageTime = messageDto.SentDate;
+                    
+                    // Force a refresh of the view to re-sort and update the preview on the left
+                    SessionsView.Refresh();
+                    
+                    Debug.WriteLine($"[ChatVM {_instanceId}] Updated session preview and refreshed view for {session.Id}");
+                });
+
                 // Add message if session is active
                 if (SelectedSession?.Id == session.Id && _authService.CurrentUser != null)
                 {
                     // Decrypt incoming message content
-                    if (!string.IsNullOrEmpty(session.DecryptedAesKey) && !messageDto.HasAttachment)
+                    try 
                     {
-                        messageDto.Content = _encryptionService.DecryptMessage(messageDto.Content, session.DecryptedAesKey);
+                        if (!string.IsNullOrEmpty(session.DecryptedAesKey) && !messageDto.HasAttachment)
+                        {
+                            messageDto.Content = _encryptionService.DecryptMessage(messageDto.Content, session.DecryptedAesKey);
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Decryption failed for incoming message: {ex.Message}");
+                    }
+
                     var msgModel = new ChatMessageModel(messageDto, _authService.CurrentUser.Id);
-                    session.Messages.Add(msgModel);
+                    
+                    App.Current.Dispatcher.Invoke(() => 
+                    {
+                        session.Messages.Add(msgModel);
+                        Debug.WriteLine($"Added message to session {session.Id}. Total messages: {session.Messages.Count}");
+                    });
                 }
                 else
                 {
@@ -436,11 +478,6 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                 // Update preview
                 session.LastMessagePreview = messageDto.HasAttachment ? "📎 Attachment" : messageDto.Content;
                 session.LastMessageTime = messageDto.SentDate;
-
-                // Re-sort sessions
-                var sorted = ChatSessions.OrderByDescending(s => s.LastMessageTime).ToList();
-                ChatSessions.Clear();
-                foreach (var s in sorted) ChatSessions.Add(s);
             }
             // else: Handle new session created by incoming message (refresh sessions)
         }
@@ -550,11 +587,22 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         [RelayCommand]
         private async Task SendMessageAsync()
         {
+            Debug.WriteLine($"[ChatVM {_instanceId}] SendMessageAsync started. Thread ID: {Environment.CurrentManagedThreadId}");
+            
             if (SelectedSession == null || string.IsNullOrWhiteSpace(MessageInput) || _hubConnection == null || !IsConnected)
+            {
+                Debug.WriteLine($"[ChatVM {_instanceId}] SendMessageAsync blocked. Session: {SelectedSession?.Id}, InputEmpty: {string.IsNullOrWhiteSpace(MessageInput)}, HubNull: {_hubConnection == null}, Connected: {IsConnected}");
                 return;
+            }
 
             var plainContent = MessageInput;
-            MessageInput = string.Empty; // Clear immediately
+            
+            // Initial clear attempt
+            App.Current.Dispatcher.Invoke(() => {
+                MessageInput = string.Empty;
+                OnPropertyChanged(nameof(MessageInput));
+            });
+            Debug.WriteLine($"[ChatVM {_instanceId}] Initial input clear attempted. Content length: {plainContent.Length}");
 
             try
             {
@@ -564,12 +612,24 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                     contentToSend = _encryptionService.EncryptMessage(plainContent, SelectedSession.DecryptedAesKey);
                 }
 
+                Debug.WriteLine($"[ChatVM {_instanceId}] Invoking SendMessage on Hub...");
                 await _hubConnection.InvokeAsync("SendMessage", SelectedSession.Id, contentToSend);
+                Debug.WriteLine($"[ChatVM {_instanceId}] Hub invocation successful.");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to send message: {ex.Message}");
-                MessageInput = plainContent; // Restore on fail
+                Debug.WriteLine($"[ChatVM {_instanceId}] SendMessage failure: {ex.Message}");
+                // Restore input on failure
+                App.Current.Dispatcher.Invoke(() => MessageInput = plainContent);
+            }
+            finally
+            {
+                // FORCE CLEAR via event and property
+                App.Current.Dispatcher.Invoke(() => {
+                    MessageInput = string.Empty;
+                    RequestClearInput?.Invoke(this, EventArgs.Empty);
+                });
+                Debug.WriteLine($"[ChatVM {_instanceId}] Finally block: Input clear event raised.");
             }
         }
 

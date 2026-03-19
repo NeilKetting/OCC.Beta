@@ -79,6 +79,8 @@ namespace OCC.Shared.Models
         SiteManager,
         /// <summary> Third-party access (restricted). </summary>
         ExternalContractor,
+        /// <summary> Health, Safety, Environment, and Quality access. </summary>
+        HSEQ,
         /// <summary> Minimal read-only or pending access. </summary>
         Guest
     }

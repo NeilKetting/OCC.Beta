@@ -116,7 +116,13 @@
 
                                     <StackPanel Margin="0,0,0,15">
                                         <TextBlock Text="Functional Role" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                        <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" Style="{StaticResource ModernComboBox}"/>
+                                        <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" Style="{StaticResource ModernComboBox}">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource FriendlyEnumConverter}}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,25">
@@ -150,13 +156,13 @@
                                         </StackPanel>
                                     </CheckBox>
 
-                                    <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Margin="0,15,0,15" Padding="0,15,0,0">
+                                    <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Margin="0,15,0,15" Padding="0,15,0,0"
+                                            Visibility="{Binding ShowModuleAccess, Converter={StaticResource VisibilityConverter}}">
                                         <StackPanel>
                                             <TextBlock Text="MODULE PERMISSIONS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,15"/>
-
-                                            <CheckBox IsChecked="{Binding HasOrdersAccess}" Content="Orders &amp; Restocking" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasInventoryAccess}" Content="Inventory Only" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasProjectsAccess}" Content="Project Creation" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasChatAccess}" Content="Chat Feature" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasUserManagementAccess}" Content="User Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasEmployeeManagementAccess}" Content="Employee Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

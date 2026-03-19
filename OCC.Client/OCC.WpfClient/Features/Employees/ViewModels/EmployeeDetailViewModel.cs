@@ -43,13 +43,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         [ObservableProperty]
         private string _sickLeaveCycleEndDisplay = "N/A";
 
-        [ObservableProperty]
-        private bool _isSystemAccessVisible;
-
-        [ObservableProperty]
-        private bool _showPermissionsButton;
-
-        public bool IsPassportVisible => Employee.IdType == IdType.Passport;
+        public bool IsPassportVisible => Employee.IdType == IdType.RSAId;
         public bool IsContractVisible => Employee.EmploymentType == EmploymentType.Contract;
 
         private readonly IUserService _userService;
@@ -77,8 +71,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                 var users = await _userService.GetUsersAsync();
                 AvailableUsers = users.OrderBy(u => u.DisplayName).ToList();
 
-                UpdateSystemAccessVisibility();
-                UpdatePermissionsButtonVisibility();
                 UpdateAccrualRule();
                 UpdateSickLeaveCycleEnd();
             }
@@ -111,8 +103,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                     }
                     else if (e.PropertyName == nameof(EmployeeModel.Role))
                     {
-                        UpdateSystemAccessVisibility();
-                        UpdatePermissionsButtonVisibility();
                     }
                     else if (e.PropertyName == nameof(EmployeeModel.EmploymentType))
                     {
@@ -126,7 +116,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
                     else if (e.PropertyName == nameof(EmployeeModel.LinkedUserId))
                     {
                         HandleLinkedUserChange(Employee.LinkedUserId);
-                        UpdatePermissionsButtonVisibility();
                     }
                     else if (e.PropertyName == nameof(EmployeeModel.FirstName) || e.PropertyName == nameof(EmployeeModel.LastName))
                     {
@@ -202,32 +191,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
             }
         }
 
-        private void UpdateSystemAccessVisibility()
-        {
-            IsSystemAccessVisible = Employee.Role == EmployeeRole.Office || Employee.Role == EmployeeRole.SiteManager;
-        }
-
-        private void UpdatePermissionsButtonVisibility()
-        {
-            var currentUser = _authService.CurrentUser;
-            if (currentUser?.UserRole != UserRole.Admin)
-            {
-                ShowPermissionsButton = false;
-                return;
-            }
-
-            bool isRoleManaged = Employee.Role == EmployeeRole.Office;
-            bool isLinkedAdmin = false;
-
-            if (Employee.LinkedUserId.HasValue)
-            {
-                var linkedUser = AvailableUsers.FirstOrDefault(u => u.Id == Employee.LinkedUserId.Value);
-                isLinkedAdmin = linkedUser?.UserRole == UserRole.Admin || linkedUser?.UserRole == UserRole.SiteManager;
-            }
-
-            ShowPermissionsButton = isRoleManaged && !isLinkedAdmin;
-        }
-
         private void HandleLinkedUserChange(Guid? userId)
         {
             if (userId.HasValue)
@@ -291,12 +254,6 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         private void Print()
         {
             _logger.LogInformation("Print Profile requested for {DisplayName}", Employee.DisplayName);
-        }
-
-        [RelayCommand]
-        private void OpenPermissions()
-        {
-            _logger.LogInformation("Open Permissions requested for {DisplayName}", Employee.DisplayName);
         }
     }
 }

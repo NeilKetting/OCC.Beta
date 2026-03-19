@@ -140,25 +140,6 @@
                                             <TextBox Text="{Binding Employee.TaxNumber}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="Tax Ref No."/>
                                         </StackPanel>
 
-                                        <!-- System Access -->
-                                        <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Padding="0,20,0,0"
-                                                Visibility="{Binding IsSystemAccessVisible, Converter={StaticResource VisibilityConverter}}">
-                                            <StackPanel>
-                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                                                    <Path Data="{StaticResource IconPersonal}" Style="{StaticResource SectionIcon}"/>
-                                                    <TextBlock Text="System Access" Style="{StaticResource SectionHeaderText}"/>
-                                                </StackPanel>
-
-                                                <TextBlock Text="Linked User Account" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                                <ComboBox ItemsSource="{Binding AvailableUsers}" SelectedValue="{Binding Employee.LinkedUserId}"
-                                                          SelectedValuePath="Id" DisplayMemberPath="DisplayName"
-                                                          Style="{StaticResource ModernComboBox}" Margin="0,0,10,0"/>
-                                                
-                                                <Button Content="Manage Permissions" Command="{Binding OpenPermissionsCommand}"
-                                                        Style="{StaticResource PrimaryButton}" Margin="0,15,0,0" HorizontalAlignment="Left"
-                                                        Visibility="{Binding ShowPermissionsButton, Converter={StaticResource VisibilityConverter}}"/>
-                                            </StackPanel>
-                                        </Border>
                                     </StackPanel>
 
                                     <!-- Col 2: Employment + Emergency -->

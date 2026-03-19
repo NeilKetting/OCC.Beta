@@ -23,6 +23,7 @@
 
             <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
             <conv:VisibilityConverter x:Key="VisibilityConverter" />
+            <conv:FriendlyEnumConverter x:Key="FriendlyEnumConverter" />
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
             <!-- Global Feature View Mapping -->

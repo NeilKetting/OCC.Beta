@@ -571,7 +571,7 @@
                        Visibility="{Binding SelectedSession, Converter={StaticResource VisibilityConverter}, ConverterParameter='Invert'}"/>
 
             <!-- Message Area -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" 
+            <ScrollViewer x:Name="MessagesScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" 
                           Visibility="{Binding SelectedSession, Converter={StaticResource VisibilityConverter}}">
                 <ItemsControl Margin="20" ItemsSource="{Binding SelectedSession.Messages}">
                     <ItemsControl.ItemTemplate>

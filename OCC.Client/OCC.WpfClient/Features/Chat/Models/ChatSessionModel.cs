@@ -43,13 +43,25 @@ namespace OCC.WpfClient.Features.Chat.Models
 
         public ObservableCollection<ChatMessageModel> Messages { get; } = new ObservableCollection<ChatMessageModel>();
 
-        public ChatSessionModel(ChatSessionDto dto)
+        private readonly Guid _currentUserId;
+
+        public ChatSessionModel(ChatSessionDto dto, Guid currentUserId)
         {
             Dto = dto;
-            _name = dto.Name ?? "Chat";
+            _currentUserId = currentUserId;
             _isGroupChat = dto.IsGroupChat;
             _unreadCount = dto.UnreadCount;
             _isFavourite = dto.IsFavourite;
+
+            if (!_isGroupChat && dto.Users.Count >= 2)
+            {
+                var otherUser = dto.Users.FirstOrDefault(u => u.UserId != _currentUserId);
+                _name = otherUser != null ? $"{otherUser.FirstName} {otherUser.LastName}" : (dto.Name ?? "Chat");
+            }
+            else
+            {
+                _name = dto.Name ?? "Chat";
+            }
             
             if (dto.LastMessage != null)
             {

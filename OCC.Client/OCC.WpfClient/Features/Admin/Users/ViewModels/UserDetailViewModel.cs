@@ -28,11 +28,19 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         [ObservableProperty] private bool _isEmailUnknown;
 
         // Module Access
-        [ObservableProperty] private bool _hasOrdersAccess;
-        [ObservableProperty] private bool _hasInventoryAccess;
-        [ObservableProperty] private bool _hasProjectsAccess;
+        [ObservableProperty] private bool _hasChatAccess;
+        [ObservableProperty] private bool _hasUserManagementAccess;
+        [ObservableProperty] private bool _hasEmployeeManagementAccess;
 
-        public List<UserRole> Roles => Enum.GetValues(typeof(UserRole)).Cast<UserRole>().ToList();
+        [ObservableProperty] private bool _showModuleAccess;
+
+        public List<UserRole> Roles => new List<UserRole>
+        {
+            UserRole.Admin,
+            UserRole.Office,
+            UserRole.ExternalContractor,
+            UserRole.HSEQ
+        };
 
         public UserDetailViewModel(UserListViewModel parent, User user, IUserService userService, ILogger logger)
         {
@@ -50,7 +58,19 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             _isApproved = user.IsApproved;
             _isEmailUnknown = !user.IsEmailVerified;
 
+            _showModuleAccess = _selectedRole == UserRole.Office;
             LoadPermissions(user.Permissions);
+        }
+
+        partial void OnSelectedRoleChanged(UserRole value)
+        {
+            ShowModuleAccess = value == UserRole.Office;
+            if (value == UserRole.Admin)
+            {
+                HasChatAccess = true;
+                HasUserManagementAccess = true;
+                HasEmployeeManagementAccess = true;
+            }
         }
 
         private void LoadPermissions(string? permissions)
@@ -58,17 +78,17 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             if (string.IsNullOrEmpty(permissions)) return;
 
             var current = permissions.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            HasOrdersAccess = current.Contains(NavigationRoutes.Feature_OrderManagement, StringComparer.OrdinalIgnoreCase);
-            HasInventoryAccess = current.Contains(NavigationRoutes.Feature_OrderInventoryOnly, StringComparer.OrdinalIgnoreCase);
-            HasProjectsAccess = current.Contains(NavigationRoutes.Feature_ProjectCreation, StringComparer.OrdinalIgnoreCase);
+            HasChatAccess = current.Contains(NavigationRoutes.Chat, StringComparer.OrdinalIgnoreCase);
+            HasUserManagementAccess = current.Contains(NavigationRoutes.UserManagement, StringComparer.OrdinalIgnoreCase);
+            HasEmployeeManagementAccess = current.Contains(NavigationRoutes.StaffManagement, StringComparer.OrdinalIgnoreCase);
         }
 
         private string GetPermissionsString()
         {
             var selected = new List<string>();
-            if (HasOrdersAccess) selected.Add(NavigationRoutes.Feature_OrderManagement);
-            if (HasInventoryAccess) selected.Add(NavigationRoutes.Feature_OrderInventoryOnly);
-            if (HasProjectsAccess) selected.Add(NavigationRoutes.Feature_ProjectCreation);
+            if (HasChatAccess) selected.Add(NavigationRoutes.Chat);
+            if (HasUserManagementAccess) selected.Add(NavigationRoutes.UserManagement);
+            if (HasEmployeeManagementAccess) selected.Add(NavigationRoutes.StaffManagement);
             
             return string.Join(",", selected);
         }
