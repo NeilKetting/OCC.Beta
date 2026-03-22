@@ -2,7 +2,7 @@
 setlocal
 
 :: Extract version from .csproj file and trim whitespace
-for /f "tokens=2 delims=<> " %%a in ('findstr /i "<Version>" "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"') do set VERSION=%%a
+for /f "tokens=2 delims=<> " %%a in ('findstr /i "<Version>" "..\OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"') do set VERSION=%%a
 set VERSION=%VERSION: =%
 
 echo ========================================================
@@ -14,7 +14,7 @@ cd /d "%~dp0"
 
 :: 1. Clean and Build
 echo [BUILD] Compiling OCC.Client Desktop (Self-Contained win-x64)...
-dotnet publish "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o publish
+dotnet publish "..\OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o publish
 
 if %errorlevel% neq 0 (
     echo [ERROR] Build failed. Deployment aborted.
@@ -25,7 +25,7 @@ if %errorlevel% neq 0 (
 :: 2. Package with Velopack
 echo [PACKAGE] Creating Velopack installer...
 :: Adding --icon to fix branding and ensuring packId matches your old script
-vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v %VERSION% --icon "OCC.Client\OCC.Client.Desktop\Assets\app.ico"
+vpk pack -u "OrangeCircleConstruction" -p publish -e "OCC.Client.Desktop.exe" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v %VERSION% --icon "..\OCC.Client\OCC.Client.Desktop\Assets\app.ico"
 
 if %errorlevel% neq 0 (
     echo [ERROR] Packaging failed.

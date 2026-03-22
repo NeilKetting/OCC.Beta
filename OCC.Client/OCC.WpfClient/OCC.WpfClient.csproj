@@ -7,6 +7,15 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+		<!-- Professional Metadata -->
+		<Authors>Origize63</Authors>
+		<Company>Origize63</Company>
+		<Product>OCC-ERP</Product>
+		<Description>Next Generation ERP system for Orange Circle Construction. Powered by Origize63.</Description>
+		<Copyright>Copyright © 2026 Orange Circle Construction</Copyright>
+		<ApplicationIcon>Assets\Images\occ_logo.ico</ApplicationIcon>
+		<AssemblyName>OCC-ERP</AssemblyName>
+		<Version>1.0.1</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

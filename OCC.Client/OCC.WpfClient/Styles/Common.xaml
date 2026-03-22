@@ -73,5 +73,11 @@
             </EventTrigger>
         </Style.Triggers>
     </Style>
-    
+    <!-- Loading Spinner Animation -->
+    <Storyboard x:Key="BusySpinnerAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
+                         From="0" To="360" Duration="0:0:1.5" 
+                         RepeatBehavior="Forever" />
+    </Storyboard>
+
 </ResourceDictionary>

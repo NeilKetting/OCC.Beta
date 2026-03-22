@@ -96,15 +96,17 @@ namespace OCC.WpfClient.Services
                             }
                         }
 
-                        // If the server doesn't have our public key yet, upload it
-                        if (string.IsNullOrEmpty(_currentUser.PublicKey))
+                        // Ensure the server has our LATEST public key (sync local -> server)
+                        var localPublicKey = _encryptionService.GetPublicKey();
+                        if (_currentUser.PublicKey != localPublicKey)
                         {
-                            _currentUser.PublicKey = _encryptionService.GetPublicKey();
+                            _logger.LogInformation("Updating server-side Public Key for {Email} to match local key.", email);
+                            _currentUser.PublicKey = localPublicKey;
                             var updateUrl = GetFullUrl($"api/users/{_currentUser.Id}");
                             var updateResponse = await _httpClient.PutAsJsonAsync(updateUrl, _currentUser);
                             if (!updateResponse.IsSuccessStatusCode)
                             {
-                                _logger.LogWarning("Failed to upload Public RSA Key for {Email}", email);
+                                _logger.LogWarning("Failed to sync Public RSA Key for {Email}", email);
                             }
                         }
 

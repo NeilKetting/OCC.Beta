@@ -31,6 +31,7 @@
     <Color x:Key="GlassBorderLightColor">#4DFFFFFF</Color>
     <Color x:Key="GlassBorderUltraLightColor">#1AFFFFFF</Color>
     <Color x:Key="GlassBackgroundVibrantColor">#B31A1F2B</Color>
+    <Color x:Key="GlassBackgroundSubtleColor">#330F172A</Color>
     <Color x:Key="SecondaryGoldColor">#FFC107</Color>
 
     <!-- Brushes -->
@@ -63,6 +64,7 @@
     <SolidColorBrush x:Key="GlassBorderLight" Color="{StaticResource GlassBorderLightColor}" />
     <SolidColorBrush x:Key="GlassBorderUltraLight" Color="{StaticResource GlassBorderUltraLightColor}" />
     <SolidColorBrush x:Key="GlassBackgroundVibrant" Color="{StaticResource GlassBackgroundVibrantColor}" />
+    <SolidColorBrush x:Key="GlassBackgroundSubtle" Color="{StaticResource GlassBackgroundSubtleColor}" />
     <SolidColorBrush x:Key="SecondaryGold" Color="{StaticResource SecondaryGoldColor}" />
 
     <!-- New Workspace Resources -->

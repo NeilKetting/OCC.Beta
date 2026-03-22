@@ -10,6 +10,10 @@
              xmlns:empVm="clr-namespace:OCC.WpfClient.Features.Employees.ViewModels"
              xmlns:chatViews="clr-namespace:OCC.WpfClient.Features.Chat.Views"
              xmlns:chatVm="clr-namespace:OCC.WpfClient.Features.Chat.ViewModels"
+             xmlns:supportViews="clr-namespace:OCC.WpfClient.Features.Support.Views"
+             xmlns:supportVm="clr-namespace:OCC.WpfClient.Features.Support.ViewModels"
+             xmlns:bhViews="clr-namespace:OCC.WpfClient.Features.BugHub.Views"
+             xmlns:bhVm="clr-namespace:OCC.WpfClient.Features.BugHub.ViewModels"
              mc:Ignorable="d"
              d:Height="700" d:Width="1024">
 
@@ -50,6 +54,12 @@
         <DataTemplate DataType="{x:Type chatVm:ChatViewModel}">
             <chatViews:ChatView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type supportVm:SupportHubViewModel}">
+            <supportViews:SupportHubView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type bhVm:BugHubViewModel}">
+            <bhViews:BugHubView />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid x:Name="ShellRoot">
@@ -80,9 +90,14 @@
                             <Path Data="{StaticResource IconSummary}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Employees">
+                    <MenuItem Header="Employees" Command="{Binding NavigateCommand}" CommandParameter="StaffManagement">
                         <MenuItem.Icon>
                             <Path Data="{StaticResource IconTeam}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Bug Hub" Command="{Binding ShowBugHubCommand}">
+                        <MenuItem.Icon>
+                            <Path Data="{StaticResource IconBug}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -92,6 +107,12 @@
                     <MenuItem Header="Close to the Right"/>
                 </MenuItem>
                 <MenuItem Header="Help">
+                    <MenuItem Header="Report Bug" Command="{Binding ShowSupportHubCommand}">
+                        <MenuItem.Icon>
+                            <Path Data="{StaticResource IconBug}" Fill="White" Stretch="Uniform" Width="14" Height="14"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Background="{StaticResource GlassBorderUltraLight}"/>
                     <MenuItem Header="Check for Updates"/>
                     <MenuItem Header="Release Notes"/>
                     <MenuItem Header="About"/>
@@ -330,7 +351,7 @@
 
                             <!-- NK Circle -->
                             <Border Grid.Column="0" x:Name="ProfileCircle" Width="42" Height="42" HorizontalAlignment="Center" CornerRadius="21" Background="{StaticResource AccentBlue}">
-                                <TextBlock Text="NK" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="14"/>
+                                <TextBlock Text="{Binding UserInitials}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Bold" FontSize="14"/>
                             </Border>
 
                             <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="5,0,0,0"
@@ -502,7 +523,31 @@
 
                         <!-- Right Section -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Button Background="Transparent" BorderThickness="0" Margin="0,0,15,0">
+                            <Button Command="{Binding ShowSupportHubCommand}" Margin="0,0,15,0">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="border" Property="Background" Value="#15FFFFFF"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter TargetName="border" Property="Background" Value="#25FFFFFF"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{DynamicResource IconBug}" Fill="{DynamicResource SecondaryGold}" Width="12" Height="12" Margin="0,1,8,0" VerticalAlignment="Center" Stretch="Uniform"/>
                                     <TextBlock Text="Report Bug" Foreground="{StaticResource TextSub}" FontSize="11" VerticalAlignment="Center"/>
@@ -520,6 +565,40 @@
                     </Grid>
                 </Border>
             </Grid>
+        </Grid>
+
+        <!-- Toast Notifications Overlay (Bottom Right) -->
+        <ItemsControl ItemsSource="{Binding Toasts}" 
+                      Style="{StaticResource ToastContainerStyle}"
+                      Margin="0,0,20,50" 
+                      Panel.ZIndex="200"/>
+
+        <!-- Support Hub Modal Overlay -->
+        <Grid x:Name="SupportHubOverlay" Panel.ZIndex="1000">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurrentSupportHub}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurrentSupportHub, Converter={StaticResource NullToVisibilityConverter}, ConverterParameter='Invert'}" Value="Visible">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <!-- Backdrop -->
+            <Border Background="#80000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseHubCommand}" CommandParameter="{Binding CurrentSupportHub}"/>
+                </Border.InputBindings>
+            </Border>
+
+            <!-- Modal Content (Host for SupportHubView) -->
+            <ContentControl Content="{Binding CurrentSupportHub}" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </Grid>
 </UserControl>

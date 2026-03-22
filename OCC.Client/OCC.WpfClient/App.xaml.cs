@@ -15,6 +15,8 @@ using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Infrastructure.Logging;
 using OCC.WpfClient.Features.Employees.ViewModels;
 using OCC.WpfClient.Features.Admin.Users.ViewModels;
+using OCC.WpfClient.Features.Support.ViewModels;
+using OCC.WpfClient.Features.BugHub.ViewModels;
 
 namespace OCC.WpfClient
 {
@@ -85,17 +87,21 @@ namespace OCC.WpfClient
             services.AddSingleton<IAuthService, AuthService>();
             services.AddSingleton<IEmployeeService, EmployeeService>();
             services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IBugReportService, BugReportService>();
+            services.AddSingleton<IToastService, ToastService>();
 
             // ViewModels
             services.AddTransient<ShellViewModel>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<DashboardViewModel>(); // Registered DashboardViewModel
-            services.AddSingleton<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
+            services.AddTransient<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
             services.AddTransient<EmployeeListViewModel>();
             services.AddTransient<SplashViewModel>();
             services.AddTransient<AuthViewModel>();
             services.AddTransient<UserListViewModel>();
             services.AddTransient<UserDetailViewModel>();
+            services.AddTransient<SupportHubViewModel>();
+            services.AddTransient<BugHubViewModel>();
         }
     }
 }

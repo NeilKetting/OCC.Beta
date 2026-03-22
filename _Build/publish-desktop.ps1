@@ -4,7 +4,7 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-$Project = "OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"
+$Project = "..\OCC.Client\OCC.Client.Desktop\OCC.Client.Desktop.csproj"
 
 # Auto-detect version if not provided
 if (-not $Version) {
@@ -40,7 +40,7 @@ if (-not (Test-Path $ReleaseDir)) { New-Item -ItemType Directory -Path $ReleaseD
 
 # Run vpk
 # Including icon and metadata to match the batch script
-vpk pack -u "OrangeCircleConstruction" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" -o $ReleaseDir --icon "OCC.Client\OCC.Client.Desktop\Assets\app.ico"
+vpk pack -u "OrangeCircleConstruction" --packTitle "Orange Circle Construction" --packAuthors "Origize63" -v $Version -p $PublishDir -e "OCC.Client.Desktop.exe" -o $ReleaseDir --icon "..\OCC.Client\OCC.Client.Desktop\Assets\app.ico"
 
 Write-Host "--------------------------------------------------------"
 Write-Host "Release created in $ReleaseDir"

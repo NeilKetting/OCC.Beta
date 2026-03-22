@@ -1,13 +1,10 @@
-using System;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using OCC.Shared.Models;
 using OCC.WpfClient.Features.Employees.Models;
 using OCC.WpfClient.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
-using OCC.Shared.Models;
-using System.Collections.Generic;
 
 namespace OCC.WpfClient.Features.Employees.ViewModels
 {
@@ -27,7 +24,7 @@ namespace OCC.WpfClient.Features.Employees.ViewModels
         public List<EmploymentType> EmploymentTypes { get; } = new(Enum.GetValues<EmploymentType>());
         public List<EmployeeStatus> Statuses { get; } = new(Enum.GetValues<EmployeeStatus>());
         public List<IdType> IdTypes { get; } = new(Enum.GetValues<IdType>());
-        public List<string> Branches { get; } = new() { "Johannesburg", "Cape Town", "Durban" };
+        public List<string> Branches { get; } = new() { "Johannesburg", "Cape Town" };
         public List<string> AccountTypes { get; } = new() { "Savings", "Cheque", "Transmission" };
         public List<BankName> Banks { get; } = new(Enum.GetValues<BankName>());
 
