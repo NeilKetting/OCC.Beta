@@ -22,8 +22,8 @@ set /p SYNC="Sync Live DB to Main 1:1 before deployment? (Y/N): "
 if /i "%SYNC%"=="Y" (
     echo [SYNC] Starting Database Synchronization...
     REM Use full path to the sql file to avoid "Invalid filename" errors
-    if exist "%~dp0sync_main_db.sql" (
-        sqlcmd -b -S "OCOR\OCC_SQL" -i "%~dp0sync_main_db.sql"
+    if exist "%~dp0SQL\sync_main_db.sql" (
+        sqlcmd -b -S "OCOR\OCC_SQL" -i "%~dp0SQL\sync_main_db.sql"
         if %errorlevel% neq 0 (
             echo [ERROR] Database Sync failed. 
             pause
@@ -31,7 +31,7 @@ if /i "%SYNC%"=="Y" (
         )
         echo [SYNC] Database Synchronization Successful.
     ) else (
-        echo [ERROR] sync_main_db.sql not found. Skipping sync.
+        echo [ERROR] SQL\sync_main_db.sql not found. Skipping sync.
     )
 )
 
@@ -55,14 +55,14 @@ if %errorlevel% neq 0 (
 
 REM 4. Publish
 echo [DEPLOY] Publishing to Live Folder...
-if exist "OCC.API\OCC.API.csproj" (
-    dotnet publish "OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API" --nologo
+if exist "..\OCC.API\OCC.API.csproj" (
+    dotnet publish "..\OCC.API\OCC.API.csproj" -c Release -o "C:\inetpub\wwwroot\OCC-API" --nologo
     if %errorlevel% neq 0 (
         echo [ERROR] Publish failed!
         pause
     )
 ) else (
-    echo [ERROR] OCC.API\OCC.API.csproj NOT FOUND!
+    echo [ERROR] ..\OCC.API\OCC.API.csproj NOT FOUND!
     pause
 )
 

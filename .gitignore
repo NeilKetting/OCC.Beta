@@ -34,8 +34,6 @@ bld/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
-# Uncomment if you have tasks that create the project's static files in wwwroot
-#wwwroot/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
@@ -184,27 +182,17 @@ publish/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
-# Note: Comment the next line if you want to checkin your web deploy settings,
-# but database connection strings (with potential passwords) will be unencrypted
 *.pubxml
 *.publishproj
 
-# Microsoft Azure Web App publish settings. Comment the next line if you want to
-# checkin your Azure Web App publish settings, but sensitive information contained
-# in these scripts will be unencrypted
+# Microsoft Azure Web App publish settings
 PublishScripts/
 
 # NuGet Packages
 *.nupkg
-# NuGet Symbol Packages
 *.snupkg
-# The packages folder can be ignored because of Package Restore
 **/[Pp]ackages/*
-# except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
-# Uncomment if necessary however generally it will be regenerated when needed
-#!**/[Pp]ackages/repositories.config
-# NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
 
@@ -226,9 +214,7 @@ _pkginfo.txt
 *.appxupload
 
 # Visual Studio cache files
-# files ending in .cache can be ignored
 *.[Cc]ache
-# but keep track of directories ending in .cache
 !?*.[Cc]ache/
 
 # Others
@@ -242,20 +228,10 @@ ClientBin/
 *.publishsettings
 orleans.codegen.cs
 
-# Including strong name files can present a security risk
-# (https://github.com/github/gitignore/pull/2483#issue-259490424)
-#*.snk
-
-# Since there are multiple workflows, uncomment next line to ignore bower_components
-# (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
-#bower_components/
-
 # RIA/Silverlight projects
 Generated_Code/
 
-# Backup & report files from converting an old project file
-# to a newer Visual Studio version. Backup files are not needed,
-# because we have git ;-)
+# Backup & report files
 _UpgradeReport_Files/
 Backup*/
 UpgradeLog*.XML
@@ -293,7 +269,7 @@ node_modules/
 # Visual Studio 6 workspace options file
 *.opt
 
-# Visual Studio 6 auto-generated workspace file (contains which files were open etc.)
+# Visual Studio 6 auto-generated workspace file
 *.vbw
 
 # Visual Studio LightSwitch build output
@@ -318,9 +294,8 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Cake - Uncomment if you are using it
+# Cake
 # tools/**
-# !tools/packages.config
 
 # Tabs Studio
 *.tss
@@ -358,43 +333,19 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
-# Ionide (cross platform F# VS Code tools) working folder
+# Ionide working folder
 .ionide/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-##
-## Visual studio for Mac
-##
-
-
-# globs
-Makefile.in
-*.userprefs
-*.usertasks
-config.make
-config.status
-aclocal.m4
-install-sh
-autom4te.cache/
-*.tar.gz
-tarballs/
-test-results/
-
 # Mac bundle stuff
 *.dmg
 *.app
-
-# content below from: https://github.com/github/gitignore/blob/master/Global/macOS.gitignore
-# General
 .DS_Store
 .AppleDouble
 .LSOverride
-
-# Icon must end with two \r
 Icon
-
 
 # Thumbnails
 ._*
@@ -415,7 +366,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# content below from: https://github.com/github/gitignore/blob/master/Global/Windows.gitignore
 # Windows thumbnail cache files
 Thumbs.db
 ehthumbs.db
@@ -452,16 +402,27 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# --- OCC Specific Exclusions ---
+
 /HSEQ Perfomance monitoring tool.xlsx
+/A. JHB 30 JAN 26.csv
+/B. JHB 27 FEB 26.xlsx
 
 # Secret configuration file
 appsettings.secrets.json
 /OCC-Enterprise/
 
-# Publishing and Releases
-publish_staging/
-publish_recovery/
-staging-releases/
+# _Build folder artifacts
+_Build/publish/
+_Build/releases/
+_Build/Releases/
+_Build/publish_wpf/
+_Build/releases_wpf/
+_Build/Releases_WPF/
+
+# Publish and Releases (Legacy or root)
+publish/
 Releases/
-/A. JHB 30 JAN 26.csv
-/B. JHB 27 FEB 26.xlsx
+releases/
+staging-releases/

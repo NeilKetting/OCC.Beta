@@ -119,6 +119,12 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         private bool _isSelectionMode;
 
         [ObservableProperty]
+        private bool _isGroupDetailsVisible;
+
+        [ObservableProperty]
+        private string _groupSubject = string.Empty;
+
+        [ObservableProperty]
         private ObservableCollection<ChatUserDto> _selectedContacts = new();
 
         public Guid CurrentUserId => _authService.CurrentUser?.Id ?? Guid.Empty;
@@ -158,6 +164,10 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
 
             ContactsView = CollectionViewSource.GetDefaultView(AvailableContacts);
             ContactsView.Filter = FilterContacts;
+            
+            // Add sorting and grouping by name
+            ContactsView.SortDescriptions.Add(new SortDescription(nameof(ChatUserDto.FirstName), ListSortDirection.Ascending));
+            ContactsView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ChatUserDto.FirstName), new Infrastructure.Converters.FirstLetterConverter()));
 
             // Initialize in background
             _ = InitializeAsync();
@@ -255,6 +265,16 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         private async Task ShowNewChatAsync()
         {
             IsNewChatVisible = true;
+            IsSelectionMode = false;
+            await LoadContactsAsync();
+        }
+
+        [RelayCommand]
+        private async Task ShowAddGroupMembersAsync()
+        {
+            IsNewChatVisible = true;
+            IsSelectionMode = true;
+            SelectedContacts.Clear();
             await LoadContactsAsync();
         }
 
@@ -262,7 +282,17 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
         private void HideNewChat()
         {
             IsNewChatVisible = false;
+            IsSelectionMode = false;
+            IsGroupDetailsVisible = false;
+            SelectedContacts.Clear();
+            GroupSubject = string.Empty;
         }
+
+        [RelayCommand]
+        private void GoToGroupDetails() => IsGroupDetailsVisible = true;
+
+        [RelayCommand]
+        private void BackToGroupMembers() => IsGroupDetailsVisible = false;
 
         private async Task LoadContactsAsync()
         {
@@ -346,24 +376,46 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                         ChatSessions.Clear();
                         foreach (var dto in sessions)
                         {
-                            var model = new ChatSessionModel(dto, CurrentUserId);
-
-                            // Decrypt AES Key for this session
-                            var myUserDto = dto.Users.FirstOrDefault(u => u.UserId == _authService.CurrentUser?.Id);
-                            if (myUserDto != null && !string.IsNullOrEmpty(myUserDto.EncryptedAesKey))
+                            try
                             {
-                                model.DecryptedAesKey = _encryptionService.DecryptAesKeyWithRsa(myUserDto.EncryptedAesKey);
-                            }
+                                var model = new ChatSessionModel(dto, CurrentUserId);
 
-                            // Decrypt LastMessagePreview if there's a key
-                            if (!string.IsNullOrEmpty(model.DecryptedAesKey) && dto.LastMessage != null && !dto.LastMessage.HasAttachment)
+                                // Decrypt AES Key for this session
+                                var myUserDto = dto.Users.FirstOrDefault(u => u.UserId == _authService.CurrentUser?.Id);
+                                if (myUserDto != null && !string.IsNullOrEmpty(myUserDto.EncryptedAesKey))
+                                {
+                                    try
+                                    {
+                                        model.DecryptedAesKey = _encryptionService.DecryptAesKeyWithRsa(myUserDto.EncryptedAesKey);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex, "Failed to decrypt AES key for session {SessionId}", dto.Id);
+                                        model.LastMessagePreview = "[Encryption Error: Missing or Invalid Key]";
+                                    }
+                                }
+
+                                // Decrypt LastMessagePreview if there's a key
+                                if (!string.IsNullOrEmpty(model.DecryptedAesKey) && dto.LastMessage != null && !dto.LastMessage.HasAttachment)
+                                {
+                                    try
+                                    {
+                                        model.LastMessagePreview = _encryptionService.DecryptMessage(dto.LastMessage.Content, model.DecryptedAesKey);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogError(ex, "Failed to decrypt message for session {SessionId}", dto.Id);
+                                    }
+                                }
+
+                                model.IsCurrentUserAdmin = model.IsGroupChat && model.CreatedById == CurrentUserId;
+
+                                ChatSessions.Add(model);
+                            }
+                            catch (Exception ex)
                             {
-                                model.LastMessagePreview = _encryptionService.DecryptMessage(dto.LastMessage.Content, model.DecryptedAesKey);
+                                _logger.LogError(ex, "Error processing chat session {SessionId}", dto.Id);
                             }
-
-                            model.IsCurrentUserAdmin = model.IsGroupChat && model.CreatedById == CurrentUserId;
-
-                            ChatSessions.Add(model);
                         }
                     });
                 }
@@ -788,6 +840,27 @@ namespace OCC.WpfClient.Features.Chat.ViewModels
                 System.Windows.MessageBox.Show("Failed to create group. Please try again.", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
+
+        [RelayCommand]
+        private void ArchiveSession(ChatSessionModel session) => Debug.WriteLine($"Archive: {session.Name}");
+
+        [RelayCommand]
+        private void MuteSession(ChatSessionModel session) => Debug.WriteLine($"Mute: {session.Name}");
+
+        [RelayCommand]
+        private void PinSession(ChatSessionModel session) => Debug.WriteLine($"Pin: {session.Name}");
+
+        [RelayCommand]
+        private void MarkAsRead(ChatSessionModel session) => Debug.WriteLine($"Mark as Read: {session.Name}");
+
+        [RelayCommand]
+        private void AddToList(ChatSessionModel session) => Debug.WriteLine($"Add to List: {session.Name}");
+
+        [RelayCommand]
+        private void ClearSession(ChatSessionModel session) => Debug.WriteLine($"Clear: {session.Name}");
+
+        [RelayCommand]
+        private void RemoveContact(ChatUserDto contact) => SelectedContacts.Remove(contact);
 
         public async ValueTask DisposeAsync()
         {

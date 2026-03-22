@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OCC.Shared.Models;
-using OCC.WpfClient.Infrastructure;
-using OCC.WpfClient.Services.Interfaces;
-using OCC.WpfClient.Services.Infrastructure;
 using Microsoft.Extensions.Logging;
+using OCC.Shared.Models;
 using OCC.WpfClient.Features.AuthHub.Models;
+using OCC.WpfClient.Infrastructure;
+using OCC.WpfClient.Services.Infrastructure;
+using OCC.WpfClient.Services.Interfaces;
 
 namespace OCC.WpfClient.Features.AuthHub.ViewModels
 {

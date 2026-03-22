@@ -35,6 +35,9 @@ namespace OCC.Shared.Models
         /// <summary> If true, indicates the comment was made by a developer or admin (useful for UI styling). </summary>
         public bool IsDevComment { get; set; }
 
+        /// <summary> If true, indicates this comment was marked as the solution by a developer or admin. </summary>
+        public bool IsSolution { get; set; }
+
         /// <summary>
         /// Generated initials of the author for UI avatars (e.g., "Jane Smith" -> "JS").
         /// </summary>

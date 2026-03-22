@@ -35,10 +35,10 @@ namespace OCC.WpfClient.Features.Chat.Models
         private bool _isFavourite;
 
         [ObservableProperty]
-        private string _initials;
+        private string _initials = string.Empty;
 
         [ObservableProperty]
-        private string _badgeColor;
+        private string _badgeColor = string.Empty;
 
         [ObservableProperty]
         private string? _profilePictureUrl;
@@ -58,29 +58,29 @@ namespace OCC.WpfClient.Features.Chat.Models
         {
             Dto = dto;
             _currentUserId = currentUserId;
-            _isGroupChat = dto.IsGroupChat;
-            _unreadCount = dto.UnreadCount;
-            _isFavourite = dto.IsFavourite;
+            IsGroupChat = dto.IsGroupChat;
+            UnreadCount = dto.UnreadCount;
+            IsFavourite = dto.IsFavourite;
 
-            if (!_isGroupChat && dto.Users.Count >= 2)
+            if (!IsGroupChat && dto.Users.Count >= 2)
             {
                 var otherUser = dto.Users.FirstOrDefault(u => u.UserId != _currentUserId);
-                _name = otherUser != null ? $"{otherUser.FirstName} {otherUser.LastName}" : (dto.Name ?? "Chat");
+                Name = otherUser != null ? $"{otherUser.FirstName} {otherUser.LastName}" : (dto.Name ?? "Chat");
             }
             else
             {
-                _name = dto.Name ?? "Chat";
+                Name = dto.Name ?? "Chat";
             }
             
             if (dto.LastMessage != null)
             {
-                _lastMessagePreview = dto.LastMessage.HasAttachment ? "📎 Attachment" : dto.LastMessage.Content;
-                _lastMessageTime = dto.LastMessage.SentDate;
+                LastMessagePreview = dto.LastMessage.HasAttachment ? "📎 Attachment" : dto.LastMessage.Content;
+                LastMessageTime = dto.LastMessage.SentDate;
             }
             else
             {
-                _lastMessagePreview = "";
-                _lastMessageTime = dto.CreatedAtUtc;
+                LastMessagePreview = "";
+                LastMessageTime = dto.CreatedAtUtc;
             }
 
             // Set Initials and Color
@@ -89,7 +89,7 @@ namespace OCC.WpfClient.Features.Chat.Models
 
         private void UpdateMetadata()
         {
-            if (!_isGroupChat && Dto.Users.Count >= 2)
+            if (!IsGroupChat && Dto.Users.Count >= 2)
             {
                 var otherUser = Dto.Users.FirstOrDefault(u => u.UserId != _currentUserId);
                 if (otherUser != null)
@@ -115,20 +115,30 @@ namespace OCC.WpfClient.Features.Chat.Models
 
         private string GetColorFromGuid(Guid id)
         {
-            // Curated harmonious color palette (HSL tailored)
+            // Curated harmonious color palette (HSL tailored) - Matches UserColorConverter
             string[] colors = { 
                 "#0ea5e9", // Sky 500
+                "#10b981", // Emerald 500
+                "#f59e0b", // Amber 500
+                "#ef4444", // Red 500
                 "#8b5cf6", // Violet 500
-                "#d946ef", // Fuchsia 500
-                "#f43f5e", // Rose 500
+                "#ec4899", // Pink 500
                 "#f97316", // Orange 500
-                "#eab308", // Yellow 500
-                "#22c55e", // Green 500
-                "#06b6d4"  // Cyan 500
+                "#6366f1", // Indigo 500
+                "#14b8a6", // Teal 500
+                "#06b6d4", // Cyan 500
+                "#84cc16", // Lime 500
+                "#d946ef"  // Fuchsia 500
             };
             
-            var hash = id.ToByteArray().Sum(b => (int)b);
-            return colors[hash % colors.Length];
+            var bytes = id.ToByteArray();
+            int hash = 17;
+            foreach (var b in bytes)
+            {
+                hash = hash * 31 + b;
+            }
+
+            return colors[Math.Abs(hash) % colors.Length];
         }
     }
 }

@@ -9,6 +9,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
     public partial class DashboardViewModel : ViewModelBase
     {
         private readonly IUserService _userService;
+        private readonly IToastService _toastService;
 
         [ObservableProperty]
         private string _userName = "Neil Ketting";
@@ -28,9 +29,10 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         [ObservableProperty]
         private string _greeting = "Good afternoon";
 
-        public DashboardViewModel(IUserService userService)
+        public DashboardViewModel(IUserService userService, IToastService toastService)
         {
             _userService = userService;
+            _toastService = toastService;
             Title = "Dashboard";
             
             _ = LoadData();
@@ -42,6 +44,8 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             {
                 var users = await _userService.GetUsersAsync();
                 UserCount = users.Count();
+
+                _toastService.ShowSuccess("System Active", "Toast Notification System is now live!");
             }
             catch { /* Ignore */ }
         }

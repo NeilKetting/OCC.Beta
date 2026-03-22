@@ -1,16 +1,14 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using OCC.WpfClient.Services.Interfaces;
 using Velopack;
 using Velopack.Sources;
-using OCC.WpfClient.Services.Interfaces;
 
 namespace OCC.WpfClient.Services
 {
     public class UpdateService : IUpdateService
     {
         private readonly UpdateManager? _mgr;
-        private readonly string _updateUrl = "https://github.com/NeilKetting/OrangeCircleConstruction";
+        private readonly string _updateUrl = "https://github.com/NeilKetting/OCC";
         private readonly ILogger<UpdateService> _logger;
 
         public string CurrentVersion
