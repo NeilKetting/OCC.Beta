@@ -37,6 +37,7 @@
     <Compile Remove="Services\**" />
     <Compile Remove="UseCases\**" />
     <Compile Remove="Features\HseqHub\**" />
+    <Compile Remove="Client\**" />
     <Compile Remove="Infrastructure\DependencyInjectionTests.cs" />
   </ItemGroup>
 

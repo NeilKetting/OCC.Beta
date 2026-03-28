@@ -46,15 +46,15 @@ namespace OCC.WpfClient.Infrastructure.Converters
                 }
                 
                 var colorString = Colors[Math.Abs(hash) % Colors.Length];
-                return (SolidColorBrush)new BrushConverter().ConvertFrom(colorString);
+                return new BrushConverter().ConvertFrom(colorString) as SolidColorBrush ?? Brushes.SkyBlue;
             }
 
             // Fallback for names or nulls
             if (value != null)
             {
-                int hash = value.ToString().GetHashCode();
+                int hash = (value.ToString() ?? string.Empty).GetHashCode();
                 var colorString = Colors[Math.Abs(hash) % Colors.Length];
-                return (SolidColorBrush)new BrushConverter().ConvertFrom(colorString);
+                return new BrushConverter().ConvertFrom(colorString) as SolidColorBrush ?? Brushes.SkyBlue;
             }
 
             return Brushes.Gray;

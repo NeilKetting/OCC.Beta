@@ -73,6 +73,8 @@ namespace OCC.Shared.Models
         
         // Alias for View Binding compatibility
         public InventoryStatus InventoryStatus => Status;
+
+        public bool IsLowStock => Status == InventoryStatus.Low;
     }
 
     public enum InventoryStatus

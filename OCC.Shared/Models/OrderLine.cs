@@ -25,6 +25,7 @@ namespace OCC.Shared.Models
         private string _unitOfMeasure = "";
         private decimal _unitPrice;
         private decimal _lineTotal;
+        private string _remarks = string.Empty;
 
 
         /// <summary> Foreign Key linking to the parent <see cref="Order"/>. </summary>
@@ -103,6 +104,12 @@ namespace OCC.Shared.Models
         { 
             get => _lineTotal; 
             set { _lineTotal = value; OnPropertyChanged(); } 
+        }
+
+        public string Remarks 
+        { 
+            get => _remarks; 
+            set { _remarks = value; OnPropertyChanged(); } 
         }
 
         /// <summary> Calculated remaining items to be fulfilled. </summary>

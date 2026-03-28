@@ -665,6 +665,9 @@ namespace OCC.API.Controllers
                 Notes = order.Notes,
                 DeliveryInstructions = order.DeliveryInstructions,
                 ScopeOfWork = order.ScopeOfWork,
+                Template = order.Template,
+                Terms = order.Terms,
+                ReferenceNo = order.ReferenceNo,
                 TotalAmount = order.TotalAmount, // Use calculated
                 Lines = order.Lines.Select(l => new OrderLineDto
                 {
@@ -678,7 +681,8 @@ namespace OCC.API.Controllers
                     UnitOfMeasure = l.UnitOfMeasure,
                     UnitPrice = l.UnitPrice,
                     VatAmount = l.VatAmount,
-                    LineTotal = l.LineTotal
+                    LineTotal = l.LineTotal,
+                    Remarks = l.Remarks
                 }).ToList()
             };
         }
@@ -708,6 +712,9 @@ namespace OCC.API.Controllers
                 Notes = dto.Notes,
                 DeliveryInstructions = dto.DeliveryInstructions,
                 ScopeOfWork = dto.ScopeOfWork,
+                Template = dto.Template,
+                Terms = dto.Terms,
+                ReferenceNo = dto.ReferenceNo,
                 Lines = new System.Collections.ObjectModel.ObservableCollection<OrderLine>(
                     dto.Lines.Select(l => new OrderLine
                     {
@@ -722,7 +729,8 @@ namespace OCC.API.Controllers
                         UnitOfMeasure = l.UnitOfMeasure,
                         UnitPrice = l.UnitPrice,
                         VatAmount = l.VatAmount,
-                        LineTotal = l.LineTotal
+                        LineTotal = l.LineTotal,
+                        Remarks = l.Remarks
                     })
                 )
             };

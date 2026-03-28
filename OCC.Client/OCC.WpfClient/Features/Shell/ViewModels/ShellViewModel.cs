@@ -12,7 +12,7 @@ namespace OCC.WpfClient.Features.Shell.ViewModels
         public ShellViewModel(INavigationService navigation)
         {
             _navigation = navigation;
-            Title = "Orange Circle Construction";
+            Title = "Orange Circle Construction - ERP";
         }
     }
 }

@@ -107,14 +107,8 @@ namespace OCC.API.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                if (!EmployeeExists(id)) return NotFound();
+                return Conflict("Another user has updated this record. Please reload and try again.");
             }
             catch (Exception ex)
             {

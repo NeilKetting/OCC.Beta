@@ -6,6 +6,8 @@ using OCC.WpfClient.Features.AuthHub.Models;
 using OCC.WpfClient.Infrastructure;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
+using OCC.WpfClient.Infrastructure.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace OCC.WpfClient.Features.AuthHub.ViewModels
 {
@@ -102,6 +104,9 @@ namespace OCC.WpfClient.Features.AuthHub.ViewModels
             _clockTimer.Tick += (s, e) => UpdateTime();
             _clockTimer.Start();
             UpdateTime();
+
+            // Request Window Resize for Login
+            WeakReferenceMessenger.Default.Send(new ResizeWindowMessage(new WindowSizeInfo { Width = 1024, Height = 700, State = System.Windows.WindowState.Normal }));
         }
 
         private void UpdateTime()

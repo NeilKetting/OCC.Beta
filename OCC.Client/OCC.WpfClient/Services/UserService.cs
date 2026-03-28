@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OCC.Shared.DTOs;
 using OCC.Shared.Models;
+using OCC.WpfClient.Infrastructure.Exceptions;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
 
@@ -67,6 +68,21 @@ namespace OCC.WpfClient.Services
             }
         }
 
+        public async Task<User?> GetUserAsync(Guid id)
+        {
+            EnsureAuthorization();
+            var url = GetFullUrl($"api/Users/{id}");
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<User>(url, _options);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user {Id} from {Url}", id, url);
+                return null;
+            }
+        }
+
         public async Task<bool> CreateUserAsync(User user)
         {
             EnsureAuthorization();
@@ -90,8 +106,15 @@ namespace OCC.WpfClient.Services
             try
             {
                 var response = await _httpClient.PutAsJsonAsync(url, user, _options);
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    throw new ConcurrencyException("Another user has modified this user record.");
+                }
+
                 return response.IsSuccessStatusCode;
             }
+            catch (ConcurrencyException) { throw; }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user at {Url}", url);

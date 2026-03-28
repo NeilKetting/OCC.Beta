@@ -13,6 +13,7 @@
     <conv:BugStatusBadgeConverter x:Key="BugStatusBadgeConverter" />
     <conv:EqualityConverter x:Key="EqualityConverter" />
     <conv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    <conv:IsGuidEmptyConverter x:Key="IsGuidEmptyConverter" />
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
 </ResourceDictionary>

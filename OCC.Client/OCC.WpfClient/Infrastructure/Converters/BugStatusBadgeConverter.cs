@@ -35,18 +35,17 @@ namespace OCC.WpfClient.Infrastructure.Converters
                             _ => Brushes.SlateGray
                         };
                     }
-
                     return bug.Type switch
                     {
-                        BugReportType.Bug => (Brush)new BrushConverter().ConvertFrom("#EF4444"),
-                        BugReportType.Suggestion => (Brush)new BrushConverter().ConvertFrom("#06B6D4"),
-                        BugReportType.Question => (Brush)new BrushConverter().ConvertFrom("#8B5CF6"),
-                        _ => (Brush)new BrushConverter().ConvertFrom("#64748B")
+                        BugReportType.Bug => new BrushConverter().ConvertFrom("#EF4444") as Brush ?? Brushes.Red,
+                        BugReportType.Suggestion => new BrushConverter().ConvertFrom("#06B6D4") as Brush ?? Brushes.Cyan,
+                        BugReportType.Question => new BrushConverter().ConvertFrom("#8B5CF6") as Brush ?? Brushes.Violet,
+                        _ => new BrushConverter().ConvertFrom("#64748B") as Brush ?? Brushes.SlateGray
                     };
                 }
             }
 
-            return null;
+            return Brushes.Transparent;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

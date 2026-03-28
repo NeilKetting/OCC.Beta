@@ -1,6 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
-using OCC.WpfClient.Features.AuthHub.ViewModels;
 using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using OCC.WpfClient.Infrastructure.Messages;
+using OCC.WpfClient.Features.AuthHub.ViewModels;
 
 namespace OCC.WpfClient
 {
@@ -9,37 +10,22 @@ namespace OCC.WpfClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        private readonly Features.Shell.ViewModels.ShellViewModel _viewModel;
+
+        public MainWindow(Features.Shell.ViewModels.ShellViewModel viewModel)
         {
             InitializeComponent();
             
+            _viewModel = viewModel;
+            DataContext = _viewModel;
+
             StateChanged += MainWindow_StateChanged;
 
-            if (Application.Current is App app && app.ServiceProvider != null)
-            {
-                var shellVm = app.ServiceProvider.GetRequiredService<Features.Shell.ViewModels.ShellViewModel>();
-                DataContext = shellVm;
-                
-                // Set initial view
-                shellVm.Navigation.NavigateTo<AuthViewModel>();
+            // Register for resize messages
+            WeakReferenceMessenger.Default.Register<ResizeWindowMessage>(this, (r, m) => ((MainWindow)r).Receive(m));
 
-                // Monitor navigation for logout resizing
-                if (shellVm.Navigation is System.ComponentModel.INotifyPropertyChanged npc)
-                {
-                    npc.PropertyChanged += (s, e) =>
-                    {
-                        if (e.PropertyName == "CurrentView")
-                        {
-                            if (shellVm.Navigation.CurrentView is AuthViewModel)
-                            {
-                                WindowState = WindowState.Normal;
-                                Width = 1024;
-                                Height = 700;
-                            }
-                        }
-                    };
-                }
-            }
+            // Set initial view
+            _viewModel.Navigation.NavigateTo<AuthViewModel>();
         }
 
         private void MainWindow_StateChanged(object? sender, System.EventArgs e)
@@ -65,6 +51,14 @@ namespace OCC.WpfClient
                 WindowState = WindowState.Normal;
             else
                 WindowState = WindowState.Maximized;
+        }
+
+        public void Receive(ResizeWindowMessage message)
+        {
+            var info = message.Value;
+            if (info.Width > 0) Width = info.Width;
+            if (info.Height > 0) Height = info.Height;
+            WindowState = info.State;
         }
 
         private void OnCloseClick(object? sender, RoutedEventArgs e)

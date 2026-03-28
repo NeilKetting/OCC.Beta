@@ -51,11 +51,38 @@ namespace OCC.WpfClient.Features.Main.Views
             }
         }
 
+        private void OnOnlineStatusClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (DataContext is ViewModels.MainViewModel vm)
+            {
+                vm.ToggleUserListCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
+
         private void OnSidebarMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (DataContext is ViewModels.MainViewModel vm)
             {
                 vm.IsSidebarMinimized = true;
+            }
+        }
+
+        private void OnProfileCircleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (DataContext is ViewModels.MainViewModel vm)
+            {
+                vm.ToggleProfileMenuCommand.Execute(null);
+                e.Handled = true;
+            }
+        }
+
+        private void OnOverlayMouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (DataContext is ViewModels.MainViewModel vm)
+            {
+                vm.IsUserListVisible = false;
+                vm.IsProfileMenuVisible = false;
             }
         }
     }

@@ -73,6 +73,9 @@ namespace OCC.Shared.DTOs
         public string Notes { get; set; } = string.Empty;
         public string DeliveryInstructions { get; set; } = string.Empty;
         public string ScopeOfWork { get; set; } = string.Empty;
+        public string Template { get; set; } = string.Empty;
+        public string Terms { get; set; } = string.Empty;
+        public string ReferenceNo { get; set; } = string.Empty;
         
         public List<OrderLineDto> Lines { get; set; } = new();
         public byte[]? RowVersion { get; set; }
@@ -94,6 +97,7 @@ namespace OCC.Shared.DTOs
         public decimal UnitPrice { get; set; }
         public decimal VatAmount { get; set; }
         public decimal LineTotal { get; set; }
+        public string Remarks { get; set; } = string.Empty;
     }
 
     public class RestockCandidateDto

@@ -4,7 +4,9 @@
              xmlns:local="clr-namespace:OCC.WpfClient"
              xmlns:conv="clr-namespace:OCC.WpfClient.Infrastructure.Converters"
              xmlns:userViews="clr-namespace:OCC.WpfClient.Features.Admin.Users.Views"
-             xmlns:userVm="clr-namespace:OCC.WpfClient.Features.Admin.Users.ViewModels">
+             xmlns:userVm="clr-namespace:OCC.WpfClient.Features.Admin.Users.ViewModels"
+             xmlns:mainVm="clr-namespace:OCC.WpfClient.Features.Main.ViewModels"
+             xmlns:mainViews="clr-namespace:OCC.WpfClient.Features.Main.Views">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -20,13 +22,10 @@
                 <ResourceDictionary Source="/Styles/Icons.xaml"/>
                 <ResourceDictionary Source="/Styles/DataGrid.xaml"/>
                 <ResourceDictionary Source="/Styles/Modals.xaml"/>
+                <ResourceDictionary Source="/Styles/ContextMenus.xaml"/>
                 <ResourceDictionary Source="/Styles/Notifications.xaml"/>
+                <ResourceDictionary Source="/Styles/FeatureTemplates.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- Global Feature View Mapping -->
-            <DataTemplate DataType="{x:Type userVm:UserListViewModel}">
-                <userViews:UserListView />
-            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

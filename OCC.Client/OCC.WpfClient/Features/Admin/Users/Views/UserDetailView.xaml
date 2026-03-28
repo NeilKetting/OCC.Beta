@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:OCC.WpfClient.Features.Admin.Users.ViewModels"
              xmlns:ap="clr-namespace:OCC.WpfClient.Infrastructure.AttachedProperties"
+             xmlns:infra="clr-namespace:OCC.WpfClient.Infrastructure"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1100"
              d:DataContext="{d:DesignInstance Type=vm:UserDetailViewModel}">
@@ -55,7 +56,7 @@
                                 <StackPanel>
                                     <TextBlock Text="Edit User Profile" FontSize="32" FontWeight="Bold" Foreground="White"/>
                                     <TextBlock Text="Modify user information, status and permissions." FontSize="14" 
-                                               Foreground="{StaticResource TextSub}" Margin="0,4,0,0"/>
+                                               Foreground="{StaticResource TextSub}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
 
                                 <Button HorizontalAlignment="Right" VerticalAlignment="Top" 
@@ -82,27 +83,28 @@
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="First Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBlock Text="First Name" Style="{StaticResource FormLabelText}"/>
                                         <TextBox Text="{Binding FirstName}" Style="{StaticResource ModernInput}"/>
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Last Name" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBlock Text="Last Name" Style="{StaticResource FormLabelText}"/>
                                         <TextBox Text="{Binding LastName}" Style="{StaticResource ModernInput}"/>
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Email Address" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                        <TextBox Text="{Binding Email}" Style="{StaticResource ModernInput}"/>
+                                        <TextBlock Text="Email Address" Style="{StaticResource FormLabelText}"/>
+                                        <TextBox Text="{Binding Email}" Style="{StaticResource ModernInput}" 
+                                                 TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"/>
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Phone Number" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBlock Text="Phone Number" Style="{StaticResource FormLabelText}"/>
                                         <TextBox Text="{Binding Phone}" Style="{StaticResource ModernInput}"/>
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Location / Branch" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBlock Text="Location / Branch" Style="{StaticResource FormLabelText}"/>
                                         <TextBox Text="{Binding Location}" Style="{StaticResource ModernInput}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -115,7 +117,7 @@
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Functional Role" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
+                                        <TextBlock Text="Functional Role" Style="{StaticResource FormLabelText}"/>
                                         <ComboBox ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}" Style="{StaticResource ModernComboBox}">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -126,10 +128,12 @@
                                     </StackPanel>
 
                                     <StackPanel Margin="0,0,0,15">
-                                        <TextBlock Text="Set Password" Foreground="{StaticResource TextSub}" FontSize="12" Margin="0,0,0,5"/>
-                                        <TextBox Text="{Binding Password}" Style="{StaticResource ModernInput}"/>
+                                        <TextBlock Text="Set Password" Style="{StaticResource FormLabelText}"/>
+                                        <PasswordBox Style="{StaticResource ModernPasswordInput}" 
+                                                     infra:PasswordHelper.Attach="True"
+                                                     infra:PasswordHelper.Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                         <TextBlock Text="Provide a password for new users or to change existing." 
-                                                   FontSize="11" Foreground="{StaticResource TextSub}" Margin="0,8,0,0" FontStyle="Italic" Opacity="0.7"/>
+                                                   Style="{StaticResource FormLabelText}" FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap" Margin="0,8,0,0"/>
                                     </StackPanel>
                                 </StackPanel>
 
@@ -143,14 +147,14 @@
                                     <CheckBox IsChecked="{Binding IsApproved}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,0,20">
                                         <StackPanel>
                                             <TextBlock Text="Account Approved" Foreground="White" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Enable login access for this user." FontSize="11" Foreground="{StaticResource TextSub}"/>
+                                            <TextBlock Text="Enable login access for this user." FontSize="11" Foreground="{StaticResource TextSub}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </CheckBox>
 
                                     <CheckBox IsChecked="{Binding IsEmailVerified}" Style="{StaticResource ModernToggleSwitch}" Margin="0,0,0,10">
                                         <StackPanel>
                                             <TextBlock Text="Email Verified" Foreground="White" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Mark email as verified and confirmed." FontSize="11" Foreground="{StaticResource TextSub}"/>
+                                            <TextBlock Text="Mark email as verified and confirmed." FontSize="11" Foreground="{StaticResource TextSub}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </CheckBox>
 
@@ -188,3 +192,4 @@
         </Border>
     </Grid>
 </UserControl>
+

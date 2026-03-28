@@ -21,6 +21,13 @@ namespace OCC.WpfClient.Services
         private User? _currentUser;
         private string? _authToken;
 
+        public event EventHandler? UserChanged;
+
+        private void NotifyUserChanged()
+        {
+            UserChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         public User? CurrentUser => _currentUser;
         public string? CurrentToken => _authToken;
         public bool IsAuthenticated => _currentUser != null;
@@ -111,6 +118,7 @@ namespace OCC.WpfClient.Services
                         }
 
                         _logger.LogInformation("Login successful for {Email}. User: {FirstName} {LastName}", email, _currentUser.FirstName, _currentUser.LastName);
+                        NotifyUserChanged();
                         return (true, string.Empty);
                     }
                 }
@@ -162,7 +170,44 @@ namespace OCC.WpfClient.Services
             _currentUser = null;
             _authToken = null;
             _httpClient.DefaultRequestHeaders.Authorization = null;
+            NotifyUserChanged();
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> UpdateProfileAsync(User user)
+        {
+            var url = GetFullUrl($"api/users/{user.Id}");
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync(url, user);
+                if (response.IsSuccessStatusCode)
+                {
+                    _currentUser = user;
+                    NotifyUserChanged();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating profile for {Email}", user.Email);
+                return false;
+            }
+        }
+
+        public async Task<bool> ChangePasswordAsync(string oldPassword, string newPassword)
+        {
+            var url = GetFullUrl("api/users/change-password");
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(url, new ChangePasswordRequest { OldPassword = oldPassword, NewPassword = newPassword });
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password");
+                return false;
+            }
         }
 
         private class LoginResponse

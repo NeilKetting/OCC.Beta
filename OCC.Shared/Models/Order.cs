@@ -49,6 +49,9 @@ namespace OCC.Shared.Models
         public string Notes { get; set; } = string.Empty;
         public string DeliveryInstructions { get; set; } = string.Empty;
         public string ScopeOfWork { get; set; } = string.Empty;
+        public string Template { get; set; } = "Standard PO";
+        public string Terms { get; set; } = "Net 30";
+        public string ReferenceNo { get; set; } = string.Empty; // P.O. NO. in QuickBooks
 
         // --- Content ---
         public System.Collections.ObjectModel.ObservableCollection<OrderLine> Lines { get; set; } = new();

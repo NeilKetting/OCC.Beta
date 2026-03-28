@@ -16,6 +16,7 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
     {
         private readonly IUserService _userService;
         private readonly IAuthService _authService;
+        private readonly IDialogService _dialogService;
         private readonly ILogger<UserListViewModel> _logger;
         private List<User> _allUsers = new();
 
@@ -34,10 +35,12 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         public UserListViewModel(
             IUserService userService, 
             IAuthService authService,
+            IDialogService dialogService,
             ILogger<UserListViewModel> logger)
         {
             _userService = userService;
             _authService = authService;
+            _dialogService = dialogService;
             _logger = logger;
             Title = "User Management";
             
@@ -68,17 +71,17 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         }
 
         [RelayCommand]
-        private void AddUser()
+        public void AddUser()
         {
             var user = new User();
-            OpenOverlay(new UserDetailViewModel(this, user, _userService, _logger));
+            OpenOverlay(new UserDetailViewModel(this, user, _userService, _dialogService, _logger));
         }
 
         [RelayCommand]
-        private void EditUser(User? user)
+        public void EditUser(User? user)
         {
             if (user == null) return;
-            OpenOverlay(new UserDetailViewModel(this, user, _userService, _logger));
+            OpenOverlay(new UserDetailViewModel(this, user, _userService, _dialogService, _logger));
         }
 
         [RelayCommand]

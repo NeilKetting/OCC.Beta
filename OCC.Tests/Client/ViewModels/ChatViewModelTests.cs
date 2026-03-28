@@ -13,6 +13,7 @@ using System.Net;
 using Moq.Protected;
 using System.Text.Json;
 using OCC.WpfClient.Features.Chat.Models;
+using Microsoft.Extensions.Logging;
 
 namespace OCC.Tests.Client.ViewModels
 {
@@ -21,6 +22,7 @@ namespace OCC.Tests.Client.ViewModels
         private readonly Mock<IAuthService> _mockAuthService;
         private readonly Mock<IHttpClientFactory> _mockHttpFactory;
         private readonly Mock<ILocalEncryptionService> _mockEncryptionService;
+        private readonly Mock<ILogger<ChatViewModel>> _mockLogger;
         private readonly ConnectionSettings _connectionSettings;
 
         public ChatViewModelTests()
@@ -28,6 +30,7 @@ namespace OCC.Tests.Client.ViewModels
             _mockAuthService = new Mock<IAuthService>();
             _mockHttpFactory = new Mock<IHttpClientFactory>();
             _mockEncryptionService = new Mock<ILocalEncryptionService>();
+            _mockLogger = new Mock<ILogger<ChatViewModel>>();
             _connectionSettings = new ConnectionSettings { ApiBaseUrl = "http://localhost:5000" };
 
             var user = new User { Id = Guid.NewGuid(), FirstName = "Test", LastName = "User" };
@@ -62,7 +65,7 @@ namespace OCC.Tests.Client.ViewModels
             // However, ChatViewModel calls GetDefaultView which might fail in a pure unit test without a UI context.
             // Let's assume for this test we are testing the logic around filter selection.
             
-            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object);
+            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object, _mockLogger.Object);
 
             // Act
             viewModel.SetFilterCommand.Execute("Unread");
@@ -77,8 +80,8 @@ namespace OCC.Tests.Client.ViewModels
         public async Task SendMessageAsync_EncryptsContentAndInvokesHub()
         {
             // Arrange
-            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object);
-            var session = new ChatSessionModel(new ChatSessionDto { Id = Guid.NewGuid(), Name = "Test" });
+            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object, _mockLogger.Object);
+            var session = new ChatSessionModel(new ChatSessionDto { Id = Guid.NewGuid(), Name = "Test" }, Guid.NewGuid());
             session.DecryptedAesKey = "aes-key";
             viewModel.SelectedSession = session;
             viewModel.MessageInput = "Secret message";
@@ -97,7 +100,7 @@ namespace OCC.Tests.Client.ViewModels
         public void InitialState_IsCorrect()
         {
             // Act
-            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object);
+            var viewModel = new ChatViewModel(_mockAuthService.Object, _connectionSettings, _mockHttpFactory.Object, _mockEncryptionService.Object, _mockLogger.Object);
 
             // Assert
             Assert.Equal("Chat", viewModel.Title);

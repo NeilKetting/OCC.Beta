@@ -29,12 +29,7 @@
     </WindowChrome.WindowChrome>
     
     <Window.Resources>
-        <DataTemplate DataType="{x:Type authVm:AuthViewModel}">
-            <auth:AuthView />
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type mainVm:MainViewModel}">
-            <main:MainView />
-        </DataTemplate>
+        <!-- Moved feature DataTemplates to Styles/FeatureTemplates.xaml -->
     </Window.Resources>
 
     <!-- The Root Border provides the visible border and background -->

@@ -9,8 +9,10 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Height" Value="40" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="Template">
@@ -28,8 +30,16 @@
                                        VerticalAlignment="Center" 
                                        Visibility="Collapsed" 
                                        IsHitTestVisible="False"/>
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto"
-                                          VerticalAlignment="Stretch" Margin="{TemplateBinding Padding}"/>
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="false" 
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" 
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          VerticalAlignment="Stretch" Margin="{TemplateBinding Padding}">
+                                <ScrollViewer.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap"/>
+                                    </Style>
+                                </ScrollViewer.Resources>
+                            </ScrollViewer>
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -66,7 +76,8 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Height" Value="40" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
@@ -128,9 +139,9 @@
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="Foreground" Value="{StaticResource TextMain}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="Padding" Value="6,0" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
-        <Setter Property="MinHeight" Value="35" />
+        <Setter Property="Height" Value="40" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
@@ -377,7 +388,8 @@
         <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="Height" Value="40" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
@@ -470,6 +482,7 @@
 
     <!-- Modern TimePicker Style (Uses TextBox with Clock Icon) -->
     <Style x:Key="ModernTimePicker" TargetType="TextBox" BasedOn="{StaticResource ModernInput}">
+        <Setter Property="TextWrapping" Value="NoWrap"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -556,8 +569,13 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <StackPanel Orientation="Horizontal" Cursor="Hand">
-                        <Grid x:Name="ToggleRail" Width="44" Height="24">
+                    <Grid Cursor="Hand">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid x:Name="ToggleRail" Width="44" Height="24" VerticalAlignment="Center">
                             <Border x:Name="RailBorder" 
                                     Background="{TemplateBinding Background}" 
                                     CornerRadius="12" 
@@ -572,8 +590,15 @@
                                 </Ellipse.Effect>
                             </Ellipse>
                         </Grid>
-                        <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center"/>
-                    </StackPanel>
+                        
+                        <ContentPresenter Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <!-- FIX: Target the Border's Background, not the Grid's -->

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Windows;
@@ -6,17 +7,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OCC.WpfClient.Services;
 using OCC.WpfClient.Services.Interfaces;
-using OCC.WpfClient.Features.AuthHub.ViewModels;
-using OCC.WpfClient.Features.Splash.Views;
-using OCC.WpfClient.Features.Splash.ViewModels;
-using OCC.WpfClient.Features.Shell.ViewModels;
+using OCC.WpfClient.Features.AuthHub;
+using OCC.WpfClient.Features.Splash;
 using OCC.WpfClient.Features.Main.ViewModels;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Infrastructure.Logging;
-using OCC.WpfClient.Features.Employees.ViewModels;
-using OCC.WpfClient.Features.Admin.Users.ViewModels;
-using OCC.WpfClient.Features.Support.ViewModels;
-using OCC.WpfClient.Features.BugHub.ViewModels;
+using OCC.WpfClient.Features.EmployeeHub;
+using OCC.WpfClient.Features.Admin;
+using OCC.WpfClient.Features.SupportHub;
+using OCC.WpfClient.Features.ChatHub;
+using OCC.WpfClient.Features.ProcurementHub;
+using OCC.WpfClient.Infrastructure;
+using OCC.WpfClient.Features.Splash.ViewModels;
+using OCC.WpfClient.Features.AuthHub.ViewModels;
+using OCC.WpfClient.Features.Shell.ViewModels;
+using OCC.WpfClient.Features.CustomerHub;
 
 namespace OCC.WpfClient
 {
@@ -26,9 +31,6 @@ namespace OCC.WpfClient
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            // Initialize Velopack
-            Velopack.VelopackApp.Build().Run();
-
             // Set Culture to South Africa for Rands (R) currency formatting
             var culture = new CultureInfo("en-ZA");
             Thread.CurrentThread.CurrentCulture = culture;
@@ -46,9 +48,17 @@ namespace OCC.WpfClient
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
 
+            // Initialize Routes
+            var navService = ServiceProvider.GetRequiredService<INavigationService>();
+            foreach (var feature in ServiceProvider.GetServices<IFeature>())
+            {
+                feature.RegisterRoutes(navService);
+            }
+
             // Show Splash Screen
             var splashViewModel = ServiceProvider.GetRequiredService<SplashViewModel>();
-            var splashView = new SplashView { DataContext = splashViewModel };
+            var splashView = ServiceProvider.GetRequiredService<Features.Splash.Views.SplashView>();
+            splashView.DataContext = splashViewModel;
             
             this.MainWindow = splashView;
             splashView.Show();
@@ -57,7 +67,7 @@ namespace OCC.WpfClient
             await splashViewModel.InitializeAsync();
 
             // Show Main Window
-            var mainWindow = new MainWindow();
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
             this.MainWindow = mainWindow;
             mainWindow.Show();
             
@@ -84,24 +94,40 @@ namespace OCC.WpfClient
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IPermissionService, PermissionService>();
             services.AddSingleton<IUpdateService, UpdateService>();
-            services.AddSingleton<IAuthService, AuthService>();
-            services.AddSingleton<IEmployeeService, EmployeeService>();
-            services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<IBugReportService, BugReportService>();
             services.AddSingleton<IToastService, ToastService>();
+            services.AddSingleton<ISignalRService, SignalRService>();
+            services.AddSingleton<IDialogService, WpfDialogService>();
+            services.AddSingleton<IInventoryService, InventoryService>();
 
-            // ViewModels
+            // Feature Discovery
+            var features = new List<IFeature>
+            {
+                new SplashFeature(),
+                new AuthFeature(),
+                new ChatFeature(),
+                new EmployeeFeature(),
+                new AdminFeature(),
+                new SupportFeature(),
+                new CustomerFeature(),
+                new ProcurementFeature()
+            };
+
+            foreach (var feature in features)
+            {
+                feature.RegisterServices(services);
+                services.AddSingleton<IFeature>(feature);
+            }
+            services.AddSingleton<IFeatureService, FeatureService>();
+
+            // Shell ViewModels
             services.AddTransient<ShellViewModel>();
             services.AddTransient<MainViewModel>();
-            services.AddTransient<DashboardViewModel>(); // Registered DashboardViewModel
-            services.AddTransient<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
-            services.AddTransient<EmployeeListViewModel>();
-            services.AddTransient<SplashViewModel>();
-            services.AddTransient<AuthViewModel>();
-            services.AddTransient<UserListViewModel>();
-            services.AddTransient<UserDetailViewModel>();
-            services.AddTransient<SupportHubViewModel>();
-            services.AddTransient<BugHubViewModel>();
+            services.AddTransient<ProfileViewModel>();
+            services.AddTransient<DashboardViewModel>();
+
+            // Windows
+            services.AddTransient<MainWindow>();
+            services.AddTransient<Features.Splash.Views.SplashView>();
         }
     }
 }

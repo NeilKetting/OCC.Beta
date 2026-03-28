@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OCC.Shared.DTOs;
 using OCC.Shared.Models;
+using OCC.WpfClient.Infrastructure.Exceptions;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
 
@@ -114,6 +115,11 @@ namespace OCC.WpfClient.Services
             {
                 var response = await _httpClient.PutAsJsonAsync(url, employee, _options);
                 
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    throw new ConcurrencyException("Another user has modified this employee record.");
+                }
+
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
@@ -122,6 +128,7 @@ namespace OCC.WpfClient.Services
 
                 return true;
             }
+            catch (ConcurrencyException) { throw; }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating employee {Id} at {Url}", employee.Id, url);

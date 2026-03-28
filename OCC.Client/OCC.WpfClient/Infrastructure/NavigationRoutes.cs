@@ -16,6 +16,11 @@ namespace OCC.WpfClient.Infrastructure
         public const string Reminders = "Reminders";
         public const string Receiving = "Receiving";
         public const string Orders = "Orders";
+        public const string Inventory = "Inventory";
+        public const string Suppliers = "Suppliers";
+        public const string Picking = "Picking";
+        public const string Procurement = "Procurement";
+        public const string PurchaseOrder = "PurchaseOrder";
         
         // System Routes
         public const string AccessDenied = "AccessDenied";

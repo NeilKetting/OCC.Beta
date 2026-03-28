@@ -7,13 +7,10 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using OCC.WpfClient.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
-using OCC.WpfClient.Features.Employees.ViewModels;
-using OCC.WpfClient.Features.Admin.Users.ViewModels;
-using OCC.WpfClient.Features.Support.ViewModels;
-using OCC.WpfClient.Features.BugHub.ViewModels;
 using CommunityToolkit.Mvvm.Messaging;
 using OCC.WpfClient.Infrastructure.Messages;
 using OCC.WpfClient.Models;
+using OCC.Shared.DTOs;
 using System.Threading.Tasks;
 
 namespace OCC.WpfClient.Features.Main.ViewModels
@@ -22,7 +19,9 @@ namespace OCC.WpfClient.Features.Main.ViewModels
     {
         private readonly IPermissionService _permissionService;
         private readonly IAuthService _authService;
+        private readonly ISignalRService _signalRService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IFeatureService _featureService;
 
         [ObservableProperty]
         private INavigationService _navigation;
@@ -55,7 +54,16 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         private ObservableCollection<NavItem> _filteredNavigationItems = new();
 
         [ObservableProperty]
-        private SupportHubViewModel? _currentSupportHub;
+        private ViewModelBase? _currentReportBug;
+
+        [ObservableProperty]
+        private ViewModelBase? _currentProfile;
+
+        [ObservableProperty]
+        private bool _isAboutVisible;
+
+        [ObservableProperty]
+        private string _appVersion = string.Empty;
 
         public ObservableCollection<ToastMessage> Toasts { get; } = new();
 
@@ -121,13 +129,36 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         private bool _isDbConnected = true;
 
         [ObservableProperty]
-        private string _onlineCount = "1"; // Just matching type if it was int
+        private string _onlineCount = "0";
+
+        [ObservableProperty]
+        private ObservableCollection<UserDisplayModel> _connectedUsers = new();
 
         [ObservableProperty]
         private string _currentTime = string.Empty;
 
         [ObservableProperty]
         private string _currentDate = string.Empty;
+
+        [ObservableProperty]
+        private bool _isUserListVisible;
+
+        [ObservableProperty]
+        private bool _isProfileMenuVisible;
+
+        [RelayCommand]
+        private void ToggleUserList()
+        {
+            IsUserListVisible = !IsUserListVisible;
+            if (IsUserListVisible) IsProfileMenuVisible = false;
+        }
+
+        [RelayCommand]
+        private void ToggleProfileMenu()
+        {
+            IsProfileMenuVisible = !IsProfileMenuVisible;
+            if (IsProfileMenuVisible) IsUserListVisible = false;
+        }
 
         private readonly System.Windows.Threading.DispatcherTimer _clockTimer;
 
@@ -137,12 +168,45 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             IsSidebarMinimized = !IsSidebarMinimized;
         }
 
-        public MainViewModel(INavigationService navigation, IPermissionService permissionService, IAuthService authService, IServiceProvider serviceProvider)
+        [RelayCommand]
+        private void ShowProfile()
+        {
+            CurrentProfile = _serviceProvider.GetRequiredService<ProfileViewModel>();
+        }
+
+        [RelayCommand]
+        private void CloseProfile()
+        {
+            CurrentProfile = null;
+        }
+
+        [RelayCommand]
+        private void ShowAbout()
+        {
+            IsAboutVisible = true;
+        }
+
+        [RelayCommand]
+        private void CloseAbout()
+        {
+            IsAboutVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task Logout()
+        {
+            await _authService.LogoutAsync();
+            Navigation.NavigateTo("Auth");
+        }
+
+        public MainViewModel(INavigationService navigation, IPermissionService permissionService, IAuthService authService, ISignalRService signalRService, IServiceProvider serviceProvider, IFeatureService featureService)
         {
             _navigation = navigation;
             _permissionService = permissionService;
             _authService = authService;
+            _signalRService = signalRService;
             _serviceProvider = serviceProvider;
+            _featureService = featureService;
 
             if (_authService.CurrentUser != null)
             {
@@ -155,6 +219,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             }
 
             Title = "Main Shell";
+            AppVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
             
             // Start minimized as requested
             IsSidebarMinimized = true;
@@ -178,9 +243,35 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             WeakReferenceMessenger.Default.Register<ToastNotificationMessage>(this);
             WeakReferenceMessenger.Default.Register<CloseHubMessage>(this);
             
+            _signalRService.UserListUpdated += OnUserListUpdated;
+            _ = _signalRService.StartAsync();
+            
             // Open Dashboard by default - Removed to start blank as requested
             // OpenHub<DashboardViewModel>();
         }
+
+        private void OnUserListUpdated(List<OCC.Shared.DTOs.UserConnectionInfo> users)
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                ConnectedUsers.Clear();
+                foreach (var u in users)
+                {
+                    var timeOnline = DateTime.UtcNow - u.ConnectedAt;
+                    var timeStr = timeOnline.TotalMinutes < 1 ? "Just now" : 
+                                  timeOnline.TotalHours < 1 ? $"{(int)timeOnline.TotalMinutes}m" : 
+                                  $"{(int)timeOnline.TotalHours}h";
+
+                    ConnectedUsers.Add(new UserDisplayModel(
+                        u.UserName ?? "Unknown", 
+                        timeStr, 
+                        u.Status == "Online" ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Orange));
+                }
+                OnlineCount = users.Count.ToString();
+            });
+        }
+
+        public record UserDisplayModel(string Name, string TimeOnline, System.Windows.Media.Brush StatusColor);
 
         private void UpdateTime()
         {
@@ -210,27 +301,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
 
         private void InitializeNavigation()
         {
-            var items = new List<NavItem>
-            {
-                new NavItem("Chat", "IconChat", NavigationRoutes.Chat, "Main"),
-                
-                new NavItem("Admin", "IconGear", string.Empty, "Administration")
-                {
-                    Children =
-                    {
-                        new NavItem("Users", "IconTeam", NavigationRoutes.UserManagement, "Administration"),
-                        new NavItem("Employees", "IconTeam", NavigationRoutes.StaffManagement, "Administration")
-                    }
-                },
-
-                new NavItem("Help", "IconSummary", string.Empty, "Support")
-                {
-                    Children =
-                    {
-                        new NavItem("Bug Hub", "IconBug", "Support.BugHub", "Support")
-                    }
-                }
-            };
+            var items = _featureService.GetNavigationItems();
 
             foreach (var item in items)
             {
@@ -256,25 +327,29 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         }
 
         [RelayCommand]
-        private void ShowSupportHub()
+        private void ShowReportBug()
         {
             var viewName = ActiveHub?.Title ?? "Main Shell";
-            var hub = _serviceProvider.GetRequiredService<SupportHubViewModel>();
-            hub.Initialize(viewName);
-            CurrentSupportHub = hub;
+            var viewModelType = Navigation.GetViewModelTypeForRoute("Support.ReportBug");
+            if (viewModelType == null) return;
+
+            var hub = (ViewModelBase)_serviceProvider.GetRequiredService(viewModelType);
+            
+            // We need to call Initialize, but wait...
+            // If we don't know the type, we can't call a specific method unless it's on a base class or interface.
+            // I'll check if Initialize is in a base interface.
+            
+            // For now, I'll cast it to dynamic or a specific interface if available.
+            (hub as dynamic).Initialize(viewName);
+            CurrentReportBug = hub;
         }
 
         [RelayCommand]
-        private void ShowBugHub()
+        private void ShowSupportHub()
         {
-            OpenHub<BugHubViewModel>();
+            OpenHub("Support.SupportHub");
         }
 
-        [RelayCommand]
-        private void Logout()
-        {
-            Navigation.NavigateTo<AuthHub.ViewModels.AuthViewModel>();
-        }
 
         [RelayCommand]
         private void ExitApp()
@@ -283,10 +358,28 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         }
 
         [RelayCommand]
-        private void Navigate(NavItem item)
+        private void Navigate(object? parameter)
         {
-            if (item == null) return;
+            if (parameter == null) return;
             
+            NavItem? item = parameter as NavItem;
+            
+            // If parameter is string, try to find matching NavItem by route
+            if (item == null && parameter is string route)
+            {
+                item = NavigationItems.FirstOrDefault(n => n.Route == route) 
+                       ?? NavigationItems.SelectMany(n => n.Children).FirstOrDefault(n => n.Route == route);
+                
+                // Fallback: If no NavItem found but we have a route string, handle it directly
+                if (item == null)
+                {
+                    HandleRoute(route);
+                    return;
+                }
+            }
+
+            if (item == null) return;
+
             // If it's a parent node, just expand/collapse it
             if (item.IsParent)
             {
@@ -296,28 +389,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
 
             if (string.IsNullOrEmpty(item.Route)) return;
             
-            // Map routes to ViewModels
-            switch (item.Route)
-            {
-                case NavigationRoutes.Home:
-                    OpenHub<DashboardViewModel>();
-                    break;
-                case NavigationRoutes.Chat:
-                    OpenHub<OCC.WpfClient.Features.Chat.ViewModels.ChatViewModel>();
-                    break;
-                case NavigationRoutes.StaffManagement:
-                    OpenHub<EmployeeListViewModel>();
-                    break;
-                case NavigationRoutes.UserManagement:
-                    OpenHub<UserListViewModel>();
-                    break;
-                case "Support.BugHub":
-                    OpenHub<BugHubViewModel>();
-                    break;
-                case "Support.ReportBug":
-                    ShowSupportHub();
-                    break;
-            }
+            HandleRoute(item.Route);
 
             // Sync sidebar state
             foreach (var current in NavigationItems)
@@ -333,14 +405,27 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             }
         }
 
+        private void HandleRoute(string route)
+        {
+            if (route == "Support.ReportBug")
+            {
+                ShowReportBug();
+                return;
+            }
+
+            OpenHub(route);
+        }
+
         [RelayCommand]
         private void CloseHub(ViewModelBase hub)
         {
-            if (hub is DashboardViewModel) return;
+            // We can't use type check for Dashboard anymore if it's not imported, 
+            // but we can check the title or a property.
+            if (hub.Title == "Dashboard") return;
             
-            if (hub == CurrentSupportHub)
+            if (hub == CurrentReportBug)
             {
-                CurrentSupportHub = null;
+                CurrentReportBug = null;
                 return;
             }
 
@@ -357,21 +442,60 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             ActiveHub = hub;
         }
 
-        private T OpenHub<T>() where T : ViewModelBase
+        private void OpenHub(string route)
         {
-            var existing = OpenHubs.OfType<T>().FirstOrDefault();
+            var viewModelType = Navigation.GetViewModelTypeForRoute(route);
+            if (viewModelType == null) return;
+
+            var existing = OpenHubs.FirstOrDefault(h => h.GetType() == viewModelType);
             if (existing != null)
             {
                 ActiveHub = existing;
-                return existing;
             }
             else
             {
-                var hub = _serviceProvider.GetRequiredService<T>();
+                var hub = (ViewModelBase)_serviceProvider.GetRequiredService(viewModelType);
                 OpenHubs.Add(hub);
                 ActiveHub = hub;
-                return hub;
             }
+        }
+
+        [RelayCommand]
+        private void CloseAllTabs()
+        {
+            OpenHubs.Clear();
+            ActiveHub = null;
+        }
+
+        [RelayCommand]
+        private void CloseOtherTabs(ViewModelBase currentHub)
+        {
+            var hubToKeep = currentHub ?? ActiveHub;
+            if (hubToKeep == null) return;
+            
+            var hubsToRemove = OpenHubs.Where(h => h != hubToKeep).ToList();
+            foreach (var hub in hubsToRemove)
+            {
+                OpenHubs.Remove(hub);
+            }
+            ActiveHub = hubToKeep;
+        }
+
+        [RelayCommand]
+        private void CloseTabsToRight(ViewModelBase currentHub)
+        {
+            var referenceHub = currentHub ?? ActiveHub;
+            if (referenceHub == null) return;
+            
+            var index = OpenHubs.IndexOf(referenceHub);
+            if (index >= 0)
+            {
+                while (OpenHubs.Count > index + 1)
+                {
+                    OpenHubs.RemoveAt(OpenHubs.Count - 1);
+                }
+            }
+            ActiveHub = referenceHub;
         }
 
         partial void OnFeatureSearchQueryChanged(string value)
@@ -451,32 +575,6 @@ namespace OCC.WpfClient.Features.Main.ViewModels
 
                 System.Windows.Application.Current.Dispatcher.Invoke(() => Toasts.Remove(toast));
             });
-        }
-    }
-
-    public partial class NavItem : ObservableObject
-    {
-        public string Label { get; }
-        public System.Windows.Media.Geometry? Icon { get; }
-        public string Route { get; }
-        public string Category { get; }
-
-        public ObservableCollection<NavItem> Children { get; } = new();
-        public bool IsParent => Children.Any();
-
-        [ObservableProperty]
-        private bool _isActive;
-
-        [ObservableProperty]
-        private bool _isExpanded;
-
-        public NavItem(string label, string iconKey, string route, string category, bool isActive = false)
-        {
-            Label = label;
-            Icon = System.Windows.Application.Current?.TryFindResource(iconKey) as System.Windows.Media.Geometry;
-            Route = route;
-            Category = category;
-            IsActive = isActive;
         }
     }
 }

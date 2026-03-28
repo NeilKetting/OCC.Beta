@@ -72,7 +72,9 @@ namespace OCC.API.Controllers
         {
             try
             {
-                var customer = await _context.Customers.FindAsync(id);
+                var customer = await _context.Customers
+                    .Include(c => c.Contacts)
+                    .FirstOrDefaultAsync(c => c.Id == id);
                 if (customer == null) return NotFound();
                 return customer;
             }
@@ -90,6 +92,11 @@ namespace OCC.API.Controllers
             try
             {
                 if (customer.Id == Guid.Empty) customer.Id = Guid.NewGuid();
+                foreach (var contact in customer.Contacts)
+                {
+                    if (contact.Id == Guid.Empty) contact.Id = Guid.NewGuid();
+                }
+
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
                 
@@ -109,17 +116,37 @@ namespace OCC.API.Controllers
         public async Task<IActionResult> PutCustomer(Guid id, Customer customer)
         {
             if (id != customer.Id) return BadRequest();
-            _context.Entry(customer).State = EntityState.Modified;
 
             try
             {
+                // To properly handle disconnected graph including deleted children
+                var existingCustomer = await _context.Customers
+                    .Include(c => c.Contacts)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.Id == id);
+
+                if (existingCustomer == null) return NotFound();
+
+                _context.Update(customer);
+
+                // Delete missing contacts
+                var clientContactIds = customer.Contacts.Select(c => c.Id).ToList();
+                foreach (var existingContact in existingCustomer.Contacts)
+                {
+                    if (!clientContactIds.Contains(existingContact.Id))
+                    {
+                        var entry = _context.Entry(new CustomerContact { Id = existingContact.Id });
+                        entry.State = EntityState.Deleted;
+                    }
+                }
+
                 await _context.SaveChangesAsync();
                 await _hubContext.Clients.All.SendAsync("EntityUpdate", "Customer", "Update", id);
             }
             catch (DbUpdateConcurrencyException)
             {
                 if (!CustomerExists(id)) return NotFound();
-                else throw;
+                return Conflict("Another user has updated this record. Please reload and try again.");
             }
             catch (Exception ex)
             {

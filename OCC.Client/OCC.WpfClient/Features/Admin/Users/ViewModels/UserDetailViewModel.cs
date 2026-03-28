@@ -11,11 +11,10 @@ using OCC.WpfClient.Services.Interfaces;
 
 namespace OCC.WpfClient.Features.Admin.Users.ViewModels
 {
-    public partial class UserDetailViewModel : ViewModelBase
+    public partial class UserDetailViewModel : DetailViewModelBase
     {
         private readonly UserListViewModel _parent;
         private readonly IUserService _userService;
-        private readonly ILogger _logger;
         private readonly User _user;
 
         [ObservableProperty] private string _firstName;
@@ -43,12 +42,11 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             UserRole.HSEQ
         };
 
-        public UserDetailViewModel(UserListViewModel parent, User user, IUserService userService, ILogger logger)
+        public UserDetailViewModel(UserListViewModel parent, User user, IUserService userService, IDialogService dialogService, ILogger logger) : base(dialogService, logger)
         {
             _parent = parent;
             _user = user;
             _userService = userService;
-            _logger = logger;
 
             _firstName = user.FirstName;
             _lastName = user.LastName;
@@ -94,58 +92,78 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             return string.Join(",", selected);
         }
 
-        [RelayCommand]
-        private async Task Save()
+        protected override async Task ExecuteSaveAsync()
         {
-            try
+            _user.FirstName = FirstName;
+            _user.LastName = LastName;
+            _user.Email = Email;
+            _user.Phone = Phone;
+            _user.Location = Location;
+            _user.UserRole = SelectedRole;
+            _user.IsApproved = IsApproved;
+            _user.IsEmailVerified = IsEmailVerified;
+            
+            if (!string.IsNullOrWhiteSpace(Password))
             {
-                IsBusy = true;
-                BusyText = "Saving user details...";
-
-                _user.FirstName = FirstName;
-                _user.LastName = LastName;
-                _user.Email = Email;
-                _user.Phone = Phone;
-                _user.Location = Location;
-                _user.UserRole = SelectedRole;
-                _user.IsApproved = IsApproved;
-                _user.IsEmailVerified = IsEmailVerified;
-                
-                if (!string.IsNullOrWhiteSpace(Password))
-                {
-                    _user.Password = Password;
-                }
-                
-                _user.Permissions = GetPermissionsString();
-
-                bool success;
-                if (_user.Id == Guid.Empty)
-                {
-                    success = await _userService.CreateUserAsync(_user);
-                }
-                else
-                {
-                    success = await _userService.UpdateUserAsync(_user);
-                }
-
-                if (success)
-                {
-                    await _parent.LoadData();
-                    _parent.CloseDetailView();
-                }
+                _user.Password = Password;
             }
-            catch (Exception ex)
+            
+            _user.Permissions = GetPermissionsString();
+
+            bool success;
+            if (_user.Id == Guid.Empty)
             {
-                _logger.LogError(ex, "Error saving user");
+                success = await _userService.CreateUserAsync(_user);
             }
-            finally
+            else
             {
-                IsBusy = false;
+                success = await _userService.UpdateUserAsync(_user);
+            }
+
+            if (!success)
+            {
+                throw new Exception("Failed to save user. Please check your connection.");
             }
         }
 
-        [RelayCommand]
-        private void Cancel()
+        protected override void OnSaveSuccess()
+        {
+            _parent.LoadData().ConfigureAwait(false);
+            _parent.CloseDetailView();
+        }
+
+        protected override async Task ExecuteReloadAsync()
+        {
+            var latest = await _userService.GetUserAsync(_user.Id);
+            if (latest != null)
+            {
+                _user.FirstName = latest.FirstName;
+                _user.LastName = latest.LastName;
+                _user.Email = latest.Email;
+                _user.Phone = latest.Phone;
+                _user.Location = latest.Location;
+                _user.UserRole = latest.UserRole;
+                _user.IsApproved = latest.IsApproved;
+                _user.IsEmailVerified = latest.IsEmailVerified;
+                _user.Permissions = latest.Permissions;
+                _user.RowVersion = latest.RowVersion;
+
+                FirstName = _user.FirstName;
+                LastName = _user.LastName;
+                Email = _user.Email;
+                Phone = _user.Phone;
+                Location = _user.Location;
+                SelectedRole = _user.UserRole;
+                IsApproved = _user.IsApproved;
+                IsEmailVerified = _user.IsEmailVerified;
+                
+                LoadPermissions(_user.Permissions);
+                
+                Title = $"Edit {FirstName} {LastName} (Reloaded)";
+            }
+        }
+
+        protected override void OnCancel()
         {
             _parent.CloseDetailView();
         }
