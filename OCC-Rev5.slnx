@@ -4,7 +4,7 @@
   <Project Path="OCC.Client/OCC.Client.Desktop/OCC.Client.Desktop.csproj" />
   <Project Path="OCC.Client/OCC.Client/OCC.Client.csproj" />
   <Project Path="OCC.Client/OCC.WpfClient/OCC.WpfClient.csproj">
-    <Build Solution="Debug|*" Project="false" />
+    <Build Solution="Debug|*" Project="true" />
   </Project>
   <Project Path="OCC.Shared/OCC.Shared.csproj" />
   <Project Path="OCC.Tests/OCC.Tests.csproj" />

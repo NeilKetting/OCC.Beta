@@ -42,6 +42,11 @@ namespace OCC.WpfClient
                 new FrameworkPropertyMetadata(
                     System.Windows.Markup.XmlLanguage.GetLanguage(culture.IetfLanguageTag)));
 
+            // Global Exception Handling
+            this.DispatcherUnhandledException += OnDispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
             base.OnStartup(e);
 
             var services = new ServiceCollection();
@@ -126,8 +131,58 @@ namespace OCC.WpfClient
             services.AddTransient<DashboardViewModel>();
 
             // Windows
-            services.AddTransient<MainWindow>();
-            services.AddTransient<Features.Splash.Views.SplashView>();
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<Features.Splash.Views.SplashView>();
+        }
+
+        private void OnDispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogException(e.Exception, "DispatcherUnhandledException");
+            // e.Handled = true; // Don't handle it, let it crash but log it first
+        }
+
+        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception ex)
+            {
+                LogException(ex, "AppDomain.UnhandledException");
+            }
+        }
+
+        private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            LogException(e.Exception, "TaskScheduler.UnobservedTaskException");
+            e.SetObserved();
+        }
+
+        private void LogException(Exception? ex, string source)
+        {
+            if (ex == null) return;
+
+            try
+            {
+                var logger = ServiceProvider?.GetService<ILogger<App>>();
+                if (logger != null)
+                {
+                    logger.LogCritical(ex, "FATAL UNHANDLED EXCEPTION [{Source}]: {Message}", source, ex.Message);
+                    
+                    // Log Inner Exception if exists
+                    if (ex.InnerException != null)
+                    {
+                        logger.LogCritical(ex.InnerException, "Inner Exception for {Source}: {Message}", source, ex.InnerException.Message);
+                    }
+                }
+                else
+                {
+                    // Fallback if logger is not yet available
+                    System.Diagnostics.Debug.WriteLine($"FATAL: {source}: {ex}");
+                }
+            }
+            catch
+            {
+                // Last resort
+                System.Diagnostics.Debug.WriteLine($"Error logging exception from {source}");
+            }
         }
     }
 }

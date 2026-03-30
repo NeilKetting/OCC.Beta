@@ -31,6 +31,9 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         [ObservableProperty] private bool _hasChatAccess;
         [ObservableProperty] private bool _hasUserManagementAccess;
         [ObservableProperty] private bool _hasEmployeeManagementAccess;
+        [ObservableProperty] private bool _hasProcurementAccess;
+        [ObservableProperty] private bool _hasInventoryAccess;
+        [ObservableProperty] private bool _hasPurchaseOrderAccess;
 
         [ObservableProperty] private bool _showModuleAccess;
 
@@ -69,6 +72,9 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
                 HasChatAccess = true;
                 HasUserManagementAccess = true;
                 HasEmployeeManagementAccess = true;
+                HasProcurementAccess = true;
+                HasInventoryAccess = true;
+                HasPurchaseOrderAccess = true;
             }
         }
 
@@ -80,6 +86,9 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             HasChatAccess = current.Contains(NavigationRoutes.Chat, StringComparer.OrdinalIgnoreCase);
             HasUserManagementAccess = current.Contains(NavigationRoutes.UserManagement, StringComparer.OrdinalIgnoreCase);
             HasEmployeeManagementAccess = current.Contains(NavigationRoutes.StaffManagement, StringComparer.OrdinalIgnoreCase);
+            HasProcurementAccess = current.Contains(NavigationRoutes.Procurement, StringComparer.OrdinalIgnoreCase);
+            HasInventoryAccess = current.Contains(NavigationRoutes.Inventory, StringComparer.OrdinalIgnoreCase);
+            HasPurchaseOrderAccess = current.Contains(NavigationRoutes.PurchaseOrder, StringComparer.OrdinalIgnoreCase);
         }
 
         private string GetPermissionsString()
@@ -88,6 +97,9 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             if (HasChatAccess) selected.Add(NavigationRoutes.Chat);
             if (HasUserManagementAccess) selected.Add(NavigationRoutes.UserManagement);
             if (HasEmployeeManagementAccess) selected.Add(NavigationRoutes.StaffManagement);
+            if (HasProcurementAccess) selected.Add(NavigationRoutes.Procurement);
+            if (HasInventoryAccess) selected.Add(NavigationRoutes.Inventory);
+            if (HasPurchaseOrderAccess) selected.Add(NavigationRoutes.PurchaseOrder);
             
             return string.Join(",", selected);
         }

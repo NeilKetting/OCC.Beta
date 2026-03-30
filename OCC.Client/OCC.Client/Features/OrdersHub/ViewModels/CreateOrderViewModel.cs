@@ -42,6 +42,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
 
         private bool _isNewOrder;
         private bool _isInitializing;
+        private bool _isShowingItemNotFoundDialog;
 
         #endregion
 
@@ -591,20 +592,28 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [RelayCommand]
         public async Task ValidateItemSearch(string searchText)
         {
-             if (string.IsNullOrWhiteSpace(searchText)) return;
+             if (string.IsNullOrWhiteSpace(searchText) || _isShowingItemNotFoundDialog) return;
              
-             // This might still need local Inventory list or delegate to Inventory VM
-             // For now, delegate to Inventory VM?
-             // Inventory.ValidateItemSearch is not implemented yet.
-             
-             var exists = Inventory.FilteredItems.Any(i => i.Sku.Equals(searchText, StringComparison.OrdinalIgnoreCase) || i.Description.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+             // Check if item exists in master list
+             var exists = Lines.AllInventoryItems.Any(i => 
+                (i.Sku?.Equals(searchText, StringComparison.OrdinalIgnoreCase) ?? false) || 
+                (i.Description?.Equals(searchText, StringComparison.OrdinalIgnoreCase) ?? false));
+
              if (!exists)
              {
-                 bool create = await _dialogService.ShowConfirmationAsync("Item Not Found", $"'{searchText}' not found.\n\nCreate it now?");
-                 if (create)
+                 _isShowingItemNotFoundDialog = true;
+                 try
                  {
-                     _orderStateService.SaveState(CurrentOrder.Model, Lines.NewLine.Model, searchText);
-                     WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("InventoryDetail_Create", searchText));
+                     bool create = await _dialogService.ShowConfirmationAsync("Item Not Found", $"'{searchText}' not found.\n\nCreate it now?");
+                     if (create)
+                     {
+                         _orderStateService.SaveState(CurrentOrder.Model, Lines.NewLine.Model, searchText);
+                         WeakReferenceMessenger.Default.Send(new NavigationRequestMessage("InventoryDetail_Create", searchText));
+                     }
+                 }
+                 finally
+                 {
+                     _isShowingItemNotFoundDialog = false;
                  }
              }
         }

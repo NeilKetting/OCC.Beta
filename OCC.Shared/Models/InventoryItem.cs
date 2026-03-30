@@ -11,6 +11,14 @@ namespace OCC.Shared.Models
     /// <b>How:</b> Integrated with the Ordering system. When <see cref="QuantityOnHand"/> falls below <see cref="ReorderPoint"/>, 
     /// the item is flagged as "Low Stock" in the dashboard.
     /// </remarks>
+    public enum ItemType
+    {
+        Service,
+        StockPart,
+        NonStockPart,
+        OtherCharge
+    }
+
     public class InventoryItem : BaseEntity
     {
 
@@ -65,8 +73,8 @@ namespace OCC.Shared.Models
         /// <summary> If true, system provides alerts when stock falls below reorder point. </summary>
         public bool TrackLowStock { get; set; } = true;
 
-        /// <summary> If true, this is a tangible item tracking quantity. </summary>
-        public bool IsStockItem { get; set; } = true;
+        /// <summary> The type of item (Service, Stock Part, etc.) </summary>
+        public ItemType Type { get; set; } = ItemType.StockPart;
 
         // Status
         public InventoryStatus Status => TrackLowStock && (JhbQuantity <= JhbReorderPoint || CptQuantity <= CptReorderPoint) ? InventoryStatus.Low : InventoryStatus.OK;

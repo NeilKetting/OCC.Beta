@@ -13,82 +13,122 @@
         <BooleanToVisibilityConverter x:Key="VisibilityConverter"/>
     </UserControl.Resources>
     
-    <Grid>
-        <Grid Margin="5,10,5,5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Grid Margin="5,10,5,5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Header -->
+            <RowDefinition Height="Auto" /> <!-- Compact Filters & Stats -->
+            <RowDefinition Height="*" />    <!-- Grid -->
+        </Grid.RowDefinitions>
 
-            <!-- Header & Search -->
-            <Grid Grid.Row="0" Margin="0,0,0,25">
-                <StackPanel>
-                    <TextBlock Text="Inventory Management" FontSize="32" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="Track stock levels, reorder points, and warehouse locations." 
-                               FontSize="14" Foreground="{StaticResource TextSub}" Margin="0,4,0,0"/>
-                </StackPanel>
+        <!-- Header: Title, Subtitle, and Add Button -->
+        <Grid Grid.Row="0" Margin="5,0,5,20">
+            <StackPanel>
+                <TextBlock Text="Inventory Management" FontSize="26" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Track stock levels, reorder points, and warehouse locations." 
+                           Style="{StaticResource FormLabelText}"/>
+            </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Border Background="{StaticResource InputBackground}" CornerRadius="20" Width="300" Height="40" Padding="15,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Path Data="{StaticResource IconSearch}" Fill="{StaticResource TextSub}" 
-                                  Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Opacity="0.6"/>
-                            <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
-                                     Background="Transparent" BorderThickness="0" Foreground="White" 
-                                     VerticalAlignment="Center" Margin="10,0,0,0" ap:WatermarkProperties.Watermark="Search items or SKUs..."/>
-                        </Grid>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Style="{StaticResource PrimaryButton}" Command="{Binding AddItemCommand}" Width="140" Height="36" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{StaticResource IconPlus}" Fill="White" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Add Stock Item" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Filters & Search Bar Row (Standardized with Employee Hub) -->
+        <Border Grid.Row="1" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" 
+                BorderThickness="1" CornerRadius="10" Padding="15,10" Margin="5,0,5,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" /> <!-- Search Icon -->
+                    <ColumnDefinition Width="200" /> <!-- Search Box -->
+                    <ColumnDefinition Width="Auto" /> <!-- Divider -->
+                    <ColumnDefinition Width="Auto" /> <!-- Category Filter -->
+                    <ColumnDefinition Width="Auto" /> <!-- Status Filter -->
+                    <ColumnDefinition Width="*" />    <!-- Spacer -->
+                    <ColumnDefinition Width="Auto" /> <!-- Stats Badges -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Search -->
+                <Path Grid.Column="0" Data="{StaticResource IconSearch}" Fill="{StaticResource TextSub}" 
+                      Width="14" Height="14" Margin="5,0,10,0" VerticalAlignment="Center" Stretch="Uniform"/>
+                <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                         Tag="Search items or SKUs..." Style="{StaticResource ModernInput}" 
+                         Height="32" Padding="8,0" BorderThickness="0" Background="Transparent"/>
+
+                <Border Grid.Column="2" Width="1" Height="20" Background="{StaticResource GlassBorder}" Margin="15,0" VerticalAlignment="Center"/>
+
+                <!-- Category Filter (Mockup for UI Consistency) -->
+                <ComboBox Grid.Column="3" Width="130" Height="32" Style="{StaticResource ModernComboBox}" Margin="0,0,10,0" SelectedIndex="0">
+                    <ComboBoxItem Content="All Categories" />
+                    <ComboBoxItem Content="Tools" />
+                    <ComboBoxItem Content="Electrical" />
+                    <ComboBoxItem Content="Plumbing" />
+                    <ComboBoxItem Content="Materials" />
+                </ComboBox>
+
+                <!-- Status Filter (Mockup for UI Consistency) -->
+                <ComboBox Grid.Column="4" Width="140" Height="32" Style="{StaticResource ModernComboBox}" Margin="0,0,10,0" SelectedIndex="0">
+                    <ComboBoxItem Content="All Statuses" />
+                    <ComboBoxItem Content="OK" />
+                    <ComboBoxItem Content="Low Stock" />
+                    <ComboBoxItem Content="Out of Stock" />
+                </ComboBox>
+
+                <!-- Stats Badges -->
+                <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#20FFFFFF" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="TOTAL: " FontSize="10" Foreground="{StaticResource TextSub}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalCount}" FontSize="12" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </Border>
-                    <Button Content="Refresh" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" 
-                            Margin="15,0,0,0" Width="100" Height="40"/>
+                    <Border Background="#20FF4B4B" CornerRadius="12" Padding="10,4" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="LOW STOCK: " FontSize="10" Foreground="{StaticResource TextSub}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding LowStockCount}" FontSize="12" FontWeight="Bold" Foreground="{StaticResource ErrorRed}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
+        </Border>
 
-            <!-- DataGrid -->
-            <Border Grid.Row="1" Style="{StaticResource GlassCard}" Padding="0">
-                <Grid>
-                    <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" 
-                              Background="Transparent" BorderThickness="0" CanUserAddRows="False"
-                              IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="120"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150"/>
-                            <DataGridTextColumn Header="Quantity" Binding="{Binding QuantityOnHand}" Width="100">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsLowStock}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource ErrorRed}"/>
-                                                <Setter Property="FontWeight" Value="Bold"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="150"/>
-                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
+        <!-- DataGrid Section: Wrapped in reference-compliant border -->
+        <Border Grid.Row="2" Background="{StaticResource GlassBackground}" 
+                BorderBrush="{StaticResource GlassBorder}" BorderThickness="1" 
+                CornerRadius="0,0,2,2" Padding="2" ClipToBounds="True"
+                Margin="3">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" 
+                      Background="Transparent" BorderThickness="0" CanUserAddRows="False"
+                      IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="SKU" Binding="{Binding Sku}" Width="150"/>
+                    <DataGridTextColumn Header="DESCRIPTION" Binding="{Binding Description}" Width="*"/>
+                    <DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="150"/>
+                    <DataGridTextColumn Header="QUANTITY" Binding="{Binding QuantityOnHand}" Width="120">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource ErrorRed}"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="LOCATION" Binding="{Binding Location}" Width="150"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
 
-                    <!-- Empty State -->
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" 
-                                Visibility="{Binding Items.Count, Converter={StaticResource VisibilityConverter}, ConverterParameter=0}">
-                        <Path Data="{StaticResource IconPortfolio}" Fill="{StaticResource TextSub}" 
-                              Opacity="0.2" Width="60" Height="60" Stretch="Uniform"/>
-                        <TextBlock Text="No items found." Margin="0,15" Foreground="{StaticResource TextSub}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Grid>
-
-        <!-- Busy Overlay -->
-        <Grid Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}" Background="#33000000">
-             <ProgressBar IsIndeterminate="True" Width="200" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Grid>
+        <!-- Loading Overlay -->
+        <ContentControl Grid.Row="2" Style="{StaticResource StandardLoadingOverlay}" 
+                        Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
     </Grid>
 </UserControl>

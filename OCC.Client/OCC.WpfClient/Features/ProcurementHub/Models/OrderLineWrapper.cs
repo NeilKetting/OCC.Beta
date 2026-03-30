@@ -15,6 +15,8 @@ namespace OCC.WpfClient.Features.ProcurementHub.Models
             _parent = parent;
         }
 
+        public string? LastValidatedSku { get; set; }
+
         public Guid Id => Model.Id;
 
         public Guid? InventoryItemId

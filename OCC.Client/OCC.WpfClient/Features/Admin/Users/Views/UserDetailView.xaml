@@ -165,6 +165,9 @@
                                             <CheckBox IsChecked="{Binding HasChatAccess}" Content="Chat Feature" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
                                             <CheckBox IsChecked="{Binding HasUserManagementAccess}" Content="User Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
                                             <CheckBox IsChecked="{Binding HasEmployeeManagementAccess}" Content="Employee Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasProcurementAccess}" Content="Procurement Dashboard" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasInventoryAccess}" Content="Inventory Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasPurchaseOrderAccess}" Content="Purchase Order" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

@@ -109,12 +109,30 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         /// </summary>
         [ObservableProperty]
         private bool _isTrackingLowStock = true;
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether stock levels are tracked for this item.
+        /// Compatibility wrapper for the Type property.
+        /// </summary>
+        public bool IsStockItem
+        {
+            get => Type == ItemType.StockPart;
+            set
+            {
+                if (value)
+                    Type = ItemType.StockPart;
+                else if (Type == ItemType.StockPart)
+                    Type = ItemType.Service;
+                
+                OnPropertyChanged(nameof(IsStockItem));
+            }
+        }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this is a stock item that tracks quantities.
+        /// Gets or sets the type of inventory item (Service, Stock Part, etc.).
         /// </summary>
         [ObservableProperty]
-        private bool _isStockItem = true;
+        private ItemType _type = ItemType.StockPart;
         
         /// <summary>
         /// Gets or sets the quantity in JHB branch.
@@ -234,7 +252,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                     AverageCost = AverageCost,
                     Price = Price,
                     TrackLowStock = IsTrackingLowStock,
-                    IsStockItem = IsStockItem,
+                    Type = Type,
                     RowVersion = RowVersion ?? Array.Empty<byte>()
                 };
 
@@ -307,6 +325,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 JhbReorderPoint = 10;
                 CptReorderPoint = 10;
                 Price = 0;
+                Type = ItemType.StockPart; 
                 RowVersion = null;
             }
             else
@@ -325,7 +344,7 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
                 AverageCost = item.AverageCost;
                 Price = item.Price;
                 IsTrackingLowStock = item.TrackLowStock;
-                IsStockItem = item.IsStockItem;
+                Type = item.Type;
                 JhbReorderPoint = item.JhbReorderPoint;
                 CptReorderPoint = item.CptReorderPoint;
                 RowVersion = item.RowVersion;

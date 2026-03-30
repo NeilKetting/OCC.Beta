@@ -73,6 +73,43 @@
             </EventTrigger>
         </Style.Triggers>
     </Style>
+    
+    <!-- Standard Loading Overlay -->
+    <Style x:Key="StandardLoadingOverlay" TargetType="ContentControl">
+        <Setter Property="Background" Value="#CC000000" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Grid Background="{TemplateBinding Background}">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <ProgressBar IsIndeterminate="True" 
+                                         Width="180" Height="4" 
+                                         Foreground="{StaticResource AccentBlue}" 
+                                         Background="#20FFFFFF"
+                                         BorderThickness="0"/>
+                            <TextBlock Text="{Binding BusyText}" 
+                                       Foreground="White" 
+                                       Margin="0,15,0,0" 
+                                       HorizontalAlignment="Center"
+                                       FontSize="14"
+                                       Opacity="0.8"
+                                       Visibility="{Binding BusyText, Converter={StaticResource VisibilityConverter}}"/>
+                        </StackPanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Content Stats Badge -->
+    <Style x:Key="StatsBadge" TargetType="Border">
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="10,4"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+        <Setter Property="Background" Value="#20FFFFFF"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
     <!-- Loading Spinner Animation -->
     <Storyboard x:Key="BusySpinnerAnimation">
         <DoubleAnimation Storyboard.TargetProperty="RenderTransform.Angle"
@@ -80,4 +117,42 @@
                          RepeatBehavior="Forever" />
     </Storyboard>
 
+    <!-- Ghost Button (Transparent with low-opacity content) -->
+    <Style x:Key="GhostButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter x:Name="content" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center" 
+                                          Opacity="0.3"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="content" Property="Opacity" Value="1.0"/>
+                            <Setter TargetName="border" Property="Background" Value="#10FFFFFF"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#20FFFFFF"/>
+                            <Setter Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.2"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>
+

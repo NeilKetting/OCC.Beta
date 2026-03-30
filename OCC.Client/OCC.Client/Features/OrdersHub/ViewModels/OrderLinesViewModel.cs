@@ -32,15 +32,9 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         private InventoryItem? _selectedInventoryItem;
 
         [ObservableProperty]
-        private string _productSearchText = string.Empty;
-
-        [ObservableProperty]
-        private string _skuSearchText = string.Empty;
-
-        [ObservableProperty]
         private bool _isReadOnly;
 
-        public ObservableCollection<InventoryItem> FilteredInventoryItemsByName { get; } = new();
+        public ObservableCollection<InventoryItem> AllInventoryItems { get; } = new();
         public ObservableCollection<string> AvailableUOMs { get; } = new();
 
 
@@ -282,55 +276,26 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
             }
         }
 
-        private void FilterInventory()
+        private void SyncInventory()
         {
-            if (string.IsNullOrWhiteSpace(ProductSearchText))
-            {
-                FilteredInventoryItemsByName.Clear();
-                foreach (var item in _allInventoryMaster) FilteredInventoryItemsByName.Add(item);
-                return;
-            }
-
-            var search = ProductSearchText.Trim();
-            var filtered = _allInventoryMaster
-                .Where(i => (i.Description != null && i.Description.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
-                            (i.Sku != null && i.Sku.Contains(search, StringComparison.OrdinalIgnoreCase)))
-                .GroupBy(i => (i.Sku ?? "").ToLower()).Select(g => g.First())
-                .OrderByDescending(i => i.Sku != null && i.Sku.Equals(search, StringComparison.OrdinalIgnoreCase))
-                .ThenByDescending(i => i.Description != null && i.Description.Equals(search, StringComparison.OrdinalIgnoreCase))
-                .ThenByDescending(i => i.Sku != null && i.Sku.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-                .ThenByDescending(i => i.Description != null && i.Description.StartsWith(search, StringComparison.OrdinalIgnoreCase))
-                .ThenBy(i => i.Description)
-                .ToList();
-
-            FilteredInventoryItemsByName.Clear();
-            foreach (var item in filtered) FilteredInventoryItemsByName.Add(item);
+            AllInventoryItems.Clear();
+            foreach (var item in _allInventoryMaster) AllInventoryItems.Add(item);
         }
 
         [RelayCommand]
         public void ClearProductSearch()
         {
-            ProductSearchText = string.Empty;
-            FilterInventory();
+            // Reset logic if needed, but per-row filtering is now handled by the UI
         }
 
         #endregion
-
-        #region Search
 
         private IEnumerable<InventoryItem> _allInventoryMaster = Enumerable.Empty<InventoryItem>();
 
         public void SetInventoryMaster(IEnumerable<InventoryItem> inventory)
         {
             _allInventoryMaster = inventory;
-            FilterInventory();
+            SyncInventory();
         }
-
-        partial void OnProductSearchTextChanged(string value)
-        {
-            Dispatcher.UIThread.Post(FilterInventory);
-        }
-
-        #endregion
     }
 }

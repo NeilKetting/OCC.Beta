@@ -249,12 +249,8 @@
             </Border>
 
             <!-- Loading Overlay -->
-            <Border Grid.Row="2" Background="#80000000" CornerRadius="12" Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <ProgressBar IsIndeterminate="True" Width="200" Height="4" Foreground="{StaticResource AccentBlue}" Background="#20FFFFFF"/>
-                    <TextBlock Text="{Binding BusyText}" Foreground="White" Margin="0,15,0,0" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
+            <ContentControl Grid.Row="2" Style="{StaticResource StandardLoadingOverlay}"
+                            Visibility="{Binding IsBusy, Converter={StaticResource VisibilityConverter}}"/>
         </Grid>
 
         <!-- Detail View Overlay (ContentControl automatically selects the DataTemplate based on DataContext type) -->

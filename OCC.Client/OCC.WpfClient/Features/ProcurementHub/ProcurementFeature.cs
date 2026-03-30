@@ -23,6 +23,7 @@ namespace OCC.WpfClient.Features.ProcurementHub
             services.AddTransient<ISupplierService, SupplierService>();
             services.AddTransient<IOrderService, OrderService>();
             services.AddTransient<IProjectService, ProjectService>();
+            services.AddSingleton<IPdfService, PdfService>();
         }
 
         public void RegisterRoutes(INavigationService navigationService)
@@ -34,23 +35,27 @@ namespace OCC.WpfClient.Features.ProcurementHub
 
         public IEnumerable<NavItem> GetNavigationItems()
         {
-            yield return new NavItem(
+            var procurement = new NavItem("Procurement", "IconSummary", string.Empty, "Operations");
+
+            procurement.Children.Add(new NavItem(
                 "Procurement Dashboard",
                 "IconSummary",
                 NavigationRoutes.Procurement,
-                "Operations");
+                "Operations"));
 
-            yield return new NavItem(
+            procurement.Children.Add(new NavItem(
                 "Inventory Management",
-                "IconDatabase",
+                "IconList",
                 NavigationRoutes.Inventory,
-                "Operations");
+                "Operations"));
 
-            yield return new NavItem(
-                "Create Purchase Order",
-                "IconAdd",
+            procurement.Children.Add(new NavItem(
+                "Purchase Order",
+                "IconFile",
                 NavigationRoutes.PurchaseOrder,
-                "Actions");
+                "Operations"));
+
+            yield return procurement;
         }
     }
 }

@@ -304,7 +304,7 @@
         <Setter Property="Background" Value="#1AFFFFFF"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Height" Value="40"/>
-        <Setter Property="Padding" Value="20,0"/>
+        <Setter Property="Padding" Value="20,4"/>
         <Setter Property="Margin" Value="0,0,2,0"/>
         <Setter Property="VerticalAlignment" Value="Bottom"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>

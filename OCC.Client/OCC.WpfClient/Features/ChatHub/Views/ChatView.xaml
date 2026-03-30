@@ -613,30 +613,28 @@
                         <Grid>
                             <TextBox x:Name="NewChatSearchBox" Text="{Binding SearchContactsText, UpdateSourceTrigger=PropertyChanged}" 
                                      Background="Transparent" BorderBrush="#3b4a54" BorderThickness="0,0,0,1" 
-                                     Foreground="White" CaretBrush="White" FontSize="16" Padding="0,8">
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Resources>
-                                            <VisualBrush x:Key="PlaceholderBrush" AlignmentX="Left" Stretch="None">
-                                                <VisualBrush.Visual>
-                                                    <TextBlock Text="Search name or number" Foreground="#8696a0" FontSize="16" Opacity="0.5"/>
-                                                </VisualBrush.Visual>
-                                            </VisualBrush>
-                                        </Style.Resources>
+                                     Foreground="White" CaretBrush="White" FontSize="16" Padding="0,8" VerticalContentAlignment="Center" />
+                                     
+                            <!-- Reliable Placeholder -->
+                            <TextBlock Text="Search contacts to add..." Foreground="#8696a0" FontSize="16" Opacity="0.5" 
+                                       VerticalAlignment="Center" Margin="2,0,0,0" IsHitTestVisible="False">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <Trigger Property="Text" Value="">
-                                                <Setter Property="Background" Value="{StaticResource PlaceholderBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="Text" Value="{x:Null}">
-                                                <Setter Property="Background" Value="{StaticResource PlaceholderBrush}"/>
-                                            </Trigger>
-                                            <Trigger Property="IsFocused" Value="True">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Trigger>
+                                            <DataTrigger Binding="{Binding Text, ElementName=NewChatSearchBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Text, ElementName=NewChatSearchBox}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsFocused, ElementName=NewChatSearchBox}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBox.Style>
-                            </TextBox>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
                     </Border>
 
@@ -821,29 +819,28 @@
 
                             <!-- Group Subject -->
                             <Grid Margin="0,20">
-                                <TextBox Text="{Binding GroupSubject, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderBrush="#00a884" BorderThickness="0,0,0,2" Foreground="White" FontSize="16" Padding="5,10,35,10">
-                                    <TextBox.Style>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                            <Style.Resources>
-                                                <VisualBrush x:Key="PlaceholderBrush" AlignmentX="Left" Stretch="None">
-                                                    <VisualBrush.Visual>
-                                                        <TextBlock Text="Group subject (optional)" Foreground="#8197a1" FontSize="16" Opacity="0.5"/>
-                                                    </VisualBrush.Visual>
-                                                </VisualBrush>
-                                            </Style.Resources>
+                                <TextBox x:Name="GroupSubjectBox" Text="{Binding GroupSubject, UpdateSourceTrigger=PropertyChanged}" 
+                                         Background="Transparent" BorderBrush="#00a884" BorderThickness="0,0,0,2" 
+                                         Foreground="White" FontSize="16" Padding="5,10,35,10" VerticalContentAlignment="Center" />
+                                
+                                <!-- Reliable Placeholder -->
+                                <TextBlock Text="Enter group name..." Foreground="#8197a1" FontSize="16" Opacity="0.7" 
+                                           VerticalAlignment="Center" Margin="8,0,0,0" IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
                                             <Style.Triggers>
-                                                <MultiTrigger>
-                                                    <MultiTrigger.Conditions>
-                                                        <Condition Property="Text" Value=""/>
-                                                        <Condition Property="IsFocused" Value="False"/>
-                                                    </MultiTrigger.Conditions>
-                                                    <Setter Property="Background" Value="{StaticResource PlaceholderBrush}"/>
-                                                </MultiTrigger>
+                                                <DataTrigger Binding="{Binding Text, ElementName=GroupSubjectBox}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Text, ElementName=GroupSubjectBox}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </TextBox.Style>
-                                </TextBox>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                
                                 <TextBlock Text="😊" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Center" Cursor="Hand" Opacity="0.7" Margin="0,0,5,0"/>
                             </Grid>
 

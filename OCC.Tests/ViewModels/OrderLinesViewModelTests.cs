@@ -1,8 +1,8 @@
 using Moq;
-using OCC.WpfClient.Features.OrdersHub.ViewModels;
-using OCC.WpfClient.ModelWrappers;
-using OCC.WpfClient.Services.Interfaces;
-using OCC.WpfClient.Services.Managers.Interfaces;
+using OCC.Client.Features.OrdersHub.ViewModels;
+using OCC.Client.ModelWrappers;
+using OCC.Client.Services.Interfaces;
+using OCC.Client.Services.Managers.Interfaces;
 using OCC.Shared.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -97,7 +97,7 @@ namespace OCC.Tests.ViewModels
         }
 
         [Fact]
-        public void SetInventoryMaster_FiltersItems()
+        public void SetInventoryMaster_SyncsItems()
         {
             // Arrange
             var items = new List<InventoryItem>
@@ -110,7 +110,29 @@ namespace OCC.Tests.ViewModels
             _viewModel.SetInventoryMaster(items);
 
             // Assert
-            Assert.Equal(2, _viewModel.FilteredInventoryItemsByName.Count);
+            Assert.Equal(2, _viewModel.AllInventoryItems.Count);
+        }
+
+        [Fact]
+        public void RowIsolation_UpdatingOneLine_DoesNotAffectOthers()
+        {
+            // Arrange
+            var order = new OrderWrapper(new Order());
+            _viewModel.Initialize(order, new List<InventoryItem>());
+            order.Lines.Add(new OrderLineWrapper(new OrderLine { ItemCode = "OLD1" }));
+            order.Lines.Add(new OrderLineWrapper(new OrderLine { ItemCode = "OLD2" }));
+
+            var line1 = order.Lines[0];
+            var line2 = order.Lines[1];
+
+            // Act
+            line1.ItemCode = "NEW1";
+
+            // Assert
+            Assert.Equal("NEW1", line1.ItemCode);
+            Assert.Equal("OLD2", line2.ItemCode);
+            // This test verifies that the wrappers are independent and don't share underlying models 
+            // unintentionally, or that property changes don't trigger global refreshes that overwrite data.
         }
 
         [Fact]

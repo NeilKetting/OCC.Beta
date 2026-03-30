@@ -149,7 +149,7 @@ namespace OCC.Client.Services
                 AverageCost = cost,
                 Price = price,
                 TrackLowStock = true,
-                IsStockItem = true
+                Type = ItemType.StockPart
             };
         }
 

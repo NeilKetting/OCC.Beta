@@ -23,12 +23,11 @@
 
 		<DataTemplate x:Key="ItemTemplate" x:DataType="wrappers:OrderLineWrapper">
 			<controls:SearchableComboBox
-			ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.FilteredInventoryItemsByName}"
+			ItemsSource="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.AllInventoryItems}"
 			Text="{Binding ItemCode, Mode=TwoWay}"
 			ValueMemberBinding="{Binding Sku, DataType=models:InventoryItem}"
 			Watermark="Search..."
-			FilterMode="None"
-			MinimumPrefixLength="0"
+			FilterMode="Contains"
 			SelectionChanged="GridProductBox_SelectionChanged"
 			KeyUp="ProductBox_KeyUp"
 			DropdownOpeningCommand="{Binding $parent[UserControl].((vm:CreateOrderViewModel)DataContext).Lines.ClearProductSearchCommand}"

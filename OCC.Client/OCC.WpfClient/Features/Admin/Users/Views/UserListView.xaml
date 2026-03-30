@@ -18,8 +18,8 @@
             <views:UserDetailView />
         </DataTemplate>
     </UserControl.Resources>
-    
-    <Grid Margin="30,20,30,30">
+
+    <Grid Margin="5,10,5,5">
         <!-- Main Background Content -->
         <Grid>
             <Grid.Style>

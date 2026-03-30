@@ -63,21 +63,21 @@ namespace OCC.Client.Features.OrdersHub.Views
         {
             if (DataContext is CreateOrderViewModel vm && sender is AutoCompleteBox box)
             {
-                // Pass text to VM to filter the shared list
                 var text = box.Text ?? string.Empty;
-                if (vm.Lines.ProductSearchText != text)
-                {
-                    vm.Lines.ProductSearchText = text;
 
-                    // If it's our searchable combo, nudge it to refresh filtering results
-                    if (box is Controls.SearchableComboBox)
+                // Set custom filter if not already set
+                if (box.ItemFilter == null)
+                {
+                    box.ItemFilter = (search, item) =>
                     {
-                        // Using Post to ensure VM has processed the change
-                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        if (string.IsNullOrWhiteSpace(search)) return true;
+                        if (item is OCC.Shared.Models.InventoryItem invItem)
                         {
-                            box.PopulateComplete();
-                        });
-                    }
+                            return (invItem.Sku?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                   (invItem.Description?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false);
+                        }
+                        return false;
+                    };
                 }
 
                 // Standard Enter key validation

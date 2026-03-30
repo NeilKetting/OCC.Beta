@@ -23,7 +23,15 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
         private ObservableCollection<InventoryItem> _items = new();
 
         [ObservableProperty]
-        private string _searchText = string.Empty;
+        private string? _searchText;
+
+        [ObservableProperty]
+        private int _totalCount;
+
+        [ObservableProperty]
+        private int _lowStockCount;
+
+        private System.ComponentModel.ICollectionView? _itemsView;
 
         public InventoryViewModel(IInventoryService inventoryService, IToastService toastService, ILogger<InventoryViewModel> logger)
         {
@@ -32,7 +40,7 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
             _logger = logger;
             Title = "Inventory Management";
 
-            // Listen for stock updates from other hubs (e.g. Picking)
+            // Listen for stock updates
             WeakReferenceMessenger.Default.Register<StockUpdatedMessage>(this, (r, m) =>
             {
                 var item = Items.FirstOrDefault(i => i.Id == m.Value.Id);
@@ -44,7 +52,7 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
             });
 
             _logger.LogInformation("InventoryViewModel initialized");
-            _ = LoadInventoryAsync();
+            System.Windows.Application.Current.Dispatcher.InvokeAsync(LoadInventoryAsync);
         }
 
         [RelayCommand]
@@ -53,30 +61,61 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
             try
             {
                 _logger.LogInformation("Loading inventory items...");
-                IsBusy = true;
+                System.Windows.Application.Current.Dispatcher.Invoke(() => IsBusy = true);
+                
                 var inventory = await _inventoryService.GetInventoryAsync();
                 var list = inventory.ToList();
-                Items = new ObservableCollection<InventoryItem>(list);
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Items.Clear();
+                    foreach (var item in list) Items.Add(item);
+                    
+                    // Initialize View for filtering
+                    _itemsView = System.Windows.Data.CollectionViewSource.GetDefaultView(Items);
+                    _itemsView.Filter = FilterItems;
+
+                    TotalCount = Items.Count;
+                    LowStockCount = Items.Count(i => i.IsLowStock);
+                });
+                
                 _logger.LogInformation("Successfully loaded {Count} inventory items", list.Count);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load inventory");
-                _toastService.ShowError("Error", $"Failed to load inventory: {ex.Message}");
+                System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                    _toastService.ShowError("Error", $"Failed to load inventory: {ex.Message}"));
             }
             finally
             {
-                IsBusy = false;
+                System.Windows.Application.Current.Dispatcher.Invoke(() => IsBusy = false);
             }
+        }
+
+        partial void OnSearchTextChanged(string? value)
+        {
+            _itemsView?.Refresh();
+        }
+
+        private bool FilterItems(object obj)
+        {
+            if (string.IsNullOrWhiteSpace(SearchText)) return true;
+
+            if (obj is InventoryItem item)
+            {
+                var search = SearchText.Trim();
+                return item.Sku.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                       (item.Description != null && item.Description.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return true;
         }
 
         [RelayCommand]
         private void Search()
         {
-            if (string.IsNullOrWhiteSpace(SearchText))
-            {
-                 // Reset filter logic if any
-            }
+            _itemsView?.Refresh();
         }
 
         [RelayCommand]
@@ -84,6 +123,13 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
         {
             await LoadInventoryAsync();
             _toastService.ShowInfo("Inventory", "Inventory refreshed.");
+        }
+
+        [RelayCommand]
+        private void AddItem()
+        {
+            _logger.LogInformation("Add Item command triggered");
+            _toastService.ShowInfo("Coming Soon", "The Add Item feature is currently under development.");
         }
     }
 }

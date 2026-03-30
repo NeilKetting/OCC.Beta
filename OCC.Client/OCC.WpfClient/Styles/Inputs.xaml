@@ -9,7 +9,7 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Padding" Value="8,0" />
         <Setter Property="Height" Value="40" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -76,7 +76,7 @@
         <Setter Property="CaretBrush" Value="{StaticResource TextMain}" />
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Padding" Value="8,0" />
         <Setter Property="Height" Value="40" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
@@ -139,13 +139,20 @@
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="Foreground" Value="{StaticResource TextMain}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="6,0" />
+        <Setter Property="Padding" Value="10,0,0,0" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}" />
         <Setter Property="Height" Value="40" />
+        <Setter Property="IsTextSearchEnabled" Value="True" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid x:Name="templateRoot" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="30" />
+                        </Grid.ColumnDefinitions>
+                        
                         <ToggleButton x:Name="toggleButton"
                                       BorderBrush="{TemplateBinding BorderBrush}"
                                       BorderThickness="{TemplateBinding BorderThickness}"
@@ -177,12 +184,17 @@
                                         </Grid>
                                     </Border>
                                     <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=(ap:CommandProperties.HideArrow), RelativeSource={RelativeSource AncestorType=ComboBox}}" Value="True">
+                                            <Setter TargetName="Arrow" Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource InputBackgroundHover}" />
                                             <Setter TargetName="Arrow" Property="Opacity" Value="1" />
+                                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
                                         </Trigger>
                                         <Trigger Property="IsChecked" Value="True">
                                             <Setter TargetName="templateRoot" Property="BorderBrush" Value="{StaticResource AccentBlue}" />
+                                            <Setter TargetName="Arrow" Property="Visibility" Value="Visible" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -190,15 +202,37 @@
                         </ToggleButton>
                         
                         <ContentPresenter x:Name="contentPresenter"
+                                          Grid.Column="0"
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                           ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                           Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="Left"
-                                          VerticalAlignment="Center"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           IsHitTestVisible="False" />
 
+                        <TextBox x:Name="PART_EditableTextBox"
+                                 Grid.Column="0"
+                                 Margin="{TemplateBinding Padding}"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}"
+                                 Visibility="Collapsed"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 CaretBrush="{TemplateBinding Foreground}">
+                            <TextBox.Template>
+                                <ControlTemplate TargetType="TextBox">
+                                    <Border x:Name="border" Background="Transparent">
+                                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Background="Transparent" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </TextBox.Template>
+                        </TextBox>
+
                         <Popup x:Name="PART_Popup"
+                               Grid.ColumnSpan="2"
                                Placement="Bottom"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
                                AllowsTransparency="True"
@@ -219,6 +253,10 @@
                         </Popup>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="contentPresenter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                        </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="toggleButton" Property="BorderBrush" Value="{StaticResource AccentBlue}" />
                         </Trigger>
@@ -388,7 +426,7 @@
         <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="Padding" Value="8,0"/>
         <Setter Property="Height" Value="40" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeRegular}"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -437,7 +475,7 @@
                                        Grid.Column="0"
                                        Text="{Binding Path=(ap:WatermarkProperties.Watermark), RelativeSource={RelativeSource TemplatedParent}}" 
                                        Foreground="{StaticResource TextSub}" 
-                                       Margin="12,0,0,0"
+                                       Margin="{TemplateBinding Padding}"
                                        VerticalAlignment="Center" 
                                        Visibility="Collapsed" 
                                        IsHitTestVisible="False"/>
