@@ -22,6 +22,8 @@ using OCC.WpfClient.Features.Splash.ViewModels;
 using OCC.WpfClient.Features.AuthHub.ViewModels;
 using OCC.WpfClient.Features.Shell.ViewModels;
 using OCC.WpfClient.Features.CustomerHub;
+using OCC.WpfClient.Features.SettingsHub;
+
 
 namespace OCC.WpfClient
 {
@@ -114,8 +116,10 @@ namespace OCC.WpfClient
                 new AdminFeature(),
                 new SupportFeature(),
                 new CustomerFeature(),
-                new ProcurementFeature()
+                new ProcurementFeature(),
+                new SettingsFeature()
             };
+
 
             foreach (var feature in features)
             {

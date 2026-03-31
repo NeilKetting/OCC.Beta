@@ -17,7 +17,9 @@
                     xmlns:procVm="clr-namespace:OCC.WpfClient.Features.ProcurementHub.ViewModels"
                     xmlns:procViews="clr-namespace:OCC.WpfClient.Features.ProcurementHub.Views"
                     xmlns:mainShellVm="clr-namespace:OCC.WpfClient.Features.Main.ViewModels"
-                    xmlns:mainShellViews="clr-namespace:OCC.WpfClient.Features.Main.Views">
+                    xmlns:mainShellViews="clr-namespace:OCC.WpfClient.Features.Main.Views"
+                    xmlns:settVm="clr-namespace:OCC.WpfClient.Features.SettingsHub.ViewModels"
+                    xmlns:settViews="clr-namespace:OCC.WpfClient.Features.SettingsHub.Views">
 
     <!-- Auth -->
     <DataTemplate DataType="{x:Type authVm:AuthViewModel}">
@@ -80,5 +82,15 @@
     <DataTemplate DataType="{x:Type procVm:PurchaseOrderViewModel}">
         <procViews:PurchaseOrderView/>
     </DataTemplate>
+
+    <!-- Settings Hub -->
+    <DataTemplate DataType="{x:Type settVm:CompanyProfileViewModel}">
+        <settViews:CompanyProfileView />
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type settVm:CompanySettingsViewModel}">
+        <settViews:CompanySettingsView />
+    </DataTemplate>
+
 
 </ResourceDictionary>

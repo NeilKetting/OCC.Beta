@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using OCC.WpfClient.Infrastructure;
+using OCC.WpfClient.Infrastructure.Messages;
 using OCC.WpfClient.Services.Interfaces;
 
 namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
@@ -21,7 +23,7 @@ namespace OCC.WpfClient.Features.ProcurementHub.ViewModels
         [RelayCommand]
         private void NavigateToPurchaseOrder()
         {
-            _navigationService.NavigateTo<PurchaseOrderViewModel>();
+            WeakReferenceMessenger.Default.Send(new OpenHubMessage(NavigationRoutes.PurchaseOrder));
         }
     }
 }

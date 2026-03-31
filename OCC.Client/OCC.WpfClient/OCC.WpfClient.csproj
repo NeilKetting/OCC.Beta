@@ -13,7 +13,7 @@
 		<Product>OCC-ERP</Product>
 		<Description>Next Generation ERP system for Orange Circle Construction. Powered by Origize63.</Description>
 		<Copyright>Copyright © 2026 Orange Circle Construction</Copyright>
-		<ApplicationIcon>Assets\Images\occ_logo.ico</ApplicationIcon>
+		<ApplicationIcon>Assets\Images\app.ico</ApplicationIcon>
 		<AssemblyName>OCC-ERP</AssemblyName>
 		<Version>1.0.4</Version>
 		<StartupObject>OCC.WpfClient.Program</StartupObject>
@@ -36,11 +36,24 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\Images\app.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\OCC.Shared\OCC.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<Resource Update="Assets\Images\app.ico">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
 		<Resource Update="Assets\Images\occ_bgi.jpg">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
+		<Resource Update="Assets\Images\occ_logo.jpg">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Resource>
+		<Resource Update="Assets\Images\occ_logo.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Resource>
 		<Resource Update="Assets\Images\occ_future_logo.png">

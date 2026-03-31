@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace OCC.WpfClient.Features.Main.ViewModels
 {
-    public partial class MainViewModel : ViewModelBase, IRecipient<ToastNotificationMessage>, IRecipient<CloseHubMessage>
+    public partial class MainViewModel : ViewModelBase, IRecipient<ToastNotificationMessage>, IRecipient<CloseHubMessage>, IRecipient<OpenHubMessage>
     {
         private readonly IPermissionService _permissionService;
         private readonly IAuthService _authService;
@@ -242,6 +242,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             // Register for messages
             WeakReferenceMessenger.Default.Register<ToastNotificationMessage>(this);
             WeakReferenceMessenger.Default.Register<CloseHubMessage>(this);
+            WeakReferenceMessenger.Default.Register<OpenHubMessage>(this);
             
             _signalRService.UserListUpdated += OnUserListUpdated;
             _ = _signalRService.StartAsync();
@@ -544,6 +545,11 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             }
 
             FilteredNavigationItems = new ObservableCollection<NavItem>(results);
+        }
+
+        public void Receive(OpenHubMessage message)
+        {
+            OpenHub(message.Value);
         }
 
         public void Receive(CloseHubMessage message)

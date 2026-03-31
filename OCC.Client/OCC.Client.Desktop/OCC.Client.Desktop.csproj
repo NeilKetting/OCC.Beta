@@ -46,4 +46,9 @@
   <ItemGroup>
     <ProjectReference Include="..\OCC.Client\OCC.Client.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

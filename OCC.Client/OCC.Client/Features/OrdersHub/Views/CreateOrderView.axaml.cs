@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using Avalonia;
+using System;
 
 namespace OCC.Client.Features.OrdersHub.Views
 {

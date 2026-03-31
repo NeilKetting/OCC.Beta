@@ -85,5 +85,41 @@ namespace OCC.WpfClient.Features.Main.Views
                 vm.IsProfileMenuVisible = false;
             }
         }
+
+        private void TabsListBox_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (sender is ListBox listBox)
+            {
+                var scrollViewer = GetVisualChild<ScrollViewer>(listBox);
+                if (scrollViewer != null)
+                {
+                    if (e.Delta > 0)
+                        scrollViewer.LineLeft();
+                    else
+                        scrollViewer.LineRight();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private T? GetVisualChild<T>(System.Windows.Media.Visual parent) where T : System.Windows.Media.Visual
+        {
+            T? child = default;
+            int numVisuals = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < numVisuals; i++)
+            {
+                System.Windows.Media.Visual v = (System.Windows.Media.Visual)System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+                child = v as T;
+                if (child == null)
+                {
+                    child = GetVisualChild<T>(v);
+                }
+                if (child != null)
+                {
+                    break;
+                }
+            }
+            return child;
+        }
     }
 }

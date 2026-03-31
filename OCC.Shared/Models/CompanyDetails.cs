@@ -115,7 +115,7 @@ namespace OCC.Shared.Models
                     PostalCode = "1510",
                     DepartmentEmails = new()
                     {
-                        new DepartmentEmail { Department = "Buying", EmailAddress = "jackie@orange-circle.co.za" },
+                        new DepartmentEmail { Department = "Buying", EmailAddress = "bernard@orange-circle.co.za" },
                         new DepartmentEmail { Department = "Accounts", EmailAddress = "anthia@orange-circle.co.za" }
                     }
                 } 
