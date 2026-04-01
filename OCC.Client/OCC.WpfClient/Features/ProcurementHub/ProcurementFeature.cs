@@ -19,6 +19,7 @@ namespace OCC.WpfClient.Features.ProcurementHub
             services.AddTransient<ProcurementViewModel>();
             services.AddTransient<InventoryViewModel>();
             services.AddTransient<PurchaseOrderViewModel>();
+            services.AddTransient<SupplierViewModel>();
 
             services.AddTransient<ISupplierService, SupplierService>();
             services.AddTransient<IOrderService, OrderService>();
@@ -31,6 +32,7 @@ namespace OCC.WpfClient.Features.ProcurementHub
             navigationService.RegisterRoute(NavigationRoutes.Procurement, typeof(ProcurementViewModel));
             navigationService.RegisterRoute(NavigationRoutes.Inventory, typeof(InventoryViewModel));
             navigationService.RegisterRoute(NavigationRoutes.PurchaseOrder, typeof(PurchaseOrderViewModel));
+            navigationService.RegisterRoute(NavigationRoutes.Suppliers, typeof(SupplierViewModel));
         }
 
         public IEnumerable<NavItem> GetNavigationItems()
@@ -41,6 +43,12 @@ namespace OCC.WpfClient.Features.ProcurementHub
                 "Procurement Dashboard",
                 "IconSummary",
                 NavigationRoutes.Procurement,
+                "Operations"));
+
+            procurement.Children.Add(new NavItem(
+                "Suppliers",
+                "IconTeam",
+                NavigationRoutes.Suppliers,
                 "Operations"));
 
             procurement.Children.Add(new NavItem(

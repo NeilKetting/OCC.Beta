@@ -55,15 +55,23 @@ namespace OCC.API.Controllers
 
             var list = await query
                 .OrderByDescending(b => b.ReportedDate)
+                .Select(b => new BugReport
+                {
+                    Id = b.Id,
+                    Type = b.Type,
+                    ReporterId = b.ReporterId,
+                    ReporterName = b.ReporterName,
+                    ReportedDate = b.ReportedDate,
+                    ViewName = b.ViewName,
+                    Description = b.Description,
+                    Status = b.Status,
+                    AdminComments = b.AdminComments,
+                    CreatedAtUtc = b.CreatedAtUtc,
+                    IsActive = b.IsActive
+                    // ScreenshotBase64 and Comments are explicitly excluded here
+                })
                 .AsNoTracking()
                 .ToListAsync();
-
-            // Optimization: Don't send heavy screenshots OR comments in the list view
-            list.ForEach(b => 
-            {
-                b.ScreenshotBase64 = null;
-                b.Comments = new List<BugComment>(); // Exclude comments from list for performance
-            });
 
             return list;
         }

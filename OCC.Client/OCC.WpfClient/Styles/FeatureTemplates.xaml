@@ -83,6 +83,10 @@
         <procViews:PurchaseOrderView/>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type procVm:SupplierViewModel}">
+        <procViews:SupplierListView/>
+    </DataTemplate>
+
     <!-- Settings Hub -->
     <DataTemplate DataType="{x:Type settVm:CompanyProfileViewModel}">
         <settViews:CompanyProfileView />

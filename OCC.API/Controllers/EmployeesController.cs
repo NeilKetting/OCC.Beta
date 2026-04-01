@@ -33,8 +33,33 @@ namespace OCC.API.Controllers
             {
                 var employees = await _context.Employees
                     .AsNoTracking()
+                    .OrderBy(e => e.LastName)
+                    .Select(e => new EmployeeSummaryDto
+                    {
+                        Id = e.Id,
+                        LinkedUserId = e.LinkedUserId,
+                        FirstName = e.FirstName,
+                        LastName = e.LastName,
+                        IdNumber = e.IdNumber,
+                        Email = e.Email,
+                        Phone = e.Phone,
+                        EmployeeNumber = e.EmployeeNumber,
+                        Role = e.Role,
+                        Status = e.Status,
+                        EmploymentType = e.EmploymentType,
+                        Branch = e.Branch,
+                        RateType = e.RateType,
+                        HourlyRate = e.HourlyRate,
+                        ShiftStartTime = e.ShiftStartTime,
+                        ShiftEndTime = e.ShiftEndTime,
+                        TaxNumber = e.TaxNumber,
+                        BankName = e.BankName,
+                        LeaveBalance = e.LeaveBalance,
+                        EmploymentDate = e.EmploymentDate
+                    })
                     .ToListAsync();
-                return Ok(employees.Select(ToSummaryDto));
+
+                return Ok(employees);
             }
             catch (Exception ex)
             {

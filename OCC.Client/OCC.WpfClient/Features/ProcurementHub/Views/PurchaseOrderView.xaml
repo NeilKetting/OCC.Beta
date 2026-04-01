@@ -95,6 +95,9 @@
                                     <Viewbox Width="24" Height="24" Margin="0,0,0,4">
                                         <Path x:Name="iconPath" 
                                               Data="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" 
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
                                               Fill="{TemplateBinding Foreground}"/>
                                     </Viewbox>
                                     <TextBlock x:Name="textBlock" 
