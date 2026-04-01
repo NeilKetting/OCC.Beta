@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
 using System;
@@ -39,6 +40,22 @@ namespace OCC.WpfClient.Services
             var baseUrl = _connectionSettings.ApiBaseUrl ?? "http://localhost:5237/";
             if (!baseUrl.EndsWith("/")) baseUrl += "/";
             return $"{baseUrl}{path}";
+        }
+
+        public async Task<IEnumerable<SupplierSummaryDto>> GetSupplierSummariesAsync()
+        {
+            var client = _httpClientFactory.CreateClient();
+            EnsureAuthorization(client);
+            var url = GetFullUrl("api/Suppliers/summaries");
+            try
+            {
+                return await client.GetFromJsonAsync<IEnumerable<SupplierSummaryDto>>(url) ?? new List<SupplierSummaryDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching supplier summaries from {Url}", url);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Supplier>> GetSuppliersAsync()

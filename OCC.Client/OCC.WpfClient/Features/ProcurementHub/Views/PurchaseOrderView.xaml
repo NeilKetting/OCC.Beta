@@ -67,7 +67,7 @@
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="CompactDatePicker" TargetType="DatePicker" BasedOn="{StaticResource {x:Type DatePicker}}">
+        <Style x:Key="CompactDatePicker" TargetType="DatePicker" BasedOn="{StaticResource ModernDatePicker}">
             <Setter Property="Height" Value="24"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
@@ -95,6 +95,9 @@
                                     <Viewbox Width="24" Height="24" Margin="0,0,0,4">
                                         <Path x:Name="iconPath" 
                                               Data="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" 
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
                                               Fill="{TemplateBinding Foreground}"/>
                                     </Viewbox>
                                     <TextBlock x:Name="textBlock" 
