@@ -332,4 +332,13 @@
         </Setter>
     </Style>
 
+    <!-- Toolbar Border Style for Hub Header areas -->
+    <Style x:Key="ToolbarBorder" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="15,10"/>
+        <Setter Property="BorderBrush" Value="{StaticResource GlassBorderUltraLight}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
 </ResourceDictionary>

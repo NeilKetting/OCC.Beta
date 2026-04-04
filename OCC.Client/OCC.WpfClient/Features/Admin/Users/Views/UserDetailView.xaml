@@ -161,13 +161,32 @@
                                     <Border BorderBrush="{StaticResource GlassBorderUltraLight}" BorderThickness="0,1,0,0" Margin="0,15,0,15" Padding="0,15,0,0"
                                             Visibility="{Binding ShowModuleAccess, Converter={StaticResource VisibilityConverter}}">
                                         <StackPanel>
-                                            <TextBlock Text="MODULE PERMISSIONS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,15"/>
-                                            <CheckBox IsChecked="{Binding HasChatAccess}" Content="Chat Feature" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasUserManagementAccess}" Content="User Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasEmployeeManagementAccess}" Content="Employee Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasProcurementAccess}" Content="Procurement Dashboard" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasInventoryAccess}" Content="Inventory Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
-                                            <CheckBox IsChecked="{Binding HasPurchaseOrderAccess}" Content="Purchase Order" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,12" Foreground="White"/>
+                                            <!-- Main Operational Hubs -->
+                                            <TextBlock Text="OPERATIONAL HUBS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,12"/>
+                                            <CheckBox IsChecked="{Binding HasChatAccess}" Content="Chat Feature" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasEmployeeManagementAccess}" Content="Employee Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasCustomerAccess}" Content="Customer Hub" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasProjectsAccess}" Content="Project Portfolio" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasHealthSafetyAccess}" Content="Health &amp; Safety" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,15" Foreground="White"/>
+
+                                            <!-- Project Specific Actions (Only if Project Portfolio is enabled or for Project roles) -->
+                                            <TextBlock Text="PROJECT ACTIONS" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,12"/>
+                                            <CheckBox IsChecked="{Binding HasProjectCreationAccess}" Content="Allow Project Creation" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasProjectDeletionAccess}" Content="Allow Project Deletion" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,15" Foreground="White"/>
+
+                                            <!-- Procurement & Supply Chain -->
+                                            <TextBlock Text="PROCUREMENT &amp; SUPPLY" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,12"/>
+                                            <CheckBox IsChecked="{Binding HasProcurementAccess}" Content="Procurement Dashboard" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasInventoryAccess}" Content="Inventory Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasPurchaseOrderAccess}" Content="Purchase Orders" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasSuppliersAccess}" Content="Suppliers List" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,15" Foreground="White"/>
+
+                                            <!-- Administrative & Settings -->
+                                            <TextBlock Text="SYSTEM &amp; ADMINISTRATION" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}" Margin="0,0,0,12"/>
+                                            <CheckBox IsChecked="{Binding HasUserManagementAccess}" Content="User Management" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasCompanyProfileAccess}" Content="Company Profile" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasSettingsAccess}" Content="System Settings" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,8" Foreground="White"/>
+                                            <CheckBox IsChecked="{Binding HasAuditLogAccess}" Content="Audit Logs" Style="{StaticResource ModernCheckBox}" Margin="0,0,0,5" Foreground="White"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

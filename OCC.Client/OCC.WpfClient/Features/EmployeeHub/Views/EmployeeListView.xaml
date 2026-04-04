@@ -20,7 +20,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Margin="5,10,5,5">
+    <Grid Margin="0" Background="{StaticResource AppBackground}">
         <!-- Main Background Content (will be blurred/dimmed) -->
         <Grid>
             <Grid.Style>
@@ -48,7 +48,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="5,0,5,20">
+            <Grid Grid.Row="0" Margin="10">
                 <StackPanel>
                     <TextBlock Text="Employee Overview" FontSize="26" FontWeight="Bold" Foreground="White" />
                     <TextBlock Text="Manage staff records and teams." Style="{StaticResource FormLabelText}"/>
@@ -66,8 +66,7 @@
             </Grid>
 
             <!-- Compact Filters & Stats Line -->
-            <Border Grid.Row="1" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" 
-                    BorderThickness="1" CornerRadius="10" Padding="15,10" Margin="5,0,5,15">
+            <Border Grid.Row="1" Style="{StaticResource GlassCard}" Padding="15,10" Margin="10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -177,10 +176,8 @@
             </Border>
 
             <!-- Employee Grid -->
-            <Border Grid.Row="2" Background="{StaticResource GlassBackground}" 
-                    BorderBrush="{StaticResource GlassBorder}" BorderThickness="1" 
-                    CornerRadius="0,0,2,2" Padding="2" ClipToBounds="True"
-                    Margin="3">
+            <Border Grid.Row="2" Style="{StaticResource GlassCard}" Padding="2" ClipToBounds="True"
+                    Margin="10,0,10,10" CornerRadius="0">
                 <DataGrid ItemsSource="{Binding Employees}" 
                           SelectedItem="{Binding SelectedEmployee}"
                           AutoGenerateColumns="False" 

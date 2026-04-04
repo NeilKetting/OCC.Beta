@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using OCC.Shared.Models;
+using OCC.Shared.DTOs;
 using OCC.WpfClient.Services.Infrastructure;
 using OCC.WpfClient.Services.Interfaces;
 using System;
@@ -57,6 +58,22 @@ namespace OCC.WpfClient.Services
             }
         }
 
+        public async Task<IEnumerable<ProjectSummaryDto>> GetProjectSummariesAsync()
+        {
+            var client = _httpClientFactory.CreateClient();
+            EnsureAuthorization(client);
+            var url = GetFullUrl("api/Projects/summaries");
+            try
+            {
+                return await client.GetFromJsonAsync<IEnumerable<ProjectSummaryDto>>(url) ?? new List<ProjectSummaryDto>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching project summaries from {Url}", url);
+                throw;
+            }
+        }
+
         public async Task<Project?> GetProjectAsync(Guid id)
         {
             var client = _httpClientFactory.CreateClient();
@@ -86,6 +103,22 @@ namespace OCC.WpfClient.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating project {Id} at {Url}", project.Id, url);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<ProjectTask>> GetProjectTasksAsync(Guid projectId)
+        {
+            var client = _httpClientFactory.CreateClient();
+            EnsureAuthorization(client);
+            var url = GetFullUrl($"api/ProjectTasks?projectId={projectId}");
+            try
+            {
+                return await client.GetFromJsonAsync<IEnumerable<ProjectTask>>(url) ?? new List<ProjectTask>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching tasks for project {ProjectId} from {Url}", projectId, url);
                 throw;
             }
         }

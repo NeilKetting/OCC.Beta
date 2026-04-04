@@ -35,6 +35,21 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
         [ObservableProperty] private bool _hasInventoryAccess;
         [ObservableProperty] private bool _hasPurchaseOrderAccess;
 
+        // Additional Hubs
+        [ObservableProperty] private bool _hasCustomerAccess;
+        [ObservableProperty] private bool _hasProjectsAccess;
+        [ObservableProperty] private bool _hasSuppliersAccess;
+        [ObservableProperty] private bool _hasHealthSafetyAccess;
+
+        // Project Features
+        [ObservableProperty] private bool _hasProjectCreationAccess;
+        [ObservableProperty] private bool _hasProjectDeletionAccess;
+
+        // System Settings
+        [ObservableProperty] private bool _hasCompanyProfileAccess;
+        [ObservableProperty] private bool _hasSettingsAccess;
+        [ObservableProperty] private bool _hasAuditLogAccess;
+
         [ObservableProperty] private bool _showModuleAccess;
 
         public List<UserRole> Roles => new List<UserRole>
@@ -75,6 +90,20 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
                 HasProcurementAccess = true;
                 HasInventoryAccess = true;
                 HasPurchaseOrderAccess = true;
+                HasCustomerAccess = true;
+                HasProjectsAccess = true;
+                HasSuppliersAccess = true;
+                HasHealthSafetyAccess = true;
+                HasProjectCreationAccess = true;
+                HasProjectDeletionAccess = true;
+                HasCompanyProfileAccess = true;
+                HasSettingsAccess = true;
+                HasAuditLogAccess = true;
+            }
+            else if (value == UserRole.HSEQ)
+            {
+                HasHealthSafetyAccess = true;
+                HasAuditLogAccess = true;
             }
         }
 
@@ -89,6 +118,18 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             HasProcurementAccess = current.Contains(NavigationRoutes.Procurement, StringComparer.OrdinalIgnoreCase);
             HasInventoryAccess = current.Contains(NavigationRoutes.Inventory, StringComparer.OrdinalIgnoreCase);
             HasPurchaseOrderAccess = current.Contains(NavigationRoutes.PurchaseOrder, StringComparer.OrdinalIgnoreCase);
+
+            HasCustomerAccess = current.Contains(NavigationRoutes.Customers, StringComparer.OrdinalIgnoreCase);
+            HasProjectsAccess = current.Contains(NavigationRoutes.Projects, StringComparer.OrdinalIgnoreCase);
+            HasSuppliersAccess = current.Contains(NavigationRoutes.Suppliers, StringComparer.OrdinalIgnoreCase);
+            HasHealthSafetyAccess = current.Contains(NavigationRoutes.HealthSafety, StringComparer.OrdinalIgnoreCase);
+
+            HasProjectCreationAccess = current.Contains(NavigationRoutes.Feature_ProjectCreation, StringComparer.OrdinalIgnoreCase);
+            HasProjectDeletionAccess = current.Contains(NavigationRoutes.Feature_ProjectDeletion, StringComparer.OrdinalIgnoreCase);
+
+            HasCompanyProfileAccess = current.Contains(NavigationRoutes.CompanyProfile, StringComparer.OrdinalIgnoreCase);
+            HasSettingsAccess = current.Contains(NavigationRoutes.CompanySettings, StringComparer.OrdinalIgnoreCase);
+            HasAuditLogAccess = current.Contains(NavigationRoutes.AuditLog, StringComparer.OrdinalIgnoreCase);
         }
 
         private string GetPermissionsString()
@@ -100,6 +141,18 @@ namespace OCC.WpfClient.Features.Admin.Users.ViewModels
             if (HasProcurementAccess) selected.Add(NavigationRoutes.Procurement);
             if (HasInventoryAccess) selected.Add(NavigationRoutes.Inventory);
             if (HasPurchaseOrderAccess) selected.Add(NavigationRoutes.PurchaseOrder);
+
+            if (HasCustomerAccess) selected.Add(NavigationRoutes.Customers);
+            if (HasProjectsAccess) selected.Add(NavigationRoutes.Projects);
+            if (HasSuppliersAccess) selected.Add(NavigationRoutes.Suppliers);
+            if (HasHealthSafetyAccess) selected.Add(NavigationRoutes.HealthSafety);
+
+            if (HasProjectCreationAccess) selected.Add(NavigationRoutes.Feature_ProjectCreation);
+            if (HasProjectDeletionAccess) selected.Add(NavigationRoutes.Feature_ProjectDeletion);
+
+            if (HasCompanyProfileAccess) selected.Add(NavigationRoutes.CompanyProfile);
+            if (HasSettingsAccess) selected.Add(NavigationRoutes.CompanySettings);
+            if (HasAuditLogAccess) selected.Add(NavigationRoutes.AuditLog);
             
             return string.Join(",", selected);
         }

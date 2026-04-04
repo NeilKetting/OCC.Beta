@@ -12,6 +12,23 @@ namespace OCC.WpfClient.Infrastructure.AttachedProperties
                 typeof(CommandProperties),
                 new PropertyMetadata(null, OnLostFocusCommandChanged));
 
+        public static readonly DependencyProperty DoubleClickCommandProperty =
+            DependencyProperty.RegisterAttached(
+                "DoubleClickCommand",
+                typeof(ICommand),
+                typeof(CommandProperties),
+                new PropertyMetadata(null, OnDoubleClickCommandChanged));
+
+        public static ICommand GetDoubleClickCommand(DependencyObject obj)
+        {
+            return (ICommand)obj.GetValue(DoubleClickCommandProperty);
+        }
+
+        public static void SetDoubleClickCommand(DependencyObject obj, ICommand value)
+        {
+            obj.SetValue(DoubleClickCommandProperty, value);
+        }
+
         public static ICommand GetLostFocusCommand(DependencyObject obj)
         {
             return (ICommand)obj.GetValue(LostFocusCommandProperty);
@@ -280,6 +297,38 @@ namespace OCC.WpfClient.Infrastructure.AttachedProperties
             {
                 var command = GetLostFocusCommand(d);
                 var parameter = GetCommandParameter(d);
+
+                if (command != null && command.CanExecute(parameter))
+                {
+                    command.Execute(parameter);
+                }
+            }
+        }
+
+        private static void OnDoubleClickCommandChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is System.Windows.Controls.Control control)
+            {
+                control.MouseDoubleClick -= OnControlMouseDoubleClick;
+                if (e.NewValue != null)
+                {
+                    control.MouseDoubleClick += OnControlMouseDoubleClick;
+                }
+            }
+        }
+
+        private static void OnControlMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DependencyObject d)
+            {
+                var command = GetDoubleClickCommand(d);
+                var parameter = GetCommandParameter(d);
+
+                // For DataGridRow, we often want the row's data as the parameter if no explicit parameter is set
+                if (parameter == null && d is System.Windows.Controls.DataGridRow row)
+                {
+                    parameter = row.DataContext;
+                }
 
                 if (command != null && command.CanExecute(parameter))
                 {

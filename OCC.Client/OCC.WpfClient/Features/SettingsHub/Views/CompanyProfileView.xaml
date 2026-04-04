@@ -118,6 +118,11 @@
                                     <TextBox Text="{Binding CompanyDetails.BranchCode}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="Branch Code"/>
                                 </StackPanel>
                             </Grid>
+
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="Account Type" Style="{StaticResource FormLabelText}"/>
+                                <TextBox Text="{Binding CompanyDetails.AccountType}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. Current Account"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- Middle Column: Location Settings -->
@@ -172,6 +177,24 @@
 
                             <TextBlock Text="{Binding SelectedBranch, StringFormat='Editing details for {0} Branch'}" 
                                        FontSize="12" Foreground="{StaticResource AccentBlue}" FontStyle="Italic" Margin="0,0,0,16"/>
+
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Shift Start Time" Style="{StaticResource FormLabelText}"/>
+                                    <TextBox Text="{Binding CurrentBranchDetails.ShiftStartTime, StringFormat='hh\\:mm'}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. 07:00"/>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Shift End Time" Style="{StaticResource FormLabelText}"/>
+                                    <TextBox Text="{Binding CurrentBranchDetails.ShiftEndTime, StringFormat='hh\\:mm'}" Style="{StaticResource ModernInput}" ap:WatermarkProperties.Watermark="e.g. 16:45"/>
+                                </StackPanel>
+                            </Grid>
 
                             <Grid Margin="0,0,0,16">
                                 <Grid.ColumnDefinitions>

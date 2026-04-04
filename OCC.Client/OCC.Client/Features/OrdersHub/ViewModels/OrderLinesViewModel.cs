@@ -34,6 +34,15 @@ namespace OCC.Client.Features.OrdersHub.ViewModels
         [ObservableProperty]
         private bool _isReadOnly;
 
+        [ObservableProperty]
+        private string _productSearchText = string.Empty;
+
+        public IEnumerable<InventoryItem> FilteredInventoryItemsByName => 
+            string.IsNullOrWhiteSpace(ProductSearchText) 
+                ? AllInventoryItems 
+                : AllInventoryItems.Where(x => (x.Description?.Contains(ProductSearchText, StringComparison.OrdinalIgnoreCase) ?? false) || 
+                                              (x.Sku?.Contains(ProductSearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+
         public ObservableCollection<InventoryItem> AllInventoryItems { get; } = new();
         public ObservableCollection<string> AvailableUOMs { get; } = new();
 

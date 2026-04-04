@@ -89,6 +89,7 @@ namespace OCC.WpfClient.Services
                 return route switch
                 {
                     NavigationRoutes.Projects => true, 
+                    NavigationRoutes.ProjectDashboard => true, 
                     NavigationRoutes.Time => true, 
                     _ => false
                 };

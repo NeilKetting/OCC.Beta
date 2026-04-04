@@ -16,6 +16,25 @@ namespace OCC.WpfClient.Infrastructure.Converters
                 if (!string.IsNullOrEmpty(user.LastName)) initials += char.ToUpper(user.LastName[0]);
                 return initials;
             }
+
+            if (value is string name && !string.IsNullOrWhiteSpace(name))
+            {
+                // Split by common delimiters including email symbols and brackets
+                var parts = name.Split(new[] { ' ', ',', '-', '.', '@', '(', ')', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                // Filter parts to ensure they start with a letter or digit
+                var filteredParts = parts.Where(p => char.IsLetterOrDigit(p[0])).ToList();
+
+                if (filteredParts.Count >= 2)
+                {
+                    return $"{char.ToUpper(filteredParts[0][0])}{char.ToUpper(filteredParts[filteredParts.Count - 1][0])}";
+                }
+                if (filteredParts.Count == 1)
+                {
+                    return char.ToUpper(filteredParts[0][0]).ToString();
+                }
+            }
+
             return "";
         }
 

@@ -15,8 +15,8 @@
             <views:CustomerDetailView />
         </DataTemplate>
     </UserControl.Resources>
-    
-    <Grid Margin="5,10,5,5">
+
+    <Grid Margin="0" Background="{StaticResource AppBackground}">
         <!-- Main Background Content -->
         <Grid>
             <Grid.Style>
@@ -41,7 +41,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="5,0,5,20">
+            <Grid Grid.Row="0" Margin="10">
                 <StackPanel>
                     <TextBlock Text="Customer Management" FontSize="26" FontWeight="Bold" Foreground="White" />
                     <TextBlock Text="Manage clients and key contacts." Style="{StaticResource FormLabelText}"/>
@@ -58,8 +58,7 @@
             </Grid>
 
             <!-- Stats & Search Line -->
-            <Border Grid.Row="1" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" 
-                    BorderThickness="1" CornerRadius="10" Padding="15,10" Margin="5,0,5,15">
+            <Border Grid.Row="1" Style="{StaticResource GlassCard}" Padding="15,10" Margin="10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" /> <!-- Search Icon -->
@@ -71,8 +70,8 @@
                     <!-- Search -->
                     <Path Grid.Column="0" Data="{StaticResource IconSearch}" Fill="{StaticResource TextSub}" Width="14" Height="14" Margin="5,0,10,0" VerticalAlignment="Center" Stretch="Uniform"/>
                     <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-                              Style="{StaticResource ModernInput}" Height="32" Padding="8,0" BorderThickness="0" Background="Transparent"
-                              ap:WatermarkProperties.Watermark="Search customers..."/>
+                             Style="{StaticResource ModernInput}" Height="32" Padding="8,0" BorderThickness="0" Background="Transparent"
+                             ap:WatermarkProperties.Watermark="Search customers..."/>
 
                     <!-- Stats -->
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
@@ -85,7 +84,7 @@
             </Border>
 
             <!-- Customer Grid -->
-            <Border Grid.Row="2" Background="{StaticResource GlassBackground}" BorderBrush="{StaticResource GlassBorder}" BorderThickness="1" CornerRadius="12" Padding="2" ClipToBounds="True">
+            <Border Grid.Row="2" Style="{StaticResource GlassCard}" Margin="10,5,10,10" ClipToBounds="True" CornerRadius="0">
                 <DataGrid ItemsSource="{Binding Customers}" 
                           SelectedItem="{Binding SelectedCustomer}"
                           AutoGenerateColumns="False" 

@@ -246,7 +246,7 @@
                     </Border>
 
                     <!-- Register -->
-                    <Border x:Name="RegisterSide" Style="{StaticResource GlassCard}" Visibility="Collapsed" Padding="30,20" BorderThickness="4,6" BorderBrush="{StaticResource ChevronPatternBrush}" CornerRadius="0">
+                    <Border x:Name="RegisterSide" Style="{StaticResource GlassCard}" Visibility="Collapsed" Padding="30,20" BorderThickness="2,3" BorderBrush="{StaticResource ChevronPatternBrush}" CornerRadius="0">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                 <Button Style="{StaticResource ModernTabButton}" Content="Login" 

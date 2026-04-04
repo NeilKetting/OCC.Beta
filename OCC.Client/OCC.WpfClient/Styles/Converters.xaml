@@ -12,8 +12,11 @@
     <conv:HalfValueConverter x:Key="HalfValueConverter" />
     <conv:BugStatusBadgeConverter x:Key="BugStatusBadgeConverter" />
     <conv:EqualityConverter x:Key="EqualityConverter" />
+    <conv:TypeToBooleanConverter x:Key="TypeToBooleanConverter" />
     <conv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <conv:IsGuidEmptyConverter x:Key="IsGuidEmptyConverter" />
+    <conv:UserInitialsConverter x:Key="UserInitialsConverter" />
+    <conv:UserColorConverter x:Key="UserColorConverter" />
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
 </ResourceDictionary>

@@ -1,0 +1,51 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OCC.Shared.Models;
+using OCC.WpfClient.Services.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using OCC.WpfClient.Infrastructure;
+
+namespace OCC.WpfClient.Features.ProjectHub.ViewModels
+{
+    public partial class ProjectDetailViewModel : ViewModelBase
+    {
+        private readonly IProjectService _projectService;
+        private readonly ProjectSpecificDashboardViewModel _dashboardVM;
+        private readonly ProjectTasksViewModel _tasksVM;
+
+        [ObservableProperty] private Project? _project;
+        [ObservableProperty] private ViewModelBase _currentView;
+        [ObservableProperty] private Guid _projectId;
+
+        public ProjectDetailViewModel(IProjectService projectService, ProjectSpecificDashboardViewModel dashboardVM, ProjectTasksViewModel tasksVM)
+        {
+            _projectService = projectService;
+            _dashboardVM = dashboardVM;
+            _tasksVM = tasksVM;
+            _currentView = _dashboardVM;
+            Title = "Project Detail";
+        }
+
+        public async Task LoadProjectAsync(Guid projectId)
+        {
+            ProjectId = projectId;
+            Project = await _projectService.GetProjectAsync(projectId);
+            if (Project != null)
+            {
+                Title = Project.Name;
+                var tasks = await _projectService.GetProjectTasksAsync(projectId);
+                _dashboardVM.UpdateProjectData(Project, tasks);
+                _tasksVM.UpdateTasks(tasks);
+            }
+        }
+
+        [RelayCommand]
+        private void ShowDashboard() => CurrentView = _dashboardVM;
+
+        [RelayCommand]
+        private void ShowTasks() => CurrentView = _tasksVM;
+    }
+}

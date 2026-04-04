@@ -12,10 +12,11 @@ using OCC.WpfClient.Infrastructure.Messages;
 using OCC.WpfClient.Models;
 using OCC.Shared.DTOs;
 using System.Threading.Tasks;
+using OCC.WpfClient.Features.ProjectHub.ViewModels;
 
 namespace OCC.WpfClient.Features.Main.ViewModels
 {
-    public partial class MainViewModel : ViewModelBase, IRecipient<ToastNotificationMessage>, IRecipient<CloseHubMessage>, IRecipient<OpenHubMessage>
+    public partial class MainViewModel : ViewModelBase, IRecipient<ToastNotificationMessage>, IRecipient<CloseHubMessage>, IRecipient<OpenHubMessage>, IRecipient<OpenProjectMessage>
     {
         private readonly IPermissionService _permissionService;
         private readonly IAuthService _authService;
@@ -243,6 +244,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
             WeakReferenceMessenger.Default.Register<ToastNotificationMessage>(this);
             WeakReferenceMessenger.Default.Register<CloseHubMessage>(this);
             WeakReferenceMessenger.Default.Register<OpenHubMessage>(this);
+            WeakReferenceMessenger.Default.Register<OpenProjectMessage>(this);
             
             _signalRService.UserListUpdated += OnUserListUpdated;
             _ = _signalRService.StartAsync();
@@ -330,7 +332,7 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         [RelayCommand]
         private void ShowReportBug()
         {
-            var viewName = ActiveHub?.Title ?? "Main Shell";
+            var viewName = ActiveHub?.GetType().Name.Replace("ViewModel", "View") ?? "Main Shell";
             var viewModelType = Navigation.GetViewModelTypeForRoute("Support.ReportBug");
             if (viewModelType == null) return;
 
@@ -555,6 +557,24 @@ namespace OCC.WpfClient.Features.Main.ViewModels
         public void Receive(CloseHubMessage message)
         {
             CloseHub(message.Value);
+        }
+
+        public void Receive(OpenProjectMessage message)
+        {
+            var projectId = message.Value;
+            
+            // Check if already open
+            var existing = OpenHubs.OfType<ProjectDetailViewModel>().FirstOrDefault(p => p.ProjectId == projectId);
+            if (existing != null)
+            {
+                ActiveHub = existing;
+                return;
+            }
+
+            var hub = _serviceProvider.GetRequiredService<ProjectDetailViewModel>();
+            _ = hub.LoadProjectAsync(projectId);
+            OpenHubs.Add(hub);
+            ActiveHub = hub;
         }
 
         public void Receive(ToastNotificationMessage message)

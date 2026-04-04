@@ -23,6 +23,7 @@ using OCC.WpfClient.Features.AuthHub.ViewModels;
 using OCC.WpfClient.Features.Shell.ViewModels;
 using OCC.WpfClient.Features.CustomerHub;
 using OCC.WpfClient.Features.SettingsHub;
+using OCC.WpfClient.Features.ProjectHub;
 
 
 namespace OCC.WpfClient
@@ -117,6 +118,7 @@ namespace OCC.WpfClient
                 new SupportFeature(),
                 new CustomerFeature(),
                 new ProcurementFeature(),
+                new ProjectFeature(),
                 new SettingsFeature()
             };
 

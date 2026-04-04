@@ -29,6 +29,10 @@
         <Setter Property="ColumnWidth" Value="Auto" />
     </Style>
 
+    <Style x:Key="ModernDataGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
     <!-- Gripper Style for resizing -->
     <Style x:Key="DataGridColumnHeaderGripperStyle" TargetType="Thumb">
         <Setter Property="Width" Value="8" />
@@ -155,6 +159,16 @@
                 <Setter Property="FontWeight" Value="SemiBold" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <Style x:Key="DataGridTextStyle" TargetType="TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style x:Key="DataGridTextBoldStyle" TargetType="TextBlock" BasedOn="{StaticResource DataGridTextStyle}">
+        <Setter Property="FontWeight" Value="Bold"/>
     </Style>
 
 </ResourceDictionary>

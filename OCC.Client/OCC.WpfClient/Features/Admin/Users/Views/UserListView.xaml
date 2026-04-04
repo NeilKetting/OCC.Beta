@@ -19,7 +19,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Margin="5,10,5,5">
+    <Grid Margin="5,10,5,5" Background="{StaticResource AppBackground}">
         <!-- Main Background Content -->
         <Grid>
             <Grid.Style>
